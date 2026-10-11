@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { popoverOpen } from '@/lib/popover';
 import { nextTick, onBeforeUnmount, ref, useId, watch } from 'vue';
 import { X } from 'lucide-vue-next';
 
@@ -12,7 +13,7 @@ const focusables = () => Array.from(panel.value?.querySelectorAll<HTMLElement>('
 function onKey(e: KeyboardEvent) {
   if (!props.open) return;
   // an open dropdown (teleported to <body>) handles its own Esc and Tab first
-  if (document.querySelector('.ui-sel-pop')) return;
+  if (popoverOpen()) return;
   if (e.key === 'Escape' && props.dismissable) { e.stopPropagation(); emit('close'); }
   if (e.key === 'Tab') {
     const f = focusables(); if (!f.length) return;

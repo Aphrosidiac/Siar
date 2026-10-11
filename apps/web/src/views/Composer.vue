@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ImagePlus, Send, Save, CalendarClock, X, TriangleAlert, Film, FileText } from 'lucide-vue-next';
 import postSchema from 'virtual:post-schema';
@@ -190,6 +190,10 @@ watch(() => session.teamId, (n, o) => { if (o && n !== o && !editId.value) { for
 
 const tabs = computed(() => [{ value: 'main', label: 'Main' }, ...form.types.map((t) => ({ value: t, label: META[t].name, badge: Object.keys(netIssues(t)).length || (counter(t).over ? '!' : null), tone: 'danger' as const }))]);
 const submitLabel = computed(() => (form.when === 'now' ? 'Publish now' : form.when === 'draft' ? 'Save draft' : editId.value ? 'Update schedule' : 'Schedule post'));
+// a scheduled post can't be in the past; refreshed each minute so the picker's earliest time keeps up
+const earliest = ref(new Date().toISOString());
+const tick = window.setInterval(() => { earliest.value = new Date().toISOString(); }, 60_000);
+onBeforeUnmount(() => window.clearInterval(tick));
 </script>
 
 <template>
@@ -278,7 +282,7 @@ const submitLabel = computed(() => (form.when === 'now' ? 'Publish now' : form.w
                 <button type="button" :class="{ on: form.when === 'now' }" @click="form.when = 'now'">Publish now</button>
                 <button type="button" :class="{ on: form.when === 'draft' }" @click="form.when = 'draft'">Draft</button>
               </div>
-              <DateTimeInput v-if="form.when !== 'now'" v-model="form.date" :timezone="timezone" :label="form.when === 'draft' ? 'Planned for' : 'Publish at'" :error="issuesFor.by._schedule?.postDate" />
+              <DateTimeInput v-if="form.when !== 'now'" v-model="form.date" :timezone="timezone" :label="form.when === 'draft' ? 'Planned for' : 'Publish at'" :min="form.when === 'schedule' ? earliest : null" :error="issuesFor.by._schedule?.postDate" />
               <div v-else class="small muted">Goes out as soon as you confirm.</div>
               <Button variant="primary" block size="lg" :icon="form.when === 'now' ? Send : form.when === 'draft' ? Save : CalendarClock" :loading="saving" :disabled="locked || !form.types.length" @click="submit">{{ submitLabel }}</Button>
               <p v-if="!form.types.length" class="tiny muted">Pick a network to enable publishing.</p>

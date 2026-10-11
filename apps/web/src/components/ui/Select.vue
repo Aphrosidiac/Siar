@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, useId, watch } from 'vue';
+import { computed, nextTick, ref, useId, watch } from 'vue';
+import PopPanel from './PopPanel.vue';
+import { usePopover } from '@/lib/popover';
 
 /**
  * The one dropdown. A button + listbox popover (never a native <select>): teleported to <body>
@@ -46,25 +48,15 @@ const rows = computed<Option[]>(() => {
 });
 const isSel = (o: Option) => (empty(o.value) ? empty(props.modelValue) : String(o.value) === String(props.modelValue));
 
-const open = ref(false);
 const active = ref(-1);
 const trigger = ref<HTMLButtonElement | null>(null);
-const pop = ref<HTMLElement | null>(null);
+const panel = ref<InstanceType<typeof PopPanel> | null>(null);
 const listEl = ref<HTMLElement | null>(null);
 const search = ref<HTMLInputElement | null>(null);
-const pos = ref({ top: 0, left: 0, width: 0, maxH: 300, up: false });
-
-function place() {
-  const t = trigger.value; if (!t) return;
-  const r = t.getBoundingClientRect();
-  if (r.bottom < 0 || r.top > window.innerHeight) { close(false); return; }
-  const vw = document.documentElement.clientWidth; const vh = window.innerHeight;
-  const below = vh - r.bottom - 12; const above = r.top - 12;
-  const want = Math.min(320, rows.value.length * 36 + (canSearch.value ? 52 : 0) + 12);
-  const up = below < Math.min(want, 220) && above > below;
-  const width = Math.min(Math.max(r.width, 200), vw - 16);
-  pos.value = { top: up ? r.top - 6 : r.bottom + 6, left: Math.max(8, Math.min(r.left, vw - 8 - width)), width, maxH: Math.max(160, Math.min(320, up ? above : below)), up };
-}
+const { open, sheet, pos, place, show: openPop, close } = usePopover({
+  trigger, pop: computed(() => panel.value?.el),
+  height: () => Math.min(320, rows.value.length * 36 + (canSearch.value ? 52 : 0) + 12),
+});
 function firstEnabled(from: number, step: 1 | -1) {
   for (let i = from; i >= 0 && i < rows.value.length; i += step) if (!rows.value[i]!.disabled) return i;
   return -1;
@@ -74,16 +66,11 @@ function scrollActive() {
 }
 async function show() {
   if (props.disabled || open.value) return;
-  q.value = ''; open.value = true;
+  q.value = '';
   const cur = rows.value.findIndex(isSel);
   active.value = cur >= 0 ? cur : firstEnabled(0, 1);
-  await nextTick(); place(); scrollActive();
+  openPop(); await nextTick(); place(); scrollActive();
   if (canSearch.value && !matchMedia('(pointer: coarse)').matches) search.value?.focus();
-}
-function close(refocus = true) {
-  if (!open.value) return;
-  open.value = false;
-  if (refocus) trigger.value?.focus();
 }
 function choose(o: Option | undefined) {
   if (!o || o.disabled) return;
@@ -129,16 +116,6 @@ function onKey(e: KeyboardEvent) {
 }
 watch(q, () => { active.value = firstEnabled(0, 1); void nextTick(place); });
 
-const outside = (e: Event) => { const t = e.target as Node; if (trigger.value?.contains(t) || pop.value?.contains(t)) return; close(false); };
-const onScroll = (e: Event) => { if (pop.value?.contains(e.target as Node)) return; place(); };
-function listen(on: boolean) {
-  const m = on ? 'addEventListener' : 'removeEventListener';
-  document[m]('pointerdown', outside, true);
-  window[m]('scroll', onScroll, true);
-  window[m]('resize', place);
-}
-watch(open, listen);
-onBeforeUnmount(() => listen(false));
 </script>
 
 <template>
@@ -172,36 +149,32 @@ onBeforeUnmount(() => listen(false));
     </div>
     <span v-if="error || help" :class="error ? 'field-error' : 'field-help'">{{ error || help }}</span>
 
-    <Teleport to="body">
-      <Transition name="ui-sel-pop">
-        <div v-if="open" ref="pop" class="ui-sel-pop" :class="{ up: pos.up }" :style="{ top: `${pos.top}px`, left: `${pos.left}px`, width: `${pos.width}px`, maxHeight: `${pos.maxH}px` }">
-          <div v-if="canSearch" class="ui-sel-search">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-            <input ref="search" v-model="q" type="text" placeholder="Search…" aria-label="Filter options" :aria-controls="listId" autocomplete="off" @keydown="onKey" />
-          </div>
-          <ul :id="listId" ref="listEl" class="ui-sel-list" role="listbox" :aria-label="label">
-            <li
-              v-for="(o, i) in rows"
-              :id="`${listId}-${i}`"
-              :key="`${i}:${String(o.value)}`"
-              :data-i="i"
-              role="option"
-              class="ui-sel-opt"
-              :class="{ act: i === active, sel: isSel(o), dis: o.disabled, clear: empty(o.value) }"
-              :aria-selected="isSel(o)"
-              :aria-disabled="o.disabled || undefined"
-              @pointermove="!o.disabled && (active = i)"
-              @pointerdown.prevent
-              @click="choose(o)"
-            >
-              <span class="ui-sel-tx"><span class="ui-sel-l">{{ o.label }}</span><span v-if="o.sub" class="ui-sel-sub">{{ o.sub }}</span></span>
-              <svg v-if="isSel(o) && !empty(o.value)" class="ui-sel-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
-            </li>
-            <li v-if="!rows.length" class="ui-sel-none">{{ q ? 'No matches' : 'Nothing to choose' }}</li>
-          </ul>
-        </div>
-      </Transition>
-    </Teleport>
+    <PopPanel ref="panel" :open="open" :pos="pos" :sheet="sheet" :title="label ?? placeholder" @close="close()">
+      <div v-if="canSearch" class="ui-sel-search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+        <input ref="search" v-model="q" type="text" placeholder="Search…" aria-label="Filter options" :aria-controls="listId" autocomplete="off" @keydown="onKey" />
+      </div>
+      <ul :id="listId" ref="listEl" class="ui-sel-list" role="listbox" :aria-label="label">
+        <li
+          v-for="(o, i) in rows"
+          :id="`${listId}-${i}`"
+          :key="`${i}:${String(o.value)}`"
+          :data-i="i"
+          role="option"
+          class="ui-sel-opt"
+          :class="{ act: i === active, sel: isSel(o), dis: o.disabled, clear: empty(o.value) }"
+          :aria-selected="isSel(o)"
+          :aria-disabled="o.disabled || undefined"
+          @pointermove="!o.disabled && (active = i)"
+          @pointerdown.prevent
+          @click="choose(o)"
+        >
+          <span class="ui-sel-tx"><span class="ui-sel-l">{{ o.label }}</span><span v-if="o.sub" class="ui-sel-sub">{{ o.sub }}</span></span>
+          <svg v-if="isSel(o) && !empty(o.value)" class="ui-sel-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+        </li>
+        <li v-if="!rows.length" class="ui-sel-none">{{ q ? 'No matches' : 'Nothing to choose' }}</li>
+      </ul>
+    </PopPanel>
   </div>
 </template>
 
@@ -219,8 +192,6 @@ onBeforeUnmount(() => listen(false));
 
 <!-- the popover lives under <body>, so its styles are global (prefixed) -->
 <style>
-.ui-sel-pop { position: fixed; z-index: calc(var(--z-modal) + 50); display: flex; flex-direction: column; border-radius: var(--radius-lg); background: var(--bg-elevated); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; }
-.ui-sel-pop.up { transform: translateY(-100%); }
 .ui-sel-search { display: flex; align-items: center; gap: 8px; padding: 0 12px; height: 44px; flex: none; border-bottom: 1px solid var(--border-soft); color: var(--text-subtle); }
 .ui-sel-search input { flex: 1; min-width: 0; border: 0; background: none; outline: none; color: var(--text); font: inherit; font-size: var(--fs-14); }
 .ui-sel-list { list-style: none; margin: 0; padding: 4px; overflow-y: auto; overscroll-behavior: contain; }
@@ -234,11 +205,6 @@ onBeforeUnmount(() => listen(false));
 .ui-sel-sub { font-size: var(--fs-12); color: var(--text-subtle); font-weight: 400; }
 .ui-sel-check { flex: none; }
 .ui-sel-none { padding: 10px; font-size: var(--fs-13); color: var(--text-subtle); }
-.ui-sel-pop-enter-active { transition: opacity 140ms, translate 180ms var(--ease-out); }
-.ui-sel-pop-leave-active { transition: opacity 100ms; }
-.ui-sel-pop-enter-from { opacity: 0; translate: 0 -4px; }
-.ui-sel-pop.up.ui-sel-pop-enter-from { translate: 0 4px; }
-.ui-sel-pop-leave-to { opacity: 0; }
 @media (pointer: coarse) { .ui-sel-opt { min-height: 44px; } }
-@media (prefers-reduced-motion: reduce) { .ui-sel-pop-enter-active, .ui-sel-pop-leave-active { transition: none; } }
+.ui-pop.sheet .ui-sel-list { padding: 6px 8px 12px; }
 </style>
