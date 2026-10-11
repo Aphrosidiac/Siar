@@ -2,7 +2,7 @@
 import { handle } from '@/lib/format';
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Link2, MoreHorizontal, RefreshCw, TriangleAlert, Unplug, Plug, Activity, Mail, ExternalLink } from 'lucide-vue-next';
+import { Link2, MoreHorizontal, Plus, RefreshCw, TriangleAlert, Unplug, Plug, Activity, Mail, ExternalLink } from 'lucide-vue-next';
 import PageHead from '@/components/PageHead.vue';
 import NoTeam from '@/components/NoTeam.vue';
 import NetworkIcon from '@/components/NetworkIcon.vue';
@@ -25,6 +25,7 @@ import type { NetworkType, SocialAccount } from '@/lib/types';
 const route = useRoute(); const router = useRouter();
 const accounts = computed(() => new Map((currentTeam.value?.socialAccounts ?? []).map((a) => [a.type, a])));
 const connected = computed(() => NETWORKS.filter((n) => accounts.value.has(n.type)));
+const rows = computed(() => connected.value.map((n) => ({ n, a: accounts.value.get(n.type)! })));
 const available = computed(() => NETWORKS.filter((n) => !accounts.value.has(n.type)));
 const busy = ref<string | null>(null);
 
@@ -146,52 +147,53 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
         <Button size="sm" variant="primary" :loading="busy === 'requeue'" @click="requeue">Re-queue</Button>
         <Button size="sm" variant="ghost" @click="retryOffer = null">Not now</Button>
       </div>
-      <section v-if="connected.length" class="sec">
-        <div class="label sec-h">Connected <span class="num">{{ connected.length }}</span></div>
-        <div class="list">
-          <article v-for="n in connected" :key="n.type" class="acc" :class="{ bad: accounts.get(n.type)!.connectionState === 'NEEDS_RECONNECT' }">
-            <div class="acc-head">
-              <NetworkIcon :type="n.type" :size="36" :title="false" />
-              <div class="who">
-                <div class="row gap-4"><span class="net">{{ n.name }}</span><span class="muted small">·</span><span class="small muted truncate">{{ accounts.get(n.type)!.username ? handle(accounts.get(n.type)!.username) : '' }}</span></div>
-                <div class="row" style="gap: 6px"><Avatar :src="accounts.get(n.type)!.avatarUrl" :name="accounts.get(n.type)!.displayName ?? accounts.get(n.type)!.username" :size="18" /><span class="small truncate">{{ accounts.get(n.type)!.displayName ?? accounts.get(n.type)!.username }}</span></div>
-              </div>
-              <Badge v-if="accounts.get(n.type)!.connectionState === 'NEEDS_RECONNECT'" tone="danger" dot>Needs reconnect</Badge>
-              <Dropdown v-if="accounts.get(n.type)" align="right">
-                <template #trigger="{ toggle }"><Button iconOnly label="Account actions" variant="ghost" size="sm" :icon="MoreHorizontal" @click="toggle" /></template>
-                <button type="button" class="menu-item" data-close @click="check(accounts.get(n.type)!)"><Activity :size="14" />Check connection</button>
-                <button type="button" class="menu-item" data-close @click="profile(accounts.get(n.type)!)"><RefreshCw :size="14" />Refresh profile</button>
-                <button v-if="SET_CHANNEL_TYPES.includes(n.type) && accounts.get(n.type)!.channelId" type="button" class="menu-item" data-close @click="unsetChannel(accounts.get(n.type)!)"><Unplug :size="14" />Clear {{ n.channelNoun }}</button>
-                <button v-if="n.type === 'FACEBOOK' || n.type === 'INSTAGRAM'" type="button" class="menu-item" data-close @click="toggleMessaging(accounts.get(n.type)!)"><Mail :size="14" />{{ accounts.get(n.type)!.messagingStatus === 'ENABLED' ? 'Disable' : 'Enable' }} inbox messaging</button>
-                <button type="button" class="menu-item" data-close @click="startConnect(n.type)"><Plug :size="14" />Reconnect</button>
-                <div class="menu-sep" />
-                <button v-if="isAdmin" type="button" class="menu-item danger" data-close @click="disconnect(accounts.get(n.type)!)"><Unplug :size="14" />Disconnect</button>
-              </Dropdown>
+      <section v-if="rows.length" class="sec">
+        <div class="grid-head label"><span /><span>Network</span><span>Account</span><span>Posts to</span><span>Status</span><span /></div>
+        <article v-for="{ n, a } in rows" :key="n.type" class="acc">
+          <NetworkIcon :type="n.type" :size="30" :title="false" />
+          <div class="cell"><div class="net">{{ n.name }}</div><div class="tiny muted truncate">{{ a.username ? handle(a.username) : '' }}</div></div>
+          <div class="cell row" style="gap: 8px"><Avatar :src="a.avatarUrl" :name="a.displayName ?? a.username" :size="22" /><span class="truncate">{{ a.displayName ?? a.username }}</span></div>
+          <div class="cell row" :class="{ nochan: !SET_CHANNEL_TYPES.includes(n.type) }" style="gap: 8px">
+            <template v-if="SET_CHANNEL_TYPES.includes(n.type)">
+              <span v-if="a.channelId" class="truncate">{{ a.channels?.find((c) => c.id === a.channelId)?.name ?? a.channelId }}</span>
+              <span v-else class="muted truncate">No {{ n.channelNoun }} chosen</span>
+              <button type="button" class="link-btn small nowrap" @click="openChannel(a)">{{ a.channelId ? 'Change' : 'Choose' }}</button>
+            </template>
+            <span v-else class="faint">—</span>
+          </div>
+          <div class="cell">
+            <Badge v-if="a.connectionState === 'NEEDS_RECONNECT'" tone="danger" size="sm">Needs reconnect</Badge>
+            <Badge v-else-if="needsChannel(a)" tone="warn" size="sm">Choose a {{ n.channelNoun }}</Badge>
+            <Badge v-else-if="a.deleteOn" tone="warn" size="sm">Removal pending</Badge>
+            <Badge v-else tone="success" size="sm">Connected</Badge>
+          </div>
+          <Dropdown align="right">
+            <template #trigger="{ toggle }"><Button iconOnly label="Account actions" variant="ghost" size="sm" :icon="MoreHorizontal" @click="toggle" /></template>
+            <button type="button" class="menu-item" data-close @click="check(a)"><Activity :size="14" />Check connection</button>
+            <button type="button" class="menu-item" data-close @click="profile(a)"><RefreshCw :size="14" />Refresh profile</button>
+            <button v-if="SET_CHANNEL_TYPES.includes(n.type) && a.channelId" type="button" class="menu-item" data-close @click="unsetChannel(a)"><Unplug :size="14" />Clear {{ n.channelNoun }}</button>
+            <button v-if="n.type === 'FACEBOOK' || n.type === 'INSTAGRAM'" type="button" class="menu-item" data-close @click="toggleMessaging(a)"><Mail :size="14" />{{ a.messagingStatus === 'ENABLED' ? 'Disable' : 'Enable' }} inbox messaging</button>
+            <button type="button" class="menu-item" data-close @click="startConnect(n.type)"><Plug :size="14" />Reconnect</button>
+            <div class="menu-sep" />
+            <button v-if="isAdmin" type="button" class="menu-item danger" data-close @click="disconnect(a)"><Unplug :size="14" />Disconnect</button>
+          </Dropdown>
+          <div v-if="a.connectionState === 'NEEDS_RECONNECT' || a.deleteOn" class="alert">
+            <div v-if="a.connectionState === 'NEEDS_RECONNECT'" class="callout danger small">
+              <TriangleAlert :size="16" /><div class="grow">{{ a.connectionStateReason || 'The network rejected our access. Posts to this account will fail until you reconnect.' }}</div>
+              <Button variant="primary" size="sm" :loading="busy === n.type" @click="startConnect(n.type)">Reconnect</Button>
             </div>
-            <div class="acc-body">
-            <div v-if="accounts.get(n.type)!.connectionState === 'NEEDS_RECONNECT'" class="callout danger small">
-              <TriangleAlert :size="16" /><div class="grow">{{ accounts.get(n.type)!.connectionStateReason || 'The network rejected our access. Posts to this account will fail until you reconnect.' }}</div>
-            </div>
-            <div v-if="accounts.get(n.type)!.deleteOn" class="callout warn small"><div>Scheduled for removal on {{ new Date(accounts.get(n.type)!.deleteOn!).toLocaleDateString('en-GB') }} unless reconnected.</div></div>
-            <div v-if="SET_CHANNEL_TYPES.includes(n.type)" class="row small">
-              <span v-if="needsChannel(accounts.get(n.type)!)" class="danger-text grow">Choose a {{ n.channelNoun }} to post to.</span>
-              <span v-else-if="accounts.get(n.type)!.channelId" class="muted grow truncate">{{ n.channelNoun[0]!.toUpperCase() + n.channelNoun.slice(1) }}: {{ accounts.get(n.type)!.channels?.find((c) => c.id === accounts.get(n.type)!.channelId)?.name ?? accounts.get(n.type)!.channelId }}</span>
-              <span v-else class="muted grow">No {{ n.channelNoun }} chosen</span>
-              <Button size="sm" :variant="needsChannel(accounts.get(n.type)!) ? 'primary' : 'secondary'" @click="openChannel(accounts.get(n.type)!)">{{ accounts.get(n.type)!.channelId ? 'Change' : 'Choose' }}</Button>
-            </div>
-            <div v-if="accounts.get(n.type)!.connectionState === 'NEEDS_RECONNECT'" class="row"><Button variant="primary" size="sm" :loading="busy === n.type" @click="startConnect(n.type)">Reconnect {{ n.name }}</Button></div>
-            </div>
-          </article>
-        </div>
+            <div v-else class="callout warn small"><div>Scheduled for removal on {{ new Date(a.deleteOn!).toLocaleDateString('en-GB') }} unless reconnected.</div></div>
+          </div>
+        </article>
       </section>
       <section class="sec">
         <div class="label sec-h">{{ connected.length ? 'Add a network' : 'Networks' }} <span class="num">{{ available.length }}</span></div>
         <div class="list avail">
-          <div v-for="n in available" :key="n.type" class="av-row">
-            <NetworkIcon :type="n.type" :size="32" :title="false" />
-            <div class="grow"><div class="net">{{ n.name }}</div><div class="small muted truncate">{{ n.blurb }}</div></div>
-            <Button variant="secondary" size="sm" :loading="busy === n.type" @click="startConnect(n.type)">Connect</Button>
-          </div>
+          <button v-for="n in available" :key="n.type" type="button" class="av-row" :disabled="busy === n.type" @click="startConnect(n.type)">
+            <NetworkIcon :type="n.type" :size="28" :title="false" />
+            <span class="grow"><span class="net d-block">{{ n.name }}</span><span class="tiny muted truncate d-block">{{ n.blurb }}</span></span>
+            <Plus :size="16" class="plus" />
+          </button>
         </div>
       </section>
     </template>
@@ -239,19 +241,34 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
 </template>
 
 <style scoped>
-.sec + .sec { margin-top: 36px; }
+.sec + .sec { margin-top: 40px; }
 .sec-h { display: flex; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--text); }
 .sec-h .num { color: var(--text-faint); }
-.list { display: flex; flex-direction: column; }
-.acc { padding: 18px 0; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; }
-.acc-head { display: flex; align-items: center; gap: 14px; }
-.who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-.net { font-weight: 500; font-size: var(--fs-15); line-height: 22px; }
-.acc-body { display: flex; flex-direction: column; gap: 10px; padding-left: 50px; }
-.acc-body:empty { display: none; }
-.avail { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; }
-.av-row { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); min-width: 0; }
-@media (max-width: 760px) { .avail { grid-template-columns: minmax(0, 1fr); } .acc-body { padding-left: 0; } }
+.d-block { display: block; }
+.grid-head, .acc { display: grid; grid-template-columns: 30px minmax(130px, 1fr) minmax(150px, 1.2fr) minmax(180px, 1.5fr) 150px 32px; column-gap: 16px; align-items: center; }
+.grid-head { padding: 0 4px 10px; border-bottom: 1px solid var(--text); }
+.acc { padding: 10px 4px; border-bottom: 1px solid var(--border-soft); min-height: 58px; transition: background 180ms; }
+.acc:hover { background: var(--bg-hover); }
+.cell { min-width: 0; }
+.net { font-weight: 500; line-height: 20px; }
+.alert { grid-column: 2 / -1; margin-top: 8px; }
+.alert .callout { align-items: center; }
+.avail { margin-top: 14px; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; }
+.av-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-elevated); min-width: 0; text-align: left; color: var(--text); cursor: pointer; transition: border-color 200ms, transform 300ms var(--ease-out), box-shadow 300ms var(--ease-out); }
+.av-row:hover:not(:disabled) { border-color: var(--text); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+.av-row:disabled { opacity: .5; cursor: progress; }
+.plus { color: var(--text-subtle); flex: none; }
+.av-row:hover .plus { color: var(--text); }
+@media (max-width: 900px) {
+  .grid-head { display: none; }
+  .acc { grid-template-columns: 30px minmax(0, 1fr) auto 32px; row-gap: 4px; }
+  .acc > :first-child { grid-row: 1; grid-column: 1; }
+  .acc > .cell:nth-of-type(1) { grid-row: 1; grid-column: 2; }
+  .acc > .cell:nth-of-type(2), .acc > .cell:nth-of-type(3) { grid-column: 2 / 5; }
+  .acc > .cell:nth-of-type(4) { grid-row: 1; grid-column: 3; }
+  .acc > :deep(.dd) { grid-row: 1; grid-column: 4; }
+  .nochan { display: none; }
+}
 .chan { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: background var(--t-micro), border-color var(--t-micro); }
 .chan:hover { background: var(--bg-hover); }
 .chan.on { border-color: var(--text); background: var(--bg-hover); }
