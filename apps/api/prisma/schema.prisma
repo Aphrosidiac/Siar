@@ -1,0 +1,1313 @@
+// Siar — unified social media API (FF DEV STUDIO).
+//
+// Rules the model rests on (docs/PLAN.md §3, §5):
+//   * Tenancy: Organization → Team ("social set") → at most one live SocialAccount per network
+//     per team. API keys, plan, quotas and X credit belong to the Organization.
+//   * Field names follow the public API (wire-compatible with bundle.social v1), so a row
+//     serialises to its API shape with almost no mapping.
+//   * PostSocialAccount is both the API's join row and the publish target: per-network status,
+//     lock, attempts and the external ids live there. Post.status is derived from it.
+//   * Network tokens are AES-256-GCM ciphertext (platform/crypto.ts). Never logged or returned.
+//   * Money: subscription amounts in integer cents, X credit in integer micro-USD. Credit is an
+//     append-only ledger; CreditAccount.balanceMicros == SUM(CreditLedger.deltaMicros).
+//   * Time: timestamptz, UTC. Daily caps use the UTC calendar day.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum SocialAccountType {
+  TIKTOK
+  YOUTUBE
+  INSTAGRAM
+  FACEBOOK
+  TWITTER
+  THREADS
+  LINKEDIN
+  PINTEREST
+  REDDIT
+  MASTODON
+  DISCORD
+  SLACK
+  BLUESKY
+  GOOGLE_BUSINESS
+  SNAPCHAT
+}
+
+// ───────────────────────────── identity ─────────────────────────────
+
+enum UserRole {
+  ADMIN
+  CUSTOMER
+}
+
+model User {
+  id            String    @id @default(uuid(7))
+  externalId    String    @unique @default(uuid(7))
+  email         String    @unique
+  emailVerified DateTime?
+  passwordHash  String?
+  firstName     String?
+  lastName      String?
+  avatarUrl     String?
+  timezone      String?
+  /// ADMIN = Siar staff (FF). Customers are CUSTOMER.
+  role          UserRole  @default(CUSTOMER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  memberships   OrganizationMember[]
+  sessions      Session[]
+  authTokens    AuthToken[]
+  notifications Notification[]
+  createdOrgs   Organization[]       @relation("OrgCreatedBy")
+  createdTeams  Team[]               @relation("TeamCreatedBy")
+}
+
+model Session {
+  /// sha256 of the cookie value.
+  id             String   @id
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String?
+  userAgent      String?
+  ip             String?
+  expiresAt      DateTime
+  revokedAt      DateTime?
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+enum AuthTokenKind {
+  VERIFY_EMAIL
+  RESET_PASSWORD
+}
+
+model AuthToken {
+  /// sha256 of the token in the emailed link.
+  id        String        @id
+  kind      AuthTokenKind
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime      @default(now())
+}
+
+// ───────────────────────────── organization ─────────────────────────────
+
+enum PlanTier {
+  FREE
+  PRO
+  BUSINESS
+  ENTERPRISE
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model Organization {
+  id                    String    @id @default(uuid(7))
+  createdById           String
+  createdBy             User      @relation("OrgCreatedBy", fields: [createdById], references: [id])
+  promotionCodeId       String?
+  name                  String?
+  avatarUrl             String?
+  ref                   String?
+  tier                  PlanTier  @default(FREE)
+  /// Per-organization overrides (Enterprise). Null = the plan's value (domain/plans.ts).
+  dailyPostLimit        Json?
+  dailyCommentLimit     Json?
+  monthlyPostLimit      Int?
+  monthlyCommentLimit   Int?
+  monthlyUploadLimit    Int?
+  monthlyImportLimitPerAccount              Int?
+  commentImportLimitPerPost                 Int?
+  monthlyReviewImportLimitPerAccount        Int?
+  monthlyMessageLimitPerAccount             Int?
+  monthlyAutomationExecutionLimitPerAccount Int?
+  rateLimitMultiplier   Int       @default(1)
+  apiAccess             Boolean   @default(true)
+  analyticsDisabled     Boolean   @default(false)
+  analyticsPostsDisabled Boolean  @default(false)
+  uploadsCompressionEnabled Boolean @default(true)
+  analyticsInterval     Int?
+  analyticsPostsInterval Int?
+  forcedAccountAnalyticsDailyLimit Int?
+  forcedPostAnalyticsDailyLimit    Int?
+  showVerboseErrors     Boolean   @default(false)
+  disconnectCheckEnabled Boolean  @default(true)
+  /// Hours to keep a disconnected social account before deleting it (0–168).
+  deleteAccountAfter    Int       @default(72)
+  messagingEnabled      Boolean   @default(false)
+  suspended             Boolean   @default(false)
+  trialEndsAt           DateTime?
+  billingEmail          String?
+  stripeCustomerId      String?   @unique
+  chipClientId          String?   @unique
+  /// Hosted connect portal branding.
+  portalBrandName       String?
+  portalLogoUrl         String?
+  portalAccentColor     String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  deletedAt             DateTime?
+
+  members         OrganizationMember[]
+  invitations     Invitation[]
+  teams           Team[]
+  apiKeys         ApiKey[]
+  webhooks        Webhook[]
+  subscription    Subscription?
+  invoices        BillingInvoice[]
+  creditAccount   CreditAccount?
+  creditLedger    CreditLedger[]
+  creditHolds     CreditHold[]
+  payments        BillingPayment[]
+  uploads         Upload[]
+  posts           Post[]
+  auditLogs       AuditLog[]
+  csvImports      CsvImport[]
+  portalLinks     PortalLink[]
+}
+
+model OrganizationMember {
+  id             String       @id @default(uuid(7))
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           MemberRole   @default(MEMBER)
+  createdAt      DateTime     @default(now())
+
+  @@unique([organizationId, userId])
+}
+
+model Invitation {
+  id             String       @id @default(uuid(7))
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email          String
+  role           MemberRole   @default(MEMBER)
+  tokenHash      String       @unique
+  invitedById    String?
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+}
+
+model ApiKey {
+  id             String       @id @default(uuid(7))
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  /// First characters of the key, shown in lists ("sk_live_3f9a…").
+  prefix         String
+  hash           String       @unique
+  createdById    String?
+  lastUsedAt     DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+}
+
+// ───────────────────────────── billing ─────────────────────────────
+
+enum BillingProvider {
+  STRIPE
+  CHIP
+  MOCK
+}
+
+enum BillingInterval {
+  MONTHLY
+  YEARLY
+}
+
+model Subscription {
+  id                     String          @id @default(uuid(7))
+  organizationId         String          @unique
+  organization           Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  provider               BillingProvider
+  /// Stripe subscription id, or our own id for CHIP (we run CHIP renewals ourselves).
+  providerSubscriptionId String?         @unique
+  providerCustomerId     String?
+  /// CHIP saved-card token used for renewals.
+  providerPaymentToken   String?
+  status                 String
+  tier                   PlanTier
+  billingInterval        BillingInterval
+  currency               String          @default("usd")
+  unitAmountCents        Int
+  couponId               String?
+  promotionCodeId        String?
+  isCustomPrice          Boolean         @default(false)
+  customPriceLabel       String?
+  currentPeriodStart     DateTime?
+  currentPeriodEnd       DateTime?
+  trialEnd               DateTime?
+  cancelAtPeriodEnd      Boolean         @default(false)
+  canceledAt             DateTime?
+  failedAttempts         Int             @default(0)
+  nextRetryAt            DateTime?
+  metadata               Json?
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+}
+
+model BillingInvoice {
+  id                String          @id @default(uuid(7))
+  organizationId    String
+  organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  provider          BillingProvider
+  providerInvoiceId String?
+  number            String          @unique
+  description       String
+  amountCents       Int
+  currency          String          @default("usd")
+  status            String
+  pdfUrl            String?
+  hostedUrl         String?
+  periodStart       DateTime?
+  periodEnd         DateTime?
+  paidAt            DateTime?
+  createdAt         DateTime        @default(now())
+
+  @@unique([provider, providerInvoiceId])
+  @@index([organizationId, createdAt])
+}
+
+enum PaymentPurpose {
+  SUBSCRIPTION
+  CREDIT_TOPUP
+}
+
+/// A checkout we started (top-up or plan). Settled once by the provider callback.
+model BillingPayment {
+  id                String          @id @default(uuid(7))
+  organizationId    String
+  organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  provider          BillingProvider
+  purpose           PaymentPurpose
+  providerRef       String?         @unique
+  amountCents       Int
+  currency          String          @default("usd")
+  status            String          @default("PENDING")
+  tier              PlanTier?
+  billingInterval   BillingInterval?
+  settledAt         DateTime?
+  createdAt         DateTime        @default(now())
+}
+
+model CreditAccount {
+  organizationId           String       @id
+  organization             Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  /// Always equals SUM(CreditLedger.deltaMicros) for the organization.
+  balanceMicros            BigInt       @default(0)
+  /// Sum of HELD CreditHold rows.
+  heldMicros               BigInt       @default(0)
+  lowBalanceThresholdMicros BigInt?     @default(2000000)
+  lowBalanceNotifiedAt     DateTime?
+  exhaustedNotifiedAt      DateTime?
+  updatedAt                DateTime     @updatedAt
+}
+
+enum CreditReason {
+  TOPUP
+  CHARGE
+  REFUND
+  ADJUSTMENT
+}
+
+model CreditLedger {
+  id             String       @id @default(uuid(7))
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  deltaMicros    BigInt
+  reason         CreditReason
+  action         String?
+  refType        String?
+  refId          String?
+  note           String?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+}
+
+enum CreditHoldStatus {
+  HELD
+  CAPTURED
+  RELEASED
+}
+
+/// Reserved before a metered X call, captured (charged) or released after it.
+model CreditHold {
+  id             String           @id @default(uuid(7))
+  organizationId String
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  action         String
+  amountMicros   BigInt
+  status         CreditHoldStatus @default(HELD)
+  refType        String?
+  refId          String?
+  createdAt      DateTime         @default(now())
+  settledAt      DateTime?
+
+  @@index([organizationId, status])
+}
+
+// ───────────────────────────── teams & accounts ─────────────────────────────
+
+model Team {
+  id             String       @id @default(uuid(7))
+  name           String
+  avatarUrl      String?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdById    String
+  createdBy      User         @relation("TeamCreatedBy", fields: [createdById], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  bots           Bot[]
+  socialAccounts SocialAccount[]
+  bio            Bio?
+  posts          Post[]
+
+  @@index([organizationId, deletedAt])
+}
+
+model Bot {
+  id        String    @id @default(uuid(7))
+  name      String
+  avatarUrl String?
+  teamId    String
+  team      Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+enum InstagramConnectionMethod {
+  FACEBOOK
+  INSTAGRAM
+}
+
+enum MessagingStatus {
+  DISABLED
+  ENABLED
+  DISABLE_PENDING
+}
+
+enum ConnectionState {
+  CONNECTED
+  NEEDS_RECONNECT
+  DISCONNECTED
+}
+
+model SocialAccount {
+  id                        String            @id @default(uuid(7))
+  type                      SocialAccountType
+  teamId                    String
+  team                      Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  username                  String?
+  displayName               String?
+  bio                       String?
+  avatarUrl                 String?
+  /// The network's id for the posting identity (page/channel/board/location once set).
+  externalId                String?
+  /// The network's id of the connected *user* (stable across channels). Daily caps key on type + this.
+  providerPageId            String?
+  userUsername              String?
+  userDisplayName           String?
+  userEmail                 String?
+  userId                    String?
+  /// Selectable channels returned by the network: pages, orgs, boards, locations, guild channels…
+  channels                  Json?
+  /// The selected channel id (page/org/board/location/guild channel) — internal.
+  channelId                 String?
+  mastodonServerId          String?
+  mastodonServer            MastodonServer?   @relation(fields: [mastodonServerId], references: [id])
+  /// Custom PDS/entryway for Bluesky.
+  serverUrl                 String?
+  instagramConnectionMethod InstagramConnectionMethod?
+  twitterSubType            String?
+  isTiktokBusinessAccount   Boolean?
+  disconnectedCheckTryAt    DateTime?
+  deleteOn                  DateTime?
+  messagingStatus           MessagingStatus   @default(DISABLED)
+  messagingStatusUpdatedAt  DateTime?
+  messagingLastError        String?
+  // ── internal ──
+  state                     ConnectionState   @default(CONNECTED)
+  stateReason               String?
+  accessTokenEnc            String?
+  refreshTokenEnc           String?
+  /// Extra secrets some networks need (page tokens, app passwords, webhook urls), encrypted JSON.
+  secretsEnc                String?
+  tokenExpiresAt            DateTime?
+  refreshTokenExpiresAt     DateTime?
+  scopes                    String[]
+  lastRefreshedAt           DateTime?
+  lastCheckedAt             DateTime?
+  profileRefreshedAt        DateTime?
+  analyticsRefreshedAt      DateTime?
+  createdAt                 DateTime          @default(now())
+  updatedAt                 DateTime          @updatedAt
+  deletedAt                 DateTime?
+
+  posts                     PostSocialAccount[]
+  profilePosts              ProfilePost[]
+  analytics                 SocialAccountAnalytics[]
+  conversations             Conversation[]
+  providerSettings          AutomationProviderSetting[]
+
+  // One live account per network per team is a partial unique index (migration SQL):
+  //   CREATE UNIQUE INDEX "SocialAccount_team_type_live" ON "SocialAccount"("teamId","type") WHERE "deletedAt" IS NULL;
+  @@index([teamId, type])
+  @@index([type, providerPageId])
+  @@index([state, tokenExpiresAt])
+}
+
+model MastodonServer {
+  id              String          @id @default(uuid(7))
+  url             String          @unique
+  clientId        String
+  clientSecretEnc String
+  createdAt       DateTime        @default(now())
+  accounts        SocialAccount[]
+}
+
+/// One OAuth round trip in flight. `state` is the random token sent to the network.
+model OAuthState {
+  state          String            @id
+  organizationId String
+  teamId         String
+  type           SocialAccountType
+  redirectUrl    String?
+  codeVerifier   String?
+  serverUrl      String?
+  portalLinkId   String?
+  /// Reconnect an existing account instead of creating a new one.
+  socialAccountId String?
+  extra          Json?
+  expiresAt      DateTime
+  usedAt         DateTime?
+  createdAt      DateTime          @default(now())
+}
+
+model PortalLink {
+  id             String       @id @default(uuid(7))
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  teamId         String
+  tokenHash      String       @unique
+  allowedTypes   SocialAccountType[]
+  redirectUrl    String?
+  logoUrl        String?
+  brandName      String?
+  accentColor    String?
+  language       String?
+  expiresAt      DateTime
+  createdAt      DateTime     @default(now())
+}
+
+// ───────────────────────────── media ─────────────────────────────
+
+enum UploadType {
+  image
+  video
+  document
+}
+
+model Upload {
+  id             String       @id @default(uuid(7))
+  teamId         String?
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  iconPath       String?
+  thumbnailPath  String?
+  path           String?
+  externalLink   String?
+  type           UploadType
+  width          Int?
+  height         Int?
+  fileSize       Int?
+  /// Seconds.
+  videoLength    Float?
+  mime           String?
+  ext            String?
+  originalName   String?
+  sha256         String?
+  /// READY once probed (and transcoded when needed).
+  status         String       @default("READY")
+  lastUsedAt     DateTime     @default(now())
+  /// Set while attached to a draft/scheduled post — retention never removes those.
+  pinned         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  purgedAt       DateTime?
+
+  posts          PostUpload[]
+
+  @@index([organizationId, teamId, deletedAt])
+  @@index([lastUsedAt])
+}
+
+/// A large or multipart upload in progress (init → parts → finalize/complete).
+model UploadSession {
+  id             String    @id @default(uuid(7))
+  organizationId String
+  teamId         String?
+  fileName       String
+  mime           String
+  fileSize       Int?
+  storageKey     String
+  s3UploadId     String?
+  status         String    @default("OPEN")
+  uploadId       String?
+  expiresAt      DateTime
+  createdAt      DateTime  @default(now())
+}
+
+// ───────────────────────────── posts ─────────────────────────────
+
+enum PostStatus {
+  DRAFT
+  SCHEDULED
+  POSTED
+  ERROR
+  DELETED
+  PROCESSING
+  REVIEW
+  RETRYING
+}
+
+enum CreatedVia {
+  API
+  DASHBOARD
+  CSV
+  MCP
+}
+
+model Post {
+  id             String       @id @default(uuid(7))
+  teamId         String
+  team           Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  title          String
+  referenceKey   String?
+  postDate       DateTime?
+  postedDate     DateTime?
+  status         PostStatus   @default(DRAFT)
+  /// Per-network payload as sent ({ INSTAGRAM: {...}, LINKEDIN: {...} }).
+  data           Json
+  firstComment   Json?
+  /// Per-network maps rendered from PostSocialAccount by the engine (same transaction).
+  error          String?
+  errors         Json?
+  errorsVerbose  Json?
+  externalData   Json?
+  retryCount     Int          @default(0)
+  /// When the monthly quota counted this post (the clock starts on leaving DRAFT).
+  countedAt      DateTime?
+  createdVia     CreatedVia   @default(API)
+  createdById    String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  uploads        PostUpload[]
+  socialAccounts PostSocialAccount[]
+  comments       Comment[]
+
+  @@unique([organizationId, referenceKey])
+  @@index([teamId, postDate])
+  @@index([status, postDate])
+  @@index([organizationId, createdAt])
+}
+
+model PostUpload {
+  postId    String
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  uploadId  String
+  upload    Upload    @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@id([postId, uploadId])
+}
+
+enum TargetStatus {
+  PENDING
+  PROCESSING
+  REVIEW
+  POSTED
+  ERROR
+  DELETED
+}
+
+/// The API's post↔account join row, and the per-network publish target.
+model PostSocialAccount {
+  postId                  String
+  post                    Post              @relation(fields: [postId], references: [id], onDelete: Cascade)
+  socialAccountId         String
+  socialAccount           SocialAccount     @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
+  type                    SocialAccountType
+  externalPostId          String?
+  externalAlternatePostId String?
+  externalVideoId         String?
+  // ── internal ──
+  targetStatus            TargetStatus      @default(PENDING)
+  /// Set when a worker claims the target; a different attempt id means another worker owns it.
+  attemptId               String?
+  claimedAt               DateTime?
+  attempts                Int               @default(0)
+  /// Network-side async job (IG container, TikTok publish id, YouTube upload) to poll.
+  pendingRef              String?
+  pollCount               Int               @default(0)
+  nextPollAt              DateTime?
+  /// sha256 of the content, used to reconcile a crash between the network call and the save.
+  contentHash             String?
+  permalink               String?
+  publishedAt             DateTime?
+  error                   Json?
+  externalData            Json?
+  firstCommentStatus      String?
+  firstCommentExternalId  String?
+  creditHoldId            String?
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+  deletedAt               DateTime?
+
+  @@id([postId, socialAccountId])
+  @@index([targetStatus, nextPollAt])
+  @@index([socialAccountId])
+}
+
+// ───────────────────────────── comments ─────────────────────────────
+
+model Comment {
+  id                      String     @id @default(uuid(7))
+  teamId                  String
+  organizationId          String?
+  internalPostId          String?
+  post                    Post?      @relation(fields: [internalPostId], references: [id], onDelete: Cascade)
+  importedPostId          String?
+  internalParentCommentId String?
+  fetchedParentCommentId  String?
+  title                   String?
+  postDate                DateTime?
+  postedDate              DateTime?
+  status                  PostStatus @default(DRAFT)
+  data                    Json
+  error                   String?
+  errors                  Json?
+  errorsVerbose           Json?
+  externalData            Json?
+  retryCount              Int        @default(0)
+  /// Network-side ids and per-network state, keyed by network.
+  targets                 Json?
+  isFirstComment          Boolean    @default(false)
+  createdAt               DateTime   @default(now())
+  updatedAt               DateTime   @updatedAt
+  deletedAt               DateTime?
+
+  @@index([teamId, createdAt])
+  @@index([status, postDate])
+}
+
+enum ImportStatus {
+  PENDING
+  FETCHING
+  FETCHING_POSTS
+  FETCHING_ANALYTICS
+  FETCHING_REVIEWS
+  FETCHING_RECOMMENDATIONS
+  RETRYING
+  COMPLETED
+  SKIPPED
+  FAILED
+  RATE_LIMITED
+}
+
+model CommentImport {
+  id              String            @id @default(uuid(7))
+  teamId          String
+  organizationId  String?
+  socialAccountId String
+  type            SocialAccountType
+  postId          String?
+  importedPostId  String?
+  externalPostId  String?
+  status          ImportStatus      @default(PENDING)
+  commentsCount   Int               @default(0)
+  limit           Int
+  error           String?
+  rateLimitResetAt DateTime?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  deletedAt       DateTime?
+
+  @@index([teamId, createdAt])
+}
+
+model FetchedComment {
+  id                String            @id @default(uuid(7))
+  teamId            String
+  organizationId    String?
+  postId            String?
+  importedPostId    String?
+  socialAccountId   String
+  importId          String
+  platform          SocialAccountType
+  externalId        String
+  externalParentId  String?
+  externalPostId    String?
+  authorName        String?
+  authorExternalId  String?
+  authorProfileUrl  String?
+  authorAvatarUrl   String?
+  text              String?
+  likesCount        Int               @default(0)
+  repliesCount      Int               @default(0)
+  hidden            Boolean           @default(false)
+  liked             Boolean           @default(false)
+  platformData      Json              @default("{}")
+  publishedAt       DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  deletedAt         DateTime?
+
+  @@unique([socialAccountId, externalId])
+  @@index([importId])
+  @@index([postId])
+}
+
+// ───────────────────────────── analytics & history ─────────────────────────────
+
+enum ProfilePostType {
+  POST
+  REEL
+  STORY
+  VIDEO
+  IMAGE
+}
+
+model ProfilePost {
+  id                  String          @id @default(uuid(7))
+  socialAccountId     String
+  socialAccount       SocialAccount   @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
+  postId              String?
+  externalId          String?
+  title               String?
+  smallThumbnail      String?
+  thumbnail           String?
+  permalink           String?
+  extraData           Json?
+  subreddit           String?
+  publishedAt         DateTime?
+  type                ProfilePostType @default(POST)
+  /// true = published through Siar; false = imported history.
+  internal            Boolean         @default(false)
+  importedAt          DateTime?
+  externallyDeletedAt DateTime?
+  analyticsRefreshedAt DateTime?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  deletedAt           DateTime?
+
+  analytics           PostAnalytics[]
+
+  @@unique([socialAccountId, externalId])
+  @@index([postId])
+}
+
+model PostAnalytics {
+  id                String      @id @default(uuid(7))
+  profilePostId     String
+  profilePost       ProfilePost @relation(fields: [profilePostId], references: [id], onDelete: Cascade)
+  impressions       Int         @default(0)
+  impressionsUnique Int         @default(0)
+  views             Int         @default(0)
+  viewsUnique       Int         @default(0)
+  likes             Int         @default(0)
+  dislikes          Int         @default(0)
+  comments          Int         @default(0)
+  shares            Int         @default(0)
+  saves             Int         @default(0)
+  raw               Json?
+  forced            Boolean     @default(false)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  deletedAt         DateTime?
+
+  @@index([profilePostId, createdAt])
+}
+
+model SocialAccountAnalytics {
+  id                String        @id @default(uuid(7))
+  socialAccountId   String
+  socialAccount     SocialAccount @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
+  impressions       Int           @default(0)
+  impressionsUnique Int           @default(0)
+  views             Int           @default(0)
+  viewsUnique       Int           @default(0)
+  likes             Int           @default(0)
+  comments          Int           @default(0)
+  postCount         Int           @default(0)
+  followers         Int           @default(0)
+  following         Int           @default(0)
+  raw               Json?
+  /// Audience splits (age, gender, country) where the network provides them.
+  audience          Json?
+  forced            Boolean       @default(false)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  deletedAt         DateTime?
+
+  @@index([socialAccountId, createdAt])
+}
+
+model PostHistoryImport {
+  id              String            @id @default(uuid(7))
+  teamId          String
+  organizationId  String?
+  socialAccountId String
+  type            SocialAccountType
+  status          ImportStatus      @default(PENDING)
+  count           Int
+  withAnalytics   Boolean           @default(true)
+  postsImported   Int               @default(0)
+  analyticsImported Int             @default(0)
+  cursor          String?
+  error           String?
+  rateLimitResetAt DateTime?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  deletedAt       DateTime?
+
+  @@index([teamId, createdAt])
+}
+
+enum CsvImportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  COMPLETED_WITH_ERRORS
+  FAILED
+  RATE_LIMITED
+}
+
+model CsvImport {
+  id               String          @id @default(uuid(7))
+  teamId           String
+  organizationId   String
+  organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  status           CsvImportStatus @default(PENDING)
+  fileName         String
+  storagePath      String?
+  totalRows        Int             @default(0)
+  processedRows    Int             @default(0)
+  successRows      Int             @default(0)
+  failedRows       Int             @default(0)
+  error            String?
+  rateLimitResetAt DateTime?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  deletedAt        DateTime?
+
+  rows             CsvImportRow[]
+}
+
+model CsvImportRow {
+  id                String    @id @default(uuid(7))
+  importId          String
+  import            CsvImport @relation(fields: [importId], references: [id], onDelete: Cascade)
+  rowNumber         Int
+  status            String
+  postId            String?
+  rawRow            Json?
+  normalizedPayload Json?
+  error             String?
+  createdAt         DateTime  @default(now())
+
+  @@index([importId, rowNumber])
+}
+
+// ───────────────────────────── reviews & recommendations ─────────────────────────────
+
+model ReviewImport {
+  id              String            @id @default(uuid(7))
+  /// GOOGLE_BUSINESS reviews or FACEBOOK recommendations.
+  type            SocialAccountType
+  teamId          String
+  organizationId  String?
+  socialAccountId String
+  status          ImportStatus      @default(PENDING)
+  count           Int
+  imported        Int               @default(0)
+  error           String?
+  rateLimitResetAt DateTime?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model Review {
+  id               String            @id @default(uuid(7))
+  type             SocialAccountType
+  teamId           String
+  socialAccountId  String
+  importId         String?
+  externalId       String
+  reviewerName     String?
+  reviewerAvatarUrl String?
+  rating           Int?
+  /// FB recommendation: "positive" | "negative".
+  recommendationType String?
+  text             String?
+  replyText        String?
+  replyUpdatedAt   DateTime?
+  platformData     Json              @default("{}")
+  publishedAt      DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  deletedAt        DateTime?
+
+  @@unique([socialAccountId, externalId])
+}
+
+// ───────────────────────────── messaging & automations (Meta) ─────────────────────────────
+
+enum ConversationStatus {
+  OPEN
+  ARCHIVED
+}
+
+model Conversation {
+  id                     String             @id @default(uuid(7))
+  teamId                 String
+  socialAccountId        String
+  socialAccount          SocialAccount      @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
+  platform               SocialAccountType
+  externalConversationId String?
+  externalParticipantId  String
+  participantUsername    String?
+  participantDisplayName String?
+  participantAvatarUrl   String?
+  status                 ConversationStatus @default(OPEN)
+  lastMessageAt          DateTime?
+  lastActivityAt         DateTime?
+  lastMessagePreview     String?
+  lastReadAt             DateTime?
+  unreadCount            Int                @default(0)
+  platformSeenAt         DateTime?
+  platformData           Json               @default("{}")
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  messages               ConversationMessage[]
+
+  @@unique([socialAccountId, externalParticipantId])
+  @@index([teamId, lastActivityAt])
+}
+
+model ConversationMessage {
+  id                  String            @id @default(uuid(7))
+  conversationId      String
+  conversation        Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  teamId              String
+  socialAccountId     String
+  platform            SocialAccountType
+  direction           String
+  status              String            @default("PENDING")
+  source              String
+  externalMessageId   String?
+  text                String?
+  attachments         Json              @default("[]")
+  reactions           Json              @default("[]")
+  sentAt              DateTime?
+  failedAt            DateTime?
+  error               String?
+  seenAt              DateTime?
+  replyTo             Json?
+  privateReplyContext Json?
+  platformData        Json              @default("{}")
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  @@unique([socialAccountId, externalMessageId])
+  @@index([conversationId, createdAt])
+}
+
+model AutomationFlow {
+  id                 String    @id @default(uuid(7))
+  teamId             String
+  organizationId     String?
+  name               String
+  status             String    @default("DRAFT")
+  platformScope      String
+  createdByUserId    String?
+  draftVersionId     String?
+  publishedVersionId String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  deletedAt          DateTime?
+
+  versions           AutomationFlowVersion[]
+  executions         AutomationExecution[]
+}
+
+model AutomationFlowVersion {
+  id         String         @id @default(uuid(7))
+  flowId     String
+  flow       AutomationFlow @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  version    Int
+  /// { triggers: [...], steps: [...] }
+  definition Json
+  publishedAt DateTime?
+  createdAt  DateTime       @default(now())
+}
+
+model AutomationExecution {
+  id                    String         @id @default(uuid(7))
+  teamId                String
+  organizationId        String?
+  flowId                String
+  flow                  AutomationFlow @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  flowVersionId         String
+  triggerId             String?
+  platform              SocialAccountType
+  socialAccountId       String
+  conversationId        String?
+  conversationMessageId String?
+  fetchedCommentId      String?
+  senderExternalId      String?
+  currentStepId         String?
+  status                String         @default("QUEUED")
+  idempotencyKey        String         @unique
+  input                 Json           @default("{}")
+  output                Json           @default("{}")
+  steps                 Json           @default("[]")
+  error                 Json?
+  isTest                Boolean        @default(false)
+  startedAt             DateTime?
+  completedAt           DateTime?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  @@index([flowId, createdAt])
+}
+
+model AutomationProviderSetting {
+  id               String            @id @default(uuid(7))
+  teamId           String
+  organizationId   String?
+  platform         SocialAccountType
+  socialAccountId  String
+  socialAccount    SocialAccount     @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
+  type             String
+  status           String            @default("DRAFT")
+  config           Json?
+  providerResponse Json?
+  lastSyncedAt     DateTime?
+  lastSyncError    Json?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@unique([socialAccountId, type])
+}
+
+// ───────────────────────────── link in bio ─────────────────────────────
+
+model Bio {
+  id          String    @id @default(uuid(7))
+  teamId      String    @unique
+  team        Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  slug        String    @unique
+  title       String
+  description String?
+  avatarUrl   String?
+  theme       Json      @default("{}")
+  published   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  items       BioItem[]
+  events      BioEvent[]
+}
+
+model BioItem {
+  id        String   @id @default(uuid(7))
+  bioId     String
+  bio       Bio      @relation(fields: [bioId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  url       String?
+  icon      String?
+  position  Int
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BioEvent {
+  id        String   @id @default(uuid(7))
+  bioId     String
+  bio       Bio      @relation(fields: [bioId], references: [id], onDelete: Cascade)
+  /// VIEW or CLICK
+  kind      String
+  itemId    String?
+  country   String?
+  referrer  String?
+  createdAt DateTime @default(now())
+
+  @@index([bioId, createdAt])
+}
+
+// ───────────────────────────── quotas ─────────────────────────────
+
+/// Monthly organization quotas: posts, comments, uploads, imports. Atomic conditional increment.
+model UsageCounter {
+  organizationId String
+  /// YYYY-MM (UTC)
+  period         String
+  metric         String
+  used           Int    @default(0)
+
+  @@id([organizationId, period, metric])
+}
+
+/// Per social account per UTC day: posts, comments, forced analytics refreshes.
+/// accountKey = TYPE:providerPageId (shared across reconnects/duplicates).
+model DailyCounter {
+  accountKey String
+  /// YYYY-MM-DD (UTC)
+  day        String
+  metric     String
+  used       Int    @default(0)
+
+  @@id([accountKey, day, metric])
+}
+
+/// Per social account per month (imports, DMs, automation runs).
+model AccountMonthCounter {
+  accountKey String
+  period     String
+  metric     String
+  used       Int    @default(0)
+
+  @@id([accountKey, period, metric])
+}
+
+// ───────────────────────────── webhooks ─────────────────────────────
+
+model Webhook {
+  id             String       @id @default(uuid(7))
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  url            String
+  events         String[]
+  active         Boolean      @default(true)
+  secretEnc      String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  deliveries     WebhookDelivery[]
+}
+
+model WebhookDelivery {
+  id            String    @id @default(uuid(7))
+  webhookId     String
+  webhook       Webhook   @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  eventId       String
+  event         String
+  payload       Json
+  attempt       Int       @default(0)
+  status        String    @default("PENDING")
+  responseCode  Int?
+  responseBody  String?
+  durationMs    Int?
+  nextAttemptAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([webhookId, createdAt])
+  @@index([status, nextAttemptAt])
+}
+
+// ───────────────────────────── system ─────────────────────────────
+
+model Notification {
+  id             String    @id @default(uuid(7))
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String?
+  kind           String
+  title          String
+  body           String?
+  link           String?
+  readAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model AuditLog {
+  id             String       @id @default(uuid(7))
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actorType      String
+  actorId        String?
+  actorName      String
+  action         String
+  entity         String
+  entityId       String?
+  summary        String
+  data           Json?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+}
+
+model EmailOutbox {
+  id        String    @id @default(uuid(7))
+  to        String
+  subject   String
+  html      String
+  text      String
+  status    String    @default("QUEUED")
+  error     String?
+  sentAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([status, createdAt])
+}

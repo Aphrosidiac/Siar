@@ -1,0 +1,9 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "siar-mocks", "runtimeExecutable": "pnpm", "runtimeArgs": ["--filter", "@siar/mocks", "dev"], "port": 3299 },
+    { "name": "siar-api", "runtimeExecutable": "pnpm", "runtimeArgs": ["--filter", "@siar/api", "dev"], "port": 3290 },
+    { "name": "siar-web", "runtimeExecutable": "pnpm", "runtimeArgs": ["--filter", "@siar/web", "dev"], "port": 5290 },
+    { "name": "siar-site", "runtimeExecutable": "pnpm", "runtimeArgs": ["--filter", "@siar/site", "dev"], "port": 4290 }
+  ]
+}

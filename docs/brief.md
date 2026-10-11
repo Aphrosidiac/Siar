@@ -5,7 +5,7 @@
 - **Owner / brand:** FF DEV STUDIO (202603234793). Shown as "Siar by FF Dev Studio"
 - **Reference owner:** third party (bundle.social, BUNDLE SP. Z O.O.). We take the structure and API
   shape; no identity, copy, imagery or mark ships
-- **Brand kit:** `~/Desktop/dev/ffdevstudio/brand-system` (Siar's mark is derived from it, never generated from scratch)
+- **Look:** neutral, general-purpose product theme (common dev-tool look: white/near-black, grey neutrals, one calm accent such as blue/indigo). **Not** FF's palette, **no lime green** (Fakhrul, 2026-10-11). FF appears only as "by FF Dev Studio" in footers/legal.
 - **Voice:** terse and technical, developer-first
 
 ## Reference

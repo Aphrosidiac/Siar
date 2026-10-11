@@ -1,0 +1,20 @@
+{
+  "name": "siar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.10.0",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter ./apps/* dev",
+    "dev:api": "pnpm --filter @siar/api dev",
+    "dev:web": "pnpm --filter @siar/web dev",
+    "dev:site": "pnpm --filter @siar/site dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r --if-present test",
+    "contract": "pnpm --filter @siar/contract build",
+    "db:migrate": "pnpm --filter @siar/api db:migrate",
+    "db:seed": "pnpm --filter @siar/api db:seed"
+  }
+}

@@ -8,3 +8,5 @@ docs/reference/*/states/
 docs/qa/shots/
 docs/qa/states/
 .DS_Store
+src/generated/
+storage/

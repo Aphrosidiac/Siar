@@ -1,0 +1,18 @@
+{
+  "name": "@siar/contract",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./openapi.json": "./openapi.json"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs && openapi-typescript openapi.json -o src/types.ts",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.9.1",
+    "typescript": "^6.0.3"
+  }
+}
