@@ -48,6 +48,8 @@ export interface ConnectOptions {
   redirectUrl?: string | null;
   serverUrl?: string | null;
   portalLinkId?: string | null;
+  /** Raw portal token, so the callback can return the person to the portal page. */
+  portalToken?: string | null;
   options?: Record<string, unknown>;
 }
 
@@ -57,7 +59,7 @@ export async function startConnect(o: ConnectOptions) {
   if (!isConfigured(o.type)) throw unavailable(`${ad.displayName} is not available on this server yet (app credentials are not configured).`);
   if (o.redirectUrl) { try { const u = new URL(o.redirectUrl); if (!/^https?:$/.test(u.protocol)) throw 0; } catch { throw badRequest('redirectUrl must be an http(s) URL.', [{ code: 'invalid', message: 'Invalid URL', path: ['redirectUrl'] }]); } }
   let serverUrl = o.serverUrl ?? null;
-  const extra: Record<string, unknown> = { options: o.options ?? {} };
+  const extra: Record<string, unknown> = { options: o.options ?? {}, ...(o.portalToken ? { portalToken: o.portalToken } : {}) };
   if (o.type === 'MASTODON') {
     if (!serverUrl) throw badRequest('serverUrl is required for Mastodon (e.g. https://mastodon.social).', [{ code: 'required', message: 'Required for Mastodon', path: ['serverUrl'] }]);
     const srv = await ensureMastodonServer(serverUrl);
@@ -289,11 +291,7 @@ define({
   'portal.connect': async ({ params, body }) => {
     const l = await portalLink(params.token);
     if (!l.allowedTypes.includes(body.type)) throw badRequest('This network is not offered on this link.');
-    const res = await startConnect({ type: body.type, teamId: l.teamId, organizationId: l.organizationId, redirectUrl: l.redirectUrl, serverUrl: body.serverUrl, portalLinkId: l.id });
-    // Remember the raw token so the callback can return to this portal page.
-    const st = await prisma.oAuthState.findFirst({ where: { portalLinkId: l.id }, orderBy: { createdAt: 'desc' } });
-    if (st) await prisma.oAuthState.update({ where: { state: st.state }, data: { extra: { ...(st.extra as object), portalToken: params.token } } });
-    return res;
+    return startConnect({ type: body.type, teamId: l.teamId, organizationId: l.organizationId, redirectUrl: l.redirectUrl, serverUrl: body.serverUrl, portalLinkId: l.id, portalToken: params.token });
   },
 
   'portal.disconnect': async ({ params, body }) => {
