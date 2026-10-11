@@ -1,6 +1,7 @@
 # Siar — unified social media API (FF DEV STUDIO)
 
 One REST API to publish, schedule, comment on and measure social media across 15 networks.
+Domain: siaran.my (app., api., media.); the product name is Siar.
 Wire-compatible with bundle.social's v1 API. Plan: `docs/PLAN.md`. Brief: `docs/brief.md`.
 
 ## Layout
@@ -69,7 +70,9 @@ Tokens live in `apps/web/src/styles.css`; the site mirrors them.
   real post in the demo org, so reseed again afterwards if the demo must be clean. The home hero's `posts` shot is
   16:9 (1536×864) beside the request panel (`home/ApiPanel.astro`); the pair must fit one laptop screen.
   Walkthrough clips: reseed, `node apps/site/scripts/clips.mjs [clip…]` (also needs mocks :3299) → `public/clips/*.mp4`
-  + posters; it connects LinkedIn and schedules a post, so reseed after. Test playback in Chrome (`channel: 'chrome'`):
+  + posters; it connects LinkedIn and schedules a post, so reseed after. Share card: `src/pages/og-card.astro` (noindex, not in
+  the sitemap) → `node apps/site/scripts/og.mjs` → `public/og.png`, used by every page's og/twitter image.
+  README images live in `docs/images/` (hero capture, composer GIF from the clips). Test playback in Chrome (`channel: 'chrome'`):
   Playwright's Chromium has no H.264.
 
 ## Running

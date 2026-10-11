@@ -5,7 +5,7 @@
 - **Owner / brand:** FF DEV STUDIO (202603234793). Shown as "Siar by FF Dev Studio"
 - **Reference owner:** third party (bundle.social, BUNDLE SP. Z O.O.). We take the structure and API
   shape; no identity, copy, imagery or mark ships
-- **Look:** neutral, general-purpose product theme (common dev-tool look: white/near-black, grey neutrals, one calm accent such as blue/indigo). **Not** FF's palette, **no lime green** (Fakhrul, 2026-10-11). FF appears only as "by FF Dev Studio" in footers/legal.
+- **Look:** the FF Ops house structure (ink sidebar, "/ SECTION" heads, pills) on cream paper `#f3efe4` with ink `#0b0b0a`, light by default, Siar's own mark, **no lime green** (Fakhrul, 2026-10-12; replaces the 2026-10-11 neutral/indigo direction). Details: CLAUDE.md "Look". FF appears only as "by FF Dev Studio" in footers/legal.
 - **Voice:** terse and technical, developer-first
 
 ## Reference
@@ -32,7 +32,7 @@
 - **Tenancy:** Organization → Team → one SocialAccount per network per Team
 - **Integrations:** 15 social networks, Stripe (USD), R2, SMTP
 - **Hosting:** dedicated self-hosted VPS (provider decided at deploy)
-- **Domain:** TBD (Fakhrul)
+- **Domain:** siaran.my (siar.dev was unavailable; Fakhrul 2026-10-12). Subdomains `app`, `api`, `media`, `www`.
 
 ## Safety
 - Free testing against mocks and private/test targets. A public post on a real account,

@@ -6,8 +6,7 @@
   "scripts": {
     "dev": "astro dev --port 4290",
     "build": "astro build",
-    "preview": "astro preview --port 4290",
-    "typecheck": "astro check"
+    "preview": "astro preview --port 4290"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.0",

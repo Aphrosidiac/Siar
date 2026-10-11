@@ -8,7 +8,7 @@ export default defineConfig({
   site: `https://${domain}`,
   trailingSlash: 'never',
   build: { format: 'directory' },
-  integrations: [mdx(), sitemap({ filter: (page) => !page.endsWith('/404') && !page.endsWith('/404/') })],
+  integrations: [mdx(), sitemap({ filter: (page) => !/\/(404|og-card)\/?$/.test(page) })],
   markdown: {
     shikiConfig: { themes: { light: 'github-light', dark: 'github-dark' }, defaultColor: false, wrap: false },
   },

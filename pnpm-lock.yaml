@@ -57,7 +57,7 @@ importers:
         version: 5.12.5
       ioredis:
         specifier: ^5.8.2
-        version: 5.11.1
+        version: 5.11.1(supports-color@10.2.2)
       nodemailer:
         specifier: ^7.0.10
         version: 7.0.13
@@ -121,7 +121,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: ^4.1.11
-        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.6.5)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.6.5)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(tsx@4.23.15))
 
   apps/site:
     dependencies:
@@ -203,6 +203,9 @@ importers:
 
   packages/contract:
     devDependencies:
+      '@types/node':
+        specifier: ^26.4.0
+        version: 26.6.5
       openapi-typescript:
         specifier: ^7.9.1
         version: 7.13.0(typescript@6.0.3)
@@ -263,7 +266,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: ^4.1.11
-        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.6.5)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(tsx@4.23.15))
+        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.6.5)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
 
 packages:
 
@@ -6818,7 +6821,7 @@ snapshots:
 
   internmap@2.0.3: {}
 
-  ioredis@5.11.1:
+  ioredis@5.11.1(supports-color@10.2.2):
     dependencies:
       '@ioredis/commands': 1.10.0
       cluster-key-slot: 1.1.1
@@ -8497,7 +8500,7 @@ snapshots:
       ofetch: 1.5.1
       ufo: 1.6.4
     optionalDependencies:
-      ioredis: 5.11.1
+      ioredis: 5.11.1(supports-color@10.2.2)
 
   uri-js-replace@1.0.1: {}
 
