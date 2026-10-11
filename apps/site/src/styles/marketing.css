@@ -52,7 +52,7 @@
 .m-note { font-family: var(--mono); font-size: var(--fs-12); line-height: 16px; letter-spacing: .02em; color: var(--text-subtle); }
 
 /* a product screenshot in a quiet window frame */
-.frame { position: relative; border-radius: 14px; background: var(--bg-elevated); box-shadow: 0 0 0 1px color-mix(in srgb, var(--text) 10%, transparent), 0 40px 80px -40px rgba(11, 11, 10, .35), 0 12px 24px -12px rgba(11, 11, 10, .12); overflow: hidden; }
+.frame { margin: 0; position: relative; border-radius: 14px; background: var(--bg-elevated); box-shadow: 0 0 0 1px color-mix(in srgb, var(--text) 10%, transparent), 0 40px 80px -40px rgba(11, 11, 10, .35), 0 12px 24px -12px rgba(11, 11, 10, .12); overflow: hidden; }
 .frame-bar { display: flex; align-items: center; gap: 12px; height: 36px; padding: 0 14px; border-bottom: 1px solid color-mix(in srgb, var(--text) 8%, transparent); background: color-mix(in srgb, var(--bg-elevated) 70%, var(--bg)); }
 .frame-bar .dots { display: flex; gap: 6px; }
 .frame-bar .dots i { width: 10px; height: 10px; border-radius: 50%; background: color-mix(in srgb, var(--text) 14%, transparent); }

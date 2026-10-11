@@ -61,7 +61,8 @@ Tokens live in `apps/web/src/styles.css`; the site mirrors them.
 - FF appears only as "Siar by FF Dev Studio" in footers and legal pages.
 - Marketing pages (home, product tour, pricing, networks, use cases) add `apps/site/src/styles/marketing.css`:
   display type, pill buttons, framed product shots, ink bands, `data-reveal`/`data-lines` rise-ins
-  (`src/scripts/reveal.ts`). The one extra colour is the on-air red, used only for "live". Docs keep the
+  (`src/scripts/reveal.ts`). The home walkthrough is a click/auto-advance demo player, never scroll-linked
+  or zooming (Fakhrul found the sticky scroll version confusing). The one extra colour is the on-air red, used only for "live". Docs keep the
   plain layer. Never name a scoped class `.in`: the reveal script adds `in` to revealed elements.
 - Product screenshots in `apps/site/public/shots/` come from the real dashboard: reseed, then
   `node apps/site/scripts/shots.mjs [scene…]` (dashboard :5290 + API :3290). The `flow` scene schedules a
