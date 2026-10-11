@@ -86,7 +86,7 @@ defineExpose({ reload: list.reload });
       <Button type="submit" size="sm" :icon="LinkIcon" :loading="adding" :disabled="!url.trim()">Import</Button>
     </form>
     <div class="row wrap between">
-      <Tabs v-model="kind" :tabs="tabs" size="sm" />
+      <Tabs v-model="kind" :tabs="tabs" size="sm" variant="pill" />
       <div class="row">
         <label class="row small gap-4"><input v-model="unusedOnly" type="checkbox" /> Unused only</label>
         <Button v-if="!pick && marked.size" size="sm" variant="danger" :icon="Trash2" @click="removeMarked">Delete {{ marked.size }}</Button>

@@ -1,26 +1,27 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { RouterLink, RouterView, useRoute } from 'vue-router';
-import { Bell, Menu } from 'lucide-vue-next';
-import Drawer from '@/components/ui/Drawer.vue';
+import { Bell, Menu, Plus, Search } from 'lucide-vue-next';
 import SideNav from '@/components/SideNav.vue';
-import Logo from '@/components/Logo.vue';
+import TeamSwitcher from '@/components/TeamSwitcher.vue';
+import CommandPalette from '@/components/CommandPalette.vue';
+import Button from '@/components/ui/Button.vue';
 import { api } from '@/lib/api';
 import { session } from '@/lib/store';
 import { toast } from '@/lib/toast';
 
 const route = useRoute();
-const mobile = ref(window.innerWidth < 900);
-const drawer = ref(false);
+const mobileOpen = ref(false);
+const palette = ref(false);
 const unread = ref(0);
 let timer = 0;
-function measure() { mobile.value = window.innerWidth < 900; if (!mobile.value) drawer.value = false; }
 async function pollUnread() {
   try { const r = await api.get<{ unread?: number }>('/notification', { limit: 1, unread: true }); unread.value = r.unread ?? 0; } catch { /* the bell is optional */ }
 }
-onMounted(() => { window.addEventListener('resize', measure); void pollUnread(); timer = window.setInterval(pollUnread, 60000); });
-onBeforeUnmount(() => { window.removeEventListener('resize', measure); clearInterval(timer); });
-watch(() => route.fullPath, () => { drawer.value = false; void pollUnread(); });
+function onKey(e: KeyboardEvent) { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); palette.value = !palette.value; } }
+onMounted(() => { void pollUnread(); timer = window.setInterval(pollUnread, 60000); window.addEventListener('keydown', onKey); });
+onBeforeUnmount(() => { clearInterval(timer); window.removeEventListener('keydown', onKey); });
+watch(() => route.fullPath, () => { mobileOpen.value = false; void pollUnread(); });
 
 const unverified = computed(() => !!session.me && !session.me.user.emailVerifiedAt);
 const resent = ref(false);
@@ -29,42 +30,60 @@ const trial = computed(() => { const t = session.org?.trialEndsAt; if (!t) retur
 </script>
 
 <template>
-  <div class="shell" :class="{ mobile }">
-    <aside v-if="!mobile" class="side"><SideNav :unread="unread" /></aside>
+  <div class="shell">
+    <aside class="side" :class="{ open: mobileOpen }"><SideNav :counts="{}" @navigate="mobileOpen = false" /></aside>
+    <Transition name="fade"><div v-if="mobileOpen" class="scrim" @click="mobileOpen = false" /></Transition>
     <div class="main">
-      <header v-if="mobile" class="topbar">
-        <button type="button" class="icon-btn" aria-label="Open menu" @click="drawer = true"><Menu :size="20" /></button>
-        <Logo :size="18" />
+      <header class="top">
+        <button type="button" class="ib hamb" aria-label="Open menu" @click="mobileOpen = true"><Menu :size="20" /></button>
+        <TeamSwitcher />
+        <button type="button" class="search" aria-label="Search or jump to" @click="palette = true">
+          <Search :size="16" /><span class="grow search-t">Search or jump to…</span><kbd class="kbd">⌘K</kbd>
+        </button>
         <span class="spacer" />
-        <RouterLink to="/notifications" class="icon-btn" aria-label="Notifications"><Bell :size="20" /><span v-if="unread" class="dotbadge">{{ unread > 9 ? '9+' : unread }}</span></RouterLink>
+        <Button variant="primary" size="sm" :icon="Plus" to="/compose" class="new">New post</Button>
+        <RouterLink to="/notifications" class="ib bell" aria-label="Notifications">
+          <Bell :size="18" /><Transition name="fade"><span v-if="unread" class="bc">{{ unread > 99 ? '99+' : unread }}</span></Transition>
+        </RouterLink>
       </header>
       <div v-if="unverified" class="banner warn">
         <span>Confirm your email address to keep receiving publishing alerts.</span>
         <button type="button" class="link-btn" :disabled="resent" @click="resend">{{ resent ? 'Sent' : 'Resend email' }}</button>
       </div>
-      <div v-if="trial" class="banner accent"><span>{{ trial }} day{{ trial === 1 ? '' : 's' }} left in your trial.</span><RouterLink to="/billing">Choose a plan</RouterLink></div>
+      <div v-if="trial" class="banner"><span>{{ trial }} day{{ trial === 1 ? '' : 's' }} left in your trial.</span><RouterLink to="/billing">Choose a plan</RouterLink></div>
       <main class="content"><RouterView v-slot="{ Component, route: r }"><component :is="Component" :key="`${session.me?.currentOrganizationId ?? 'none'}:${(r.meta.key as string) ?? r.path}`" /></RouterView></main>
       <footer class="foot">Siar by FF Dev Studio</footer>
     </div>
-    <Drawer v-if="mobile" :open="drawer" side="left" :width="300" @close="drawer = false"><div class="dn"><SideNav :unread="unread" /></div></Drawer>
+    <CommandPalette v-model:open="palette" />
   </div>
 </template>
 
 <style scoped>
-.shell { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100vh; }
-.shell.mobile { display: block; }
-.side { position: sticky; top: 0; height: 100vh; border-right: 1px solid var(--border); background: var(--bg-subtle); }
-.main { min-width: 0; display: flex; flex-direction: column; min-height: 100vh; }
+.shell { min-height: 100vh; }
+.side { position: fixed; inset: 0 auto 0 0; z-index: 300; width: var(--sidebar); border-right: 1px solid var(--side-line); transition: transform 420ms var(--ease-out); }
+.main { margin-left: var(--sidebar); min-width: 0; min-height: 100vh; display: flex; flex-direction: column; overflow-x: clip; }
 .content { flex: 1; min-width: 0; }
-.topbar { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
-.icon-btn { position: relative; width: 38px; height: 38px; display: grid; place-items: center; border: 0; background: none; border-radius: var(--radius); color: var(--text); cursor: pointer; text-decoration: none; }
-.icon-btn:hover { background: var(--bg-hover); }
-.dotbadge { position: absolute; top: 4px; right: 2px; background: var(--text); color: var(--bg); border-radius: var(--radius-sm); font-family: var(--mono); font-size: var(--fs-11); line-height: 14px; padding: 0 4px; }
-.banner { display: flex; gap: 12px; align-items: center; justify-content: center; padding: 8px 16px; font-size: var(--fs-13); line-height: 18px; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
+.top { position: sticky; top: 0; z-index: 200; height: var(--topbar); display: flex; align-items: center; gap: 12px; padding: 0 28px; background: var(--bg); border-bottom: 1px solid var(--border-soft); }
+.search { display: flex; align-items: center; gap: 10px; width: min(380px, 34vw); height: 38px; padding: 0 8px 0 14px; border-radius: var(--radius-pill); border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text-subtle); font-size: var(--fs-14); text-align: left; cursor: pointer; transition: border-color 200ms, box-shadow 300ms var(--ease-out); }
+.search:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+.ib { position: relative; width: 38px; height: 38px; display: grid; place-items: center; border: 0; border-radius: 50%; background: none; color: var(--text-muted); cursor: pointer; transition: background-color 200ms, color 200ms; text-decoration: none; }
+.ib:hover { background: var(--bg-muted); color: var(--text); }
+.hamb { display: none; }
+.bc { position: absolute; top: 3px; right: 1px; min-width: 18px; height: 17px; padding: 0 5px; border-radius: 99px; display: grid; place-items: center; background: var(--text); color: var(--bg); font-family: var(--mono); font-size: var(--fs-11); box-shadow: 0 0 0 2px var(--bg); }
+.banner { display: flex; gap: 12px; align-items: center; justify-content: center; padding: 8px 16px; font-size: var(--fs-13); line-height: 18px; flex-wrap: wrap; border-bottom: 1px solid var(--border-soft); color: var(--text-muted); }
 .banner.warn { background: var(--warn-soft); color: var(--warn-soft-text); }
-.banner.accent { background: var(--bg-subtle); color: var(--text-muted); }
 .banner a, .banner .link-btn { color: inherit; }
-.dn { margin: -16px -20px; height: 100dvh; background: var(--bg-subtle); }
-.foot { padding: 16px 40px; font-size: var(--fs-12); line-height: 16px; color: var(--text-subtle); border-top: 1px solid var(--border); }
-@media (max-width: 900px) { .foot { padding: 16px; } }
+.scrim { position: fixed; inset: 0; z-index: 250; background: var(--overlay); }
+.foot { padding: 16px 40px; font-size: var(--fs-12); line-height: 16px; color: var(--text-subtle); border-top: 1px solid var(--border-soft); }
+@media (max-width: 900px) {
+  .side { width: min(290px, 86vw); transform: translateX(-102%); }
+  .side.open { transform: none; box-shadow: var(--shadow-lg); }
+  .main { margin-left: 0; }
+  .hamb { display: grid; }
+  .top { padding: 0 12px; gap: 6px; }
+  .search { width: 38px; flex: none; padding: 0; justify-content: center; border-radius: 50%; }
+  .search-t, .search .kbd { display: none; }
+  .foot { padding: 16px; }
+}
+@media (max-width: 560px) { .new :deep(.btn-label) { display: none; } .new { width: 36px; padding: 0; } }
 </style>

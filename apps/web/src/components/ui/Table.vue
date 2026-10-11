@@ -38,20 +38,19 @@ const onKey = (e: KeyboardEvent, r: R) => { if (props.clickable && (e.key === 'E
 </template>
 
 <style scoped>
-.tw { width: 100%; overflow-x: auto; border-top: 1px solid var(--text); }
-.t { width: 100%; border-collapse: collapse; font-size: var(--fs-14); }
-th { text-align: left; font-family: var(--mono); font-weight: 500; font-size: var(--fs-11); line-height: 16px; color: var(--text-subtle); text-transform: uppercase; letter-spacing: .06em; padding: 10px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
-th:first-child, td:first-child { padding-left: 0; }
-th:last-child, td:last-child { padding-right: 0; }
-td { padding: 14px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-tbody tr { animation: rise 420ms var(--ease-out) backwards; }
-tbody tr:nth-child(2) { animation-delay: 25ms; } tbody tr:nth-child(3) { animation-delay: 50ms; } tbody tr:nth-child(4) { animation-delay: 75ms; }
-tbody tr:nth-child(n + 5) { animation-delay: 100ms; }
+.tw { width: 100%; overflow-x: auto; }
+.t { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--fs-14); }
+th { text-align: left; font-family: var(--mono); font-weight: 500; font-size: var(--fs-11); line-height: 16px; color: var(--text-subtle); text-transform: uppercase; letter-spacing: .06em; padding: 10px 14px; border-bottom: 1px solid var(--text); white-space: nowrap; }
+th:first-child, td:first-child { padding-left: 4px; }
+td { padding: 13px 14px; border-bottom: 1px solid var(--border-soft); vertical-align: middle; transition: background 180ms; }
+tbody tr { animation: rise 560ms var(--ease-out) backwards; }
+tbody tr:nth-child(2) { animation-delay: 28ms; } tbody tr:nth-child(3) { animation-delay: 56ms; } tbody tr:nth-child(4) { animation-delay: 84ms; }
+tbody tr:nth-child(5) { animation-delay: 112ms; } tbody tr:nth-child(n + 6) { animation-delay: 140ms; }
 tr.clickable { cursor: pointer; }
-tr.clickable td { transition: background var(--t-micro); }
 tr.clickable:hover td { background: var(--bg-hover); }
-tr.clickable:focus-visible { outline: none; box-shadow: inset 2px 0 0 var(--text); }
+tr.clickable:focus-visible { outline: none; }
+tr.clickable:focus-visible td { background: var(--bg-hover); box-shadow: inset 0 -1px 0 var(--text); }
 .empty:not(:empty) { padding: 8px 0 0; }
 .empty :deep(.empty) { border-top: 0; }
-@media (max-width: 640px) { .hide-sm { display: none; } td, th { padding-left: 8px; padding-right: 8px; } }
+@media (max-width: 760px) { .hide-sm { display: none; } td, th { padding-left: 8px; padding-right: 8px; } }
 </style>

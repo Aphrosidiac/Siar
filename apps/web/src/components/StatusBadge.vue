@@ -6,7 +6,7 @@ const tone = computed(() => {
   switch (props.status) {
     case 'POSTED': case 'COMPLETED': case 'CONNECTED': case 'SUCCESS': case 'active': case 'paid': case 'SENT': case 'DELIVERED': case 'SEEN': return 'success';
     case 'ERROR': case 'FAILED': case 'NEEDS_RECONNECT': case 'past_due': case 'unpaid': case 'DISCONNECTED': return 'danger';
-    case 'SCHEDULED': case 'trialing': return 'accent';
+    case 'SCHEDULED': case 'trialing': return 'info';
     case 'PROCESSING': case 'RETRYING': case 'REVIEW': case 'PENDING': case 'FETCHING': case 'FETCHING_POSTS': case 'FETCHING_ANALYTICS': case 'FETCHING_REVIEWS': case 'RATE_LIMITED': case 'COMPLETED_WITH_ERRORS': return 'warn';
     default: return 'neutral';
   }
@@ -18,4 +18,4 @@ const label = computed(() => {
   return s.replace(/_/g, ' ').toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
 });
 </script>
-<template><Badge :tone="tone" :size="size" dot>{{ label }}</Badge></template>
+<template><Badge :tone="tone" :size="size">{{ label }}</Badge></template>

@@ -34,7 +34,7 @@ const tone = (k?: string | null) => (k?.includes('error') || k?.includes('fail')
     <PageHead title="Notifications" subtitle="Failed posts, reconnect requests and other things that need you.">
       <Button :icon="CheckCheck" :disabled="!list.data.value?.unread" @click="readAll">Mark all as read</Button>
     </PageHead>
-    <div class="toolbar"><Tabs v-model="filter" :tabs="[{ value: 'all', label: 'All' }, { value: 'unread', label: 'Unread', badge: list.data.value?.unread || null }]" size="sm" /><span class="spacer" /><div style="width: 240px"><Input v-model="q" size="sm" placeholder="Search" aria-label="Search notifications" /></div></div>
+    <div class="toolbar"><Tabs variant="pill" v-model="filter" :tabs="[{ value: 'all', label: 'All' }, { value: 'unread', label: 'Unread', badge: list.data.value?.unread || null }]" size="sm" /><span class="spacer" /><div style="width: 240px"><Input v-model="q" size="sm" placeholder="Search" aria-label="Search notifications" /></div></div>
     <QueryState :loading="list.loading.value" :error="list.error.value" :status="list.status.value" :has-data="!!list.data.value" feature="Notifications" @retry="list.reload">
       <EmptyState v-if="!list.data.value?.items.length" :icon="Bell" :title="filter === 'unread' ? 'Nothing unread' : 'No notifications'" description="When something needs your attention it shows up here." />
       <template v-else>

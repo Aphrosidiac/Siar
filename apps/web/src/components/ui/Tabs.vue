@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, watch, type Component } from 'vue';
 
-/** Underline tabs; an ink rule slides to the active tab. */
+/** Underline tabs (sections) or a pill segmented control (filters); the indicator slides to the active one. */
 interface Tab { value: string; label: string; badge?: string | number | null; icon?: Component; tone?: 'danger' | 'warn' | null }
-const props = defineProps<{ modelValue: string; tabs: Tab[]; size?: 'sm' | 'md' }>();
+const props = withDefaults(defineProps<{ modelValue: string; tabs: Tab[]; size?: 'sm' | 'md'; variant?: 'line' | 'pill' }>(), { variant: 'line' });
 const emit = defineEmits<{ 'update:modelValue': [v: string] }>();
 const root = ref<HTMLElement | null>(null);
 const bar = ref({ x: 0, w: 0, ready: false });
 function measure() {
   const el = root.value?.querySelector<HTMLElement>('[aria-selected="true"]');
   if (el) bar.value = { x: el.offsetLeft, w: el.offsetWidth, ready: true };
+  if (el && props.variant === 'pill') el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
 onMounted(() => { void nextTick(measure); document.fonts?.ready.then(measure); });
 watch(() => [props.modelValue, props.tabs.map((t) => t.label + (t.badge ?? '')).join()], () => nextTick(measure));
@@ -19,12 +20,12 @@ function onKey(e: KeyboardEvent, i: number) {
   e.preventDefault();
   const n = (i + d + props.tabs.length) % props.tabs.length;
   emit('update:modelValue', props.tabs[n]!.value);
-  (root.value?.children[n] as HTMLElement | undefined)?.focus();
+  (root.value?.querySelectorAll<HTMLElement>('[role=tab]')[n])?.focus();
 }
 </script>
 
 <template>
-  <div ref="root" class="tabs" role="tablist" :class="size">
+  <div ref="root" class="tabs" role="tablist" :class="[size, variant]">
     <button
       v-for="(t, i) in tabs"
       :key="t.value"
@@ -57,4 +58,13 @@ function onKey(e: KeyboardEvent, i: number) {
 .bar { position: absolute; bottom: 0; left: 0; height: 2px; background: var(--text); opacity: 0; transition: transform 480ms var(--ease-out), width 480ms var(--ease-out), opacity 200ms; pointer-events: none; }
 .bar.ready { opacity: 1; }
 @media (pointer: coarse) { .tab { padding: 13px 0 14px; } }
+/* pill: filters — a cream track with an ink pill that slides */
+.pill.tabs { display: inline-flex; gap: 2px; padding: 4px; border: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); border-radius: var(--radius-pill); background: var(--bg-muted); max-width: 100%; }
+.pill .tab { position: relative; z-index: 1; height: 32px; padding: 0 14px; border-radius: var(--radius-pill); color: var(--text-muted); transition: color 300ms ease-in-out 80ms; }
+.pill.sm .tab { height: 26px; padding: 0 11px; }
+.pill .tab[aria-selected='true'] { color: var(--bg); }
+.pill .tab:not([aria-selected='true']):hover { color: var(--text); }
+.pill .bar { top: 4px; bottom: 4px; height: auto; border-radius: var(--radius-pill); z-index: 0; transition: transform 560ms var(--ease-out), width 560ms var(--ease-out), opacity 200ms; }
+.pill .c { min-width: 18px; height: 18px; padding: 0 5px; display: inline-grid; place-items: center; border-radius: 99px; background: color-mix(in srgb, currentColor 14%, transparent); color: inherit; }
+@media (pointer: coarse) { .pill .tab { height: 36px; padding: 0 14px; } }
 </style>

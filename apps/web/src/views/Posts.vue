@@ -79,19 +79,18 @@ const mediaOf = (p: Post) => (p.uploads ?? []).map((u) => u.upload).filter(Boole
     <NoTeam v-if="!session.teamId" />
     <template v-else>
       <div class="toolbar">
-        <div class="grow" style="min-width: 220px; max-width: 360px">
-          <Input v-model="q" size="sm" placeholder="Search posts" aria-label="Search posts" />
-        </div>
+        <Tabs v-model="status" :tabs="statusTabs" variant="pill" />
+        <span class="spacer" />
         <Select v-model="platform" size="sm" :options="NETWORKS.map((n) => ({ value: n.type, label: n.name }))" placeholder="All networks" clearable aria-label="Filter by network" />
         <Select v-model="order" size="sm" :options="[{ value: 'postDate:DESC', label: 'Newest first' }, { value: 'postDate:ASC', label: 'Oldest first' }, { value: 'createdAt:DESC', label: 'Recently created' }]" aria-label="Sort" />
+        <div class="search"><Input v-model="q" size="sm" placeholder="Search posts" aria-label="Search posts" /></div>
       </div>
-      <Tabs v-model="status" :tabs="statusTabs" class="mb-16" />
       <QueryState :loading="list.loading.value" :error="list.error.value" :status="list.status.value" :has-data="!!list.data.value" feature="Posts" @retry="list.reload">
         <Table :columns="columns" :rows="list.data.value?.items ?? []" :loading="list.loading.value" clickable @row-click="open">
           <template #cell-title="{ row }">
             <div class="row">
               <img v-if="mediaOf(row)[0]?.thumbnailUrl" :src="mediaOf(row)[0]!.thumbnailUrl!" class="thumb" alt="" />
-              <div class="grow"><div class="truncate strong ttl">{{ row.title || 'Untitled post' }}</div>
+              <div class="grow"><div class="truncate ttl t1">{{ row.title || 'Untitled post' }}</div>
                 <div v-if="row.error" class="tiny danger-text truncate ttl">{{ row.error }}</div><div class="only-sm mt-8"><PostNetworks :targets="row.socialAccounts ?? []" :size="20" /></div></div>
             </div>
           </template>
@@ -157,6 +156,11 @@ const mediaOf = (p: Post) => (p.uploads ?? []).map((u) => u.upload).filter(Boole
 
 <style scoped>
 .ttl { max-width: 460px; }
+.t1 { font-weight: 500; }
+.search { width: 240px; }
+.toolbar { margin-bottom: 20px; }
+@media (max-width: 1100px) { .search { width: 100%; order: -1; } }
+@media (max-width: 640px) { .toolbar .spacer { display: none; } .toolbar > :deep(.field) { flex: 1 1 140px; } }
 .only-sm { display: none; }
 @media (max-width: 640px) { .ttl { max-width: 40vw; } .only-sm { display: block; } }
 .net { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; }

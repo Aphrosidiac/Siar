@@ -105,7 +105,7 @@ const rows = computed(() => (top.data.value ?? []).map((r) => ({ id: r.post.id, 
 
 <style scoped>
 .chips { display: flex; gap: 8px; flex-wrap: wrap; }
-.nchip { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px 5px 8px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-elevated); cursor: pointer; color: var(--text-subtle); font-size: var(--fs-13); white-space: nowrap; flex: none; transition: border-color var(--t-micro), color var(--t-micro); }
+.nchip { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px 5px 8px; border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--bg-elevated); cursor: pointer; color: var(--text-subtle); font-size: var(--fs-13); white-space: nowrap; flex: none; transition: border-color var(--t-micro), color var(--t-micro); }
 .nchip:hover { color: var(--text); border-color: var(--border-strong); }
 .nchip.on { border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text); color: var(--text); font-weight: 500; }
 .nets { display: flex; gap: 6px; flex-wrap: wrap; }
