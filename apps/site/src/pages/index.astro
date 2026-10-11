@@ -53,6 +53,7 @@ const audiences = [
         <p class="m-kicker def"><span class="n">siar</span> /ˈsi.ar/ <span class="rule"></span> Malay, to broadcast</p>
       </div>
       <div class="hero-main">
+      <div class="hero-text">
       <h1 class="m-display" data-lines><span class="ln"><span>Write it once.</span></span><span class="ln"><span style="--d:1">Siar it everywhere.</span></span></h1>
       <div class="hero-sub">
         <p class="m-lead" data-reveal style="--d:3">One API and one dashboard to publish, schedule, reply and measure on {N} social networks. Connect as many accounts as you like. Pay one price per organization.</p>
@@ -60,6 +61,7 @@ const audiences = [
           <div class="m-actions"><a class="pill ink" href={SIGNUP_URL}>Start free <span class="arr" aria-hidden="true">→</span></a><a class="pill" href="/docs/quickstart">Read the quickstart</a></div>
           <p class="m-note">Free plan · {PLANS.FREE.posts} posts a month · no card</p>
         </div>
+      </div>
       </div>
       <div class="fan-side" data-reveal style="--d:2"><HeroFan dir="side" /></div>
       </div>
@@ -186,12 +188,15 @@ const audiences = [
   .m-hero h1 { max-width: 11.5em; }
   .hero-sub { display: flex; flex-direction: column; align-items: flex-start; gap: 32px; margin-top: clamp(28px, 4vw, 48px); }
   .hero-cta { display: flex; flex-direction: column; gap: 14px; }
-  .hero-main { position: relative; }
-  /* centred by layout, not transform, so the reveal's own transform cannot move it */
-  .fan-side { position: absolute; right: 0; top: 0; bottom: 0; width: clamp(250px, 21vw, 290px); display: flex; align-items: center; }
+  /* the words and the fan as one composition: the headline is sized to leave the fan its own column
+     and a clear gutter, and the fan is centred on the whole text block (headline to note) */
+  .hero-main { display: grid; grid-template-columns: minmax(0, 1fr) clamp(250px, 21vw, 300px); column-gap: clamp(48px, 6vw, 96px); align-items: center; }
+  .hero-main h1 { font-size: clamp(56px, 8.2vw, 110px); }
   .fan-side :global(.fan) { width: 100%; }
   .fan-down { display: none; }
   @media (max-width: 1060px) {
+    .hero-main { display: block; }
+    .hero-main h1 { font-size: var(--display); }
     .fan-side { display: none; }
     .fan-down { display: block; max-width: 440px; margin: 48px auto 0; }
   }
