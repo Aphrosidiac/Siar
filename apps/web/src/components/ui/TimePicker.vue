@@ -175,7 +175,8 @@ function onFieldPointer(e: PointerEvent) {
 </template>
 
 <style scoped>
-.ui-tp-field { display: flex; align-items: center; gap: 0; padding-right: 4px; cursor: text; font-variant-numeric: tabular-nums; }
+/* same 40px as every .control: the clock button sits inside the padding, not on top of it */
+.ui-tp-field { display: flex; align-items: center; gap: 0; height: 40px; min-height: 0; padding-top: 0; padding-bottom: 0; padding-right: 5px; cursor: text; font-variant-numeric: tabular-nums; }
 .ui-tp-field.disabled { background: var(--bg-subtle); color: var(--text-subtle); cursor: not-allowed; }
 .ui-tp-field:focus-within, .ui-tp-field.open { border-color: var(--text); }
 .ui-tp-seg { padding: 0 1px; border-radius: 3px; outline: none; caret-color: transparent; min-width: 2ch; text-align: center; }
@@ -183,7 +184,7 @@ function onFieldPointer(e: PointerEvent) {
 .ui-tp-seg.ph { color: var(--text-faint); }
 .ui-tp-seg.ph:focus { color: var(--text-subtle); }
 .ui-tp-colon { color: var(--text-subtle); padding: 0 1px; }
-.ui-tp-btn { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border: 0; background: none; border-radius: 50%; color: var(--text-subtle); cursor: pointer; }
+.ui-tp-btn { flex: none; width: 28px; height: 28px; display: grid; place-items: center; border: 0; background: none; border-radius: 50%; color: var(--text-subtle); cursor: pointer; }
 .ui-tp-btn:hover:not(:disabled) { background: var(--bg-hover); color: var(--text); }
 </style>
 
