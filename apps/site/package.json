@@ -1,0 +1,21 @@
+{
+  "name": "@siar/site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --port 4290",
+    "build": "astro build",
+    "preview": "astro preview --port 4290",
+    "typecheck": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^4.3.0",
+    "@astrojs/sitemap": "^3.6.0",
+    "@siar/contract": "workspace:*",
+    "astro": "^5.15.0"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}

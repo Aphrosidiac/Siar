@@ -1,0 +1,14 @@
+{
+  "name": "@siar/cli",
+  "version": "0.1.0",
+  "description": "JSON-first command line for the Siar API — for shells, CI, cron and agents",
+  "type": "module",
+  "bin": { "siar": "./dist/cli.js" },
+  "files": ["dist", "SKILL.md"],
+  "scripts": {
+    "build": "tsup src/cli.ts --format esm --clean",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": { "@siar/sdk": "workspace:*" },
+  "devDependencies": { "@types/node": "^26.4.0", "tsup": "^8.5.1", "typescript": "^6.0.3" }
+}

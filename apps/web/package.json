@@ -1,0 +1,24 @@
+{
+  "name": "@siar/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5290 --strictPort",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview --port 5290",
+    "typecheck": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "@siar/contract": "workspace:*",
+    "lucide-vue-next": "^0.460.0",
+    "vue": "^3.5.43",
+    "vue-router": "^4.6.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.1",
+    "typescript": "^6.0.3",
+    "vite": "^8.2.2",
+    "vue-tsc": "^3.1.5"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "@siar/mcp",
+  "version": "0.1.0",
+  "description": "MCP server for the Siar API — publish, schedule and read analytics from any MCP client",
+  "type": "module",
+  "bin": { "siar-mcp": "./dist/server.js" },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup src/server.ts --format esm --clean",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.20.0",
+    "@siar/sdk": "workspace:*",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": { "@types/node": "^26.4.0", "tsup": "^8.5.1", "typescript": "^6.0.3" }
+}
