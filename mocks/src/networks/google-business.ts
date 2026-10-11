@@ -54,7 +54,7 @@ export default function googleBusiness(m: MockRegistry) {
   const notFound = (what = 'Requested entity was not found.') => gerr(404, 'NOT_FOUND', what);
   const guard = (req: MockRequest): MockResponse | null => {
     const tokens = (m.state.youtube?.tokens ?? {}) as Record<string, true>;
-    if (!req.bearer || !tokens[req.bearer]) return gerr(401, 'UNAUTHENTICATED', 'Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential.');
+    if (!req.bearer || !(tokens[req.bearer] || m.isSeedToken(req.bearer))) return gerr(401, 'UNAUTHENTICATED', 'Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential.');
     if (s().quota) return gerr(429, 'RESOURCE_EXHAUSTED', "Quota exceeded for quota metric 'Requests' and limit 'Requests per minute' of service 'mybusinessaccountmanagement.googleapis.com'", { reason: 'RATE_LIMIT_EXCEEDED' });
     return null;
   };

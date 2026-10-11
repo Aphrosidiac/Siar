@@ -15,6 +15,7 @@ import { consent, id, num, type MockRegistry, type MockRequest, type MockRespons
 export default function linkedin(m: MockRegistry) {
   const SUB = 'Qk4xmZp7aD';
   const ORG = '5515715';
+  m.seedToken('linkedin', () => true);
   const s = () => m.ns('linkedin', () => ({
     tokens: {} as Record<string, true>, refresh: {} as Record<string, true>,
     media: {} as Record<string, any>, uploads: {} as Record<string, any>, posts: {} as Record<string, any>, comments: {} as Record<string, any>,

@@ -12,6 +12,7 @@ import { consent, id, num, type MockRegistry, type MockRequest, type MockRespons
  * State: state.instagram.{containers, media, comments, messages, subscribed, profileSettings}.
  */
 export default function instagram(m: MockRegistry) {
+  m.seedToken('instagram', () => USER_ID);
   const s = () => m.ns('instagram', () => ({
     tokens: {} as Record<string, string>, containers: {} as Record<string, any>, media: [] as any[], comments: [] as any[],
     messages: [] as any[], subscribed: [] as any[], profileSettings: [] as any[],

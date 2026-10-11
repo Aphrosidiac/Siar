@@ -7,6 +7,7 @@ import { consent, id, type MockRegistry, type MockRequest, type MockResponse } f
  * bot is NOT a member — posting there answers not_in_channel), C4 old (archived).
  */
 export default function slack(m: MockRegistry) {
+  m.seedToken('slack', () => true);
   const s = () => m.ns('slack', () => ({
     tokens: {} as Record<string, true>, messages: [] as any[], files: {} as Record<string, any>, seq: 0, infoCalls: {} as Record<string, number>,
     channels: [

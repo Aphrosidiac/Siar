@@ -11,6 +11,7 @@ import { consent, id, type MockRegistry, type MockRequest, type MockResponse } f
  * .noThumbnailPermission, .failProcessing (uploadStatus rejected).
  */
 export default function youtube(m: MockRegistry) {
+  m.seedToken('youtube', () => true);
   const s = () => m.ns('youtube', () => ({
     tokens: {} as Record<string, true>, refresh: {} as Record<string, true>,
     channel: {

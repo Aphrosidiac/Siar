@@ -9,6 +9,7 @@ import { consent, id, num, type MockRegistry, type MockRequest, type MockRespons
  * State: state.threads.{containers, posts}.
  */
 export default function threads(m: MockRegistry) {
+  m.seedToken('threads', () => USER_ID);
   const s = () => m.ns('threads', () => ({ tokens: {} as Record<string, string>, containers: {} as Record<string, any>, posts: [] as any[] }));
   const G = 'graph.threads.net';
   const USER_ID = '26000000000000001';

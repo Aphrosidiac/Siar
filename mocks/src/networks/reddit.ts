@@ -14,6 +14,7 @@ import { consent, id, type MockRegistry, type MockRequest, type MockResponse } f
  * State: state.reddit.{posts, comments, uploads, tokens}.
  */
 export default function reddit(m: MockRegistry) {
+  m.seedToken('reddit', () => true);
   const s = () => m.ns('reddit', () => ({
     tokens: {} as Record<string, true>, refresh: {} as Record<string, true>, codes: {} as Record<string, true>,
     posts: [] as any[], comments: [] as any[], uploads: {} as Record<string, any>, deleted: [] as string[],

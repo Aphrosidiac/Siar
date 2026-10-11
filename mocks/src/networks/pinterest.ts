@@ -11,6 +11,7 @@ import { consent, id, num, type MockRegistry, type MockRequest, type MockRespons
  * .failMedia (media ends in "failed").
  */
 export default function pinterest(m: MockRegistry) {
+  m.seedToken('pinterest', () => true);
   const s = () => m.ns('pinterest', () => ({
     tokens: {} as Record<string, true>, refresh: {} as Record<string, true>,
     boards: [

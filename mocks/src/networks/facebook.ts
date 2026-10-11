@@ -14,6 +14,7 @@ import { consent, id, num, type MockRegistry, type MockRequest, type MockRespons
  * State: state.facebook.{posts, videos, comments, reels, stories, messages, subscribed, profileSettings}.
  */
 export default function facebook(m: MockRegistry) {
+  m.seedToken('facebook', () => ({ kind: 'user' }));
   const s = () => m.ns('facebook', () => ({
     tokens: { fbpage_1: { kind: 'page', pageId: '1090000000000001' }, fbpage_2: { kind: 'page', pageId: '1090000000000002' } } as Record<string, { kind: 'user' | 'page'; pageId?: string }>,
     posts: [] as any[], photos: [] as any[], videos: [] as any[], comments: [] as any[], likes: [] as string[], reels: {} as Record<string, any>, stories: [] as any[],

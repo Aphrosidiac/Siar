@@ -6,6 +6,7 @@ import { consent, id, num, type MockRegistry, type MockRequest, type MockRespons
  * `mock-<key>`); webhook calls are authenticated by the token in the URL.
  */
 export default function discord(m: MockRegistry) {
+  m.seedToken('discord', () => '77');
   const s = () => m.ns('discord', () => ({
     tokens: {} as Record<string, string>, webhooks: {} as Record<string, any>, messages: [] as any[],
     channels: [{ id: '2001', name: 'general', type: 0, position: 0 }, { id: '2002', name: 'announcements', type: 5, position: 1 }, { id: '2003', name: 'Voice', type: 2, position: 2 }, { id: '2004', name: 'Text', type: 4, position: 3 }],

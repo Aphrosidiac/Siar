@@ -6,6 +6,7 @@ import { consent, id, num, type MockRegistry, type MockRequest } from '../regist
  * rateLimitNext (next call answers 429 with x-rate-limit-reset), subscriptionType.
  */
 export default function twitter(m: MockRegistry) {
+  m.seedToken('twitter', () => me().id);
   const s = () => m.ns('twitter', () => ({
     tokens: {} as Record<string, string>, refresh: {} as Record<string, string>, tweets: [] as any[], media: {} as Record<string, any>,
     retweets: [] as string[], likes: [] as string[], hidden: [] as string[], credits: 1000, rateLimitNext: false, subscriptionType: 'None',

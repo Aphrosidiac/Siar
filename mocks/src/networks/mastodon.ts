@@ -2,6 +2,7 @@ import { consent, id, num, unauthorized, type MockRegistry } from '../registry.j
 
 /** Mastodon — any host matched by the catch-all: tests use https://mastodon.example */
 export default function mastodon(m: MockRegistry) {
+  m.seedToken('mastodon', () => '1090');
   const s = () => m.ns('mastodon', () => ({ apps: [] as any[], tokens: {} as Record<string, string>, statuses: [] as any[], media: {} as Record<string, any> }));
   const H = '*';
   const me = { id: '1090', username: 'siartest', acct: 'siartest', display_name: 'Siar Test', avatar: 'https://files.example/avatar.png', note: '<p>Testing Siar</p>', followers_count: 120, following_count: 30, statuses_count: 0, url: 'https://mastodon.example/@siartest' };

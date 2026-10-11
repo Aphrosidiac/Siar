@@ -35,7 +35,7 @@ const HANDLES: Record<string, (t: string) => { username: string; displayName: st
   default: t => ({ username: t.toLowerCase().replace(/[^a-z]/g, ''), displayName: t }),
 };
 /** What a login can publish to, per network (pages, locations, channels…), as the network lists them. */
-function channelsFor(type: string, name: string, user: string): { name: string; username?: string; address?: string }[] {
+function channelsFor(type: string, name: string, user: string): { id?: string; name: string; username?: string; address?: string; metadata?: object }[] {
   switch (type) {
     case 'FACEBOOK': return [{ name: `${name} Official`, username: `${user}official` }, { name: `${name} Catering`, username: `${user}catering` }];
     case 'INSTAGRAM': return [{ name: `${name} Catering`, username: `${user}.catering` }, { name: `${name} Roastery`, username: `${user}.roastery` }];
@@ -47,7 +47,9 @@ function channelsFor(type: string, name: string, user: string): { name: string; 
       { name: `${name} Mont Kiara`, address: 'G-07, Arcoris Mall, Jalan Kiara, 50480 Kuala Lumpur' },
     ];
     case 'PINTEREST': return [{ name: 'Official' }, { name: 'Menu ideas' }];
-    case 'DISCORD': case 'SLACK': return [{ name: '#announcements' }, { name: '#general' }];
+    case 'SLACK': return [{ name: '#announcements' }, { name: '#general' }];
+    // the mock Discord server's own ids (mocks/src/networks/discord.ts), so posts and checks reach it
+    case 'DISCORD': return [{ id: '2002', name: '#announcements', metadata: { guildId: '1001' } }, { id: '2001', name: '#general', metadata: { guildId: '1001' } }];
     default: return [];
   }
 }
@@ -119,8 +121,9 @@ async function main() {
       const h = HANDLES.default(`${t.name}`);
       const ext = `${type.toLowerCase()}-${team.id.slice(-6)}`;
       const channels = channelsFor(type, t.name, h.username).map((c, i) => ({ id: type === 'GOOGLE_BUSINESS' ? `accounts/${team.id.slice(-6)}/locations/${i + 1}` : `${ext}-ch${i + 1}`, ...c }));
+      const providerPageId = type === 'DISCORD' ? '1001' : ext;
       accounts.push(await prisma.socialAccount.create({ data: {
-        type, teamId: team.id, username: h.username, displayName: h.displayName, externalId: channels[0]?.id ?? ext, providerPageId: ext,
+        type, teamId: team.id, username: h.username, displayName: h.displayName, externalId: channels[0]?.id ?? ext, providerPageId,
         userUsername: h.username, userDisplayName: h.displayName, channels, channelId: type === 'INSTAGRAM' || type === 'LINKEDIN' ? null : channels[0]?.id ?? null,
         instagramConnectionMethod: type === 'INSTAGRAM' ? 'FACEBOOK' : null, state: type === 'REDDIT' ? 'NEEDS_RECONNECT' : 'CONNECTED',
         stateReason: type === 'REDDIT' ? 'The Reddit token was revoked.' : null, deleteOn: type === 'REDDIT' ? new Date(Date.now() + 2 * DAY) : null,

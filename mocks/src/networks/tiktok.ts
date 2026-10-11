@@ -11,6 +11,7 @@ import { consent, id, num, type MockRegistry, type MockRequest, type MockRespons
  * state.tiktok.creator (creator_info), state.tiktok.verifiedPrefixes (PULL_FROM_URL domains).
  */
 export default function tiktok(m: MockRegistry) {
+  m.seedToken('tiktok', () => OPEN_ID);
   const s = () => m.ns('tiktok', () => ({
     tokens: {} as Record<string, string>, refresh: {} as Record<string, string>, bizTokens: {} as Record<string, string>, bizRefresh: {} as Record<string, string>,
     publishes: {} as Record<string, any>, videos: [] as any[], comments: [] as any[], unaudited: false,

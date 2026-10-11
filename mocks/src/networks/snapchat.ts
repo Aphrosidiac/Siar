@@ -6,6 +6,7 @@ import { consent, id, type MockRegistry, type MockRequest, type MockResponse } f
  * Responses use Snap's envelope: { request_status: 'SUCCESS', request_id, … }.
  */
 export default function snapchat(m: MockRegistry) {
+  m.seedToken('snapchat', () => 'u1');
   const s = () => m.ns('snapchat', () => ({ tokens: {} as Record<string, string>, refresh: {} as Record<string, true>, media: {} as Record<string, any>, uploads: {} as Record<string, any>, posts: [] as any[] }));
   const A = 'accounts.snapchat.com';
   const B = 'businessapi.snapchat.com';

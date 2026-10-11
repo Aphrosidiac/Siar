@@ -60,7 +60,27 @@ export class MockRegistry {
   }
 
   ns<T extends object>(name: string, init: () => T): T {
-    return (this.state[name] ??= init());
+    if (!this.state[name]) {
+      const st = init() as any;
+      if (st.tokens && typeof st.tokens === 'object') st.tokens = this.acceptSeeded(name, st.tokens);
+      this.state[name] = st;
+    }
+    return this.state[name];
+  }
+
+  /**
+   * The dev seed (apps/api/prisma/seed.ts) inserts accounts with `seed-…` access tokens that no
+   * mock ever issued. Each network declares what its own token map holds for a user, and a
+   * `seed-` token reads as that, so seeded demo accounts pass connection checks and profile reads.
+   */
+  private seeded = new Map<string, () => unknown>();
+  seedToken(name: string, value: () => unknown) { this.seeded.set(name, value); }
+  isSeedToken = (t: unknown) => typeof t === 'string' && t.startsWith('seed-') && !t.startsWith('seed-r-');
+  private acceptSeeded(name: string, tokens: Record<string, unknown>) {
+    return new Proxy(tokens, {
+      get: (t, k) => (k in t || !this.isSeedToken(k) || !this.seeded.has(name) ? Reflect.get(t, k) : this.seeded.get(name)!()),
+      has: (t, k) => k in t || (this.isSeedToken(k) && this.seeded.has(name)),
+    });
   }
 }
 
