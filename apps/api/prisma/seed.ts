@@ -47,6 +47,8 @@ const TEXTS = [
   'Thank you for 10k followers. Giveaway details below.',
 ];
 
+const MEDIA_REQUIRED = new Set(['TIKTOK', 'YOUTUBE', 'INSTAGRAM', 'PINTEREST', 'SNAPCHAT']);
+
 async function main() {
   const existing = await prisma.user.findUnique({ where: { email: EMAIL } });
   if (existing) {
@@ -91,9 +93,12 @@ async function main() {
     }
     // Posts across every state, spread over the last 30 days and the next 14.
     for (let i = 0; i < 40; i++) {
-      const subset = accounts.filter(() => rnd() > 0.45).slice(0, 4);
-      if (!subset.length) subset.push(accounts[0]);
       const offset = int(-30, 14);
+      // Upcoming posts carry text only, so they go to networks that publish text without media —
+      // otherwise the demo calendar is full of posts that would fail validation on any edit.
+      const pool = offset < 0 ? accounts : accounts.filter(a => !MEDIA_REQUIRED.has(a.type));
+      const subset = pool.filter(() => rnd() > 0.45).slice(0, 4);
+      if (!subset.length) subset.push(pool[0] ?? accounts[0]);
       const date = new Date(Date.now() + offset * DAY + int(0, 12) * 3600_000);
       const past = offset < 0;
       const status = past ? pick(['POSTED', 'POSTED', 'POSTED', 'POSTED', 'ERROR', 'REVIEW'] as const) : pick(['SCHEDULED', 'SCHEDULED', 'DRAFT'] as const);
