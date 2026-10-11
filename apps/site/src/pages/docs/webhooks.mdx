@@ -1,0 +1,76 @@
+---
+layout: ../../layouts/Doc.astro
+title: Webhooks
+description: "Event types, delivery headers, signature verification with Node.js and Python code, retries and idempotency."
+---
+import CodeBlock from '../../components/CodeBlock.astro';
+import CodeTabs from '../../components/CodeTabs.astro';
+import { WEBHOOK_EVENTS, EVENT_TEXT } from '../../lib/events';
+import { RESOURCE_LIMITS } from '../../lib/plans';
+import { webhookCreateCurl, verifyNode, verifyPython, sdkWebhook } from '../../lib/snippets';
+
+Webhooks tell your server when something changes, so you do not poll. Siar sends an HTTPS `POST` with a JSON body to each endpoint subscribed to the event.
+
+## Create an endpoint
+
+Organization owners and admins manage webhooks from the dashboard. API keys cannot create or edit them. You can have up to {RESOURCE_LIMITS.webhooks} endpoints; each has its own event list and its own secret.
+
+<CodeBlock lang="bash" code={webhookCreateCurl} />
+
+The endpoint must be an HTTPS URL that answers within 15 seconds. Siar does not follow redirects.
+
+## The request
+
+Headers:
+
+| Header | Value |
+| --- | --- |
+| `x-siar-event` | The event type. |
+| `x-siar-delivery` | A unique id for this delivery. |
+| `x-siar-timestamp` | Unix time in seconds when it was signed. |
+| `x-siar-signature` | Hex HMAC-SHA256 of `timestamp + "." + rawBody` with your secret. |
+| `user-agent` | `Siar-Webhooks/1.0` |
+
+Body:
+
+```json
+{
+  "id": "evt_...",
+  "type": "post.published",
+  "createdAt": "2026-11-02T09:00:04.120Z",
+  "organizationId": "ORG_ID",
+  "data": { }
+}
+```
+
+`id` is stable across redeliveries of the same event; `data` holds the object the event is about.
+
+## Verify the signature
+
+Compute the HMAC over the **raw bytes** of the body, before any JSON parsing, using the secret from when you created the endpoint. Compare in constant time, and reject timestamps more than five minutes from now to stop replays.
+
+<CodeTabs tabs={[{ label: 'Node.js', lang: 'js', code: verifyNode }, { label: 'Python', lang: 'python', code: verifyPython }, { label: 'SDK', lang: 'js', code: sdkWebhook }]} />
+
+## Events
+
+<div class="table-wrap"><table>
+<thead><tr><th>Event</th><th>When it fires</th></tr></thead>
+<tbody>{WEBHOOK_EVENTS.map((e) => <tr><td><code>{e}</code></td><td>{EVENT_TEXT[e] ?? ''}</td></tr>)}</tbody>
+</table></div>
+
+## Delivery and retries
+
+A `2xx` response means delivered. Anything else, or a timeout, schedules a retry after 1 minute, 5 minutes, 30 minutes, 2 hours, 6 hours, 12 hours and 24 hours, after which the delivery is marked failed. Order is not guaranteed and a delivery can arrive more than once, so:
+
+- Return `200` quickly and do the work afterwards.
+- Make your handler idempotent: deduplicate on `x-siar-delivery` or the event `id`.
+- Treat the event as a prompt to read current state when order matters.
+
+## Operate
+
+- `GET /webhook/{id}/deliveries` lists deliveries with response codes and timings.
+- `POST /webhook/{id}/deliveries/{deliveryId}/resend` sends one again.
+- `POST /webhook/{id}/test` sends a test event.
+- `POST /webhook/{id}/rotate-secret` issues a new secret; update your receiver, then confirm with a test.
+
+See the [webhook reference](/docs/api/webhook) for the exact schemas.

@@ -1,0 +1,20 @@
+---
+import Doc from '../../../layouts/Doc.astro';
+import OpDoc from '../../../components/OpDoc.astro';
+import { tagsInOrder, tagMeta, opsForTag } from '../../../lib/openapi';
+export function getStaticPaths() {
+  return tagsInOrder().map((tag) => ({ params: { tag: tagMeta(tag).slug }, props: { tag } }));
+}
+const { tag } = Astro.props;
+const m = tagMeta(tag);
+const ops = opsForTag(tag);
+---
+<Doc title={`${m.title} API`} description={m.text || `Operations tagged ${tag}.`} nav="api" toc={false}>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Operation</th><th>Method and path</th></tr></thead>
+    <tbody>{ops.map((o) => (
+      <tr><td><a href={`#${o.anchor}`}>{o.summary}</a></td><td><span class={`method ${o.method}`}>{o.method}</span> <code>{o.path.replace(/\/$/, '')}</code></td></tr>
+    ))}</tbody>
+  </table></div>
+  {ops.map((o) => <OpDoc op={o} />)}
+</Doc>

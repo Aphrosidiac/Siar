@@ -1,0 +1,69 @@
+---
+import Base from '../layouts/Base.astro';
+import PlanCards from '../components/PlanCards.astro';
+import PricingTables from '../components/PricingTables.astro';
+import QuotaRules from '../components/QuotaRules.astro';
+import Faq from '../components/Faq.astro';
+import Cta from '../components/Cta.astro';
+import { PLANS, paidFrom, fmtInt, fmtMicro, X_PRICES } from '../lib/plans';
+import { NETWORKS } from '../lib/networks';
+import { faqLd, breadcrumbLd, softwareLd } from '../lib/seo';
+
+const faq = [
+  { q: 'Why is pricing per organization and not per account?', a: 'What costs us money is the work your organization does (posts published, comments, uploads), not the number of accounts that exist. So quotas count what you create each month, and paid plans allow unlimited teams and therefore unlimited connected accounts.' },
+  { q: 'What counts as a post?', a: 'A post counts once, in the UTC month you create it or move it out of draft, no matter how many networks it targets. Drafts are free and retries of a failed post do not count again.' },
+  { q: 'What happens at my quota?', a: 'Creating or scheduling another post returns a 403 that names the limit. Anything already scheduled still publishes: quotas are checked once, when you create the post.' },
+  { q: 'Why do daily caps exist?', a: 'Networks throttle or flag accounts that publish too often. Caps keep a single account inside what each network tolerates. They follow the underlying network identity, so reconnecting an account does not reset them. Enterprise organizations can have them raised.' },
+  { q: 'How does X (Twitter) billing work?', a: `X charges per API call, so X actions are paid from a prepaid credit balance at X's price, with no markup from us. Publishing a post costs ${fmtMicro(X_PRICES.TWITTER_CONTENT_CREATE)}; a post containing a link costs ${fmtMicro(X_PRICES.TWITTER_CONTENT_CREATE_WITH_URL)}. If the balance runs out, only X actions fail.` },
+  { q: 'Can I change plan or cancel?', a: 'Yes, from the dashboard billing page. Quotas are per calendar month, so a change applies from the moment it takes effect.' },
+  { q: 'What does Enterprise add?', a: 'Higher quotas, daily caps and rate limits set per organization, and a quoted price. Contact us with your volumes.' },
+];
+---
+<Base title="Pricing" description={`Siar pricing: Free with ${PLANS.FREE.posts} posts a month, paid plans from $${paidFrom()} a month billed yearly. Priced per organization with unlimited connected accounts. X usage passed through at cost.`} jsonLd={[softwareLd(), faqLd(faq), breadcrumbLd([{ name: 'Pricing', href: '/pricing' }])]}>
+  <section class="section tight hero-bg">
+    <div class="container center hd">
+      <p class="eyebrow">Pricing</p>
+      <h1>Pay for what you publish, not for each account</h1>
+      <p class="lead">Plans are per organization. Paid plans have no limit on teams or connected accounts across all {NETWORKS.length} networks. A plain-text version of this page is at <a href="/pricing.md">/pricing.md</a>.</p>
+    </div>
+  </section>
+  <section class="section tight">
+    <div class="container">
+      <PlanCards />
+    </div>
+  </section>
+  <section class="section alt">
+    <div class="container prose-wide">
+      <h2>How quotas work</h2>
+      <QuotaRules />
+    </div>
+  </section>
+  <section class="section">
+    <div class="container prose-wide">
+      <h2>Quotas and limits by plan</h2>
+      <p>Every figure below is read from the same constants the API enforces.</p>
+      <PricingTables show={['quotas', 'imports', 'messaging', 'resources']} />
+    </div>
+  </section>
+  <section class="section alt">
+    <div class="container prose-wide">
+      <h2>Per-network daily caps</h2>
+      <PricingTables show={['caps', 'comments', 'length']} />
+    </div>
+  </section>
+  <section class="section" id="x">
+    <div class="container prose-wide">
+      <h2>X (Twitter): pass-through pricing</h2>
+      <PricingTables show={['x']} />
+      <p class="small">Top up the balance from the dashboard. Balance changes use a ledger (hold, then capture or release) so a failed publish never charges you. Webhooks fire at <code>credit.low-balance</code> and <code>credit.exhausted</code>; quote an action before running it with the credit endpoints in the <a href="/docs/api/credit">API reference</a>.</p>
+    </div>
+  </section>
+  <section class="section alt">
+    <div class="container prose-wide"><Faq items={faq} /></div>
+  </section>
+  <Cta />
+</Base>
+<style>
+  .prose-wide { max-width: 960px; }
+  .hd { max-width: 820px; }
+</style>

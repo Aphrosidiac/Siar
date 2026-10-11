@@ -1,0 +1,88 @@
+---
+import Base from './Base.astro';
+import { GUIDE_NAV, API_NAV, flatGuide } from '../lib/docs';
+import { breadcrumbLd, articleLd } from '../lib/seo';
+import { LAST_UPDATED } from '../config';
+
+const fm = Astro.props.frontmatter ?? Astro.props;
+const { title, description, nav = 'guide', toc = true } = fm;
+const groups = nav === 'api' ? API_NAV : GUIDE_NAV;
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const flat = flatGuide();
+const idx = flat.findIndex((i) => i.href === path);
+const prev = nav === 'guide' && idx > 0 ? flat[idx - 1] : null;
+const next = nav === 'guide' && idx >= 0 && idx < flat.length - 1 ? flat[idx + 1] : null;
+const headings: { depth: number; slug: string; text: string }[] = (Astro.props.headings ?? []).filter((h: any) => h.depth === 2);
+const crumbs = [{ name: 'Docs', href: '/docs' }, { name: title, href: path }];
+---
+<Base title={`${title} | Siar docs`} description={description} jsonLd={[breadcrumbLd(crumbs), articleLd({ title, description: description ?? title, date: LAST_UPDATED, path })]}>
+  <div class="container dl">
+    <aside class="side">
+      <details class="sidewrap" open>
+        <summary class="sidesum">Documentation menu</summary>
+        <nav aria-label="Documentation">
+          {groups.map((g) => (
+            <div class="grp">
+              <p class="gt">{g.title}</p>
+              <ul>{g.items.map((i) => <li><a href={i.href} class:list={[{ on: i.href === path }]} aria-current={i.href === path ? 'page' : undefined}>{i.label}</a></li>)}</ul>
+            </div>
+          ))}
+        </nav>
+      </details>
+    </aside>
+    <article class="art">
+      <h1>{title}</h1>
+      {description && <p class="lead">{description}</p>}
+      <div class="doc"><slot /></div>
+      {(prev || next) && (
+        <div class="pn">
+          {prev ? <a href={prev.href} class="card"><span class="xs muted">Previous</span><br /><strong>{prev.label}</strong></a> : <span />}
+          {next ? <a href={next.href} class="card r"><span class="xs muted">Next</span><br /><strong>{next.label}</strong></a> : <span />}
+        </div>
+      )}
+    </article>
+    {toc && headings.length > 2 && (
+      <aside class="toc" aria-label="On this page">
+        <p class="gt">On this page</p>
+        <ul>{headings.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}</ul>
+      </aside>
+    )}
+  </div>
+</Base>
+<style>
+  .dl { display: grid; grid-template-columns: 240px minmax(0, 1fr) 200px; gap: 48px; padding-top: 40px; padding-bottom: 80px; align-items: start; }
+  .side { position: sticky; top: 76px; max-height: calc(100vh - 92px); overflow-y: auto; }
+  .sidesum { display: none; }
+  .gt { font-size: 13px; font-weight: 600; color: var(--fg); margin: 0 0 8px; }
+  .grp { margin-bottom: 20px; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { margin: 0; }
+  .side li a { display: block; padding: 6px 10px; font-size: 14px; color: var(--fg-2); border-radius: 6px; }
+  .side li a:hover { background: var(--bg-muted); color: var(--fg); text-decoration: none; }
+  .side li a.on { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
+  .art { min-width: 0; max-width: 780px; }
+  .art h1 { margin-bottom: 12px; }
+  .doc { margin-top: 24px; }
+  .doc :global(h2) { font-size: 24px; margin-top: 44px; padding-top: 4px; }
+  .doc :global(h3) { font-size: 18px; margin-top: 28px; }
+  .doc :global(p), .doc :global(li) { font-size: 16px; }
+  .doc :global(table) { font-size: 14px; }
+  .doc :global(.table-wrap) { margin-top: 12px; }
+  .toc { position: sticky; top: 76px; }
+  .toc li a { display: block; font-size: 13px; color: var(--fg-3); padding: 4px 0; }
+  .toc li a:hover { color: var(--fg); text-decoration: none; }
+  .pn { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 56px; }
+  .pn .card { padding: 16px; }
+  .pn .r { text-align: right; }
+  @media (max-width: 1100px) { .dl { grid-template-columns: 220px minmax(0, 1fr); } .toc { display: none; } }
+  @media (max-width: 800px) {
+    .dl { grid-template-columns: minmax(0, 1fr); gap: 16px; padding-top: 16px; }
+    .side { position: static; max-height: none; }
+    .sidewrap { border: 1px solid var(--border); border-radius: 8px; padding: 0 12px; }
+    .sidewrap[open] { padding-bottom: 12px; }
+    .sidesum { display: block; padding: 10px 0; font-size: 14px; font-weight: 600; }
+  }
+</style>
+<script is:inline>
+  if (matchMedia('(max-width: 800px)').matches) { var w = document.querySelector('.sidewrap'); if (w) w.removeAttribute('open'); }
+</script>

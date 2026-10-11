@@ -1,0 +1,29 @@
+---
+layout: ../../layouts/Doc.astro
+title: Documentation
+description: "Guides and reference for the Siar API. Start with the quickstart, then read the guides for connecting accounts, posting, media and webhooks."
+toc: false
+---
+import { NETWORKS } from '../../lib/networks';
+import { operations } from '../../lib/openapi';
+import { API_BASE } from '../../config';
+
+Siar is one REST API for publishing, scheduling, commenting on and measuring social media across {NETWORKS.length} networks. The base URL is <code>{API_BASE}</code>, requests and responses are JSON, and every request authenticates with an organization API key.
+
+<div class="grid g2">
+  <a class="card" href="/docs/quickstart"><h3>Quickstart</h3><p>Get a key, create a team, connect an account and publish a post in five requests.</p><span class="more">Start here</span></a>
+  <a class="card" href="/docs/data-model"><h3>Data model</h3><p>Organizations, teams, social accounts, uploads, posts and how they relate.</p><span class="more">Read</span></a>
+  <a class="card" href="/docs/connecting-accounts"><h3>Connecting accounts</h3><p>OAuth from your own UI, or a hosted connect link you send to customers.</p><span class="more">Read</span></a>
+  <a class="card" href="/docs/posting"><h3>Posting and statuses</h3><p>Per-network payloads, scheduling, retries and what each status means.</p><span class="more">Read</span></a>
+  <a class="card" href="/docs/webhooks"><h3>Webhooks</h3><p>Event types, payload and signature verification with Node.js and Python code.</p><span class="more">Read</span></a>
+  <a class="card" href="/docs/api"><h3>API reference</h3><p>{operations().length} operations generated from the OpenAPI document, with examples.</p><span class="more">Browse</span></a>
+</div>
+
+## Conventions
+
+- **JSON in, JSON out.** Send `content-type: application/json`. File uploads use `multipart/form-data`.
+- **Timestamps** are ISO 8601 in UTC.
+- **Ids** are opaque strings. Do not parse them.
+- **Errors** share one envelope; see [errors](/docs/errors).
+- **Machine-readable contract:** [/openapi.json](/openapi.json). The [SDK, CLI and MCP server](/docs/sdk-cli-mcp) are generated from it.
+- **For LLMs:** [/llms.txt](/llms.txt) summarises the product and links the key pages.

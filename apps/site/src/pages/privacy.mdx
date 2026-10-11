@@ -1,0 +1,68 @@
+---
+layout: ../layouts/Page.astro
+title: Privacy policy
+description: "What data Siar collects, why, how long it is kept, who processes it and how to exercise your rights."
+eyebrow: Legal
+---
+import { LEGAL_NAME, LEGAL_REG, CONTACT_EMAIL, SITE_NAME } from '../config';
+import { RESOURCE_LIMITS } from '../lib/plans';
+
+**{LEGAL_NAME}** (company number {LEGAL_REG}, Malaysia) operates {SITE_NAME} and is the controller of the personal data described here. Contact: [{CONTACT_EMAIL}](mailto:{CONTACT_EMAIL}).
+
+This policy covers two groups: customers who use Siar (developers and their teams), and end users who connect their social accounts through a Siar-powered flow, such as a hosted connect link, in a product built by a Siar customer. For the second group, the customer decides why and how the data is used and Siar processes it on the customer's behalf; we describe our side below.
+
+## What we collect
+
+**From customers**
+- Account details: name, email address, organization name and a password hash.
+- Billing details: plan, invoices and a payment-provider reference. Card numbers are handled by our payment processor, not stored by us.
+- Usage and security records: API requests by key, quotas used, audit log entries, IP address and user agent for sign-in and security.
+- Content you send: posts, comments, uploaded media, webhook endpoints and settings.
+
+**From connected social accounts**
+- Access and refresh tokens issued by the network. They are encrypted at rest and never returned by the API.
+- Profile data the network returns: account id, username, display name, avatar, bio, selected channel and, where the network provides it, email address.
+- Content and metrics you ask Siar to read: comments on your posts, post and account analytics, and, where you enable messaging, conversations.
+
+We request only the permissions listed on each [platform page](/platforms).
+
+## Why we use it
+
+To provide the service (publish, schedule, read comments and analytics, deliver webhooks), to bill and support you, to keep the service secure and prevent abuse, to meet legal obligations, and to improve reliability. We do not sell personal data and we do not use data from connected social accounts for advertising or to train machine-learning models.
+
+## How long we keep it
+
+- **Tokens** are deleted when an account is disconnected or removed. After a network revokes access, the account is flagged and removed after a grace period set on the organization (72 hours by default), and its tokens are erased then.
+- **Uploaded media** is kept for {RESOURCE_LIMITS.mediaRetentionDays} days after its last use; deleted uploads keep their file for {RESOURCE_LIMITS.softDeletedMediaDays} more days. Media on a draft or scheduled post is kept until the post finishes.
+- **Posts, comments and analytics** are kept while the organization exists, so you can read your history, and can be deleted through the API or on request.
+- **Account and billing records** are kept as long as the account is open and for the period tax and accounting law requires.
+
+## Who else handles it
+
+We use service providers to run Siar: a payment processor for subscriptions and invoices, a cloud storage and delivery provider for media, infrastructure and email delivery providers. They process data only to provide those services to us. We disclose data to the social networks you connect only as needed to carry out your requests, and to authorities where the law requires it.
+
+## Where it is processed
+
+Siar is operated from Malaysia and our providers may process data in other countries. Where required we use appropriate safeguards for transfers.
+
+## Security
+
+Tokens and secrets are encrypted at rest, traffic uses HTTPS, API keys are stored hashed, requests are isolated per organization, and access to production data is limited. No system is perfectly secure; report a concern to [{CONTACT_EMAIL}](mailto:{CONTACT_EMAIL}).
+
+## Your rights
+
+Depending on where you live (including under Malaysia's Personal Data Protection Act and, where applicable, GDPR), you may ask to access, correct, export or delete your personal data, to object to or restrict processing, and to withdraw consent. To delete data tied to a connected social account, see [data deletion](/data-deletion). For anything else, email us; we may need to verify who you are, and we reply within 30 days. If you are an end user of a Siar customer's product, please contact that customer first; we will help them respond.
+
+## Cookies
+
+The website uses no advertising or cross-site tracking cookies. The dashboard uses a session cookie to keep you signed in, and your browser stores a theme preference locally.
+
+## Children
+
+Siar is not directed to children under 16 and we do not knowingly collect their data.
+
+## Changes
+
+We will post changes here with a new date and notify account owners of material changes.
+
+Siar by FF Dev Studio.

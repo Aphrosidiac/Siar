@@ -1,0 +1,56 @@
+---
+layout: ../../layouts/Doc.astro
+title: Errors
+description: "One error envelope for every failure, what each status code means, validation issues and how network errors are reported."
+---
+import CodeBlock from '../../components/CodeBlock.astro';
+import { NETWORKS } from '../../lib/networks';
+
+Every failed request returns a non-2xx status and the same JSON shape:
+
+```json
+{ "statusCode": 403, "message": "Social sets limit reached. Limit is 3 sets." }
+```
+
+Messages are written for the developer reading them and say what to do, not only what broke. A `400` adds `issues`:
+
+```json
+{
+  "statusCode": 400,
+  "message": "Validation failed",
+  "issues": [{ "code": "invalid", "message": "Invalid events", "path": ["events"] }]
+}
+```
+
+`path` points into the request body, so `["data", "INSTAGRAM", "text"]` means `data.INSTAGRAM.text`.
+
+## Status codes
+
+| Status | Meaning | What to do |
+| --- | --- | --- |
+| `400` | The request is invalid: schema, a network rule, or a state that cannot work. | Read `issues` and fix the request. Do not retry unchanged. |
+| `401` | Missing or invalid API key. | Check the `x-api-key` header. |
+| `403` | Not allowed: a plan limit (quota, daily cap, resource limit) or a permission. | The message names the limit. Wait, upgrade or use a dashboard session. |
+| `404` | Not found, or it belongs to another organization. | Check the id. |
+| `409` | Conflicts with current state, for example a duplicate. | Re-read, then decide. |
+| `429` | Rate limited. | Wait `retry-after` seconds. See [rate limits](/docs/rate-limits). |
+| `501` | The operation is not available on this server yet. | Do not retry. |
+| `502` | A network failed while Siar was calling it. | Retry later; the message carries the network's response. |
+| `503` | Temporarily unavailable. | Retry with backoff. |
+
+## Errors from networks
+
+A request to publish is accepted before the network is contacted, so a network's rejection arrives later, on the post, not as an HTTP error on create. The post's `errors` field holds, per network, the network's own code and message verbatim, plus what to do:
+
+- Fix and retry with `POST /post/{id}/retry` (free, limited per post).
+- Or edit the post's `data` and `postDate` and let it run again.
+
+Each network has a reference of its common rejections with meaning and fix:
+
+<div class="table-wrap"><table>
+<tbody>{NETWORKS.map((n) => <tr><td>{n.name}</td><td><a href={`/${n.apiSlug}/errors`}>{n.name} errors</a></td></tr>)}</tbody>
+</table></div>
+
+## Webhooks tell you too
+
+Subscribe to `post.published`: it fires when a post reaches a final state, success or failure. For X, `credit.exhausted` tells you when X actions have stopped for lack of credit. See [webhooks](/docs/webhooks).

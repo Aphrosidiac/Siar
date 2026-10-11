@@ -1,0 +1,68 @@
+---
+import SchemaFields from './SchemaFields.astro';
+import CodeBlock from './CodeBlock.astro';
+import { toFields, typeLabel, curl, countFields, type Op } from '../lib/openapi';
+interface Props { op: Op }
+const { op } = Astro.props;
+const params = op.parameters;
+const bodyFields = op.body && !op.body.contentType.startsWith('multipart/') ? toFields(op.body.schema) : op.body ? toFields(op.body.schema) : [];
+const respFields = op.response?.schema ? toFields(op.response.schema) : [];
+const statusText: Record<string, string> = { '400': 'Validation failed', '401': 'Missing or invalid API key', '403': 'Plan limit or permission', '404': 'Not found', '409': 'Conflict', '429': 'Rate limited', '500': 'Server error', '502': 'Network error', '503': 'Unavailable' };
+const sample = curl(op);
+---
+<section class="op" id={op.anchor}>
+  <div class="oh">
+    <span class={`method ${op.method}`}>{op.method}</span>
+    <code class="path">{op.path.replace(/\/$/, '') || '/'}</code>
+  </div>
+  <h3><a href={`#${op.anchor}`}>{op.summary}</a></h3>
+  <p class="xs muted"><code>{op.operationId}</code>{op.public ? ' · no API key needed' : ' · requires x-api-key'}</p>
+
+  {params.length > 0 && (
+    <>
+      <h4>Parameters</h4>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Name</th><th>In</th><th>Type</th><th>Notes</th></tr></thead>
+        <tbody>{params.map((p: any) => (
+          <tr>
+            <td><code>{p.name}</code>{p.required ? <span class="req"> required</span> : null}</td>
+            <td>{p.in}</td>
+            <td><code>{typeLabel(p.schema)}</code></td>
+            <td class="xs">{[p.schema?.enum ? `One of ${p.schema.enum.join(', ')}` : '', p.schema?.default !== undefined ? `default ${JSON.stringify(p.schema.default)}` : '', p.schema?.nullable ? 'nullable' : ''].filter(Boolean).join(' · ')}</td>
+          </tr>
+        ))}</tbody>
+      </table></div>
+    </>
+  )}
+
+  {op.body && (
+    <>
+      <h4>Request body <span class="xs muted"><code>{op.body.contentType}</code></span></h4>
+      {bodyFields.length ? <SchemaFields fields={bodyFields} open={countFields(bodyFields) < 40} /> : <p class="small muted">See the example below.</p>}
+    </>
+  )}
+
+  <h4>Example</h4>
+  <CodeBlock code={sample} lang="bash" />
+
+  {op.response && (
+    <>
+      <h4>Response <span class="xs muted"><code>{op.response.status}</code></span></h4>
+      {respFields.length ? (
+        <details class="resp"><summary>{respFields.length} top-level fields</summary><SchemaFields fields={respFields} /></details>
+      ) : <p class="small muted">{op.response.schema ? `A ${typeLabel(op.response.schema)}.` : 'No body.'}</p>}
+    </>
+  )}
+  {op.errorStatuses.length > 0 && <p class="xs muted">Errors: {op.errorStatuses.map((s, i) => <><code>{s}</code> {statusText[s] ?? ''}{i < op.errorStatuses.length - 1 ? ' · ' : ''}</>)}</p>}
+</section>
+<style>
+  .op { border-top: 1px solid var(--border); padding: 32px 0; }
+  .oh { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  .path { font-size: 14px; background: none !important; border: 0 !important; padding: 0 !important; overflow-wrap: anywhere; }
+  .op h3 { font-size: 20px; margin: 0 0 4px; }
+  .op h3 a { color: var(--fg); }
+  .op h4 { font-size: 15px; margin: 20px 0 8px; }
+  .req { color: var(--accent-text); font-size: 12px; font-weight: 600; }
+  .resp { margin: 0 0 12px; }
+  .resp > summary { font-size: 14px; color: var(--fg-3); margin-bottom: 8px; }
+</style>

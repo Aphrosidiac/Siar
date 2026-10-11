@@ -1,0 +1,43 @@
+---
+layout: ../../layouts/Doc.astro
+title: Data model
+description: "The objects in the Siar API and how they relate: organization, team, social account, upload, post, comment, webhook."
+---
+import { PLANS } from '../../lib/plans';
+
+```text
+Organization (billing, quotas, API keys, webhooks)
+ └─ Team (one customer, brand or location)
+     ├─ Social account (at most one per network)
+     ├─ Upload (media, reusable across posts)
+     ├─ Post (one payload per target network)
+     └─ Comment (replies you create, comments you import)
+```
+
+## Organization
+
+The unit of billing. Plan quotas, API keys, webhooks and X credit belong to the organization. Plan limits are described on [pricing](/pricing); read your current usage from `GET /organization/usage/posts`, `/comments`, `/uploads`, `/daily-limits` and `/imports`.
+
+## Team
+
+A team (the API sometimes calls it a "social set") groups connected accounts. It holds **at most one account per network**, so to run two Instagram accounts for a customer, create two teams. The Free plan allows {PLANS.FREE.teams} teams; paid plans are unlimited, which also removes any limit on connected accounts.
+
+## Social account
+
+A connected network identity: a profile, Page, channel, board or server. It stores encrypted tokens (never returned), the username and avatar, and, for networks with channels, the selected channel. Accounts are flagged when a network revokes access, and a `social-account.updated` [webhook](/docs/webhooks) fires.
+
+## Upload
+
+A stored media file with a type (`image`, `video`, `document`), size, dimensions and duration. Upload once, reference its `id` from many posts. See [media uploads](/docs/media-uploads).
+
+## Post
+
+A post has a `title` (internal), a `postDate`, a `status`, a list of `socialAccountTypes` and a `data` object with one payload per network. Siar creates one publishing target per network and tracks each separately, so one network can fail while the others succeed. `referenceKey` lets you attach your own id and look the post up with `GET /post/reference-key/{referenceKey}`. See [posting and statuses](/docs/posting).
+
+## Comment
+
+A comment you create through Siar (on a post or in reply to another comment), or a comment imported from a network. Comments have monthly quotas and daily per-account caps.
+
+## Webhook
+
+An HTTPS endpoint with a list of event types and a signing secret. See [webhooks](/docs/webhooks).

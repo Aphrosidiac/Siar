@@ -1,9 +1,9 @@
 ---
 import NetIcon from './NetIcon.astro';
 import { NETWORKS } from '../lib/networks';
-interface Props { target?: 'slug' | 'apiSlug' | 'docs'; showTypes?: boolean }
-const { target = 'slug', showTypes = true } = Astro.props;
-const href = (n: (typeof NETWORKS)[number]) => (target === 'docs' ? `/docs/platforms/${n.slug}` : `/${n[target]}`);
+interface Props { target?: 'slug' | 'apiSlug'; showTypes?: boolean }
+const { target = 'apiSlug', showTypes = true } = Astro.props;
+const href = (n: (typeof NETWORKS)[number]) => `/${n[target]}`;
 ---
 <div class="ng">
   {NETWORKS.map((n) => (

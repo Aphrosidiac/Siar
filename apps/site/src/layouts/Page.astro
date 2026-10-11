@@ -1,0 +1,19 @@
+---
+import Base from './Base.astro';
+import { LAST_UPDATED } from '../config';
+const fm = Astro.props.frontmatter ?? Astro.props;
+const { title, description, updated, eyebrow } = fm;
+---
+<Base title={title} description={description}>
+  <section class="section tight">
+    <div class="container">
+      <div class="prose">
+        {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+        <h1>{title}</h1>
+        {description && <p class="lead">{description}</p>}
+        {updated !== false && <p class="xs muted">Last updated {updated ?? LAST_UPDATED}</p>}
+        <slot />
+      </div>
+    </div>
+  </section>
+</Base>

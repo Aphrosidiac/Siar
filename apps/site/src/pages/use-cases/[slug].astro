@@ -1,0 +1,53 @@
+---
+import Base from '../../layouts/Base.astro';
+import CodeBlock from '../../components/CodeBlock.astro';
+import NetworkGrid from '../../components/NetworkGrid.astro';
+import Faq from '../../components/Faq.astro';
+import Cta from '../../components/Cta.astro';
+import { USE_CASES, type UseCase } from '../../lib/usecases';
+import { faqLd, breadcrumbLd } from '../../lib/seo';
+import { SIGNUP_URL } from '../../config';
+export function getStaticPaths() {
+  return USE_CASES.map((u) => ({ params: { slug: u.slug }, props: { u } }));
+}
+const { u } = Astro.props as { u: UseCase };
+---
+<Base title={u.title} description={u.description} jsonLd={[faqLd(u.faq), breadcrumbLd([{ name: 'Use cases', href: '/use-cases' }, { name: u.title, href: `/use-cases/${u.slug}` }])]}>
+  <section class="section tight hero-bg">
+    <div class="container">
+      <div class="head">
+        <p class="eyebrow">{u.nav}</p>
+        <h1>{u.h1}</h1>
+        <p class="lead">{u.lead}</p>
+        <div class="btn-row"><a class="btn primary lg" href={SIGNUP_URL}>Get an API key</a><a class="btn lg" href="/docs/quickstart">Quickstart</a></div>
+      </div>
+    </div>
+  </section>
+  <section class="section tight">
+    <div class="container body">
+      <ul class="ticks">{u.points.map((p) => <li set:html={p} />)}</ul>
+      {u.sections.map((s) => (
+        <>
+          <h2>{s.h}</h2>
+          {s.p.map((p) => <p set:html={p} />)}
+          {s.code && <CodeBlock code={s.code.code} lang={s.code.lang} />}
+        </>
+      ))}
+      <h2>Works with {'every'} supported network</h2>
+      <NetworkGrid showTypes={false} />
+      <div class="faqw"><Faq items={u.faq} /></div>
+      <h3>Keep reading</h3>
+      <ul>{u.related.map(([href, label]) => <li><a href={href}>{label}</a></li>)}</ul>
+    </div>
+  </section>
+  <Cta />
+</Base>
+<style>
+  .head { max-width: 820px; }
+  .body { max-width: 860px; }
+  .body h2 { margin-top: 44px; font-size: 26px; }
+  .faqw { margin: 48px 0 24px; }
+  .ticks { list-style: none; padding: 0; margin: 0 0 8px; }
+  .ticks li { position: relative; padding-left: 28px; margin: 0 0 10px; font-size: 17px; }
+  .ticks li::before { content: ''; position: absolute; left: 4px; top: 9px; width: 10px; height: 5px; border-left: 2px solid var(--accent-text); border-bottom: 2px solid var(--accent-text); transform: rotate(-45deg); }
+</style>

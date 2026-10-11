@@ -131,14 +131,15 @@ curl -X POST "${API_BASE}/upload/from-url" \\
   -d '{ "teamId": "TEAM_ID", "url": "https://cdn.example.com/launch.mp4" }'
 # → { "id": "UPLOAD_ID", "type": "video", "mime": "video/mp4", ... }`;
 
-export const webhookCreateCurl = `curl -X POST "${API_BASE}/webhook" \\
-  -H "x-api-key: $SIAR_API_KEY" \\
-  -H "content-type: application/json" \\
-  -d '{
-    "url": "https://yourapp.example/webhooks/siar",
-    "events": ["post.published", "comment.received", "social-account.updated"]
-  }'
-# → { "id": "...", "secret": "..." }  — store the secret; it signs every delivery`;
+export const webhookCreateCurl = `# Webhooks are managed by organization owners and admins from the dashboard.
+# API keys cannot create or change them. The underlying request is:
+POST ${API_BASE}/webhook
+{
+  "url": "https://yourapp.example/webhooks/siar",
+  "events": ["post.published", "comment.received", "social-account.updated"]
+}
+# → { "id": "...", "url": "...", "events": [...], "active": true, "secret": "..." }
+# The secret is returned once. It signs every delivery.`;
 
 export const teamCurl = `curl -X POST "${API_BASE}/team" \\
   -H "x-api-key: $SIAR_API_KEY" \\
@@ -179,21 +180,47 @@ export const mcpConfig = `{
     "siar": {
       "command": "npx",
       "args": ["-y", "@siar/mcp"],
-      "env": { "SIAR_API_KEY": "your-api-key" }
+      "env": { "SIAR_API_KEY": "sk_live_..." }
     }
   }
 }`;
 
-export const cliSample = `npm install -g @siar/cli
-export SIAR_API_KEY=your-api-key
+export const mcpClaudeCode = `claude mcp add siar -e SIAR_API_KEY=sk_live_... -- npx -y @siar/mcp`;
 
-siar --help              # every command, grouped like the API
-siar team list           # JSON out, ready for jq
-siar post create --file post.json`;
+export const cliSample = `npm i -g @siar/cli
+export SIAR_API_KEY=sk_live_...
+
+siar teams:list
+siar accounts:list --team TEAM_ID
+siar posts:create --team TEAM_ID --networks BLUESKY,MASTODON --text "Shipped" --now
+siar posts:get POST_ID
+siar help`;
+
+export const cliCall = `# Any operation by its operationId
+siar call analytics.getPostAnalytics --query '{"postId":"POST_ID","platformType":"INSTAGRAM"}'`;
 
 export const sdkSample = `npm install @siar/sdk
 
 import { Siar } from '@siar/sdk';
 
 const siar = new Siar({ apiKey: process.env.SIAR_API_KEY });
-const post = await siar.post.create({ ...body });`;
+const post = await siar.post.create({
+  teamId: 'TEAM_ID',
+  title: 'Launch day',
+  postDate: '2026-11-02T09:00:00.000Z',
+  status: 'SCHEDULED',
+  socialAccountTypes: ['BLUESKY'],
+  data: { BLUESKY: { text: 'We shipped today.' } },
+});
+console.log(post.id, post.status);`;
+
+export const sdkWebhook = `import { Siar } from '@siar/sdk';
+const siar = new Siar();
+
+app.post('/webhooks/siar', express.raw({ type: 'application/json' }), (req, res) => {
+  const event = siar.webhooks.constructEvent(req.body, req.headers, process.env.SIAR_WEBHOOK_SECRET);
+  if (event.type === 'post.published') {
+    // event.data holds the post; deduplicate on event.id
+  }
+  res.sendStatus(200);
+});`;

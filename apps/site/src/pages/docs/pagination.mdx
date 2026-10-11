@@ -1,0 +1,37 @@
+---
+layout: ../../layouts/Doc.astro
+title: Pagination
+description: "List endpoints use offset and limit and return items with a total. A few endpoints use page or cursor instead."
+---
+import CodeBlock from '../../components/CodeBlock.astro';
+import { API_BASE } from '../../config';
+
+Most list endpoints take `offset` and `limit` and return the page of results with the total count:
+
+<CodeBlock lang="bash" code={`curl "${API_BASE}/post?teamId=TEAM_ID&status=POSTED&limit=50&offset=100" \\
+  -H "x-api-key: $SIAR_API_KEY"`} />
+
+```json
+{ "items": [ { "id": "..." } ], "total": 312 }
+```
+
+- `limit` is the page size. Defaults vary per endpoint (10 for posts and uploads) and are capped (100 for uploads), so pass it explicitly.
+- `offset` is how many items to skip. Stop when `offset + items.length >= total`.
+- Results have a defined order; `GET /post` accepts `orderBy` and `order`.
+
+## Page and cursor
+
+A few endpoints differ, and their parameters say so in the [API reference](/docs/api):
+
+- `page` and `limit`: bulk post analytics, import usage, accounts scheduled for deletion.
+- `cursor`: conversations, conversation messages and automation executions. Pass the cursor from the previous response to get the next page.
+
+## With the SDK
+
+`siar.paginate()` walks every page for you:
+
+```js
+for await (const post of siar.paginate('post.getList', { teamId: 'TEAM_ID', status: 'POSTED' })) {
+  console.log(post.id);
+}
+```

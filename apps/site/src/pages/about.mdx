@@ -1,0 +1,27 @@
+---
+layout: ../layouts/Page.astro
+title: About Siar
+description: "Siar is a unified social media API built by FF Dev Studio, a software studio in Malaysia."
+eyebrow: About
+updated: false
+---
+import { LEGAL_NAME, LEGAL_REG, CONTACT_EMAIL, COMPANY_URL } from '../config';
+import { NETWORKS } from '../lib/networks';
+
+Siar is one REST API for publishing, scheduling, commenting on and measuring social media across {NETWORKS.length} networks. It is built and operated by [FF Dev Studio]({COMPANY_URL}), a software studio in Malaysia.
+
+## Why it exists
+
+Every team that posts to social media ends up building the same thing: OAuth for a dozen networks, token refresh, media conversion, each network's quirks and limits, retries that must not double-post, and a way for customers to connect their own accounts. It is slow to build, easy to get subtly wrong, and has nothing to do with the product it supports. Siar is that layer, built once and run as a service.
+
+## How we build it
+
+- **One contract.** The OpenAPI document is the source of truth. The server mounts its routes from it, validates requests against it, and the SDK, CLI, MCP server and this documentation are generated from it.
+- **Real network behaviour.** Adapters are tested against mock servers written from each network's own documentation, and the limits and error references on this site are generated from the same code that enforces them.
+- **Plain pricing.** Plans are per organization, not per connected account.
+
+## The company
+
+Siar is a product of **{LEGAL_NAME}**, registered in Malaysia under company number {LEGAL_REG}. We also build web and mobile software for clients at [ffdev.studio]({COMPANY_URL}).
+
+Questions, partnerships or press: [{CONTACT_EMAIL}](mailto:{CONTACT_EMAIL}). See also [contact](/contact).

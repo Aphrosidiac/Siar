@@ -1,0 +1,46 @@
+---
+import Base from '../layouts/Base.astro';
+import NetIcon from '../components/NetIcon.astro';
+import Cta from '../components/Cta.astro';
+import { NETWORKS, CONNECT_LABEL } from '../lib/networks';
+import { breadcrumbLd } from '../lib/seo';
+const cols = ['comments', 'editPost', 'postAnalytics', 'accountAnalytics', 'messaging'] as const;
+---
+<Base title="Supported platforms" description={`The ${NETWORKS.length} social networks the Siar API publishes to: post types, connection method and what each supports.`} jsonLd={[breadcrumbLd([{ name: 'Platforms', href: '/platforms' }])]}>
+  <section class="section tight hero-bg">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Platforms</p>
+        <h1>{NETWORKS.length} networks, one integration</h1>
+        <p class="lead">Every network has its own page with post types, media rules, daily caps, requested permissions and an error reference, generated from the code that enforces them.</p>
+      </div>
+      <div class="grid g3">
+        {NETWORKS.map((n) => (
+          <a class="card" href={`/${n.apiSlug}`}>
+            <div class="h"><NetIcon type={n.type} size={40} /><h3>{n.name}</h3></div>
+            <p>{n.about}</p>
+            <span class="more">{n.name} API</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+  <section class="section alt">
+    <div class="container">
+      <h2>Compare networks</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Network</th><th>Post types</th><th>Connection</th><th>Comments</th><th>Edit post</th><th>Post analytics</th><th>Account analytics</th><th>Messages</th></tr></thead>
+        <tbody>{NETWORKS.map((n) => {
+          const c = n.adapter.capabilities;
+          return <tr><td><a href={`/${n.apiSlug}`}>{n.name}</a></td><td>{n.postTypes.map((t) => t.toLowerCase().replace(/_/g, ' ')).join(', ')}</td><td>{CONNECT_LABEL[c.connect]}</td>{cols.map((k) => <td class={c[k] ? 'yes' : 'no'}>{c[k] ? 'Yes' : '-'}</td>)}</tr>;
+        })}</tbody>
+      </table></div>
+      <p class="small muted">Network names are trademarks of their owners. Siar is not affiliated with or endorsed by any of them.</p>
+    </div>
+  </section>
+  <Cta />
+</Base>
+<style>
+  .h { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .h h3 { margin: 0; }
+</style>

@@ -1,0 +1,48 @@
+---
+layout: ../../layouts/Doc.astro
+title: SDK, CLI and MCP
+description: "The TypeScript SDK, the JSON-first CLI and the MCP server: install, authenticate and the commands each provides."
+---
+import CodeBlock from '../../components/CodeBlock.astro';
+import { sdkSample, cliSample, cliCall, mcpConfig, mcpClaudeCode } from '../../lib/snippets';
+import { operations } from '../../lib/openapi';
+
+All three are generated from or built on the same OpenAPI contract as the API, so they cover the same {operations().length} operations and stay in step with it. They read the API key from `SIAR_API_KEY` and the API origin from `SIAR_API_URL` when set.
+
+## TypeScript SDK
+
+`@siar/sdk` has a typed method for every operation (`siar.post.create`, `siar.team.getList`, and so on), retries `429`, `5xx` and network errors on idempotent requests with exponential backoff, picks the right upload flow by size, pages through lists and verifies webhooks.
+
+<CodeBlock lang="js" code={sdkSample} />
+
+Errors are thrown as `SiarError` with `statusCode`, `message`, `issues` and `retryAfter`. Helpers worth knowing:
+
+- `siar.paginate(operationId, params)`: async iterator over every page.
+- `siar.uploads.fromFile(pathOrBlob)` and `siar.uploads.fromUrl(url)`.
+- `siar.webhooks.constructEvent(rawBody, headers, secret)`: verify and parse; see [webhooks](/docs/webhooks).
+
+## CLI
+
+`@siar/cli` prints JSON on stdout and progress on stderr, so it composes with `jq`, shell scripts, CI and cron. Exit codes tell a script what happened: 0 ok, 2 usage, 3 auth, 4 not found, 5 validation, 6 rate limited, 7 server or network.
+
+<CodeBlock lang="bash" code={cliSample} />
+
+Schedule with `--at 2026-10-20T09:00:00Z`, save a draft with `--draft`, and pass network-specific fields with `--data @data.json` keyed by network. Any operation without a dedicated command is one `siar call` away:
+
+<CodeBlock lang="bash" code={cliCall} />
+
+The package ships a `SKILL.md` that describes the CLI to agent runtimes.
+
+## MCP server
+
+`@siar/mcp` lets Claude, Cursor or any MCP client publish, schedule and read analytics.
+
+<CodeBlock lang="json" code={mcpConfig} />
+
+For Claude Code:
+
+<CodeBlock lang="bash" code={mcpClaudeCode} />
+
+Tools: `list_teams`, `create_team`, `list_social_accounts`, `get_connect_url`, `upload_media`, `create_post`, `schedule_post`, `list_posts`, `get_post`, `retry_post`, `delete_post`, `list_comments`, `reply_to_comment`, `get_post_analytics`, `get_account_analytics`, `get_usage`, `get_credit_balance`, `quote_x_cost` and `call_operation` for everything else.
+
+An agent can do anything its API key can. Start with a draft or a test team while you build confidence. See [Siar for AI agents](/use-cases/social-media-api-for-ai-agents).

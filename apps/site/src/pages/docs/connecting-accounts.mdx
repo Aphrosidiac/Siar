@@ -1,0 +1,45 @@
+---
+layout: ../../layouts/Doc.astro
+title: Connecting accounts
+description: "Connect social accounts from your own UI with one endpoint, or send customers a hosted connect link. Channels, reconnects and disconnects."
+---
+import CodeBlock from '../../components/CodeBlock.astro';
+import { connectCurl, portalCurl } from '../../lib/snippets';
+import { NETWORKS, CONNECT_LABEL } from '../../lib/networks';
+
+Siar handles the OAuth round trip, token storage and refresh for every network. There are two ways to start it.
+
+## Connect from your own UI
+
+Request an authorization URL for a team and a network, then redirect the user to it.
+
+<CodeBlock lang="bash" code={connectCurl} />
+
+After consent the network sends the user to Siar, Siar stores the tokens, attaches the account to the team and redirects the user to your `redirectUrl`. Optional fields adjust the flow: `serverUrl` (Mastodon), `instagramConnectionMethod`, `tiktokForceLogin`, `forceBrowserOAuth`, `withBusinessScope` and `withMessagingScope`. See the [connect operation](/docs/api/social-account).
+
+## Hosted connect links
+
+A hosted link opens a Siar page that lists the networks you choose, runs the consent flow and returns the user to your app. Use it when your customers, not you, own the accounts.
+
+<CodeBlock lang="bash" code={portalCurl} />
+
+Useful options: `expiresIn` (minutes, 5 to 2880), `logoUrl` and `userName` to brand the page, `language`, `hidePoweredBy`, `hideGoBackButton`, `maxSocialAccountsConnected` and `showModalOnConnectSuccess`. The link is tied to one team and works for as long as `expiresIn` allows.
+
+## How each network connects
+
+<div class="table-wrap"><table>
+<thead><tr><th>Network</th><th>Connection</th><th>Account needed</th></tr></thead>
+<tbody>{NETWORKS.map((n) => <tr><td><a href={`/${n.apiSlug}`}>{n.name}</a></td><td>{CONNECT_LABEL[n.adapter.capabilities.connect]}</td><td>{n.account}</td></tr>)}</tbody>
+</table></div>
+
+## Choosing a channel
+
+Some networks connect a person but publish as something they manage: a Facebook Page, a LinkedIn company page, a YouTube brand channel, a Pinterest board owner, a Google Business Profile location, a Discord or Slack channel. After connecting, the account lists its `channels`. Select one with `POST /social-account/set-channel`, clear it with `unset-channel`, and re-read the list from the network with `refresh-channels`. The hosted page does this step for the user.
+
+## Staying connected
+
+Siar refreshes tokens before they expire and checks connections in the background. When a network revokes access, the account is flagged for reconnection and a `social-account.updated` event fires. You can run a check yourself with `POST /social-account/connection-check` or refresh profile data with `profile-refresh`. Reconnect through the same connect flow; posts that failed because of the broken connection can be moved to the new account with the reconnect operations in the [post reference](/docs/api/post).
+
+## Disconnecting
+
+`DELETE /social-account/disconnect` detaches a network from a team. Revoking Siar's access on the network's own settings page has the same effect on the next check. See [data deletion](/data-deletion) for what happens to stored data.

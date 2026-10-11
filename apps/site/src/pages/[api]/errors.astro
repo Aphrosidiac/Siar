@@ -1,0 +1,52 @@
+---
+import Base from '../../layouts/Base.astro';
+import Cta from '../../components/Cta.astro';
+import { NETWORKS, type NetworkInfo } from '../../lib/networks';
+import { faqLd, breadcrumbLd } from '../../lib/seo';
+
+export function getStaticPaths() {
+  return NETWORKS.map((n) => ({ params: { api: n.apiSlug }, props: { n } }));
+}
+const { n } = Astro.props as { n: NetworkInfo };
+const errs = n.errors;
+const faq = errs.slice(0, 8).map((e) => ({ q: `${n.name} error ${e.code}: what does it mean?`, a: `${e.meaning} ${e.fix}` }));
+---
+<Base title={`${n.name} API errors and how to fix them`} description={`${errs.length ? `${errs.length} ${n.name} API errors` : `How ${n.name} errors are reported`}: what each rejection means and the fix, as relayed by Siar.`} jsonLd={[...(faq.length ? [faqLd(faq)] : []), breadcrumbLd([{ name: `${n.name} API`, href: `/${n.apiSlug}` }, { name: 'Errors', href: `/${n.apiSlug}/errors` }])]}>
+  <section class="section tight">
+    <div class="container body">
+      <p class="xs"><a href="/platforms">Platforms</a> / <a href={`/${n.apiSlug}`}>{n.name} API</a> / Errors</p>
+      <h1>{n.name} API errors</h1>
+      <p class="lead">When {n.name} rejects a request, Siar stores the network's own code and message on the post and returns it to you unchanged, so what you read here matches what you see in the API.</p>
+      {errs.length === 0 ? (
+        <>
+          <p>{n.name} reports failures as plain HTTP errors with a short message and no stable error codes, so there is no code table to show. Siar relays the HTTP status and the server's message on the post's <code>errors</code> field. See the <a href="/docs/errors">Siar error guide</a> for the envelope and the status codes Siar itself returns.</p>
+        </>
+      ) : (
+        <>
+          <p>Where a code is shown it is the network's own code or HTTP status. Messages are abridged where {n.name}'s text is long.</p>
+          <div class="list">
+            {errs.map((e) => (
+              <section class="err" id={e.code.replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase()}>
+                <h2><code>{e.code}</code></h2>
+                <p class="msg"><span class="xs muted">Message</span><br />{e.message}</p>
+                <p><strong>What it means.</strong> {e.meaning}</p>
+                <p><strong>How to fix it.</strong> {e.fix}</p>
+              </section>
+            ))}
+          </div>
+        </>
+      )}
+      <h2 class="more">Where to see an error</h2>
+      <p>Read a failed post with <code>GET /post/&lbrace;id&rbrace;</code>: the <code>error</code> field summarises it, <code>errors</code> lists it per network and <code>errorsVerbose</code> keeps the detail. A <code>post.published</code> webhook fires when the post reaches a final state. Retry with <code>POST /post/&lbrace;id&rbrace;/retry</code>. Limits that Siar enforces itself are on the <a href={`/${n.apiSlug}`}>{n.name} page</a>.</p>
+    </div>
+  </section>
+  <Cta />
+</Base>
+<style>
+  .body { max-width: 860px; }
+  .err { border-top: 1px solid var(--border); padding: 24px 0 8px; }
+  .err h2 { font-size: 18px; margin-bottom: 8px; }
+  .err h2 code { font-size: 16px; overflow-wrap: anywhere; }
+  .msg { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; font-size: 14px; overflow-wrap: anywhere; }
+  .more { margin-top: 40px; font-size: 22px; }
+</style>

@@ -1,0 +1,41 @@
+---
+layout: ../../layouts/Doc.astro
+title: Authentication
+description: "Authenticate with an organization API key in the x-api-key header. What keys can and cannot do, and how to create, roll and protect them."
+---
+import CodeBlock from '../../components/CodeBlock.astro';
+import { API_BASE } from '../../config';
+import { RESOURCE_LIMITS } from '../../lib/plans';
+
+Every request except the health check and the hosted portal endpoints carries an organization API key in the `x-api-key` header.
+
+<CodeBlock lang="bash" code={`curl "${API_BASE}/team" -H "x-api-key: $SIAR_API_KEY"`} />
+
+A missing or unknown key returns `401` with the message `Missing or invalid API key.`
+
+## Creating and rolling keys
+
+Create keys in the dashboard under **API Keys**. The value is shown once, so store it in your secret manager. An organization can have up to {RESOURCE_LIMITS.apiKeys} keys: give each service its own, so you can roll one without touching the others. Rolling a key replaces its value.
+
+## What a key can do
+
+A key acts for the whole organization. It can use everything that publishes and reads content: teams, social accounts, uploads, posts, comments, analytics, imports and X credit reads. Some actions are reserved for people signed in to the dashboard, and a key that tries them gets `403`:
+
+| Action | Who can do it |
+| --- | --- |
+| Billing, plan changes, X credit top-ups | Organization owners |
+| API keys, webhooks, members, organization settings | Owners and admins |
+| Teams and content (posts, uploads, comments, analytics) | Owners, admins, members and API keys |
+
+This keeps a leaked integration key from changing your plan, minting more keys or redirecting your webhooks.
+
+## Keep keys safe
+
+- Never put a key in browser code, a mobile app or a public repository. Call Siar from your server.
+- Use environment variables (`SIAR_API_KEY` is what the SDK, CLI and MCP server read).
+- If a key leaks, roll or delete it in the dashboard; the old value is replaced.
+- To let end users connect accounts without exposing a key, use a [hosted connect link](/docs/connecting-accounts#hosted-connect-links). It carries its own short-lived token.
+
+## Tenancy
+
+Everything you create belongs to your organization and, usually, to a team. Requests are scoped to the key's organization; an id from another organization returns `404`, not `403`.

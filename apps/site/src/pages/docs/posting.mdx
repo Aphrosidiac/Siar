@@ -1,0 +1,78 @@
+---
+layout: ../../layouts/Doc.astro
+title: Posting and statuses
+description: "Create, schedule, update, retry and delete posts: per-network payloads, first comments, statuses and what to do on errors."
+---
+import CodeBlock from '../../components/CodeBlock.astro';
+import CodeTabs from '../../components/CodeTabs.astro';
+import { NETWORKS } from '../../lib/networks';
+import { RESOURCE_LIMITS } from '../../lib/plans';
+import { postTabs, createPostCurl } from '../../lib/snippets';
+import { API_BASE } from '../../config';
+
+## Create a post
+
+<CodeTabs tabs={postTabs()} />
+
+| Field | Meaning |
+| --- | --- |
+| `teamId` | The team whose connected accounts will publish. |
+| `title` | Your own label. Not sent to networks unless a network uses a title field. |
+| `postDate` | When to publish, ISO 8601 in UTC. |
+| `status` | `DRAFT` stores it; `SCHEDULED` queues it for `postDate`. |
+| `socialAccountTypes` | The networks to publish to, e.g. `["INSTAGRAM", "LINKEDIN"]`. |
+| `data` | One payload per network, keyed by network type. |
+| `firstComment` | Optional text per network, published as the first comment. |
+| `referenceKey` | Optional id of your own. Look the post up later with `GET /post/reference-key/{referenceKey}`. |
+
+Each network's payload has its own fields (an Instagram `type` of `POST`, `REEL` or `STORY`, a YouTube `SHORT`, a Reddit subreddit, a Pinterest board). They are listed, with limits, on the platform pages:
+
+<div class="table-wrap"><table>
+<tbody>{NETWORKS.map((n) => <tr><td><a href={`/${n.apiSlug}`}>{n.name}</a></td><td>{n.postTypes.map((t) => t.toLowerCase().replace(/_/g, ' ')).join(', ')}</td></tr>)}</tbody>
+</table></div>
+
+The request is validated before it is stored. A mismatch returns `400` with `issues`:
+
+```json
+{
+  "statusCode": 400,
+  "message": "Validation failed",
+  "issues": [{ "code": "invalid", "message": "Text is longer than 300 characters.", "path": ["data", "BLUESKY", "text"] }]
+}
+```
+
+## Statuses
+
+| Status | Meaning |
+| --- | --- |
+| `DRAFT` | Stored, not queued. Does not count against your quota. |
+| `SCHEDULED` | Queued for `postDate`. |
+| `PROCESSING` | At least one network is being published to, or has accepted the content and is still processing it (common for video). |
+| `REVIEW` | A network accepted the post but is holding it for its own review before it goes live. |
+| `RETRYING` | A failed target is waiting for another attempt. |
+| `POSTED` | Every target is published. `postedDate` is set. |
+| `ERROR` | At least one target failed for good. Read `errors`. |
+| `DELETED` | Deleted. |
+
+Only `DRAFT` and `SCHEDULED` can be set when you create or update a post; the rest are set by Siar. The post status is derived from its targets, so a post with one failed network and others published is `ERROR`, and the targets that succeeded stay published.
+
+## Know when it is done
+
+Prefer the [`post.published` webhook](/docs/webhooks): it fires once when the post reaches a final state (`POSTED` or `ERROR`). To poll instead, read `GET /post/{id}` or list with `GET /post?teamId=…&status=ERROR`.
+
+## Update, retry, delete
+
+- **Update** a draft, a scheduled post or a failed one with `PATCH /post/{id}`: `title`, `postDate`, `status`, `data`, `socialAccountTypes`, `firstComment`. Updating a failed post that has nothing published yet schedules it again. Editing a post that is already published uses the network's edit operation under `/misc`, where the network allows it.
+- **Retry** a post in `ERROR` with `POST /post/{id}/retry`. Only the failed targets are sent again, retries do not count against your quota, and each post can be retried {RESOURCE_LIMITS.maxRetries} times; after that, create a new post.
+- **Delete** with `DELETE /post/{id}`. Targets already published are also removed from networks that allow deletion through their API; if one cannot be removed, the post records which. A post that is publishing right now must finish first. Check each platform page's capabilities table.
+
+## Errors on a post
+
+A failed post has three fields: `error` (a short summary), `errors` (per network, the network's own code and message) and `errorsVerbose` (detail for debugging). Each platform has a page that explains its common errors, for example [TikTok errors](/tiktok-api/errors) and [Instagram errors](/instagram-api/errors).
+
+## Limits to design around
+
+- **Monthly quota** on posts per organization, counted when you create or schedule. See [pricing](/pricing).
+- **Daily cap** per connected account and network, checked against `postDate`.
+- **Per-network rules** for text length, media count, size, duration and aspect ratio.
+- **Media** must be uploaded first; see [media uploads](/docs/media-uploads).

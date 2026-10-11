@@ -1,0 +1,22 @@
+---
+layout: ../layouts/Page.astro
+title: Contact
+description: "How to reach the Siar team for support, sales, security and data requests."
+eyebrow: Contact
+updated: false
+---
+import { CONTACT_EMAIL, LEGAL_ENTITY, DASHBOARD_URL } from '../config';
+
+Email is the fastest way to reach us: [{CONTACT_EMAIL}](mailto:{CONTACT_EMAIL}).
+
+| For | Write to us with |
+| --- | --- |
+| **Support** | Your organization name, the request or post id, and what you expected. Include the `statusCode` and `message` of any error. Never send an API key or a network token. |
+| **Enterprise and higher limits** | Your expected monthly posts, comments and uploads, and the networks you need. We reply with a quote. |
+| **Security reports** | A description and steps to reproduce. We acknowledge reports and keep details private until fixed. |
+| **Privacy and data deletion** | See [data deletion](/data-deletion) for the details we need. |
+| **Billing** | Manage plans and invoices in the [dashboard]({DASHBOARD_URL}); email us if something looks wrong. |
+
+Siar is operated by {LEGAL_ENTITY}.
+
+Documentation answers most questions faster: start with the [quickstart](/docs/quickstart), the [error guide](/docs/errors) and the [platform pages](/platforms).

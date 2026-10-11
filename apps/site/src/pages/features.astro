@@ -1,0 +1,87 @@
+---
+import Base from '../layouts/Base.astro';
+import Cta from '../components/Cta.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import { NETWORKS } from '../lib/networks';
+import { operations } from '../lib/openapi';
+import { WEBHOOK_EVENTS } from '../lib/events';
+import { RESOURCE_LIMITS, fmtInt } from '../lib/plans';
+import { webhookCreateCurl } from '../lib/snippets';
+import { breadcrumbLd } from '../lib/seo';
+
+const groups = [
+  { id: 'publishing', h: 'Publishing and scheduling', p: 'A post is one request with a per-network payload. The shape of each payload is validated against that network\'s rules (text length, media type, aspect ratio, duration) before it is accepted, so most rejections come back as a 400 you can fix instead of a failure an hour later.', items: [
+    'Post to several networks in one call, each with its own text, media and options.',
+    'Schedule with a UTC <code>postDate</code>, or keep a <code>DRAFT</code> that does not count against your quota.',
+    'Each network target is claimed with a conditional update before publishing, so a post is never sent twice.',
+    'Failed posts report the network\'s own message, can be retried up to ' + RESOURCE_LIMITS.maxRetries + ' times and fire a webhook when they reach a final state.',
+    'A first comment per network, edit and delete after publishing where the network allows it.',
+  ], link: ['/use-cases/social-media-posting-api', 'Posting API'] },
+  { id: 'media', h: 'Media', p: 'Upload once, reference the upload id from any number of posts. Siar converts and checks media against each network\'s limits at publish time.', items: [
+    'Multipart upload for small files, import from a public URL, and signed large and multipart uploads for big videos.',
+    `Files are kept for ${RESOURCE_LIMITS.mediaRetentionDays} days after their last use.`,
+    'Per-network image and video rules are listed on every platform page, generated from the code that enforces them.',
+  ], link: ['/docs/media-uploads', 'Media uploads'] },
+  { id: 'accounts', h: 'Accounts and teams', p: 'A team holds at most one connected account per network, which maps cleanly to a customer, brand or location. Paid plans have no cap on teams, so no cap on accounts.', items: [
+    'OAuth for every network behind one endpoint, plus a hosted connect page you can brand and send to your customers.',
+    'Channel selection (Facebook Page, LinkedIn company page, YouTube brand channel, Business Profile location) after sign-in.',
+    'Reconnect detection: when a network revokes a grant, the account is flagged and a webhook fires.',
+    'Tokens are encrypted at rest and never returned by the API.',
+  ], link: ['/use-cases/multi-tenant-social-media-api', 'Multi-tenant API'] },
+  { id: 'engagement', h: 'Comments, analytics and messaging', p: 'Read what people say and how posts perform, on the networks whose APIs expose it.', items: [
+    'Publish comments and replies, import comments on your posts, and moderate them.',
+    'Post and account analytics normalised across networks, with the raw payload alongside.',
+    'Post history import to backfill content published elsewhere.',
+    'Direct-message conversations and automations where the network permits it.',
+  ], link: ['/use-cases/social-media-analytics-api', 'Analytics API'] },
+  { id: 'events', h: 'Webhooks', p: `${WEBHOOK_EVENTS.length} event types, signed with HMAC-SHA256 over the timestamp and the raw body. Failed deliveries are retried with backoff over a day, and every delivery can be inspected and resent.`, items: [
+    'Up to ' + RESOURCE_LIMITS.webhooks + ' endpoints per organization, each with its own event list and secret.',
+    'Rotate a secret, send a test event, inspect every delivery and resend it.',
+  ], link: ['/docs/webhooks', 'Webhook guide'] },
+  { id: 'tooling', h: 'Tooling for developers and agents', p: 'The OpenAPI document is the contract: routes, validation, the SDK types and this reference are all generated from it.', items: [
+    `${fmtInt(operations().length)} operations, one error envelope, offset pagination, rate limit headers.`,
+    'TypeScript SDK with retries and webhook verification, a JSON-first CLI, and an MCP server.',
+    'Wire shapes follow the v1 shape of bundle.social\'s public API, which keeps migration work small.',
+    '<code>/llms.txt</code> and a markdown pricing page for tools that read the web.',
+  ], link: ['/docs/sdk-cli-mcp', 'SDK, CLI and MCP'] },
+];
+---
+<Base title="Features" description={`What the Siar API does: publishing, scheduling, media, accounts and teams, comments, analytics, webhooks and developer tooling across ${NETWORKS.length} social networks.`} jsonLd={[breadcrumbLd([{ name: 'Features', href: '/features' }])]}>
+  <section class="section tight hero-bg">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Features</p>
+        <h1>Everything between your code and {NETWORKS.length} social networks</h1>
+        <p class="lead">Siar owns the parts that break: OAuth and token refresh, media handling, network limits and error mapping, retries, quotas and signed events. You own the product.</p>
+      </div>
+    </div>
+  </section>
+  {groups.map((g, i) => (
+    <section class:list={['section', { alt: i % 2 === 0 }]} id={g.id}>
+      <div class="container two">
+        <div>
+          <h2>{g.h}</h2>
+          <p>{g.p}</p>
+          <p><a href={g.link[0]}>{g.link[1]} →</a></p>
+        </div>
+        <ul class="ticks">{g.items.map((x) => <li set:html={x} />)}</ul>
+      </div>
+    </section>
+  ))}
+  <section class="section">
+    <div class="container narrow">
+      <h2>Subscribe to the events you care about</h2>
+      <p>Register an HTTPS endpoint and a list of events. The response carries the signing secret once. Owners and admins manage webhooks from the dashboard; API keys cannot.</p>
+      <CodeBlock code={webhookCreateCurl} lang="bash" />
+    </div>
+  </section>
+  <Cta />
+</Base>
+<style>
+  .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 48px; align-items: start; }
+  .ticks { list-style: none; padding: 0; margin: 0; }
+  .ticks li { position: relative; padding-left: 28px; margin: 0 0 12px; font-size: 16px; }
+  .ticks li::before { content: ''; position: absolute; left: 4px; top: 8px; width: 10px; height: 5px; border-left: 2px solid var(--accent-text); border-bottom: 2px solid var(--accent-text); transform: rotate(-45deg); }
+  .narrow { max-width: 820px; }
+  @media (max-width: 800px) { .two { grid-template-columns: minmax(0, 1fr); gap: 16px; } }
+</style>

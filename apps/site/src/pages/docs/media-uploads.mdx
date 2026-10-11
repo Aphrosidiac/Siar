@@ -1,0 +1,50 @@
+---
+layout: ../../layouts/Doc.astro
+title: Media uploads
+description: "Upload images, video and documents once and use them in any post: simple, from-URL, large and multipart uploads, and how long files are kept."
+---
+import CodeBlock from '../../components/CodeBlock.astro';
+import { uploadCurl } from '../../lib/snippets';
+import { API_BASE } from '../../config';
+import { RESOURCE_LIMITS, PLANS } from '../../lib/plans';
+
+An upload is a stored file with an `id`. Posts refer to it by id (`uploadIds`, `mediaItems` or `carouselItems`, depending on the network), so one upload can be used in many posts and many networks. Siar probes the file, makes a thumbnail, and converts video that a network cannot take as-is.
+
+Uploads count against a monthly quota ({PLANS.FREE.uploads} on Free; see [pricing](/pricing)).
+
+## Small files and URLs
+
+<CodeBlock lang="bash" code={uploadCurl} />
+
+`POST /upload` takes `multipart/form-data` with `teamId` and `file`. `POST /upload/from-url` fetches a public HTTPS URL for you. Both return the upload.
+
+## Large files
+
+Files over the simple-upload limit go straight to storage with a signed URL, so they never pass through the API:
+
+1. `POST /upload/init` with `teamId`, `fileName`, `mimeType` and `fileSize` returns a signed `url` and a `path`.
+2. `PUT` the bytes to that `url`.
+3. `POST /upload/finalize` with the `path` returns the upload.
+
+## Multipart for very large video
+
+For files that need resumable, parallel transfer:
+
+1. `POST /upload/multipart/init` returns an `uploadId`, a `path`, a `partSize` and the signed `parts`.
+2. `PUT` each part to its URL and keep the `ETag` response header of each.
+3. `POST /upload/multipart/sign` re-signs parts whose URLs expired.
+4. `POST /upload/multipart/complete` with the list of `{ partNumber, etag }` returns the upload. `abort` cleans up.
+
+Files up to 5 GB are supported. The [SDK](/docs/sdk-cli-mcp) picks the right flow by size: `siar.uploads.fromFile(path)` and `siar.uploads.fromUrl(url)`.
+
+## What each network accepts
+
+Image and video formats, size, duration and aspect-ratio limits differ per network, and are checked when you create the post. They are listed on every [platform page](/platforms). Uploading a file does not mean every network will take it.
+
+## Retention
+
+Files are kept for {RESOURCE_LIMITS.mediaRetentionDays} days after their last use: from the upload, or the last time a post using it finished publishing, whichever is later. Media on a draft or scheduled post is kept until that post finishes. Deleted uploads keep their file for {RESOURCE_LIMITS.softDeletedMediaDays} more days. Posts that are already published on the networks are not affected.
+
+## Reading and deleting
+
+`GET /upload` lists (see [pagination](/docs/pagination)), `GET /upload/{id}` reads one, `DELETE /upload/{id}` and `DELETE /upload` remove one or many.

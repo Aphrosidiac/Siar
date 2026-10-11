@@ -8,7 +8,6 @@ const links = [
   { href: '/pricing', label: 'Pricing' },
   { href: '/docs', label: 'Docs' },
   { href: '/docs/api', label: 'API reference' },
-  { href: '/blog', label: 'Blog' },
 ];
 const active = (h: string) => (h === '/docs' ? path === '/docs' || (path.startsWith('/docs/') && !path.startsWith('/docs/api')) : path === h || path.startsWith(h + '/'));
 ---

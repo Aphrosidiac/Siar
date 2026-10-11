@@ -4,11 +4,11 @@ import { NETWORKS } from '../lib/networks';
 import { LEGAL_ENTITY, CONTACT_EMAIL, COMPANY_URL } from '../config';
 const year = 2026;
 const cols = [
-  { h: 'Product', l: [['/features', 'Features'], ['/pricing', 'Pricing'], ['/platforms', 'Platforms'], ['/changelog', 'Changelog'], ['/errors', 'Error reference'], ['/social-media-api', 'Social media API']] },
-  { h: 'Use cases', l: [['/social-media-posting-api', 'Posting API'], ['/social-media-scheduling-api', 'Scheduling API'], ['/multi-tenant-social-media-api', 'Multi-tenant'], ['/social-media-api-for-saas', 'For SaaS'], ['/social-media-api-for-ai-agents', 'For AI agents'], ['/white-label-social-media-api', 'White-label connect']] },
-  { h: 'Developers', l: [['/docs', 'Documentation'], ['/docs/quickstart', 'Quickstart'], ['/docs/api', 'API reference'], ['/docs/webhooks', 'Webhooks'], ['/llms.txt', 'llms.txt'], ['/openapi.json', 'OpenAPI']] },
-  { h: 'Company', l: [['/about', 'About'], ['/contact', 'Contact'], ['/blog', 'Blog'], ['/brand-kit', 'Brand kit'], ['/content-guidelines', 'Content guidelines']] },
-  { h: 'Legal', l: [['/terms', 'Terms of service'], ['/privacy', 'Privacy policy'], ['/data-deletion', 'Data deletion'], ['/cookies', 'Cookie notice']] },
+  { h: 'Product', l: [['/features', 'Features'], ['/pricing', 'Pricing'], ['/platforms', 'Platforms'], ['/use-cases', 'Use cases'], ['/changelog', 'Changelog']] },
+  { h: 'Use cases', l: [['/use-cases/social-media-posting-api', 'Posting API'], ['/use-cases/social-media-scheduling-api', 'Scheduling API'], ['/use-cases/multi-tenant-social-media-api', 'Multi-tenant'], ['/use-cases/social-media-analytics-api', 'Analytics API'], ['/use-cases/social-media-comments-api', 'Comments API'], ['/use-cases/social-media-api-for-ai-agents', 'For AI agents']] },
+  { h: 'Developers', l: [['/docs', 'Documentation'], ['/docs/quickstart', 'Quickstart'], ['/docs/api', 'API reference'], ['/docs/webhooks', 'Webhooks'], ['/llms.txt', 'llms.txt'], ['/openapi.json', 'OpenAPI document']] },
+  { h: 'Company', l: [['/about', 'About'], ['/contact', 'Contact'], ['/changelog', 'Changelog']] },
+  { h: 'Legal', l: [['/terms', 'Terms of service'], ['/privacy', 'Privacy policy'], ['/data-deletion', 'Data deletion']] },
 ];
 ---
 <footer class="ftr">
@@ -17,7 +17,7 @@ const cols = [
       <div class="about">
         <Logo size={24} />
         <p class="small muted">One REST API for publishing, scheduling, comments and analytics across {NETWORKS.length} social networks.</p>
-        <p class="xs muted nets">{NETWORKS.map((n, i) => <><a href={`/${n.slug}`}>{n.name}</a>{i < NETWORKS.length - 1 ? ' · ' : ''}</>)}</p>
+        <p class="xs muted nets">{NETWORKS.map((n, i) => <><a href={`/${n.apiSlug}`}>{n.name}</a>{i < NETWORKS.length - 1 ? ' · ' : ''}</>)}</p>
       </div>
       {cols.map((c) => (
         <div class="col">

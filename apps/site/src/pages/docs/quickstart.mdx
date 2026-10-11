@@ -1,0 +1,62 @@
+---
+layout: ../../layouts/Doc.astro
+title: Quickstart
+description: "From zero to a published post: create an API key, a team, connect an account, upload media and publish, using plain HTTP."
+---
+import CodeBlock from '../../components/CodeBlock.astro';
+import CodeTabs from '../../components/CodeTabs.astro';
+import { API_BASE, SIGNUP_URL, DASHBOARD_URL } from '../../config';
+import { PLANS } from '../../lib/plans';
+import { postTabs, teamCurl, connectCurl, uploadCurl } from '../../lib/snippets';
+
+The Free plan is enough for everything on this page: it includes {PLANS.FREE.posts} posts, {PLANS.FREE.uploads} uploads and {PLANS.FREE.teams} teams a month. Examples use curl; every request is also available through the [SDK](/docs/sdk-cli-mcp).
+
+## 1. Get an API key
+
+[Sign up]({SIGNUP_URL}), then open **API Keys** in the [dashboard]({DASHBOARD_URL}) and create a key. It starts with `sk_live_` and is shown once. Keep it on your server.
+
+<CodeBlock lang="bash" code="export SIAR_API_KEY=sk_live_..." />
+
+Check that it works:
+
+<CodeBlock lang="bash" code={`curl "${API_BASE}/team" -H "x-api-key: $SIAR_API_KEY"`} />
+
+An empty list is a success: `{ "items": [], "total": 0 }`.
+
+## 2. Create a team
+
+A team is a group of at most one connected account per network. Use one per customer, brand or location.
+
+<CodeBlock lang="bash" code={teamCurl} />
+
+## 3. Connect an account
+
+Ask for an authorization URL, open it in a browser and sign in with the network. Afterwards the account belongs to the team.
+
+<CodeBlock lang="bash" code={connectCurl} />
+
+To let your own users do this, send them a [hosted connect link](/docs/connecting-accounts#hosted-connect-links) instead.
+
+## 4. Upload media (optional)
+
+<CodeBlock lang="bash" code={uploadCurl} />
+
+The response contains the upload `id`. Reference it from any post in `uploadIds`.
+
+## 5. Publish
+
+<CodeTabs tabs={postTabs()} />
+
+With `status: "SCHEDULED"` and a future `postDate` the post publishes at that time. Use `DRAFT` to store it without publishing.
+
+## 6. Check the result
+
+<CodeBlock lang="bash" code={`curl "${API_BASE}/post/POST_ID" -H "x-api-key: $SIAR_API_KEY"`} />
+
+The status moves from `SCHEDULED` through `PROCESSING` to `POSTED` or `ERROR`. For production, listen for the [`post.published` webhook](/docs/webhooks) instead of polling.
+
+## Next
+
+- [Posting and statuses](/docs/posting) for per-network payloads and retries.
+- [Platform pages](/platforms) for each network's limits and fields.
+- [Rate limits](/docs/rate-limits) and [errors](/docs/errors) before you go to production.

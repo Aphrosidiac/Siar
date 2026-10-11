@@ -1,0 +1,49 @@
+---
+layout: ../layouts/Page.astro
+title: Data deletion
+description: "How to delete the data Siar holds about a connected social account or your organization: revoke access, disconnect, or ask us."
+eyebrow: Data deletion
+---
+import { LEGAL_NAME, CONTACT_EMAIL, SITE_NAME } from '../config';
+import { RESOURCE_LIMITS } from '../lib/plans';
+
+This page explains how to delete data that {SITE_NAME} (operated by {LEGAL_NAME}) holds after you connected a Facebook, Instagram, TikTok or other social account, directly or through a product that uses Siar. It is also the data deletion instructions page for the networks that require one.
+
+## What we hold for a connected account
+
+- The access and refresh tokens the network issued (encrypted).
+- Profile details the network returned: account id, username, display name, avatar, bio, and the selected Page, channel or location.
+- Content you asked Siar to publish, comments and analytics Siar read from your account, and the media you uploaded for posts.
+
+## Option 1: remove Siar from the network
+
+Revoking access on the network cuts Siar off immediately.
+
+- **Facebook and Instagram:** Facebook Settings, then **Apps and Websites** (or **Business Integrations**), select the Siar app and choose **Remove**. Choose to delete the posts and activity it created if you want them removed from the network too.
+- **TikTok, YouTube/Google, LinkedIn, X, Pinterest, Reddit, Threads and others:** open the security or connected-apps page of your account on that network and remove Siar.
+
+Siar checks connections regularly. When it finds the grant gone, it marks the account disconnected and, after a grace period (72 hours by default), deletes the account's stored tokens and profile record.
+
+## Option 2: disconnect in the product you use
+
+If you connected through an app that uses Siar, use its disconnect control, or ask its operator. The operator can disconnect the account in the dashboard or with `DELETE /social-account/disconnect`. That detaches it from the team and starts the same deletion.
+
+## Option 3: ask us
+
+Email [{CONTACT_EMAIL}](mailto:{CONTACT_EMAIL}) with the subject **Data deletion request** and include:
+
+- the network and the username or profile link of the connected account;
+- the name of the product or organization you connected through, if you know it;
+- the email address you used, if any, so we can find the record.
+
+We confirm by email, delete the account's tokens and profile data and the content and analytics stored for it, and reply within 30 days. We keep only what we are required by law to keep, such as billing records.
+
+## Uploaded media
+
+Uploads are removed {RESOURCE_LIMITS.mediaRetentionDays} days after their last use, or {RESOURCE_LIMITS.softDeletedMediaDays} days after you delete them. Posts already published on a network are not affected by deleting data at Siar; delete those on the network.
+
+## Delete a whole organization
+
+Organization owners can delete the organization in the dashboard, which removes its teams, accounts, posts, uploads and keys. Contact us if you need help or written confirmation.
+
+More about how we handle data is in the [privacy policy](/privacy).

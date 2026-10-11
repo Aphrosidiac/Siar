@@ -1,0 +1,48 @@
+---
+layout: ../../layouts/Doc.astro
+title: Rate limits
+description: "Three request windows per API key (per second, per ten seconds, per minute), the headers that report them, and how to back off."
+---
+import CodeBlock from '../../components/CodeBlock.astro';
+
+Every request must pass three fixed windows at once:
+
+| Window | Requests |
+| --- | --- |
+| 1 second | 100 |
+| 10 seconds | 500 |
+| 1 minute | 2,000 |
+
+A verified API key gets its own bucket for each endpoint, so heavy use of one endpoint does not starve the others. Enterprise organizations can have higher multiples. These limits protect the API; the limits that matter for publishing are the [monthly quotas and daily caps](/pricing) on your plan.
+
+## Headers
+
+Responses carry the state of the tightest window:
+
+| Header | Meaning |
+| --- | --- |
+| `x-ratelimit-limit` | Requests allowed in that window. |
+| `x-ratelimit-remaining` | Requests left. |
+| `retry-after` | Only on `429`: seconds until you may retry. |
+
+A request over the limit returns `429` with the standard [error envelope](/docs/errors).
+
+## Back off
+
+- Respect `retry-after`; do not retry sooner.
+- Spread bulk work (CSV imports, history imports, large uploads) instead of firing it in a burst. The [CSV import](/docs/api/post-csv-import) creates many posts from one request.
+- The [SDK](/docs/sdk-cli-mcp) retries `429`, `5xx` and network errors on idempotent requests with exponential backoff and honours `retry-after`.
+
+```js
+async function call(url, init, attempt = 0) {
+  const res = await fetch(url, init);
+  if (res.status !== 429 || attempt >= 4) return res;
+  const wait = Number(res.headers.get('retry-after') ?? 1) * 1000;
+  await new Promise((r) => setTimeout(r, wait));
+  return call(url, init, attempt + 1);
+}
+```
+
+## Not the same as network limits
+
+Networks apply their own limits. Siar's daily caps per account keep you inside them, and a network that still throttles is reported on the post with the network's own message; see the platform error references.

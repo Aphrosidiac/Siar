@@ -2,8 +2,99 @@
 import Base from '../layouts/Base.astro';
 import NetworkGrid from '../components/NetworkGrid.astro';
 import PlanCards from '../components/PlanCards.astro';
+import CodeTabs from '../components/CodeTabs.astro';
+import Faq from '../components/Faq.astro';
+import Cta from '../components/Cta.astro';
 import { NETWORKS } from '../lib/networks';
 import { operations } from '../lib/openapi';
 import { WEBHOOK_EVENTS } from '../lib/events';
+import { PLANS, fmtInt, paidFrom } from '../lib/plans';
+import { postTabs } from '../lib/snippets';
+import { softwareLd, faqLd } from '../lib/seo';
+import { SIGNUP_URL, DESCRIPTION } from '../config';
+
+const faq = [
+  { q: 'What is Siar?', a: `Siar is a REST API that publishes, schedules, comments on and measures social media across ${NETWORKS.length} networks. You send one request with a per-network payload; Siar handles OAuth, token refresh, media conversion, retries and each network's limits.` },
+  { q: 'How is it priced?', a: `Per organization, not per connected account. The Free plan includes ${PLANS.FREE.posts} posts a month; paid plans start at $${paidFrom()} a month on yearly billing and allow unlimited teams and connected accounts. X (Twitter) usage is passed through at cost from a prepaid credit balance.` },
+  { q: 'Can my own customers connect their accounts?', a: 'Yes. Create a team per customer and send them a hosted connect link, branded with your logo and name. They authorize in their own browser and land back in your app; you never handle their passwords or tokens.' },
+  { q: 'Do I need to register developer apps with each network?', a: 'No. Accounts connect through the network apps Siar operates, so you do not register or maintain developer apps yourself. What each network requires of the connected account (a business profile, a Page, a channel) is described on its platform page.' },
+  { q: 'What if a network rejects a post?', a: 'You get the network\'s own error message and code on the post, a webhook when the post reaches a final state, and a retry endpoint. Every platform page has an error reference that explains the common rejections and how to fix them.' },
+  { q: 'Is it compatible with another unified social API?', a: 'The request and response shapes follow the v1 shape used by bundle.social, so an integration written against that API usually needs a new base URL and API key rather than a rewrite. Check the API reference for any field you rely on.' },
+];
 ---
-<Base title="Test"><div class="container"><p>{NETWORKS.length} {operations().length} {WEBHOOK_EVENTS.length}</p><NetworkGrid /><PlanCards /></div></Base>
+<Base title="Siar | One unified social media API" description={DESCRIPTION} jsonLd={[softwareLd(), faqLd(faq)]}>
+  <section class="hero hero-bg">
+    <div class="container hero-grid">
+      <div>
+        <p class="eyebrow">Social media API for {NETWORKS.length} networks</p>
+        <h1>Publish to every social network with one API.</h1>
+        <p class="lead">Post, schedule, comment and read analytics on {NETWORKS.map((n) => n.name).slice(0, 6).join(', ')} and {NETWORKS.length - 6} more through a single REST API. Connect unlimited accounts; pay per organization, never per account.</p>
+        <div class="btn-row">
+          <a class="btn primary lg" href={SIGNUP_URL}>Get an API key</a>
+          <a class="btn lg" href="/docs/quickstart">Read the quickstart</a>
+        </div>
+        <p class="xs muted note">Free plan: {PLANS.FREE.posts} posts a month, no card needed.</p>
+      </div>
+      <div class="code"><CodeTabs tabs={postTabs()} /></div>
+    </div>
+  </section>
+
+  <section class="section tight">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Platforms</p>
+        <h2>{NETWORKS.length} networks, one request shape</h2>
+        <p class="lead">Each network keeps its own fields (an Instagram reel, a YouTube Short, a Reddit link post), validated before anything is sent. Open a platform for limits, post types and error reference.</p>
+      </div>
+      <NetworkGrid />
+    </div>
+  </section>
+
+  <section class="section alt">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">What you get</p>
+        <h2>The parts of social publishing you would rather not build</h2>
+      </div>
+      <div class="grid g3">
+        <a class="card" href="/use-cases/social-media-posting-api"><h3>Publishing</h3><p>One post, many networks, each with its own text, media and options. Posts report per-network success or failure with the network's own message.</p><span class="more">Posting API</span></a>
+        <a class="card" href="/use-cases/social-media-scheduling-api"><h3>Scheduling</h3><p>Set a future <code>postDate</code>. Siar publishes on time, claims each target once so a post is never sent twice, and retries failures.</p><span class="more">Scheduling API</span></a>
+        <a class="card" href="/use-cases/multi-tenant-social-media-api"><h3>Multi-tenant teams</h3><p>A team per customer, brand or location, with at most one account per network. Teams are free to create on paid plans.</p><span class="more">Multi-tenant API</span></a>
+        <a class="card" href="/use-cases/hosted-connect-oauth"><h3>Hosted connect</h3><p>Send customers a link that handles OAuth for every network, with your logo, in their language. No redirect handling on your side.</p><span class="more">Hosted connect</span></a>
+        <a class="card" href="/use-cases/social-media-comments-api"><h3>Comments</h3><p>Reply as the account, import what people wrote on your posts and moderate it, on the networks that expose comments.</p><span class="more">Comments API</span></a>
+        <a class="card" href="/use-cases/social-media-analytics-api"><h3>Analytics</h3><p>Post and account metrics normalised across networks, with the raw network payload kept next to them.</p><span class="more">Analytics API</span></a>
+        <a class="card" href="/use-cases/social-media-webhooks"><h3>Webhooks</h3><p>{WEBHOOK_EVENTS.length} signed event types for posts, comments, accounts, credit and conversations, with a delivery log and resend.</p><span class="more">Webhooks</span></a>
+        <a class="card" href="/use-cases/social-media-api-for-ai-agents"><h3>Agents and tooling</h3><p>A TypeScript SDK, a JSON-first CLI and an MCP server generated from the same contract as the API.</p><span class="more">For AI agents</span></a>
+        <a class="card" href="/docs/api"><h3>One contract</h3><p>{operations().length} operations described in a single OpenAPI document. The server, the SDK and this reference all read it.</p><span class="more">API reference</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Pricing</p>
+        <h2>Priced per organization</h2>
+        <p class="lead">Quotas are on what you create each month. Connect as many accounts as you like on a paid plan; the only per-network charge is X's own API fees, passed through at cost.</p>
+      </div>
+      <PlanCards compact />
+      <p class="small"><a href="/pricing">See quotas, daily caps and X prices</a>. Yearly billing from ${fmtInt(paidFrom())} a month.</p>
+    </div>
+  </section>
+
+  <section class="section alt">
+    <div class="container narrow">
+      <Faq items={faq} />
+    </div>
+  </section>
+  <Cta />
+</Base>
+<style>
+  .hero { padding: 72px 0 80px; border-bottom: 1px solid var(--border); }
+  .hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 48px; align-items: center; }
+  .hero h1 { font-size: 48px; line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 16px; }
+  .note { margin-top: 16px; }
+  .narrow { max-width: 820px; }
+  @media (max-width: 960px) { .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 32px; } .hero h1 { font-size: 38px; } }
+  @media (max-width: 640px) { .hero { padding: 40px 0 48px; } .hero h1 { font-size: 32px; } }
+</style>
