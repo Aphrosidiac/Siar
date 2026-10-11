@@ -5,15 +5,21 @@ const fm = Astro.props.frontmatter ?? Astro.props;
 const { title, description, updated, eyebrow } = fm;
 ---
 <Base title={title} description={description}>
-  <section class="section tight">
-    <div class="container">
-      <div class="prose">
-        {eyebrow && <p class="eyebrow">{eyebrow}</p>}
-        <h1>{title}</h1>
-        {description && <p class="lead">{description}</p>}
-        {updated !== false && <p class="xs muted">Last updated {updated ?? LAST_UPDATED}</p>}
-        <slot />
-      </div>
+  <section class="m-hero ph">
+    <div class="m-wide">
+      <p class="m-kicker" data-reveal><span class="n">{eyebrow ?? 'Siar'}</span>{updated !== false && <><span class="rule"></span>updated {updated ?? LAST_UPDATED}</>}</p>
+      <h1 class="m-h2" data-lines><span class="ln"><span>{title}</span></span></h1>
+      {description && <p class="m-lead" data-reveal style="--d:2">{description}</p>}
+    </div>
+  </section>
+  <section class="body">
+    <div class="m-wide">
+      <div class="prose"><slot /></div>
     </div>
   </section>
 </Base>
+<style>
+  .ph { padding: clamp(40px, 7vw, 104px) 0 clamp(32px, 4vw, 56px); border-bottom: 1px solid var(--border); }
+  .ph h1 { max-width: 16em; }
+  .body { padding: clamp(40px, 5vw, 64px) 0 clamp(64px, 8vw, 120px); }
+</style>

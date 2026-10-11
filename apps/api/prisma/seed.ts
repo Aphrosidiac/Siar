@@ -11,6 +11,8 @@
 import { prisma } from '../src/platform/db.js';
 import { hashPassword } from '../src/platform/auth.js';
 import { tokenColumns } from '../src/platform/networks.js';
+import { encrypt, randomToken, sha256 } from '../src/platform/crypto.js';
+import { apiKeyPrefix, newApiKey } from '../src/platform/auth.js';
 import { NETWORK_TYPES } from '../src/domain/serialize.js';
 import type { NetworkType } from '@siar/networks';
 
@@ -53,17 +55,57 @@ function channelsFor(type: string, name: string, user: string): { id?: string; n
     default: return [];
   }
 }
-const TEXTS = [
-  'New seasonal menu drops this Friday. Which one are you trying first?',
-  'Behind the scenes of our latest shoot — swipe to see the setup.',
-  'We shipped scheduled publishing for 15 networks. Docs in the link.',
-  'Three things we learned running 10,000 posts a month through one API.',
-  'Weekend hours: open 8am to 10pm. See you there!',
-  'Customer story: how a 4-person team runs 40 brand accounts.',
-  'Quick tip: your first comment is the best place for links on Instagram.',
-  'Live now: our autumn collection. Limited run.',
-  'Hiring: backend engineer (TypeScript, Postgres). Remote friendly.',
-  'Thank you for 10k followers. Giveaway details below.',
+/** What each demo brand would really post, comment and message, so screenshots read true. */
+const TEXTS: Record<string, string[]> = {
+  'Kopi Senja': [
+    'Pandan latte is back from Friday. Iced or hot?',
+    'Weekend hours: 8am to 10pm at Bangsar, Uptown and Mont Kiara.',
+    'Behind the bar: how we pull a double shot of the house blend.',
+    'New beans in from Bukit Tinggi. Chocolatey, low acid, roasted Tuesday.',
+    'Rainy morning? Kaya toast and kopi O for RM12 until 11am.',
+    'Thank you for 10k followers. Comment your order for a free drink this week.',
+    'Hiring baristas for Mont Kiara. Full time, training provided.',
+    'Deepavali hours: all three outlets close at 6pm on Sunday.',
+    'Our Mont Kiara outlet turns one this week. Free cookie with every drink.',
+    'Latte art class on Saturday, 10am. Six seats left.',
+    'Meet Hana, our head roaster, and the one bean she would take to an island.',
+    'Oat, almond or soy at no extra charge, at every outlet.',
+    'Coffee cart catering for offices: now booking for December.',
+    'Cold brew in 1-litre bottles, made daily. Pick up at any outlet.',
+  ],
+  'Northwind Labs': [
+    'v2.4 is out: scheduled exports, SSO on every plan and a faster search.',
+    'We moved our job queue to Postgres. Here is what happened to p99 latency.',
+    'Hiring: backend engineer (TypeScript, Postgres). Remote within GMT+8.',
+    'Office hours on Thursday. Bring your migration questions.',
+    'Customer story: how a four-person team runs 40 brand accounts.',
+    'Changelog: webhooks now retry with backoff for 24 hours.',
+  ],
+  'Halo Fitness': [
+    'A 20-minute HIIT you can do in a condo gym. Save this for Monday.',
+    'New class: reformer Pilates at TTDI, starting 3 November.',
+    'Member spotlight: Farah ran her first 10K this weekend.',
+    'Form check: three cues for a better deadlift.',
+    'Early birds, the 6:30am classes are back.',
+  ],
+  'Ops Alerts': [
+    'Release 2026.10.12 is live: queue latency down 38%.',
+    'Scheduled maintenance on Sunday, 02:00 to 02:30 MYT.',
+    'Resolved: delayed webhooks between 14:02 and 14:19 MYT.',
+  ],
+};
+const COMMENTS: Record<string, string[]> = {
+  'Kopi Senja': ['Is the pandan latte available with oat milk?', 'What time do you open on Sunday?', 'Had the kaya toast yesterday, so good', 'Can I book a table for eight on Saturday?', 'Any parking near the Uptown outlet?', 'Iced, always iced', 'Do you sell the beans by the bag?'],
+  'Northwind Labs': ['Is SSO on the starter plan too?', 'Great write-up on the queue migration', 'Any plans for a Terraform provider?', 'Applied! Is the role open to Singapore?', 'The export scheduler saved us a cron job, thank you'],
+  'Halo Fitness': ['Doing this tomorrow morning', 'Is the TTDI class beginner friendly?', 'Congrats Farah!', 'Can you post the cool-down too?', 'What time is the Saturday class?'],
+  'Ops Alerts': ['Thanks for the heads up', 'Confirmed on our side, all clear'],
+};
+const PEOPLE = ['Aisyah Rahman', 'Daniel Wong', 'Mei Ling Tan', 'Arjun Nair', 'Sofia Lim', 'Hafiz Ismail', 'Priya Menon', 'Jason Ong'];
+const DMS: [string, string, string | null][] = [
+  ['aisyah.k', 'Hi! Do you take reservations for eight on Saturday evening?', 'Hi Aisyah, yes. Which outlet would you like?'],
+  ['danielwong', 'Is the Uptown outlet pet friendly?', null],
+  ['meiling_eats', 'Could we do a coffee cart for an office event in November?', 'We would love to. Sending you our catering menu now.'],
+  ['hafiz.runs', 'Do you sell the house blend in 1kg bags?', null],
 ];
 
 const MEDIA_REQUIRED = new Set(['TIKTOK', 'YOUTUBE', 'INSTAGRAM', 'PINTEREST', 'SNAPCHAT']);
@@ -134,7 +176,10 @@ async function main() {
     for (const a of accounts) {
       for (let d = 30; d >= 0; d -= 1) {
         const followers = 1200 + (30 - d) * int(3, 20);
-        await prisma.socialAccountAnalytics.create({ data: { socialAccountId: a.id, followers, following: 310, postCount: 80 + (30 - d), impressions: int(800, 6000), views: int(400, 4000), likes: int(40, 400), comments: int(2, 60), createdAt: new Date(Date.now() - d * DAY) } });
+        // a weekly rhythm (weekends busier) on a slow climb, with a little noise, like a real account
+        const day = new Date(Date.now() - d * DAY).getDay();
+        const wave = (day === 0 || day === 6 ? 1.35 : 1) * (1 + (30 - d) / 60) * (0.88 + rnd() * 0.24);
+        await prisma.socialAccountAnalytics.create({ data: { socialAccountId: a.id, followers, following: 310, postCount: 80 + (30 - d), impressions: Math.round(3200 * wave), views: Math.round(2100 * wave), likes: Math.round(180 * wave), comments: Math.round(22 * wave), createdAt: new Date(Date.now() - d * DAY) } });
       }
     }
     // Posts across every state, spread over the last 30 days and the next 14.
@@ -148,10 +193,10 @@ async function main() {
       const date = new Date(Date.now() + offset * DAY + int(0, 12) * 3600_000);
       const past = offset < 0;
       const status = past ? pick(['POSTED', 'POSTED', 'POSTED', 'POSTED', 'ERROR', 'REVIEW'] as const) : pick(['SCHEDULED', 'SCHEDULED', 'DRAFT'] as const);
-      const text = pick(TEXTS);
+      const text = TEXTS[t.name][i % TEXTS[t.name].length];
       const data = Object.fromEntries(subset.map(a => [a.type, a.type === 'PINTEREST' ? { text, boardName: 'Official' } : a.type === 'REDDIT' ? { sr: 'r/startups', text } : a.type === 'DISCORD' || a.type === 'SLACK' ? { channelId: a.channelId, text } : a.type === 'TIKTOK' ? { text, privacy: 'PUBLIC_TO_EVERYONE' } : { text }]));
       const post = await prisma.post.create({ data: {
-        teamId: team.id, organizationId: org.id, title: text.slice(0, 60), postDate: date, postedDate: status === 'POSTED' ? date : null, status, data,
+        teamId: team.id, organizationId: org.id, title: text.length <= 60 ? text : `${text.slice(0, text.lastIndexOf(' ', 58))}…`, postDate: date, postedDate: status === 'POSTED' ? date : null, status, data,
         createdVia: pick(['API', 'API', 'DASHBOARD', 'CSV'] as const), countedAt: status === 'DRAFT' ? null : date,
         error: status === 'ERROR' ? `${subset[0].type}: The media aspect ratio is not supported.` : null,
       } });
@@ -169,18 +214,45 @@ async function main() {
           for (let s = 0; s < 3; s++) await prisma.postAnalytics.create({ data: { profilePostId: pp.id, impressions: int(200, 9000) * (s + 1), views: int(100, 6000) * (s + 1), likes: int(5, 500) * (s + 1), comments: int(0, 40) * (s + 1), shares: int(0, 30), saves: int(0, 50), createdAt: new Date(date.getTime() + s * DAY) } });
           if (rnd() > 0.6) {
             const imp = await prisma.commentImport.create({ data: { teamId: team.id, organizationId: org.id, socialAccountId: a.id, type: a.type, postId: post.id, externalPostId: ext, status: 'COMPLETED', commentsCount: 3, limit: 200, completedAt: new Date() } });
-            for (let c = 0; c < 3; c++) await prisma.fetchedComment.create({ data: { teamId: team.id, organizationId: org.id, postId: post.id, socialAccountId: a.id, importId: imp.id, platform: a.type, externalId: `${ext}_c${c}`, externalPostId: ext, authorName: pick(['Aisyah', 'Daniel', 'Mei Ling', 'Arjun', 'Sofia']), text: pick(['Love this!', 'What time do you open?', 'Is there a vegan option?', 'Shipped to Penang?', '🔥🔥']), likesCount: int(0, 20), publishedAt: new Date(date.getTime() + c * 3600_000) } });
+            for (let c = 0; c < 3; c++) await prisma.fetchedComment.create({ data: { teamId: team.id, organizationId: org.id, postId: post.id, socialAccountId: a.id, importId: imp.id, platform: a.type, externalId: `${ext}_c${c}`, externalPostId: ext, authorName: pick(PEOPLE), text: pick(COMMENTS[t.name]), likesCount: int(0, 20), publishedAt: new Date(date.getTime() + c * 3600_000) } });
           }
         }
       }
     }
-    if (t.networks.includes('INSTAGRAM')) {
+    if (t.name === 'Kopi Senja') {
       const ig = accounts.find(a => a.type === 'INSTAGRAM')!;
-      for (const who of ['aisyah.k', 'danielwong', 'meiling_eats']) {
-        const conv = await prisma.conversation.create({ data: { teamId: team.id, socialAccountId: ig.id, platform: 'INSTAGRAM', externalParticipantId: `ig_${who}`, participantUsername: who, participantDisplayName: who, lastMessageAt: new Date(), lastActivityAt: new Date(), lastMessagePreview: 'Do you take reservations?', unreadCount: 1 } });
-        await prisma.conversationMessage.create({ data: { conversationId: conv.id, teamId: team.id, socialAccountId: ig.id, platform: 'INSTAGRAM', direction: 'INBOUND', status: 'DELIVERED', source: 'WEBHOOK', externalMessageId: `m_${who}`, text: 'Do you take reservations?', sentAt: new Date() } });
+      for (const [k, [who, text, reply]] of DMS.entries()) {
+        const at = new Date(Date.now() - (k * 3 + 1) * 3600_000);
+        const last = reply ?? text;
+        const conv = await prisma.conversation.create({ data: { teamId: team.id, socialAccountId: ig.id, platform: 'INSTAGRAM', externalParticipantId: `ig_${who}`, participantUsername: who, participantDisplayName: who, lastMessageAt: at, lastActivityAt: at, lastMessagePreview: last, unreadCount: reply ? 0 : 1 } });
+        await prisma.conversationMessage.create({ data: { conversationId: conv.id, teamId: team.id, socialAccountId: ig.id, platform: 'INSTAGRAM', direction: 'INBOUND', status: 'DELIVERED', source: 'WEBHOOK', externalMessageId: `m_${who}`, text, sentAt: new Date(at.getTime() - 20 * 60_000) } });
+        if (reply) await prisma.conversationMessage.create({ data: { conversationId: conv.id, teamId: team.id, socialAccountId: ig.id, platform: 'INSTAGRAM', direction: 'OUTBOUND', status: 'SENT', source: 'API', externalMessageId: `m_${who}_r`, text: reply, sentAt: at } });
       }
+      const bio = await prisma.bio.create({ data: { teamId: team.id, slug: 'kopisenja', title: 'Kopi Senja', description: 'Specialty coffee in Bangsar, Uptown and Mont Kiara.', theme: { accent: '#161615' }, published: true } });
+      const links: [string, string, string | null][] = [['HEADER', 'Order', null], ['LINK', 'Order on GrabFood', 'https://food.grab.com/my/en/'], ['LINK', 'Today\'s menu', 'https://kopisenja.example/menu'], ['LINK', 'Catering and coffee carts', 'https://kopisenja.example/catering'], ['HEADER', 'Visit', null], ['LINK', 'Find an outlet', 'https://kopisenja.example/outlets'], ['SOCIAL', 'Instagram', 'https://instagram.com/kopisenja']];
+      const items = [];
+      for (const [i, [type, title, url]] of links.entries()) items.push(await prisma.bioItem.create({ data: { bioId: bio.id, type, title, url, position: i + 1 } }));
+      const clickable = items.filter(i => i.type !== 'HEADER');
+      const events = [];
+      for (let d = 29; d >= 0; d--) for (let v = int(30, 90); v > 0; v--) {
+        const at = new Date(Date.now() - d * DAY - int(0, 20) * 3600_000);
+        events.push({ bioId: bio.id, kind: 'VIEW', country: pick(['MY', 'MY', 'MY', 'SG']), referrer: pick(['instagram.com', 'tiktok.com', null]), createdAt: at });
+        if (rnd() > 0.55) events.push({ bioId: bio.id, kind: 'CLICK', itemId: pick(clickable).id, country: 'MY', createdAt: at });
+      }
+      await prisma.bioEvent.createMany({ data: events });
     }
+  }
+  const hook = await prisma.webhook.create({ data: { organizationId: org.id, url: 'https://api.demostudio.example/hooks/siar', events: ['post.published', 'comment.received', 'social-account.updated', 'conversation.message.created'], secretEnc: encrypt(`whsec_${randomToken(24)}`) } });
+  const deliveries = [];
+  for (let k = 0; k < 24; k++) {
+    const event = pick(['post.published', 'post.published', 'post.published', 'comment.received', 'conversation.message.created', 'social-account.updated']);
+    const failed = k === 5;
+    deliveries.push({ webhookId: hook.id, eventId: `evt_${randomToken(9)}`, event, payload: { type: event, data: {} }, attempt: failed ? 3 : 1, status: failed ? 'FAILED' : 'SUCCESS', responseCode: failed ? 502 : 200, responseBody: failed ? 'Bad gateway' : '{"ok":true}', durationMs: failed ? 10_000 : int(60, 420), createdAt: new Date(Date.now() - k * int(40, 140) * 60_000) });
+  }
+  await prisma.webhookDelivery.createMany({ data: deliveries });
+  for (const [name, used] of [['Production server', 0.02], ['Zapier', 2], ['Staging', 9]] as const) {
+    const key = newApiKey();
+    await prisma.apiKey.create({ data: { organizationId: org.id, name, prefix: apiKeyPrefix(key), hash: sha256(key), createdById: user.id, lastUsedAt: new Date(Date.now() - used * DAY), createdAt: new Date(Date.now() - (40 + used * 3) * DAY) } });
   }
   await prisma.notification.createMany({ data: [
     { userId: user.id, organizationId: org.id, kind: 'post.error', title: 'A post failed to publish', body: 'Instagram: The media aspect ratio is not supported.', link: '/posts' },

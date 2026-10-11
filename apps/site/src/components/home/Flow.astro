@@ -1,0 +1,101 @@
+---
+/**
+ * The product walkthrough: steps scroll on the left while a sticky window on the right swaps to the
+ * matching screenshot and eases in on the part that matters. Phones get each shot inline instead.
+ * Shots come from scripts/shots.mjs (the dashboard with the demo seed).
+ */
+interface Step { n: string; tag: string; title: string; body: string; img: string; url: string; focus: [number, number, number] }
+const steps: Step[] = [
+  { n: '01', tag: 'Connect', title: 'Your customers connect their own accounts.', body: 'Send a hosted link with your name on it. They sign in to each network in their own browser and land back in your app. You never see a password or a token.', img: 'portal', url: 'app.siar.dev/connect', focus: [0.5, 0.32, 1.55] },
+  { n: '02', tag: 'Write once', title: 'One post. Every network.', body: 'Pick the accounts and write it once. The character limit for every network updates as you type, so nothing gets cut off at 9am.', img: 'flow-2', url: 'app.siar.dev/compose', focus: [0.38, 0.38, 1.32] },
+  { n: '03', tag: 'Tailor', title: 'Then make each one fit.', body: 'Give Threads a shorter line, add a first comment on Instagram, pick a board on Pinterest. Every network keeps its own fields, checked before anything is sent.', img: 'flow-3', url: 'app.siar.dev/compose', focus: [0.42, 0.42, 1.42] },
+  { n: '04', tag: 'Schedule', title: 'Schedule it, then stop thinking about it.', body: 'Siar publishes on time in your timezone, retries what a network bounces, and reports exactly what happened on each network.', img: 'flow-4', url: 'app.siar.dev/posts', focus: [0.8, 0.4, 1.38] },
+  { n: '05', tag: 'Measure', title: 'See what landed.', body: 'Followers, reach and engagement per network on one screen, with every comment and DM in a shared inbox beside it.', img: 'analytics', url: 'app.siar.dev/analytics', focus: [0.55, 0.32, 1.28] },
+];
+const shot = (s: Step) => `/shots/${s.img}.webp`;
+---
+<div class="flow" data-flow>
+  <ol class="steps">
+    {steps.map((s, i) => (
+      <li class="step" data-step={i}>
+        <div class="txt">
+          <p class="m-kicker"><span class="n">{s.n}</span><span class="rule"></span>{s.tag}</p>
+          <h3 class="m-h3">{s.title}</h3>
+          <p class="body">{s.body}</p>
+        </div>
+        <figure class="frame mob">
+          <div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url">{s.url}</span></div>
+          <div class="crop"><img src={shot(s)} width="2880" height="1800" alt={`${s.tag}: Siar dashboard`} loading="lazy" decoding="async" style={`--fx:${s.focus[0] * 100}%;--fy:${s.focus[1] * 100}%;--z:${s.focus[2]}`} /></div>
+        </figure>
+      </li>
+    ))}
+  </ol>
+  <div class="stage" aria-hidden="true">
+    <div class="frame win">
+      <div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url" data-url>{steps[0].url}</span></div>
+      <div class="view">
+        {steps.map((s, i) => (
+          <img src={shot(s)} width="2880" height="1800" alt="" loading={i === 0 ? 'eager' : 'lazy'} decoding="async" data-shot={i} class:list={[{ on: i === 0 }]} style={`--fx:${s.focus[0] * 100}%;--fy:${s.focus[1] * 100}%;--z:${s.focus[2]}`} data-url={s.url} />
+        ))}
+      </div>
+      <div class="prog">{steps.map((s, i) => <span class:list={[{ on: i === 0 }]} data-dot={i}><i></i>{s.tag}</span>)}</div>
+    </div>
+  </div>
+</div>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-flow]').forEach((root) => {
+    const steps = [...root.querySelectorAll<HTMLElement>('[data-step]')];
+    const shots = [...root.querySelectorAll<HTMLImageElement>('[data-shot]')];
+    const dots = [...root.querySelectorAll<HTMLElement>('[data-dot]')];
+    const url = root.querySelector<HTMLElement>('[data-url]')!;
+    let cur = -1;
+    const show = (i: number) => {
+      if (i === cur) return; cur = i;
+      shots.forEach((s, k) => { s.classList.toggle('on', k === i); s.classList.remove('zoom'); });
+      dots.forEach((d, k) => d.classList.toggle('on', k <= i));
+      steps.forEach((s, k) => s.classList.toggle('on', k === i));
+      url.textContent = shots[i].dataset.url ?? '';
+      // let the new shot land whole, then ease in on its subject
+      window.setTimeout(() => { if (cur === i) shots[i].classList.add('zoom'); }, 650);
+    };
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) if (e.isIntersecting) show(Number((e.target as HTMLElement).dataset.step));
+    }, { rootMargin: '-45% 0px -45% 0px' });
+    steps.forEach((s) => io.observe(s));
+    show(0);
+  });
+</script>
+<style>
+  .flow { display: grid; grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr); gap: clamp(32px, 5vw, 80px); }
+  .steps { list-style: none; margin: 0; padding: 0; }
+  .step { min-height: 78vh; display: flex; align-items: center; margin: 0; padding: 0; }
+  .step:first-child { min-height: 60vh; align-items: flex-start; padding-top: 12vh; }
+  .step:last-child { min-height: 70vh; }
+  .txt { opacity: .28; transition: opacity 500ms var(--ease-out); max-width: 440px; }
+  .step.on .txt { opacity: 1; }
+  .body { font-size: var(--fs-18); line-height: 28px; color: var(--text-muted); margin: 0; }
+  .mob { display: none; }
+  .stage { position: relative; }
+  .win { position: sticky; top: max(96px, calc(50vh - 17vw - 40px)); }
+  .view { position: relative; aspect-ratio: 1440 / 900; overflow: hidden; background: var(--bg); }
+  .view img { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transform-origin: var(--fx) var(--fy); transform: scale(1.02); transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-out); }
+  .view img.on { opacity: 1; transform: none; }
+  .view img.on.zoom { transform: scale(var(--z)); transition: opacity 600ms var(--ease-out), transform 2200ms var(--ease-io); }
+  .prog { display: flex; gap: 4px; padding: 10px 12px; border-top: 1px solid color-mix(in srgb, var(--text) 8%, transparent); }
+  .prog span { flex: 1; display: flex; flex-direction: column; gap: 6px; font-family: var(--mono); font-size: var(--fs-11); line-height: 14px; letter-spacing: .04em; text-transform: uppercase; color: var(--text-faint); transition: color 400ms; }
+  .prog i { height: 2px; border-radius: 2px; background: color-mix(in srgb, var(--text) 12%, transparent); position: relative; overflow: hidden; }
+  .prog i::after { content: ''; position: absolute; inset: 0; background: var(--text); transform: scaleX(0); transform-origin: left; transition: transform 700ms var(--ease-out); }
+  .prog span.on { color: var(--text); }
+  .prog span.on i::after { transform: none; }
+  @media (max-width: 960px) {
+    .flow { grid-template-columns: minmax(0, 1fr); }
+    .stage { display: none; }
+    .step, .step:first-child, .step:last-child { min-height: 0; display: block; padding: 0 0 64px; }
+    .txt { opacity: 1; margin-bottom: 24px; }
+    .mob { display: block; margin: 0; }
+    .crop { aspect-ratio: 4 / 3; overflow: hidden; }
+    .crop img { width: 100%; height: 100%; object-fit: cover; object-position: var(--fx) var(--fy); transform-origin: var(--fx) var(--fy); transform: scale(calc(var(--z) * 1.25)); }
+    .body { font-size: var(--fs-16); line-height: 26px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .view img.on.zoom { transform: none; } }
+</style>

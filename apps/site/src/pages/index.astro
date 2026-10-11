@@ -1,101 +1,264 @@
 ---
 import Base from '../layouts/Base.astro';
-import NetworkGrid from '../components/NetworkGrid.astro';
-import PlanCards from '../components/PlanCards.astro';
+import NetIcon from '../components/NetIcon.astro';
 import CodeTabs from '../components/CodeTabs.astro';
 import Faq from '../components/Faq.astro';
-import Cta from '../components/Cta.astro';
+import LiveCard from '../components/home/LiveCard.astro';
+import CodeCard from '../components/home/CodeCard.astro';
+import Flow from '../components/home/Flow.astro';
+import PriceCalc from '../components/home/PriceCalc.astro';
+import EventLog from '../components/home/EventLog.astro';
 import { NETWORKS } from '../lib/networks';
 import { operations } from '../lib/openapi';
 import { WEBHOOK_EVENTS } from '../lib/events';
 import { PLANS, fmtInt, paidFrom } from '../lib/plans';
-import { postTabs } from '../lib/snippets';
+import { postTabs, mcpClaudeCode } from '../lib/snippets';
 import { softwareLd, faqLd } from '../lib/seo';
 import { SIGNUP_URL, DESCRIPTION } from '../config';
 
+const N = NETWORKS.length;
 const faq = [
-  { q: 'What is Siar?', a: `Siar is a REST API that publishes, schedules, comments on and measures social media across ${NETWORKS.length} networks. You send one request with a per-network payload; Siar handles OAuth, token refresh, media conversion, retries and each network's limits.` },
-  { q: 'How is it priced?', a: `Per organization, not per connected account. The Free plan includes ${PLANS.FREE.posts} posts a month; paid plans start at $${paidFrom()} a month on yearly billing and allow unlimited teams and connected accounts. X (Twitter) usage is passed through at cost from a prepaid credit balance.` },
-  { q: 'Can my own customers connect their accounts?', a: 'Yes. Create a team per customer and send them a hosted connect link, branded with your logo and name. They authorize in their own browser and land back in your app; you never handle their passwords or tokens.' },
-  { q: 'Do I need to register developer apps with each network?', a: 'No. Accounts connect through the network apps Siar operates, so you do not register or maintain developer apps yourself. What each network requires of the connected account (a business profile, a Page, a channel) is described on its platform page.' },
-  { q: 'What if a network rejects a post?', a: 'You get the network\'s own error message and code on the post, a webhook when the post reaches a final state, and a retry endpoint. Every platform page has an error reference that explains the common rejections and how to fix them.' },
+  { q: 'Is Siar an API or an app?', a: `Both. Everything is built on one REST API, and the dashboard is a client of that same API. Developers wire Siar into their product; social teams use the dashboard to write, schedule, reply and report across ${N} networks.` },
+  { q: 'How is it priced?', a: `Per organization, never per connected account. The Free plan includes ${PLANS.FREE.posts} posts a month. Paid plans start at $${paidFrom()} a month on yearly billing and allow unlimited teams and accounts. X (Twitter) usage is passed through at X's own price from a prepaid credit balance.` },
+  { q: 'Can my customers connect their own accounts?', a: 'Yes. Create a team per customer and send them a hosted connect link with your logo and name. They authorize in their own browser and land back in your app; you never handle their passwords or tokens.' },
+  { q: 'Do I need developer apps on every network?', a: 'No. Accounts connect through the network apps Siar operates. What each network needs from the account itself (a business profile, a Page, a channel) is listed on its network page.' },
+  { q: 'What happens when a network rejects a post?', a: 'Most rejections never happen: each network\'s limits are checked when you create the post, so you get a 400 you can fix straight away. If a network still says no, you get its own message and code on the post, a webhook, and a retry endpoint.' },
+];
+const stats = [
+  [String(N), 'networks behind one request'],
+  [fmtInt(operations().length), 'API operations, one OpenAPI document'],
+  [String(WEBHOOK_EVENTS.length), 'signed webhook events'],
+  ['$0', 'per connected account, on every plan'],
+];
+const guarantees = [
+  ['Tokens look after themselves', 'Grants are renewed before they lapse. When a network revokes one, the account is flagged and you get a webhook, not a silent failure.'],
+  ['Checked before it is sent', 'Length, media type, aspect ratio and duration are validated for every network when you create the post. A 400 now beats a failure at 9am.'],
+  ['Never posted twice', 'Each network target is claimed once with a conditional update. Retries, restarts and double clicks cannot publish the same post again.'],
+  ['The network\'s own words', 'If a network says no, you get its message and code verbatim, with a plain-English fix from our error reference.'],
+  ['Media, made to fit', 'Upload once. Siar converts and checks every file against each network\'s rules at publish time.'],
+  ['Webhooks you can trust', 'HMAC-signed events, retried with backoff for a day, with a delivery log you can inspect and replay.'],
+];
+const audiences = [
+  ['01', 'SaaS products', 'Add publishing to your app without building fifteen integrations. A team per customer, one key for all of them.', '/use-cases/multi-tenant-social-media-api'],
+  ['02', 'Agencies', 'Forty brands, one login. Send each client a connect link, then schedule, reply and report from one dashboard.', '/use-cases/hosted-connect-oauth'],
+  ['03', 'AI agents', 'An MCP server and a JSON-first CLI, so an agent can draft, schedule and check posts inside the limits you set.', '/use-cases/social-media-api-for-ai-agents'],
+  ['04', 'Product and ops teams', 'Release notes to LinkedIn, X, Slack and Discord in one request, on a schedule, from your CI.', '/use-cases/social-media-scheduling-api'],
 ];
 ---
-<Base title="Siar | One unified social media API" description={DESCRIPTION} jsonLd={[softwareLd(), faqLd(faq)]}>
-  <section class="hero">
-    <div class="container hero-grid">
-      <div>
-        <p class="eyebrow">Social media API for {NETWORKS.length} networks</p>
-        <h1>Publish to every social network with one API.</h1>
-        <p class="lead">Post, schedule, comment and read analytics on {NETWORKS.map((n) => n.name).slice(0, 6).join(', ')} and {NETWORKS.length - 6} more through a single REST API. Connect unlimited accounts; pay per organization, never per account.</p>
-        <div class="btn-row">
-          <a class="btn primary lg" href={SIGNUP_URL}>Get an API key</a>
-          <a class="btn lg" href="/docs/quickstart">Read the quickstart</a>
+<Base title="Siar | Say it once. Siar it everywhere." description={DESCRIPTION} jsonLd={[softwareLd(), faqLd(faq)]}>
+  <section class="m-hero">
+    <div class="m-wide">
+      <div class="hero-top" data-reveal>
+        <p class="m-kicker"><span class="onair">On air · {N} networks</span></p>
+        <p class="m-kicker def"><span class="n">siar</span> /ˈsi.ar/ <span class="rule"></span> Malay, to broadcast</p>
+      </div>
+      <h1 class="m-display" data-lines><span class="ln"><span>Say it once.</span></span><span class="ln"><span style="--d:1">Siar it everywhere.</span></span></h1>
+      <div class="hero-sub">
+        <p class="m-lead" data-reveal style="--d:3">One API and one dashboard to publish, schedule, reply and measure on {N} social networks. Connect as many accounts as you like. Pay one price per organization.</p>
+        <div class="hero-cta" data-reveal style="--d:4">
+          <div class="m-actions"><a class="pill ink" href={SIGNUP_URL}>Start free <span class="arr" aria-hidden="true">→</span></a><a class="pill" href="/docs/quickstart">Read the quickstart</a></div>
+          <p class="m-note">Free plan · {PLANS.FREE.posts} posts a month · no card</p>
         </div>
-        <p class="xs muted note">Free plan: {PLANS.FREE.posts} posts a month, no card needed.</p>
       </div>
-      <div class="code"><CodeTabs tabs={postTabs()} /></div>
     </div>
-  </section>
-
-  <section class="section tight">
-    <div class="container">
-      <div class="section-head">
-        <p class="eyebrow">Platforms</p>
-        <h2>{NETWORKS.length} networks, one request shape</h2>
-        <p class="lead">Each network keeps its own fields (an Instagram reel, a YouTube Short, a Reddit link post), validated before anything is sent. Open a platform for limits, post types and error reference.</p>
-      </div>
-      <NetworkGrid />
-    </div>
-  </section>
-
-  <section class="section alt">
-    <div class="container">
-      <div class="section-head">
-        <p class="eyebrow">What you get</p>
-        <h2>The parts of social publishing you would rather not build</h2>
-      </div>
-      <div class="grid g3">
-        <a class="card" href="/use-cases/social-media-posting-api"><h3>Publishing</h3><p>One post, many networks, each with its own text, media and options. Posts report per-network success or failure with the network's own message.</p><span class="more">Posting API</span></a>
-        <a class="card" href="/use-cases/social-media-scheduling-api"><h3>Scheduling</h3><p>Set a future <code>postDate</code>. Siar publishes on time, claims each target once so a post is never sent twice, and retries failures.</p><span class="more">Scheduling API</span></a>
-        <a class="card" href="/use-cases/multi-tenant-social-media-api"><h3>Multi-tenant teams</h3><p>A team per customer, brand or location, with at most one account per network. Teams are free to create on paid plans.</p><span class="more">Multi-tenant API</span></a>
-        <a class="card" href="/use-cases/hosted-connect-oauth"><h3>Hosted connect</h3><p>Send customers a link that handles OAuth for every network, with your logo, in their language. No redirect handling on your side.</p><span class="more">Hosted connect</span></a>
-        <a class="card" href="/use-cases/social-media-comments-api"><h3>Comments</h3><p>Reply as the account, import what people wrote on your posts and moderate it, on the networks that expose comments.</p><span class="more">Comments API</span></a>
-        <a class="card" href="/use-cases/social-media-analytics-api"><h3>Analytics</h3><p>Post and account metrics normalised across networks, with the raw network payload kept next to them.</p><span class="more">Analytics API</span></a>
-        <a class="card" href="/use-cases/social-media-webhooks"><h3>Webhooks</h3><p>{WEBHOOK_EVENTS.length} signed event types for posts, comments, accounts, credit and conversations, with a delivery log and resend.</p><span class="more">Webhooks</span></a>
-        <a class="card" href="/use-cases/social-media-api-for-ai-agents"><h3>Agents and tooling</h3><p>A TypeScript SDK, a JSON-first CLI and an MCP server generated from the same contract as the API.</p><span class="more">For AI agents</span></a>
-        <a class="card" href="/docs/api"><h3>One contract</h3><p>{operations().length} operations described in a single OpenAPI document. The server, the SDK and this reference all read it.</p><span class="more">API reference</span></a>
+    <div class="m-wide stage-wrap">
+      <div class="stage" data-reveal style="--d:5">
+        <figure class="frame main">
+          <div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url">app.siar.dev/posts</span></div>
+          <picture>
+            <source media="(max-width: 640px)" srcset="/shots/posts-phone.webp" width="780" height="1688" />
+            <img class="lt" src="/shots/posts.webp" width="2880" height="1800" alt="The Siar dashboard: a team's posts, scheduled, published and drafted across networks" fetchpriority="high" />
+          </picture>
+          <img class="dk" src="/shots/posts-dark.webp" width="2880" height="1800" alt="" loading="lazy" />
+        </figure>
+        <div class="ov code"><CodeCard /></div>
+        <div class="ov live"><LiveCard /></div>
       </div>
     </div>
   </section>
 
-  <section class="section">
-    <div class="container">
-      <div class="section-head">
-        <p class="eyebrow">Pricing</p>
-        <h2>Priced per organization</h2>
-        <p class="lead">Quotas are on what you create each month. Connect as many accounts as you like on a paid plan; the only per-network charge is X's own API fees, passed through at cost.</p>
-      </div>
-      <PlanCards compact />
-      <p class="small"><a href="/pricing">See quotas, daily caps and X prices</a>. Yearly billing from ${fmtInt(paidFrom())} a month.</p>
+  <section class="stats">
+    <div class="m-wide">
+      <dl>{stats.map(([v, l], i) => <div data-reveal style={`--d:${i}`}><dt>{v}</dt><dd>{l}</dd></div>)}</dl>
     </div>
   </section>
 
-  <section class="section alt">
-    <div class="container narrow">
+  <section class="m-sec nets">
+    <div class="m-wide">
+      <div class="nets-head">
+        <h2 class="m-h2" data-lines><span class="ln"><span>One request.</span></span><span class="ln"><span style="--d:1">{N} networks.</span></span></h2>
+        <p class="m-lead" data-reveal>Each network keeps what makes it different: an Instagram reel, a YouTube Short, a Reddit link post, a Google Business offer. Siar knows the rules for every one and checks them before anything leaves.</p>
+      </div>
+      <ul class="grid15">
+        {NETWORKS.map((n, i) => (
+          <li data-reveal style={`--d:${i % 5}`}>
+            <a href={`/${n.apiSlug}`}>
+              <NetIcon type={n.type} size={44} />
+              <span class="nm">{n.name}</span>
+              <span class="ty">{n.postTypes.slice(0, 3).map((t) => t.toLowerCase().replace(/_/g, ' ')).join(' · ')}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="m-sec tour" id="tour">
+    <div class="m-wide">
+      <div class="sec-head">
+        <p class="m-kicker" data-reveal><span class="n">The dashboard</span><span class="rule"></span>no code needed</p>
+        <h2 class="m-h2" data-lines><span class="ln"><span>Everything the API does,</span></span><span class="ln"><span style="--d:1" class="m-dim">your team can click.</span></span></h2>
+      </div>
+      <Flow />
+      <p class="tour-more" data-reveal><a class="pill" href="/features">Take the full product tour <span class="arr" aria-hidden="true">→</span></a></p>
+    </div>
+  </section>
+
+  <section class="m-sec m-ink price">
+    <div class="m-wide price-grid">
+      <div>
+        <p class="m-kicker" data-reveal><span class="n">Pricing</span><span class="rule"></span>per organization</p>
+        <h2 class="m-h2" data-lines><span class="ln"><span>Unlimited accounts.</span></span><span class="ln"><span style="--d:1">One price.</span></span></h2>
+        <p class="m-lead" data-reveal>Connect five accounts or five thousand. Your bill follows what you publish, never how many brands you look after. Drag the first slider and watch the price stay put.</p>
+        <p class="price-link" data-reveal><a class="pill" href="/pricing">See every plan <span class="arr" aria-hidden="true">→</span></a></p>
+      </div>
+      <div data-reveal style="--d:2"><PriceCalc /></div>
+    </div>
+  </section>
+
+  <section class="m-sec break">
+    <div class="m-wide">
+      <div class="break-grid">
+        <div class="break-copy">
+          <p class="m-kicker" data-reveal><span class="n">Reliability</span><span class="rule"></span>the boring parts</p>
+          <h2 class="m-h2" data-lines><span class="ln"><span>The parts that break</span></span><span class="ln"><span style="--d:1">are ours now.</span></span></h2>
+          <p class="m-lead" data-reveal>Fifteen networks means fifteen OAuth flows, fifteen sets of media rules and fifteen ways to say no. That is the job we took on so you can ship the product you actually want to build.</p>
+        </div>
+        <div class="m-ink logwrap" data-reveal style="--d:1"><EventLog /></div>
+      </div>
+      <ul class="gs">{guarantees.map(([h, p], i) => <li data-reveal style={`--d:${i % 3}`}><h3>{h}</h3><p>{p}</p></li>)}</ul>
+    </div>
+  </section>
+
+  <section class="m-sec dev">
+    <div class="m-wide dev-grid">
+      <div class="dev-copy">
+        <p class="m-kicker" data-reveal><span class="n">For developers</span><span class="rule"></span>REST · SDK · CLI · MCP</p>
+        <h2 class="m-h2" data-lines><span class="ln"><span>First post in</span></span><span class="ln"><span style="--d:1">five minutes.</span></span></h2>
+        <ol class="three" data-reveal>
+          <li><span>1</span><p><strong>Create a key</strong> in the dashboard. It works for every team in your organization.</p></li>
+          <li><span>2</span><p><strong>Connect an account</strong> yourself, or send your customer a hosted link.</p></li>
+          <li><span>3</span><p><strong>Send one request</strong> with a block per network. Get a webhook when each one lands.</p></li>
+        </ol>
+        <div class="agent" data-reveal>
+          <p class="m-note">Give your agent the keys</p>
+          <code>{mcpClaudeCode}</code>
+        </div>
+      </div>
+      <div class="dev-code" data-reveal style="--d:2"><CodeTabs tabs={postTabs()} /></div>
+    </div>
+  </section>
+
+  <section class="m-sec for">
+    <div class="m-wide">
+      <h2 class="m-h2" data-lines><span class="ln"><span>Built for people</span></span><span class="ln"><span style="--d:1" class="m-dim">who post for a living.</span></span></h2>
+      <div class="m-rows">
+        {audiences.map(([i, t, d, href]) => <a class="m-row" href={href} data-reveal><span class="i">{i}</span><span class="t">{t}</span><p class="d">{d}</p><span class="a" aria-hidden="true">→</span></a>)}
+      </div>
+    </div>
+  </section>
+
+  <section class="m-sec faqs">
+    <div class="m-wide faq-grid">
+      <h2 class="m-h3" data-reveal>Questions, answered straight.</h2>
       <Faq items={faq} />
     </div>
   </section>
-  <Cta />
 </Base>
 <style>
-  .hero { padding: 72px 0 80px; border-bottom: 1px solid var(--border); }
-  .hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 56px; align-items: start; }
-  .hero-grid > div:first-child { padding-top: 24px; }
-  .code :global(pre) { max-height: 420px; overflow: auto; }
-  .hero h1 { font-size: clamp(34px, 5vw, 56px); line-height: 1.06; margin-bottom: 20px; }
-  .note { margin-top: 16px; }
-  .narrow { max-width: 820px; }
-  @media (max-width: 960px) { .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 32px; } }
-  @media (max-width: 640px) { .hero { padding: 40px 0 48px; } }
+  .m-hero { padding: clamp(32px, 6vw, 80px) 0 0; overflow: hidden; }
+  .hero-top { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .hero-top .m-kicker { margin-bottom: clamp(20px, 3vw, 36px); }
+  .hero-top .onair { color: var(--text); }
+  .m-hero h1 { max-width: 11.5em; }
+  .hero-sub { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px 48px; flex-wrap: wrap; margin-top: clamp(28px, 4vw, 48px); }
+  .hero-cta { display: flex; flex-direction: column; gap: 14px; }
+
+  .stage-wrap { margin-top: clamp(48px, 7vw, 96px); }
+  .stage { position: relative; padding: 0 clamp(0px, 5vw, 80px) clamp(40px, 6vw, 80px); }
+  .main { transform-origin: 50% 0; }
+  .main img { aspect-ratio: 1440 / 900; }
+  .main .dk { display: none; }
+  :global(:root[data-theme='dark']) .main .dk { display: block; }
+  :global(:root[data-theme='dark']) .main .lt { display: none; }
+  .ov { position: absolute; z-index: 2; }
+  .ov.code { left: 0; bottom: 0; }
+  .ov.live { right: 0; top: 18%; }
+  @media (max-width: 1100px) { .ov.code { display: none; } }
+  @media (max-width: 640px) {
+    .stage { padding: 0; display: flex; flex-direction: column; align-items: center; }
+    .main { width: 100%; max-width: 360px; border-radius: 28px; }
+    .main .frame-bar { display: none; }
+    .main img { aspect-ratio: 390 / 844; max-height: 560px; object-fit: cover; object-position: top; }
+    :global(:root[data-theme='dark']) .main .lt { display: block; }
+    :global(:root[data-theme='dark']) .main .dk { display: none; }
+    .ov.live { position: relative; top: auto; right: auto; margin-top: -120px; }
+    .ov.live :global(.lc) { width: min(340px, calc(100vw - 32px)); }
+  }
+
+  .stats { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-top: clamp(56px, 7vw, 96px); }
+  .stats dl { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; }
+  .stats dl > div { padding: 32px 24px 32px 0; }
+  .stats dl > div + div { padding-left: 24px; border-left: 1px solid var(--border); }
+  .stats dt { font-size: clamp(40px, 5vw, 72px); line-height: 1; letter-spacing: -0.05em; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+  .stats dd { margin: 12px 0 0; font-size: var(--fs-14); line-height: 20px; color: var(--text-subtle); }
+  @media (max-width: 800px) { .stats dl { grid-template-columns: repeat(2, minmax(0, 1fr)); } .stats dl > div + div:nth-child(3) { padding-left: 0; border-left: 0; } .stats dl > div:nth-child(n + 3) { border-top: 1px solid var(--border); } }
+
+  .nets-head { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 32px 64px; align-items: end; margin-bottom: clamp(40px, 5vw, 72px); }
+  .nets-head .m-h2 { margin: 0; }
+  @media (max-width: 860px) { .nets-head { grid-template-columns: minmax(0, 1fr); } }
+  .grid15 { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-top: 1px solid var(--border); border-left: 1px solid var(--border); }
+  .grid15 li { margin: 0; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .grid15 a { display: flex; flex-direction: column; gap: 4px; padding: 22px 20px 20px; min-height: 172px; text-decoration: none; color: var(--text); transition: background 300ms var(--ease-out); }
+  .grid15 a :global(.ni) { margin-bottom: auto; transition: transform 500ms var(--ease-out), background 300ms, color 300ms; }
+  .grid15 a:hover { background: var(--bg-elevated); }
+  .grid15 a:hover :global(.ni) { background: var(--text); color: var(--bg); transform: translateY(-2px); }
+  .nm { font-size: var(--fs-16); font-weight: 600; letter-spacing: -0.01em; margin-top: 24px; }
+  .ty { font-size: var(--fs-12); line-height: 16px; color: var(--text-subtle); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  @media (max-width: 1000px) { .grid15 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .grid15 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .grid15 a { min-height: 140px; padding: 16px; } }
+
+  .tour { padding-bottom: clamp(56px, 7vw, 96px); }
+  .sec-head { max-width: 900px; margin-bottom: clamp(16px, 3vw, 40px); }
+  .tour-more { margin: 24px 0 0; }
+
+  .price-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 48px 80px; align-items: center; }
+  .price-link { margin: 32px 0 0; }
+  @media (max-width: 960px) { .price-grid { grid-template-columns: minmax(0, 1fr); } }
+
+  .break-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 48px 72px; align-items: center; }
+  .logwrap { background: transparent; }
+  @media (max-width: 960px) { .break-grid { grid-template-columns: minmax(0, 1fr); } }
+  .gs { list-style: none; margin: clamp(56px, 7vw, 96px) 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 48px; }
+  .gs li { margin: 0; padding: 24px 0 40px; border-top: 1px solid var(--text); }
+  .gs h3 { font-size: var(--fs-20); line-height: 1.2; letter-spacing: -0.02em; margin: 0 0 10px; }
+  .gs p { margin: 0; font-size: var(--fs-15); line-height: 24px; color: var(--text-muted); }
+  @media (max-width: 900px) { .gs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .gs { grid-template-columns: minmax(0, 1fr); } .gs li { padding-bottom: 28px; } }
+
+  .dev { border-top: 1px solid var(--border); }
+  .dev-grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 48px 72px; align-items: start; }
+  .dev-code :global(pre) { max-height: 460px; }
+  .three { list-style: none; padding: 0; margin: 8px 0 32px; border-top: 1px solid var(--border); }
+  .three li { display: flex; gap: 16px; padding: 16px 0; margin: 0; border-bottom: 1px solid var(--border); }
+  .three span { font-family: var(--mono); font-size: var(--fs-12); color: var(--text-subtle); padding-top: 3px; }
+  .three p { margin: 0; font-size: var(--fs-16); line-height: 24px; }
+  .agent { display: flex; flex-direction: column; gap: 10px; }
+  .agent code { display: block; padding: 12px 14px; border-radius: 10px; background: var(--code-bg); color: var(--code-fg); font-size: var(--fs-12); line-height: 18px; white-space: pre-wrap; word-break: break-all; }
+  @media (max-width: 960px) { .dev-grid { grid-template-columns: minmax(0, 1fr); } }
+
+  .for .m-h2 { margin-bottom: clamp(32px, 5vw, 64px); }
+  .faqs { border-top: 1px solid var(--border); }
+  .faq-grid { display: grid; grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr); gap: 32px 72px; align-items: start; }
+  @media (max-width: 860px) { .faq-grid { grid-template-columns: minmax(0, 1fr); } }
 </style>

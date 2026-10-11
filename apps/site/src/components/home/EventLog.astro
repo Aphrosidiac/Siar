@@ -1,0 +1,66 @@
+---
+/** A running log of the work Siar does behind one post: refreshes, conversions, retries, webhooks. */
+const lines: [string, string, string][] = [
+  ['post.published', 'instagram', 'reel · @kopisenja · 412 ms'],
+  ['token.refreshed', 'tiktok', 'grant renewed 6 h before expiry'],
+  ['media.converted', 'youtube', 'mov → mp4 1080p · 38 MB'],
+  ['rate.limited', 'x', 'waited 2.1 s, then sent'],
+  ['post.published', 'linkedin', 'company page · 690 ms'],
+  ['comment.received', 'threads', '“Iced, always iced”'],
+  ['retry', 'pinterest', '503 from network → retried → ok'],
+  ['webhook.delivered', 'post.published', 'api.yourapp.com · 200 · 84 ms'],
+  ['target.claimed', 'facebook', 'claimed once · no double post'],
+  ['validation', 'tiktok', '4:3 video, needs 9:16 · 400 before it was scheduled'],
+  ['account.flagged', 'reddit', 'grant revoked · webhook sent'],
+  ['post.published', 'google business', '3 locations · 1.1 s'],
+  ['media.converted', 'instagram', 'heic → jpeg · 4:5 crop'],
+  ['post.published', 'bluesky', 'link card built · 301 ms'],
+  ['webhook.retry', 'comment.received', 'your server 502 → retry in 30 s'],
+];
+---
+<div class="log" data-log data-lines={JSON.stringify(lines)}>
+  <div class="bar"><span class="onair">Live</span><span>siar · events</span></div>
+  <ol data-list>
+    {lines.slice(0, 9).map(([e, n, d], i) => <li style={`--a:${(i + 1) / 9}`}><time>09:30:{String(i * 3).padStart(2, '0')}</time><span class:list={['e', { bad: /validation|flagged|retry|limited/.test(e) }]}>{e}</span><span class="n">{n}</span><span class="d">{d}</span></li>)}
+  </ol>
+</div>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-log]').forEach((root) => {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const lines: [string, string, string][] = JSON.parse(root.dataset.lines!);
+    const list = root.querySelector<HTMLOListElement>('[data-list]')!;
+    let k = 9, t0 = Date.UTC(2026, 9, 16, 1, 30, 27), timer = 0;
+    const tick = () => {
+      const [e, n, d] = lines[k++ % lines.length];
+      t0 += 1200 + Math.round(Math.random() * 2600);
+      const li = document.createElement('li');
+      li.className = 'new';
+      const time = new Date(t0 + 8 * 3600_000).toISOString().slice(11, 19);
+      li.innerHTML = `<time>${time}</time><span class="e${/validation|flagged|retry|limited/.test(e) ? ' bad' : ''}"></span><span class="n"></span><span class="d"></span>`;
+      li.querySelector('.e')!.textContent = e; li.querySelector('.n')!.textContent = n; li.querySelector('.d')!.textContent = d;
+      list.append(li);
+      requestAnimationFrame(() => li.classList.remove('new'));
+      while (list.children.length > 9) list.firstElementChild!.remove();
+      [...list.children].forEach((c, i) => (c as HTMLElement).style.setProperty('--a', String((i + 1) / list.children.length)));
+    };
+    new IntersectionObserver(([en]) => {
+      clearInterval(timer);
+      if (en.isIntersecting) timer = window.setInterval(tick, 1400);
+    }).observe(root);
+  });
+</script>
+<style>
+  .log { border-radius: 16px; background: #121210; box-shadow: 0 0 0 1px rgba(255, 255, 255, .07); overflow: hidden; font-family: var(--mono); }
+  .bar { display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid rgba(255, 255, 255, .07); font-size: var(--fs-11); letter-spacing: .08em; text-transform: uppercase; color: #a19d92; }
+  .bar .onair { color: #f3efe4; }
+  ol { list-style: none; margin: 0; padding: 10px 16px 14px; min-height: calc(9 * 30px + 24px); }
+  /* rows are added by the script too, so they are styled globally under .log */
+  .log :global(li) { display: grid; grid-template-columns: 64px 150px 110px minmax(0, 1fr); gap: 12px; align-items: baseline; padding: 6px 0; margin: 0; font-size: var(--fs-12); line-height: 18px; color: #cfcbc0; opacity: calc(.25 + var(--a, 1) * .75); transition: opacity 600ms, transform 600ms var(--ease-out); white-space: nowrap; }
+  .log :global(li.new) { opacity: 0; transform: translateY(8px); }
+  .log :global(time) { color: #6f6c64; }
+  .log :global(.e) { color: #f3efe4; overflow: hidden; text-overflow: ellipsis; }
+  .log :global(.e.bad) { color: #f0a58f; }
+  .log :global(.n) { color: #a19d92; overflow: hidden; text-overflow: ellipsis; }
+  .log :global(.d) { overflow: hidden; text-overflow: ellipsis; color: #cfcbc0; }
+  @media (max-width: 720px) { .log :global(li) { grid-template-columns: 58px minmax(0, 1fr); gap: 2px 10px; } .log :global(.n) { display: none; } .log :global(.d) { grid-column: 2; color: #8d897f; } }
+</style>

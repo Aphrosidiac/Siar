@@ -1,15 +1,14 @@
 ---
 import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
 import Cta from '../../components/Cta.astro';
 import { USE_CASES } from '../../lib/usecases';
 ---
 <Base title="Use cases" description="What teams build with the Siar social media API: posting, scheduling, multi-tenant products, analytics, comments, webhooks, hosted connect and AI agents.">
-  <section class="section tight">
-    <div class="container">
-      <div class="section-head"><p class="eyebrow">Use cases</p><h1>What you can build with Siar</h1><p class="lead">Each page shows the requests, the limits and the questions that come up for one job.</p></div>
-      <div class="grid g2">
-        {USE_CASES.map((u) => <a class="card" href={`/use-cases/${u.slug}`}><h3>{u.title}</h3><p>{u.description}</p><span class="more">Read more</span></a>)}
-      </div>
+  <PageHero kicker="Use cases" title="What people build" dim="with Siar." lead="Each page shows the requests, the limits and the questions that come up for one job." />
+  <section class="m-sec tight">
+    <div class="m-wide m-rows">
+      {USE_CASES.map((u, i) => <a class="m-row" href={`/use-cases/${u.slug}`}><span class="i">{String(i + 1).padStart(2, '0')}</span><span class="t">{u.title}</span><p class="d">{u.description}</p><span class="a" aria-hidden="true">→</span></a>)}
     </div>
   </section>
   <Cta />

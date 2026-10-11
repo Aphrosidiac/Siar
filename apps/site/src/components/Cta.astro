@@ -1,26 +1,25 @@
 ---
 import { SIGNUP_URL } from '../config';
 import { PLANS } from '../lib/plans';
-interface Props { title?: string; text?: string }
+interface Props { title?: string; dim?: string; text?: string }
 const free = PLANS.FREE;
-const { title = 'Start building today', text = `The Free plan includes ${free.posts} posts and ${free.uploads} uploads a month across ${free.teams} teams. No card needed.` } = Astro.props;
+const { title = 'Your first post is', dim = 'one request away.', text = `The Free plan includes ${free.posts} posts and ${free.uploads} uploads a month across ${free.teams} teams. No card needed.` } = Astro.props;
 ---
-<section class="section">
-  <div class="container">
-    <div class="cta">
-      <div>
-        <h2>{title}</h2>
-        <p>{text}</p>
-      </div>
-      <div class="btn-row">
-        <a class="btn primary lg" href={SIGNUP_URL}>Get an API key</a>
-        <a class="btn lg" href="/docs/quickstart">Read the quickstart</a>
+<section class="m-sec cta">
+  <div class="m-wide">
+    <div class="wrap">
+      <h2 class="m-h2" data-lines><span class="ln"><span>{title}</span></span><span class="ln"><span class="m-dim" style="--d:1">{dim}</span></span></h2>
+      <div class="side" data-reveal style="--d:2">
+        <p class="m-lead">{text}</p>
+        <div class="m-actions"><a class="pill ink" href={SIGNUP_URL}>Start free <span class="arr" aria-hidden="true">→</span></a><a class="pill" href="/docs/quickstart">Read the quickstart</a></div>
       </div>
     </div>
   </div>
 </section>
 <style>
-  .cta { border-top: 1px solid var(--text); padding: 40px 0 0; display: flex; gap: 24px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
-  .cta h2 { margin-bottom: 8px; }
-  .cta p { margin: 0; max-width: 560px; }
+  .cta { border-top: 1px solid var(--border); }
+  .wrap { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 32px 64px; align-items: end; }
+  .wrap .m-h2 { margin: 0; }
+  .side { display: flex; flex-direction: column; gap: 24px; }
+  @media (max-width: 900px) { .wrap { grid-template-columns: minmax(0, 1fr); } }
 </style>

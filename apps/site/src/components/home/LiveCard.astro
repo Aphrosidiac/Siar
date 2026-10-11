@@ -1,0 +1,73 @@
+---
+/** Hero overlay: one post going out to six networks, each row walking queued → publishing → posted. */
+import NetIcon from '../NetIcon.astro';
+import type { NetworkType } from '../../lib/networks';
+const rows: [NetworkType, string, string][] = [
+  ['INSTAGRAM', 'Instagram', 'reel'],
+  ['TIKTOK', 'TikTok', 'video'],
+  ['FACEBOOK', 'Facebook', 'page post'],
+  ['THREADS', 'Threads', 'own text'],
+  ['LINKEDIN', 'LinkedIn', 'company page'],
+  ['GOOGLE_BUSINESS', 'Google Business', '3 locations'],
+];
+---
+<div class="lc" data-live>
+  <div class="lc-head">
+    <span class="onair lbl">Going out</span>
+    <span class="lbl m">09:30 MYT</span>
+  </div>
+  <p class="lc-text">Pandan latte is back from Friday at Bangsar, Uptown and Mont Kiara. Iced or hot?</p>
+  <ul>
+    {rows.map(([t, name, kind]) => (
+      <li data-row data-s="posted">
+        <NetIcon type={t} size={28} />
+        <span class="nm">{name}<span class="k">{kind}</span></span>
+        <span class="st"><i></i><span class="q">Queued</span><span class="p">Publishing</span><span class="d">Posted</span><span class="ms" data-ms></span></span>
+      </li>
+    ))}
+  </ul>
+</div>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-live]').forEach((card) => {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const rows = [...card.querySelectorAll<HTMLElement>('[data-row]')];
+    let timers: number[] = [];
+    let running = false;
+    const at = (ms: number, fn: () => void) => timers.push(window.setTimeout(fn, ms));
+    const cycle = () => {
+      rows.forEach((r) => { r.dataset.s = 'queued'; r.querySelector('[data-ms]')!.textContent = ''; });
+      rows.forEach((r, i) => {
+        const start = 700 + i * 380;
+        const took = 380 + Math.round(Math.random() * 900);
+        at(start, () => { r.dataset.s = 'publishing'; });
+        at(start + took, () => { r.dataset.s = 'posted'; r.querySelector('[data-ms]')!.textContent = `${took} ms`; });
+      });
+      at(700 + rows.length * 380 + 1300 + 3600, cycle);
+    };
+    new IntersectionObserver(([e]) => {
+      if (e.isIntersecting && !running) { running = true; cycle(); }
+      else if (!e.isIntersecting && running) { running = false; timers.forEach(clearTimeout); timers = []; }
+    }).observe(card);
+  });
+</script>
+<style>
+  .lc { width: 340px; border-radius: 16px; background: var(--bg-elevated); box-shadow: 0 0 0 1px color-mix(in srgb, var(--text) 10%, transparent), 0 30px 60px -24px rgba(11, 11, 10, .35); padding: 16px; }
+  .lc-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .lbl { font-family: var(--mono); font-size: var(--fs-11); letter-spacing: .08em; text-transform: uppercase; color: var(--text); }
+  .lbl.m { color: var(--text-subtle); letter-spacing: .02em; }
+  .lc-text { font-size: var(--fs-14); line-height: 20px; color: var(--text); margin: 0 0 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { display: flex; align-items: center; gap: 10px; padding: 5px 0; margin: 0; }
+  .nm { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: var(--fs-13); line-height: 16px; font-weight: 500; color: var(--text); }
+  .k { font-size: var(--fs-11); font-weight: 400; color: var(--text-subtle); }
+  .st { width: 116px; flex: none; display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: var(--fs-11); line-height: 16px; color: var(--text-subtle); white-space: nowrap; }
+  .st i { width: 7px; height: 7px; border-radius: 50%; background: var(--text-faint); flex: none; transition: background 200ms; }
+  .st .q, .st .p, .st .d { display: none; }
+  .ms { color: var(--text-faint); }
+  [data-s='queued'] .q, [data-s='publishing'] .p, [data-s='posted'] .d { display: inline; }
+  [data-s='publishing'] .st { color: var(--text); }
+  [data-s='publishing'] .st i { background: var(--onair); animation: blink 700ms ease-in-out infinite alternate; }
+  [data-s='posted'] .st { color: var(--success); }
+  [data-s='posted'] .st i { background: var(--success); }
+  @keyframes blink { to { opacity: .25; } }
+</style>

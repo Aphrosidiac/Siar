@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
 import CodeBlock from '../../components/CodeBlock.astro';
 import NetworkGrid from '../../components/NetworkGrid.astro';
 import Faq from '../../components/Faq.astro';
@@ -13,16 +14,9 @@ export function getStaticPaths() {
 const { u } = Astro.props as { u: UseCase };
 ---
 <Base title={u.title} description={u.description} jsonLd={[faqLd(u.faq), breadcrumbLd([{ name: 'Use cases', href: '/use-cases' }, { name: u.title, href: `/use-cases/${u.slug}` }])]}>
-  <section class="section tight">
-    <div class="container">
-      <div class="head">
-        <p class="eyebrow">{u.nav}</p>
-        <h1>{u.h1}</h1>
-        <p class="lead">{u.lead}</p>
-        <div class="btn-row"><a class="btn primary lg" href={SIGNUP_URL}>Get an API key</a><a class="btn lg" href="/docs/quickstart">Quickstart</a></div>
-      </div>
-    </div>
-  </section>
+  <PageHero kicker="Use cases" note={u.nav} title={u.h1} lead={u.lead}>
+    <div class="m-actions"><a class="pill ink" href={SIGNUP_URL}>Start free <span class="arr" aria-hidden="true">→</span></a><a class="pill" href="/docs/quickstart">Quickstart</a></div>
+  </PageHero>
   <section class="section tight">
     <div class="container body">
       <ul class="ticks">{u.points.map((p) => <li set:html={p} />)}</ul>
@@ -44,7 +38,7 @@ const { u } = Astro.props as { u: UseCase };
 </Base>
 <style>
   .head { max-width: 820px; }
-  .body { max-width: 860px; }
+  .body > :global(*) { max-width: 860px; }
   .body h2 { margin-top: 44px; }
   .faqw { margin: 48px 0 24px; }
   .ticks { list-style: none; padding: 0; margin: 0 0 8px; border-top: 1px solid var(--border); }

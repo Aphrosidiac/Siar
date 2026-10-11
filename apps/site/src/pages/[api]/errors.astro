@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
 import Cta from '../../components/Cta.astro';
 import { NETWORKS, type NetworkInfo } from '../../lib/networks';
 import { faqLd, breadcrumbLd } from '../../lib/seo';
@@ -12,11 +13,9 @@ const errs = n.errors;
 const faq = errs.slice(0, 8).map((e) => ({ q: `${n.name} error ${e.code}: what does it mean?`, a: `${e.meaning} ${e.fix}` }));
 ---
 <Base title={`${n.name} API errors and how to fix them`} description={`${errs.length ? `${errs.length} ${n.name} API errors` : `How ${n.name} errors are reported`}: what each rejection means and the fix, as relayed by Siar.`} jsonLd={[...(faq.length ? [faqLd(faq)] : []), breadcrumbLd([{ name: `${n.name} API`, href: `/${n.apiSlug}` }, { name: 'Errors', href: `/${n.apiSlug}/errors` }])]}>
+  <PageHero kicker={`${n.name} API`} note="errors" title={`${n.name} API errors`} dim="and how to fix them." lead={`When ${n.name} rejects a request, Siar stores the network's own code and message on the post and returns it to you unchanged, so what you read here matches what you see in the API. <a href="/${n.apiSlug}">Back to the ${n.name} API</a>.`} />
   <section class="section tight">
     <div class="container body">
-      <p class="xs"><a href="/platforms">Platforms</a> / <a href={`/${n.apiSlug}`}>{n.name} API</a> / Errors</p>
-      <h1>{n.name} API errors</h1>
-      <p class="lead">When {n.name} rejects a request, Siar stores the network's own code and message on the post and returns it to you unchanged, so what you read here matches what you see in the API.</p>
       {errs.length === 0 ? (
         <>
           <p>{n.name} reports failures as plain HTTP errors with a short message and no stable error codes, so there is no code table to show. Siar relays the HTTP status and the server's message on the post's <code>errors</code> field. See the <a href="/docs/errors">Siar error guide</a> for the envelope and the status codes Siar itself returns.</p>
@@ -43,7 +42,7 @@ const faq = errs.slice(0, 8).map((e) => ({ q: `${n.name} error ${e.code}: what d
   <Cta />
 </Base>
 <style>
-  .body { max-width: 860px; }
+  .body > :global(*) { max-width: 860px; }
   .err { border-top: 1px solid var(--border); padding: 24px 0 8px; }
   .err h2 { font-size: var(--fs-18); margin-bottom: 8px; }
   .err h2 code { font-size: var(--fs-16); overflow-wrap: anywhere; }

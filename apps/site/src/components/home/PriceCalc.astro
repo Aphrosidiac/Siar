@@ -1,0 +1,70 @@
+---
+/** "Per organization, not per account", made tangible: grow the accounts, watch the bill not move. */
+import { PLANS } from '../../lib/plans';
+const plans = (['FREE', 'PRO', 'BUSINESS', 'ENTERPRISE'] as const).map((t) => ({ tier: t, name: PLANS[t].name, posts: PLANS[t].posts, teams: PLANS[t].teams, cents: PLANS[t].priceYearlyMonthlyCents }));
+const POSTS = [20, 200, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000];
+---
+<div class="calc" data-calc data-plans={JSON.stringify(plans)} data-posts={JSON.stringify(POSTS)}>
+  <div class="ctl">
+    <label><span class="lab">Brands you look after</span><output data-o="brands">40</output></label>
+    <input type="range" min="1" max="500" value="40" data-i="brands" aria-label="Brands you look after" />
+  </div>
+  <div class="ctl">
+    <label><span class="lab">Networks per brand</span><output data-o="nets">6</output></label>
+    <input type="range" min="1" max="15" value="6" data-i="nets" aria-label="Networks per brand" />
+  </div>
+  <div class="ctl">
+    <label><span class="lab">Posts a month</span><output data-o="posts">2,500</output></label>
+    <input type="range" min="0" max={POSTS.length - 1} value="3" data-i="posts" aria-label="Posts a month" />
+  </div>
+  <div class="out">
+    <div class="cell"><span class="lab">Connected accounts</span><span class="big" data-o="accounts">240</span></div>
+    <div class="cell"><span class="lab">Your plan, billed yearly</span><span class="big"><span data-o="price">$90</span><small data-o="per">/mo</small></span><span class="sub" data-o="plan">Pro</span></div>
+    <div class="cell"><span class="lab">Per account</span><span class="big" data-o="each">$0.38</span><span class="sub">and falling as you grow</span></div>
+  </div>
+</div>
+<script>
+  type Plan = { tier: string; name: string; posts: number; teams: number | null; cents: number | null };
+  document.querySelectorAll<HTMLElement>('[data-calc]').forEach((root) => {
+    const plans: Plan[] = JSON.parse(root.dataset.plans!);
+    const POSTS: number[] = JSON.parse(root.dataset.posts!);
+    const i = (k: string) => root.querySelector<HTMLInputElement>(`[data-i="${k}"]`)!;
+    const o = (k: string) => root.querySelector<HTMLElement>(`[data-o="${k}"]`)!;
+    const n = (v: number) => v.toLocaleString('en-US');
+    const update = () => {
+      const brands = +i('brands').value, nets = +i('nets').value, posts = POSTS[+i('posts').value];
+      const accounts = brands * nets;
+      const plan = plans.find((p) => posts <= p.posts && (p.teams === null || brands <= p.teams)) ?? plans[plans.length - 1];
+      o('brands').textContent = n(brands); o('nets').textContent = String(nets); o('posts').textContent = n(posts) + (posts === POSTS[POSTS.length - 1] ? '+' : '');
+      o('accounts').textContent = n(accounts);
+      o('plan').textContent = plan.cents === null ? `${plan.name}: quoted for your volume` : `${plan.name}: up to ${n(plan.posts)} posts`;
+      o('price').textContent = plan.cents === null ? 'Custom' : `$${n(plan.cents / 100)}`;
+      o('per').textContent = plan.cents === null ? '' : '/mo';
+      o('each').textContent = plan.cents === null ? '—' : plan.cents === 0 ? '$0' : `$${(plan.cents / 100 / accounts).toFixed(accounts > 999 ? 3 : 2)}`;
+      root.querySelectorAll<HTMLInputElement>('input').forEach((r) => r.style.setProperty('--p', `${((+r.value - +r.min) / (+r.max - +r.min)) * 100}%`));
+    };
+    root.addEventListener('input', update);
+    update();
+  });
+</script>
+<style>
+  .calc { border: 1px solid var(--border-strong); border-radius: 20px; padding: clamp(20px, 3vw, 32px); background: var(--bg-elevated); }
+  .ctl { padding: 4px 0 20px; }
+  label { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .lab { font-family: var(--mono); font-size: var(--fs-11); line-height: 16px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-subtle); }
+  output { font-size: var(--fs-18); font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+  input[type='range'] { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; cursor: pointer; margin: 0; --p: 0%; }
+  input[type='range']::-webkit-slider-runnable-track { height: 4px; border-radius: 4px; background: linear-gradient(to right, var(--text) var(--p), var(--border-strong) var(--p)); }
+  input[type='range']::-moz-range-track { height: 4px; border-radius: 4px; background: linear-gradient(to right, var(--text) var(--p), var(--border-strong) var(--p)); }
+  input[type='range']::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -9px; border-radius: 50%; background: var(--text); border: 4px solid var(--bg-elevated); box-shadow: 0 0 0 1px var(--text); }
+  input[type='range']::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--text); border: 4px solid var(--bg-elevated); box-shadow: 0 0 0 1px var(--text); }
+  input[type='range']:focus-visible { box-shadow: none; }
+  input[type='range']:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 1px var(--text), 0 0 0 6px color-mix(in srgb, var(--text) 20%, transparent); }
+  .out { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--border); margin-top: 8px; }
+  .cell { display: flex; flex-direction: column; gap: 8px; padding: 20px 16px 0 0; min-width: 0; }
+  .cell + .cell { padding-left: 16px; border-left: 1px solid var(--border); }
+  .big { font-size: clamp(28px, 3vw, 40px); line-height: 1; font-weight: 600; letter-spacing: -0.04em; color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .big small { font-size: var(--fs-15); letter-spacing: 0; font-weight: 500; color: var(--text-subtle); margin-left: 2px; }
+  .sub { font-size: var(--fs-13); line-height: 18px; color: var(--text-subtle); }
+  @media (max-width: 560px) { .out { grid-template-columns: minmax(0, 1fr); } .cell + .cell { padding-left: 0; border-left: 0; border-top: 1px solid var(--border); padding-bottom: 4px; margin-top: 16px; } }
+</style>

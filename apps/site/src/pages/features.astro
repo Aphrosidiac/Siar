@@ -1,85 +1,107 @@
 ---
 import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
 import Cta from '../components/Cta.astro';
-import CodeBlock from '../components/CodeBlock.astro';
 import { NETWORKS } from '../lib/networks';
 import { operations } from '../lib/openapi';
 import { WEBHOOK_EVENTS } from '../lib/events';
 import { RESOURCE_LIMITS, fmtInt } from '../lib/plans';
-import { webhookCreateCurl } from '../lib/snippets';
 import { breadcrumbLd } from '../lib/seo';
+import { SIGNUP_URL } from '../config';
 
-const groups = [
-  { id: 'publishing', h: 'Publishing and scheduling', p: 'A post is one request with a per-network payload. The shape of each payload is validated against that network\'s rules (text length, media type, aspect ratio, duration) before it is accepted, so most rejections come back as a 400 you can fix instead of a failure an hour later.', items: [
-    'Post to several networks in one call, each with its own text, media and options.',
-    'Schedule with a UTC <code>postDate</code>, or keep a <code>DRAFT</code> that does not count against your quota.',
-    'Each network target is claimed with a conditional update before publishing, so a post is never sent twice.',
-    'Failed posts report the network\'s own message, can be retried up to ' + RESOURCE_LIMITS.maxRetries + ' times and fire a webhook when they reach a final state.',
-    'A first comment per network, edit and delete after publishing where the network allows it.',
-  ], link: ['/use-cases/social-media-posting-api', 'Posting API'] },
-  { id: 'media', h: 'Media', p: 'Upload once, reference the upload id from any number of posts. Siar converts and checks media against each network\'s limits at publish time.', items: [
-    'Multipart upload for small files, import from a public URL, and signed large and multipart uploads for big videos.',
-    `Files are kept for ${RESOURCE_LIMITS.mediaRetentionDays} days after their last use.`,
-    'Per-network image and video rules are listed on every platform page, generated from the code that enforces them.',
-  ], link: ['/docs/media-uploads', 'Media uploads'] },
-  { id: 'accounts', h: 'Accounts and teams', p: 'A team holds at most one connected account per network, which maps cleanly to a customer, brand or location. Paid plans have no cap on teams, so no cap on accounts.', items: [
-    'OAuth for every network behind one endpoint, plus a hosted connect page you can brand and send to your customers.',
-    'Channel selection (Facebook Page, LinkedIn company page, YouTube brand channel, Business Profile location) after sign-in.',
-    'Reconnect detection: when a network revokes a grant, the account is flagged and a webhook fires.',
-    'Tokens are encrypted at rest and never returned by the API.',
-  ], link: ['/use-cases/multi-tenant-social-media-api', 'Multi-tenant API'] },
-  { id: 'engagement', h: 'Comments, analytics and messaging', p: 'Read what people say and how posts perform, on the networks whose APIs expose it.', items: [
-    'Publish comments and replies, import comments on your posts, and moderate them.',
-    'Post and account analytics normalised across networks, with the raw payload alongside.',
-    'Post history import to backfill content published elsewhere.',
-    'Direct-message conversations and automations where the network permits it.',
-  ], link: ['/use-cases/social-media-analytics-api', 'Analytics API'] },
-  { id: 'events', h: 'Webhooks', p: `${WEBHOOK_EVENTS.length} event types, signed with HMAC-SHA256 over the timestamp and the raw body. Failed deliveries are retried with backoff over a day, and every delivery can be inspected and resent.`, items: [
-    'Up to ' + RESOURCE_LIMITS.webhooks + ' endpoints per organization, each with its own event list and secret.',
-    'Rotate a secret, send a test event, inspect every delivery and resend it.',
-  ], link: ['/docs/webhooks', 'Webhook guide'] },
-  { id: 'tooling', h: 'Tooling for developers and agents', p: 'The OpenAPI document is the contract: routes, validation, the SDK types and this reference are all generated from it.', items: [
-    `${fmtInt(operations().length)} operations, one error envelope, offset pagination, rate limit headers.`,
-    'TypeScript SDK with retries and webhook verification, a JSON-first CLI, and an MCP server.',
-    '<code>/llms.txt</code> and a markdown pricing page for tools that read the web.',
-  ], link: ['/docs/sdk-cli-mcp', 'SDK, CLI and MCP'] },
+const N = NETWORKS.length;
+interface Part { focus: [number, number, number]; id: string; kicker: string; h: string; p: string; items: string[]; shot: string; url: string; alt: string; link?: [string, string] }
+const parts: Part[] = [
+  { id: 'publishing', kicker: 'Composer', h: 'Write once. Tailor where it matters.', p: 'Pick the accounts, write the post, then open any network\'s tab to give it its own text, media or options. Every field is checked against that network\'s rules before the post is accepted, so problems show up while you are still writing.', items: ['Per-network text, media, first comment and options in one post', 'Live character limits for every selected network', `Drafts that do not count against your quota; up to ${RESOURCE_LIMITS.maxRetries} retries on failure`], focus: [0.42, 0.42, 1.4], shot: 'flow-3', url: 'app.siar.dev/compose', alt: 'The composer with a Threads-specific version of the post', link: ['/use-cases/social-media-posting-api', 'Posting API'] },
+  { id: 'calendar', kicker: 'Calendar', h: 'The month, at a glance.', p: 'Every scheduled, published, failed and draft post on one calendar, in your team\'s timezone. Drag a scheduled post to another day to move it; open a day to see exactly what goes out and where.', items: ['Status colours for scheduled, published, failed and draft', 'Drag to reschedule, click to edit', 'A day panel with times and networks'], focus: [0.42, 0.45, 1.3], shot: 'calendar', url: 'app.siar.dev/calendar', alt: 'The calendar with a month of scheduled and published posts', link: ['/use-cases/social-media-scheduling-api', 'Scheduling API'] },
+  { id: 'inbox', kicker: 'Inbox', h: 'Every reply, one inbox.', p: 'Comments on your posts and direct messages from every connected network, side by side. Reply as the account, like, hide or delete, without opening five apps.', items: ['Comments imported from the networks that expose them', 'Direct messages and automations where the network permits', 'Reply, like, hide and delete from one place'], focus: [0.45, 0.4, 1.35], shot: 'inbox', url: 'app.siar.dev/inbox', alt: 'The inbox with customer comments from Threads, Facebook and TikTok', link: ['/use-cases/social-media-comments-api', 'Comments API'] },
+  { id: 'analytics', kicker: 'Analytics', h: 'What landed, and where.', p: 'Followers, impressions, views, likes and comments per network over time, normalised so you can compare them, with each network\'s raw numbers kept alongside.', items: ['Account and post metrics for every network that reports them', 'Normalised fields plus the raw network payload', 'Refresh on demand within each network\'s limits'], focus: [0.55, 0.32, 1.28], shot: 'analytics', url: 'app.siar.dev/analytics', alt: 'Analytics for an Instagram account over 30 days', link: ['/use-cases/social-media-analytics-api', 'Analytics API'] },
+  { id: 'connect', kicker: 'Hosted connect', h: 'Your clients connect themselves.', p: 'Send a link with your name and logo. Your client signs in to each network in their own browser and lands back in your app. You never handle a password or a token, and expired grants are flagged before they cause a failed post.', items: ['One link for any set of networks, in your client\'s language', 'Channel picking after sign-in: Pages, company pages, channels, locations', 'Reconnect alerts in the dashboard and by webhook'], focus: [0.5, 0.3, 1.55], shot: 'portal', url: 'app.siar.dev/connect', alt: 'The hosted connect page a client sees', link: ['/use-cases/hosted-connect-oauth', 'Hosted connect'] },
+  { id: 'bio', kicker: 'Link in bio', h: 'A link page, included.', p: 'Each team gets a public page of links for its profiles, with views and clicks counted per link. No extra tool, no extra bill.', items: ['Headers, links and social icons, in any order', 'Your own accent colour and avatar', 'Views and clicks per link, per day'], focus: [0.62, 0.5, 1.3], shot: 'bio', url: 'app.siar.dev/bio', alt: 'Editing a link-in-bio page with a live preview' },
+];
+const more = [
+  ['Media library', `Upload once and reuse anywhere. Files are kept for ${RESOURCE_LIMITS.mediaRetentionDays} days after their last use.`],
+  ['Bulk post', 'Schedule hundreds of posts from one CSV, with a result for every row.'],
+  ['Google Business', 'Reviews, replies, hours, offers and events for every location, next to your posts.'],
+  ['Bots', 'Post to Discord and Slack channels with your own bot name and avatar per team.'],
+  ['Teams and roles', 'A team per brand or client. Owners, admins and members, with an audit log of who did what.'],
+  ['X credit', 'X bills per call, so X actions draw from a prepaid balance at X\'s own price. No markup.'],
 ];
 ---
-<Base title="Features" description={`What the Siar API does: publishing, scheduling, media, accounts and teams, comments, analytics, webhooks and developer tooling across ${NETWORKS.length} social networks.`} jsonLd={[breadcrumbLd([{ name: 'Features', href: '/features' }])]}>
-  <section class="section tight">
-    <div class="container">
-      <div class="section-head">
-        <p class="eyebrow">Features</p>
-        <h1>Everything between your code and {NETWORKS.length} social networks</h1>
-        <p class="lead">Siar owns the parts that break: OAuth and token refresh, media handling, network limits and error mapping, retries, quotas and signed events. You own the product.</p>
-      </div>
-    </div>
-  </section>
-  {groups.map((g, i) => (
-    <section class:list={['section', { alt: i % 2 === 0 }]} id={g.id}>
-      <div class="container two">
-        <div>
-          <h2>{g.h}</h2>
-          <p>{g.p}</p>
-          <p><a href={g.link[0]}>{g.link[1]} →</a></p>
+<Base title="Product tour" description={`A tour of Siar: composer, calendar, inbox, analytics, hosted connect, link in bio, API keys and webhooks, across ${N} social networks.`} jsonLd={[breadcrumbLd([{ name: 'Product', href: '/features' }])]}>
+  <PageHero kicker="Product tour" note="the real dashboard" title="One dashboard." dim={`${N} networks. No tab juggling.`} lead="Everything below is the Siar dashboard running on demo data: one café with three outlets, posting where its customers are.">
+    <div class="m-actions"><a class="pill ink" href={SIGNUP_URL}>Start free <span class="arr" aria-hidden="true">→</span></a><a class="pill" href="#developers">Skip to the API</a></div>
+  </PageHero>
+
+  <nav class="jump m-wide" aria-label="On this page">
+    {parts.map((p) => <a href={`#${p.id}`}>{p.kicker}</a>)}<a href="#developers">Developers</a>
+  </nav>
+
+  {parts.map((p, i) => (
+    <section class:list={['part', { flip: i % 2 === 1 }]} id={p.id}>
+      <div class="m-wide grid">
+        <div class="copy" data-reveal>
+          <p class="m-kicker"><span class="n">{String(i + 1).padStart(2, '0')}</span><span class="rule"></span>{p.kicker}</p>
+          <h2 class="m-h3">{p.h}</h2>
+          <p class="body">{p.p}</p>
+          <ul>{p.items.map((x) => <li>{x}</li>)}</ul>
+          {p.link && <a class="more" href={p.link[0]}>{p.link[1]} <span aria-hidden="true">→</span></a>}
         </div>
-        <ul class="ticks">{g.items.map((x) => <li set:html={x} />)}</ul>
+        <figure class="frame" data-reveal style="--d:1">
+          <div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url">{p.url}</span></div>
+          <div class="crop"><img src={`/shots/${p.shot}.webp`} width="2880" height="1800" alt={p.alt} loading="lazy" decoding="async" style={`--fx:${p.focus[0] * 100}%;--fy:${p.focus[1] * 100}%;--z:${p.focus[2]}`} /></div>
+        </figure>
       </div>
     </section>
   ))}
-  <section class="section">
-    <div class="container narrow">
-      <h2>Subscribe to the events you care about</h2>
-      <p>Register an HTTPS endpoint and a list of events. The response carries the signing secret once. Owners and admins manage webhooks from the dashboard; API keys cannot.</p>
-      <CodeBlock code={webhookCreateCurl} lang="bash" />
+
+  <section class="m-sec m-ink dev" id="developers">
+    <div class="m-wide">
+      <p class="m-kicker" data-reveal><span class="n">Developers</span><span class="rule"></span>same engine, no dashboard</p>
+      <h2 class="m-h2" data-lines><span class="ln"><span>The dashboard is a client</span></span><span class="ln"><span class="m-dim" style="--d:1">of the same API you get.</span></span></h2>
+      <p class="m-lead" data-reveal>{fmtInt(operations().length)} operations in one OpenAPI document. Keys per organization, {WEBHOOK_EVENTS.length} signed webhook events with a delivery log, a TypeScript SDK, a JSON-first CLI and an MCP server.</p>
+      <div class="pair">
+        <figure class="frame" data-reveal><div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url">app.siar.dev/api-keys</span></div><div class="crop"><img style="--fx:50%;--fy:28%;--z:1.4" src="/shots/api-keys.webp" width="2880" height="1800" alt="API keys with when each was last used" loading="lazy" decoding="async" /></div></figure>
+        <figure class="frame" data-reveal style="--d:1"><div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url">app.siar.dev/webhooks</span></div><div class="crop"><img style="--fx:82%;--fy:35%;--z:1.4" src="/shots/webhooks.webp" width="2880" height="1800" alt="A webhook endpoint's delivery log" loading="lazy" decoding="async" /></div></figure>
+      </div>
+      <div class="m-actions" data-reveal><a class="pill ink" href="/docs/quickstart">Quickstart <span class="arr" aria-hidden="true">→</span></a><a class="pill" href="/docs/api">API reference</a><a class="pill" href="/docs/sdk-cli-mcp">SDK, CLI and MCP</a></div>
+    </div>
+  </section>
+
+  <section class="m-sec rest">
+    <div class="m-wide">
+      <h2 class="m-h2" data-lines><span class="ln"><span>And the rest</span></span><span class="ln"><span class="m-dim" style="--d:1">of the toolbox.</span></span></h2>
+      <ul>{more.map(([h, p], i) => <li data-reveal style={`--d:${i % 3}`}><h3>{h}</h3><p>{p}</p></li>)}</ul>
     </div>
   </section>
   <Cta />
 </Base>
 <style>
-  .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 56px; align-items: start; }
-  .ticks { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--border); }
-  .ticks li { padding: 12px 0; margin: 0; border-bottom: 1px solid var(--border); font-size: var(--fs-16); line-height: 24px; }
-  .narrow { max-width: 820px; }
-  @media (max-width: 800px) { .two { grid-template-columns: minmax(0, 1fr); gap: 16px; } }
+  .jump { display: flex; gap: 6px; flex-wrap: wrap; padding-bottom: 24px; }
+  .jump a { font-size: var(--fs-14); font-weight: 500; text-decoration: none; color: var(--text-muted); padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border); transition: border-color var(--t-micro), color var(--t-micro); }
+  .jump a:hover { color: var(--text); border-color: var(--text); }
+  .part { padding: clamp(56px, 8vw, 120px) 0; border-top: 1px solid var(--border); scroll-margin-top: 68px; }
+  .grid { display: grid; grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr); gap: 40px clamp(32px, 5vw, 80px); align-items: center; }
+  .flip .grid { grid-template-columns: minmax(0, 1.28fr) minmax(0, 0.72fr); }
+  .flip .copy { order: 2; }
+  .body { font-size: var(--fs-18); line-height: 28px; color: var(--text-muted); margin: 0 0 20px; }
+  .copy ul { list-style: none; padding: 0; margin: 0 0 20px; border-top: 1px solid var(--border); }
+  .copy li { padding: 10px 0; margin: 0; border-bottom: 1px solid var(--border); font-size: var(--fs-15); line-height: 22px; color: var(--text-muted); }
+  .more { font-size: var(--fs-15); font-weight: 500; text-decoration: none; }
+  .more:hover { text-decoration: underline; }
+  @media (max-width: 960px) { .grid, .flip .grid { grid-template-columns: minmax(0, 1fr); } .flip .copy { order: 0; } .body { font-size: var(--fs-16); line-height: 26px; } }
+  @media (max-width: 640px) {
+    .crop { aspect-ratio: 4 / 3; overflow: hidden; }
+    .crop img { width: 100%; height: 100%; object-fit: cover; object-position: var(--fx) var(--fy); transform-origin: var(--fx) var(--fy); transform: scale(calc(var(--z) * 1.25)); }
+  }
+  .dev { scroll-margin-top: 68px; }
+  .dev .m-lead { margin-bottom: 48px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px; }
+  @media (max-width: 760px) { .pair { grid-template-columns: minmax(0, 1fr); } }
+  .rest ul { list-style: none; padding: 0; margin: 48px 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 48px; }
+  .rest li { margin: 0; padding: 24px 0 36px; border-top: 1px solid var(--text); }
+  .rest h3 { font-size: var(--fs-20); margin: 0 0 8px; }
+  .rest p { margin: 0; font-size: var(--fs-15); line-height: 24px; }
+  @media (max-width: 900px) { .rest ul { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .rest ul { grid-template-columns: minmax(0, 1fr); } }
 </style>

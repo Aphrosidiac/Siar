@@ -2,12 +2,12 @@
 import Base from '../layouts/Base.astro';
 ---
 <Base title="Page not found" noindex>
-  <section class="section">
-    <div class="container" style="max-width:720px">
-      <p class="eyebrow">404</p>
-      <h1>This page does not exist</h1>
-      <p class="lead">The link may be old, or the page may have moved. These might help:</p>
-      <ul>
+  <section class="m-hero nf">
+    <div class="m-wide">
+      <p class="m-kicker"><span class="onair">Off air</span><span class="rule"></span>404</p>
+      <h1 class="m-display">Nothing is<br /><span class="m-dim">broadcasting here.</span></h1>
+      <p class="m-lead">The link may be old, or the page may have moved. These might help:</p>
+      <ul class="links">
         <li><a href="/docs">Documentation</a></li>
         <li><a href="/docs/api">API reference</a></li>
         <li><a href="/platforms">Supported platforms</a></li>
@@ -17,3 +17,10 @@ import Base from '../layouts/Base.astro';
     </div>
   </section>
 </Base>
+<style>
+  .nf { padding: clamp(48px, 8vw, 120px) 0; }
+  .nf .m-lead { margin: 32px 0 16px; }
+  .links { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .links a { display: inline-flex; padding: 8px 16px; border-radius: 999px; border: 1px solid var(--border-strong); text-decoration: none; font-weight: 500; font-size: var(--fs-15); }
+  .links a:hover { border-color: var(--text); }
+</style>

@@ -11,3 +11,4 @@ docs/qa/states/
 src/generated/
 storage/
 apps/site/.astro/
+apps/site/.shots-tmp/

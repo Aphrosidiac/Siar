@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
 import NetIcon from '../components/NetIcon.astro';
 import Cta from '../components/Cta.astro';
 import { NETWORKS, CONNECT_LABEL } from '../lib/networks';
@@ -7,13 +8,9 @@ import { breadcrumbLd } from '../lib/seo';
 const cols = ['comments', 'editPost', 'postAnalytics', 'accountAnalytics', 'messaging'] as const;
 ---
 <Base title="Supported platforms" description={`The ${NETWORKS.length} social networks the Siar API publishes to: post types, connection method and what each supports.`} jsonLd={[breadcrumbLd([{ name: 'Platforms', href: '/platforms' }])]}>
+  <PageHero kicker="Networks" note={`${NETWORKS.length} supported`} title={`${NETWORKS.length} networks.`} dim="One integration." lead="Every network has its own page with post types, media rules, daily caps, requested permissions and an error reference, generated from the code that enforces them." />
   <section class="section tight">
     <div class="container">
-      <div class="section-head">
-        <p class="eyebrow">Platforms</p>
-        <h1>{NETWORKS.length} networks, one integration</h1>
-        <p class="lead">Every network has its own page with post types, media rules, daily caps, requested permissions and an error reference, generated from the code that enforces them.</p>
-      </div>
       <div class="grid g3">
         {NETWORKS.map((n) => (
           <a class="card" href={`/${n.apiSlug}`}>

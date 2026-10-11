@@ -57,7 +57,7 @@ importers:
         version: 5.12.5
       ioredis:
         specifier: ^5.8.2
-        version: 5.11.1(supports-color@10.2.2)
+        version: 5.11.1
       nodemailer:
         specifier: ^7.0.10
         version: 7.0.13
@@ -121,13 +121,13 @@ importers:
         version: 6.0.3
       vitest:
         specifier: ^4.1.11
-        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.6.5)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(tsx@4.23.15))
+        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.6.5)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
 
   apps/site:
     dependencies:
       '@astrojs/mdx':
         specifier: ^4.3.0
-        version: 4.3.14(astro@5.18.2(@types/node@26.6.5)(ioredis@5.11.1)(jiti@2.7.0)(lightningcss@1.33.0)(rollup@4.64.5)(tsx@4.23.15)(typescript@6.0.3))
+        version: 4.3.14(astro@5.18.2(@types/node@26.6.5)(ioredis@5.11.1)(jiti@2.7.0)(lightningcss@1.33.0)(rollup@4.64.5)(supports-color@10.2.2)(tsx@4.23.15)(typescript@6.0.3))
       '@astrojs/sitemap':
         specifier: ^3.6.0
         version: 3.7.4
@@ -136,8 +136,11 @@ importers:
         version: link:../../packages/contract
       astro:
         specifier: ^5.15.0
-        version: 5.18.2(@types/node@26.6.5)(ioredis@5.11.1)(jiti@2.7.0)(lightningcss@1.33.0)(rollup@4.64.5)(tsx@4.23.15)(typescript@6.0.3)
+        version: 5.18.2(@types/node@26.6.5)(ioredis@5.11.1)(jiti@2.7.0)(lightningcss@1.33.0)(rollup@4.64.5)(supports-color@10.2.2)(tsx@4.23.15)(typescript@6.0.3)
     devDependencies:
+      playwright:
+        specifier: 1.63.0
+        version: 1.63.0
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
@@ -211,7 +214,7 @@ importers:
     dependencies:
       '@modelcontextprotocol/sdk':
         specifier: ^1.20.0
-        version: 1.32.1(zod@4.6.5)
+        version: 1.32.1(supports-color@10.2.2)(zod@4.6.5)
       '@siar/sdk':
         specifier: workspace:*
         version: link:../sdk
@@ -260,7 +263,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: ^4.1.11
-        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.6.5)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@26.6.5)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.27.7)(jiti@2.7.0)(tsx@4.23.15))
 
 packages:
 
@@ -3318,6 +3321,16 @@ packages:
   pkg-types@2.3.3:
     resolution: {integrity: sha512-j/lCFdcppV0JxWpCEITdbDltBxPP6cHT+yNJ6Go2OgoSA9518X847X9z0p6LtA4Nc16+eQzCZjRrWanTGvHJ5w==}
 
+  playwright-core@1.63.0:
+    resolution: {integrity: sha512-rYCsBF/M5HjUch52bbtVONEFjv6Xu8sm8h72dNlR5bzIE1fvC/bxgspzkjSfU+MweEMmPM8KJebG6nnyxo5mCg==}
+    engines: {node: '>=20'}
+    hasBin: true
+
+  playwright@1.63.0:
+    resolution: {integrity: sha512-+7ziBLidS4NaNCdt57SUDT+wYmmd5fmiQejUic/kb+YsYSCPyOOE9sebzMjNmQrsnNpDJqd4WHvV/8lfKfUDUg==}
+    engines: {node: '>=20'}
+    hasBin: true
+
   pluralize@8.0.0:
     resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
     engines: {node: '>=4'}
@@ -4289,12 +4302,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@astrojs/mdx@4.3.14(astro@5.18.2(@types/node@26.6.5)(ioredis@5.11.1)(jiti@2.7.0)(lightningcss@1.33.0)(rollup@4.64.5)(tsx@4.23.15)(typescript@6.0.3))':
+  '@astrojs/mdx@4.3.14(astro@5.18.2(@types/node@26.6.5)(ioredis@5.11.1)(jiti@2.7.0)(lightningcss@1.33.0)(rollup@4.64.5)(supports-color@10.2.2)(tsx@4.23.15)(typescript@6.0.3))':
     dependencies:
       '@astrojs/markdown-remark': 6.3.11
       '@mdx-js/mdx': 3.1.1
       acorn: 8.19.0
-      astro: 5.18.2(@types/node@26.6.5)(ioredis@5.11.1)(jiti@2.7.0)(lightningcss@1.33.0)(rollup@4.64.5)(tsx@4.23.15)(typescript@6.0.3)
+      astro: 5.18.2(@types/node@26.6.5)(ioredis@5.11.1)(jiti@2.7.0)(lightningcss@1.33.0)(rollup@4.64.5)(supports-color@10.2.2)(tsx@4.23.15)(typescript@6.0.3)
       es-module-lexer: 1.7.0
       estree-util-visit: 2.0.0
       hast-util-to-html: 9.0.5
@@ -4317,7 +4330,7 @@ snapshots:
       sitemap: 9.0.1
       zod: 4.6.5
 
-  '@astrojs/telemetry@3.3.0':
+  '@astrojs/telemetry@3.3.0(supports-color@10.2.2)':
     dependencies:
       ci-info: 4.4.0
       debug: 4.4.3(supports-color@10.2.2)
@@ -4997,7 +5010,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@modelcontextprotocol/sdk@1.32.1(zod@4.6.5)':
+  '@modelcontextprotocol/sdk@1.32.1(supports-color@10.2.2)(zod@4.6.5)':
     dependencies:
       '@hono/node-server': 2.1.4(hono@4.13.13)
       ajv: 8.20.0
@@ -5007,8 +5020,8 @@ snapshots:
       cross-spawn: 7.0.6
       eventsource: 3.0.7
       eventsource-parser: 3.1.1
-      express: 5.3.0
-      express-rate-limit: 8.7.1(express@5.3.0)
+      express: 5.3.0(supports-color@10.2.2)
+      express-rate-limit: 8.7.1(express@5.3.0(supports-color@10.2.2))(supports-color@10.2.2)
       hono: 4.13.13
       jose: 6.2.12
       json-schema-typed: 8.0.2
@@ -5785,12 +5798,12 @@ snapshots:
 
   astring@1.9.0: {}
 
-  astro@5.18.2(@types/node@26.6.5)(ioredis@5.11.1)(jiti@2.7.0)(lightningcss@1.33.0)(rollup@4.64.5)(tsx@4.23.15)(typescript@6.0.3):
+  astro@5.18.2(@types/node@26.6.5)(ioredis@5.11.1)(jiti@2.7.0)(lightningcss@1.33.0)(rollup@4.64.5)(supports-color@10.2.2)(tsx@4.23.15)(typescript@6.0.3):
     dependencies:
       '@astrojs/compiler': 2.13.1
       '@astrojs/internal-helpers': 0.7.6
       '@astrojs/markdown-remark': 6.3.11
-      '@astrojs/telemetry': 3.3.0
+      '@astrojs/telemetry': 3.3.0(supports-color@10.2.2)
       '@capsizecss/unpack': 4.0.1
       '@oslojs/encoding': 1.1.0
       '@rollup/pluginutils': 5.4.0(rollup@4.64.5)
@@ -5910,7 +5923,7 @@ snapshots:
 
   better-result@2.10.0: {}
 
-  body-parser@2.3.0:
+  body-parser@2.3.0(supports-color@10.2.2):
     dependencies:
       bytes: 3.1.2
       content-type: 2.1.0
@@ -6419,18 +6432,18 @@ snapshots:
 
   expect-type@1.4.0: {}
 
-  express-rate-limit@8.7.1(express@5.3.0):
+  express-rate-limit@8.7.1(express@5.3.0(supports-color@10.2.2))(supports-color@10.2.2):
     dependencies:
       debug: 4.4.3(supports-color@10.2.2)
-      express: 5.3.0
+      express: 5.3.0(supports-color@10.2.2)
       ip-address: 10.7.3
     transitivePeerDependencies:
       - supports-color
 
-  express@5.3.0:
+  express@5.3.0(supports-color@10.2.2):
     dependencies:
       accepts: 2.0.0
-      body-parser: 2.3.0
+      body-parser: 2.3.0(supports-color@10.2.2)
       content-disposition: 2.0.1
       content-type: 2.1.0
       cookie: 0.7.2
@@ -6440,7 +6453,7 @@ snapshots:
       encodeurl: 2.0.0
       escape-html: 1.0.3
       etag: 1.8.1
-      finalhandler: 2.1.1
+      finalhandler: 2.1.1(supports-color@10.2.2)
       fresh: 2.0.0
       http-errors: 2.0.1
       merge-descriptors: 2.0.0
@@ -6451,8 +6464,8 @@ snapshots:
       proxy-addr: 2.0.8
       qs: 6.16.0
       range-parser: 1.3.0
-      router: 2.2.0
-      send: 1.2.1
+      router: 2.2.0(supports-color@10.2.2)
+      send: 1.2.1(supports-color@10.2.2)
       serve-static: 2.2.1
       statuses: 2.0.2
       type-is: 2.1.0
@@ -6521,7 +6534,7 @@ snapshots:
     optionalDependencies:
       picomatch: 4.0.7
 
-  finalhandler@2.1.1:
+  finalhandler@2.1.1(supports-color@10.2.2):
     dependencies:
       debug: 4.4.3(supports-color@10.2.2)
       encodeurl: 2.0.0
@@ -6805,7 +6818,7 @@ snapshots:
 
   internmap@2.0.3: {}
 
-  ioredis@5.11.1(supports-color@10.2.2):
+  ioredis@5.11.1:
     dependencies:
       '@ioredis/commands': 1.10.0
       cluster-key-slot: 1.1.1
@@ -7712,6 +7725,12 @@ snapshots:
       exsolve: 1.1.3
       pathe: 2.0.3
 
+  playwright-core@1.63.0: {}
+
+  playwright@1.63.0:
+    dependencies:
+      playwright-core: 1.63.0
+
   pluralize@8.0.0: {}
 
   postcss-load-config@6.0.1(jiti@2.7.0)(postcss@8.5.29)(tsx@4.23.15):
@@ -8044,7 +8063,7 @@ snapshots:
       '@rollup/rollup-win32-x64-msvc': 4.64.5
       fsevents: 2.3.3
 
-  router@2.2.0:
+  router@2.2.0(supports-color@10.2.2):
     dependencies:
       debug: 4.4.3(supports-color@10.2.2)
       depd: 2.0.0
@@ -8074,7 +8093,7 @@ snapshots:
 
   semver@7.8.5: {}
 
-  send@1.2.1:
+  send@1.2.1(supports-color@10.2.2):
     dependencies:
       debug: 4.4.3(supports-color@10.2.2)
       encodeurl: 2.0.0
@@ -8102,7 +8121,7 @@ snapshots:
       encodeurl: 2.0.0
       escape-html: 1.0.3
       parseurl: 1.3.3
-      send: 1.2.1
+      send: 1.2.1(supports-color@10.2.2)
     transitivePeerDependencies:
       - supports-color
 
@@ -8478,7 +8497,7 @@ snapshots:
       ofetch: 1.5.1
       ufo: 1.6.4
     optionalDependencies:
-      ioredis: 5.11.1(supports-color@10.2.2)
+      ioredis: 5.11.1
 
   uri-js-replace@1.0.1: {}
 

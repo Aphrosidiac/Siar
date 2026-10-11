@@ -1,0 +1,20 @@
+---
+/** Inner-page opener: mono kicker, display title (second line dimmed), lead, optional actions. */
+interface Props { kicker: string; title: string; dim?: string; lead?: string; note?: string }
+const { kicker, title, dim, lead, note } = Astro.props;
+---
+<section class="ph m-hero">
+  <div class="m-wide">
+    <p class="m-kicker" data-reveal><span class="n">{kicker}</span>{note && <><span class="rule"></span>{note}</>}</p>
+    <h1 class="m-h2" data-lines><span class="ln"><span>{title}</span></span>{dim && <span class="ln"><span class="m-dim" style="--d:1">{dim}</span></span>}</h1>
+    {lead && <p class="m-lead" data-reveal style="--d:2" set:html={lead} />}
+    <div data-reveal style="--d:3"><slot /></div>
+  </div>
+</section>
+<style>
+  .ph { padding: clamp(40px, 7vw, 104px) 0 clamp(40px, 6vw, 80px); }
+  h1 { max-width: 16em; }
+  .m-lead { margin-top: 8px; }
+  .m-lead :global(a) { color: inherit; }
+  div[data-reveal]:not(:empty) { margin-top: 32px; }
+</style>
