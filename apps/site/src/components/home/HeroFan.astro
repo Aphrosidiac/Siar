@@ -11,19 +11,22 @@ interface Props { dir: 'side' | 'down'; class?: string }
 const { dir, class: cls = '' } = Astro.props;
 
 const side = dir === 'side';
-const W = side ? 330 : 420, H = side ? 470 : 280;
-const hub = side ? { x: 46, y: H / 2 } : { x: W / 2, y: 40 };
-const R = side ? 238 : 210;
-const [a0, a1] = side ? [-76, 76] : [14, 166];
-const T = 30; // tile size
+const R = 225, T = 28, HUB = 30; // spoke length to tile centre, tile size, hub radius
+// a 140° fan, like the blades of the mark: opening right on desktop, downward on phones
+const [a0, a1] = side ? [-70, 70] : [20, 160];
+const rad = (d: number) => (d * Math.PI) / 180;
+const span = R * Math.sin(rad(70)) + T / 2 + 6; // half-height of the fan
+const W = side ? HUB + R + T / 2 + 8 : 2 * span, H = side ? 2 * span : HUB + R + T / 2 + 8;
+const hub = side ? { x: HUB, y: H / 2 } : { x: W / 2, y: HUB };
 const nodes = NETWORKS.map((n, i) => {
-  const a = ((a0 + ((a1 - a0) * i) / (NETWORKS.length - 1)) * Math.PI) / 180;
-  const x = hub.x + R * Math.cos(a), y = hub.y + R * Math.sin(a);
-  // a gentle curve: the control point sits partway out along the spoke, pulled toward the hub's axis
-  const cx = side ? hub.x + R * 0.45 : hub.x + (x - hub.x) * 0.55;
-  const cy = side ? hub.y + (y - hub.y) * 0.55 : hub.y + R * 0.45;
-  const ex = x - (side ? T / 2 + 4 : 0), ey = y - (side ? 0 : T / 2 + 4);
-  return { n, x, y, d: `M${hub.x} ${hub.y} Q${cx.toFixed(1)} ${cy.toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)}`, i };
+  const a = rad(a0 + ((a1 - a0) * i) / (NETWORKS.length - 1));
+  const ux = Math.cos(a), uy = Math.sin(a);
+  const x = hub.x + R * ux, y = hub.y + R * uy;
+  // straight spoke from the hub's rim to the tile's edge along the same line
+  const edge = T / 2 / Math.max(Math.abs(ux), Math.abs(uy)) + 3;
+  const sx = hub.x + (HUB + 3) * ux, sy = hub.y + (HUB + 3) * uy;
+  const ex = x - edge * ux, ey = y - edge * uy;
+  return { n, x, y, d: `M${sx.toFixed(1)} ${sy.toFixed(1)} L${ex.toFixed(1)} ${ey.toFixed(1)}`, i };
 });
 const S = 1.22; // mark scale inside the hub
 ---
@@ -37,34 +40,29 @@ const S = 1.22; // mark scale inside the hub
     </g>
     {nodes.map((p) => (
       <g class="tile" style={`--i:${p.i}`} transform={`translate(${(p.x - T / 2).toFixed(1)} ${(p.y - T / 2).toFixed(1)})`}>
-        <rect width={T} height={T} rx="8" />
-        <path transform={`translate(${(T - 16) / 2} ${(T - 16) / 2}) scale(${16 / 24})`} d={GLYPHS[p.n.type]} />
+        <rect width={T} height={T} rx="7" />
+        <path transform={`translate(${(T - 15) / 2} ${(T - 15) / 2}) scale(${15 / 24})`} d={GLYPHS[p.n.type]} />
       </g>
     ))}
     <g class="hub">
-      <circle cx={hub.x} cy={hub.y} r="30" />
+      <circle cx={hub.x} cy={hub.y} r={HUB} />
       <g transform={`translate(${(hub.x - 12.05 * S).toFixed(1)} ${(hub.y - 11.2 * S).toFixed(1)}) scale(${S})`}>
         <path d="M5.6 7.2a4 4 0 1 1-2.4 7.2l-1.6 1.2.5-2.6a4 4 0 0 1 3.5-5.8Z" /><path transform="rotate(-38 5.6 11.2)" d="M11 10.5 20 8.7a2.5 2.5 0 0 1 0 5L11 11.9Z" /><path d="M11 10.5 20 8.7a2.5 2.5 0 0 1 0 5L11 11.9Z" /><path transform="rotate(38 5.6 11.2)" d="M11 10.5 20 8.7a2.5 2.5 0 0 1 0 5L11 11.9Z" />
       </g>
     </g>
   </svg>
-  <figcaption><span>POST /v1/post</span><span class="arr">→</span><span>{NETWORKS.length} networks</span></figcaption>
 </figure>
 <style>
-  .fan { margin: 0; display: flex; flex-direction: column; gap: 10px; --cycle: 4.2s; --step: 70ms; }
+  .fan { margin: 0; display: block; --cycle: 4.2s; --step: 70ms; }
   svg { display: block; width: 100%; height: auto; overflow: visible; }
   .lines path { fill: none; stroke: var(--border-strong); stroke-width: 1; }
-  .pulses path { fill: none; stroke: var(--text); stroke-width: 1.6; stroke-linecap: round; stroke-dasharray: 14 120; stroke-dashoffset: 14; animation: pulse var(--cycle) var(--ease-io) infinite; animation-delay: calc(var(--i) * var(--step)); }
-  @keyframes pulse { 0% { stroke-dashoffset: 14; opacity: 1; } 24% { stroke-dashoffset: -100; opacity: 1; } 25%, 100% { stroke-dashoffset: -100; opacity: 0; } }
+  .pulses path { fill: none; stroke: var(--text); stroke-width: 1.6; stroke-linecap: round; stroke-dasharray: 18 120; stroke-dashoffset: 18; animation: pulse var(--cycle) var(--ease-io) infinite; animation-delay: calc(var(--i) * var(--step)); }
+  @keyframes pulse { 0% { stroke-dashoffset: 18; opacity: 1; } 24% { stroke-dashoffset: -100; opacity: 1; } 25%, 100% { stroke-dashoffset: -100; opacity: 0; } }
   .tile rect { fill: var(--bg-elevated); stroke: var(--border); stroke-width: 1; transition: fill 200ms; animation: lit var(--cycle) linear infinite; animation-delay: calc(var(--i) * var(--step)); }
   .tile path { fill: var(--text); animation: litg var(--cycle) linear infinite; animation-delay: calc(var(--i) * var(--step)); }
   @keyframes lit { 0%, 22% { fill: var(--bg-elevated); stroke: var(--border); } 24%, 64% { fill: var(--text); stroke: var(--text); } 72%, 100% { fill: var(--bg-elevated); stroke: var(--border); } }
   @keyframes litg { 0%, 22% { fill: var(--text); } 24%, 64% { fill: var(--bg); } 72%, 100% { fill: var(--text); } }
   .hub circle { fill: var(--text); }
   .hub path { fill: var(--bg); }
-  figcaption { display: flex; gap: 8px; align-items: center; font-family: var(--mono); font-size: var(--fs-12); line-height: 16px; letter-spacing: .02em; color: var(--text-subtle); }
-  figcaption span:first-child { color: var(--text); }
-  .side figcaption { padding-left: 4px; }
-  .down figcaption { justify-content: center; }
   @media (prefers-reduced-motion: reduce) { .pulses { display: none; } .tile rect, .tile path { animation: none; } }
 </style>
