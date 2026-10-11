@@ -26,7 +26,7 @@
 .m-lead { font-size: clamp(17px, 1.5vw, 21px); line-height: 1.5; color: var(--text-muted); max-width: 600px; margin: 0; text-wrap: pretty; }
 .m-dim { color: var(--text-faint); }
 
-.m-sec { padding: clamp(80px, 11vw, 160px) 0; position: relative; }
+.m-sec { padding: clamp(64px, 11vw, 160px) 0; position: relative; }
 .m-sec.tight { padding: clamp(56px, 7vw, 96px) 0; }
 .m-wide { max-width: 1320px; margin: 0 auto; padding: 0 32px; }
 @media (max-width: 640px) { .m-wide { padding: 0 16px; } }

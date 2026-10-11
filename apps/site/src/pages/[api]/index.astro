@@ -82,7 +82,7 @@ const capRows: [string, boolean][] = n.capabilityList.map((c) => [c.label, c.val
       </table></div>
       <p class="small">See <a href="/pricing">pricing</a> for monthly quotas. Enterprise uses the Business caps unless agreed otherwise.</p>
 
-      <h2 id="connect">Connecting a {n.name} account</h2>
+      <h2 id="connect">Connecting {/^[AEIOU]/.test(n.name) ? 'an' : 'a'} {n.name} account</h2>
       <p>{connectNote} Use <code>POST /social-account/connect</code> from your own UI, or send your customer a hosted link from <code>POST /social-account/create-portal-link</code>; see <a href="/docs/connecting-accounts">connecting accounts</a>.</p>
       {n.adapter.scopes.length > 0 && (
         <>

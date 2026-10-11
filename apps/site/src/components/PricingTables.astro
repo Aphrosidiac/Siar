@@ -1,8 +1,8 @@
 ---
 import { PLANS, TIERS, CAP_TIERS, dailyPostCaps, dailyCommentCaps, COMMENT_LENGTH, RESOURCE_LIMITS, X_PRICES, X_PRICE_LABELS, fmtQuota, fmtInt, fmtMicro } from '../lib/plans';
 import { NETWORKS } from '../lib/networks';
-interface Props { show?: ('quotas' | 'imports' | 'messaging' | 'caps' | 'comments' | 'length' | 'resources' | 'x')[] }
-const { show = ['quotas', 'imports', 'messaging', 'caps', 'comments', 'length', 'resources', 'x'] } = Astro.props;
+interface Props { show?: ('quotas' | 'imports' | 'messaging' | 'caps' | 'comments' | 'length' | 'resources' | 'x')[]; heading?: boolean }
+const { show = ['quotas', 'imports', 'messaging', 'caps', 'comments', 'length', 'resources', 'x'], heading = true } = Astro.props;
 const has = (k: string) => show.includes(k as any);
 const row = (label: string, f: (t: (typeof TIERS)[number]) => string) => ({ label, cells: TIERS.map(f) });
 const quotas = [
@@ -101,7 +101,7 @@ const xGroups = (Object.keys(X_PRICES) as (keyof typeof X_PRICES)[]);
 )}
 {has('x') && (
   <>
-    <h3 id="x-pricing">X (Twitter) pass-through prices</h3>
+    {heading && <h3 id="x-pricing">X (Twitter) pass-through prices</h3>}
     <p class="small">X charges developers for every API call. Siar passes those charges through at cost from a prepaid credit balance; anything not listed is free. If the balance runs out, X actions fail with a top-up message and every other network in the same post still publishes.</p>
     <div class="table-wrap"><table>
       <thead><tr><th>Action</th><th>Billed</th><th class="num">Price (USD)</th></tr></thead>

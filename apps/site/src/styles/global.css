@@ -118,6 +118,14 @@ td code { overflow-wrap: break-word; }
 .table-wrap table { margin: 0; }
 .table-wrap tr:last-child td, .table-wrap tr:last-child th { border-bottom: 0; }
 td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* phones: a table with four or more columns scrolls sideways with its label column pinned, instead of
+   squeezing each label onto four lines */
+@media (max-width: 640px) {
+  .table-wrap table:has(tr > :nth-child(4)) { min-width: 520px; }
+  .table-wrap table:has(tr > :nth-child(4)) :is(th, td):first-child { position: sticky; left: 0; z-index: 1; min-width: 150px; background: var(--bg-elevated); box-shadow: 1px 0 0 var(--border); }
+  .table-wrap table:has(tr > :nth-child(4)) thead th:first-child { background: var(--bg-subtle); }
+  th, td { padding: 10px 12px; }
+}
 
 .container { max-width: var(--w); margin: 0 auto; padding: 0 32px; }
 @media (max-width: 640px) { .container { padding: 0 16px; } }

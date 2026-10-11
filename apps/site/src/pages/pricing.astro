@@ -49,7 +49,7 @@ const faq = [
   <section class="section" id="x">
     <div class="container prose-wide">
       <h2>X (Twitter): pass-through pricing</h2>
-      <PricingTables show={['x']} />
+      <PricingTables show={['x']} heading={false} />
       <p class="small">Top up the balance from the dashboard. Balance changes use a ledger (hold, then capture or release) so a failed publish never charges you. Webhooks fire at <code>credit.low-balance</code> and <code>credit.exhausted</code>; quote an action before running it with the credit endpoints in the <a href="/docs/api/credit">API reference</a>.</p>
     </div>
   </section>

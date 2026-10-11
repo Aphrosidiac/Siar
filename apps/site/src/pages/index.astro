@@ -175,7 +175,7 @@ const audiences = [
   <section class="m-sec faqs">
     <div class="m-wide faq-grid">
       <h2 class="m-h3" data-reveal>Questions, answered straight.</h2>
-      <Faq items={faq} />
+      <Faq items={faq} title="" />
     </div>
   </section>
 </Base>
@@ -246,7 +246,7 @@ const audiences = [
   .nm { font-size: var(--fs-16); font-weight: 600; letter-spacing: -0.01em; margin-top: 24px; }
   .ty { font-size: var(--fs-12); line-height: 16px; color: var(--text-subtle); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   @media (max-width: 1000px) { .grid15 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-  @media (max-width: 560px) { .grid15 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .grid15 a { min-height: 140px; padding: 16px; } }
+  @media (max-width: 560px) { .grid15 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .grid15 a { min-height: 112px; padding: 14px 12px 12px; } .grid15 a :global(.ni) { width: 36px !important; height: 36px !important; } .nm { font-size: var(--fs-14); line-height: 18px; margin-top: 16px; } .ty { display: none; } }
 
   .tour { padding-bottom: clamp(56px, 7vw, 96px); }
   .sec-head { max-width: 900px; margin-bottom: clamp(16px, 3vw, 40px); }
