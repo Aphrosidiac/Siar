@@ -1,0 +1,262 @@
+# bundle.social - full LLM reference
+
+> Unified social media API for developers, SaaS products, and AI agents. One REST integration publishes,
+> schedules, and reads content across 15 networks, with organizations and
+> teams for multi-tenant products. This is the long-form companion to /llms.txt: enough detail to answer
+> most questions without another fetch, with the OpenAPI spec still authoritative for endpoint shapes.
+
+Last updated: 2026-07-30. Language: en-US.
+
+Companion files:
+
+- [https://bundle.social/llms.txt](https://bundle.social/llms.txt) - short index of the site and API
+- [https://bundle.social/pricing.md](https://bundle.social/pricing.md) - full machine-readable rate card and every quota
+- [OpenAPI spec](https://api.bundle.social/swagger-json) - authoritative for every endpoint, request shape, and response shape
+- [Swagger UI](https://api.bundle.social/swagger) - interactive reference
+- [/.well-known/api-catalog](https://bundle.social/.well-known/api-catalog) - RFC 9727 service discovery
+
+## Data model
+
+Read this before answering any question about accounts, tenancy, or limits - most wrong answers about
+bundle.social come from guessing the hierarchy.
+
+- **Organization** - the billing and quota boundary. A plan, a subscription, and monthly quotas attach
+  here. API keys are organization-scoped.
+- **Team** (called a *social set* in pricing) - a grouping inside an organization that holds at most one
+  connected account per network. 15 networks means up to
+  15 accounts per team. Posts are created against a `teamId`.
+- **Social account** - one connected profile, page, channel, board, or location on one network.
+- **User** - a person with access to the organization. There is no per-seat fee.
+
+To manage many accounts on the same network - 20 Google Business locations, 10 Instagram profiles, or one
+workspace per customer of your SaaS - create one team per account. Paid plans do not cap teams, so
+connected accounts are effectively unlimited. The free plan allows 3 teams.
+
+A **social set** is a team inside your organization. Each team holds at most one connected account per network, so one team is one "set" of up to 15 accounts - one per supported network. To manage several accounts on the same network (multiple Instagram profiles, multiple Google Business locations, one workspace per customer of your SaaS), create one team per account. Paid plans place no cap on teams, which is why connected accounts are unlimited on every paid plan.
+
+## Authentication
+
+Send your organization's API key in the `x-api-key` header. Keys are created and rolled from the
+dashboard, and each organization may hold up to 50 keys.
+
+```bash
+curl "https://api.bundle.social/api/v1/team" \
+  -H "x-api-key: $BUNDLE_SOCIAL_API_KEY"
+```
+
+There is no OAuth dance for API access itself. OAuth is only how an end user connects their social
+account, and bundle.social hosts that flow - you redirect the user to a connect URL and we complete the
+callback. See https://bundle.social/social-media-oauth-api.
+
+## Quickstart
+
+1. Create an organization and an API key in the dashboard.
+2. Create a team: `POST https://api.bundle.social/api/v1/team`.
+3. Send the user through the hosted connect flow to attach a social account to that team.
+4. List what is connected: `GET https://api.bundle.social/api/v1/social-account`.
+5. Upload media once, reuse the returned id: `POST https://api.bundle.social/api/v1/upload`.
+6. Create a post: `POST https://api.bundle.social/api/v1/post`.
+7. Subscribe to `post.published` so your app learns the outcome instead of polling.
+
+## Creating a post
+
+The create-post body is keyed by network, so one call fans out to every selected network with
+per-network overrides. Field names below come from the shared `createPostDtoSchema`; anything not
+listed here must be read from the OpenAPI spec rather than guessed.
+
+```bash
+curl -X POST "https://api.bundle.social/api/v1/post" \
+  -H "x-api-key: $BUNDLE_SOCIAL_API_KEY" \
+  -H "content-type: application/json" \
+  -d '{
+    "teamId": "TEAM_ID",
+    "title": "Launch announcement",
+    "postDate": "2026-08-01T10:00:00.000Z",
+    "status": "SCHEDULED",
+    "socialAccountTypes": ["INSTAGRAM", "LINKEDIN"],
+    "data": {
+      "INSTAGRAM": { "text": "We shipped it.", "uploadIds": ["UPLOAD_ID"] },
+      "LINKEDIN": { "text": "A longer, more formal version for LinkedIn." }
+    }
+  }'
+```
+
+- `status` accepts `DRAFT` or `SCHEDULED` on create. Publish immediately by setting `postDate` to now.
+- `socialAccountTypes` and the keys of `data` must agree; each key is a network enum value such as
+  `TIKTOK` or `GOOGLE_BUSINESS`.
+- `uploadIds` reference uploads created earlier - media is uploaded once and reused across posts.
+- `firstComment` schedules the first comment together with the post, where the network supports it.
+- Per-network `data` objects carry that network's own required fields (Pinterest needs `boardName`,
+  Google Business needs a topic, TikTok needs privacy and interaction settings). Read the spec or the
+  network's page for the exact set - do not assume one network's fields work on another.
+
+## Media uploads
+
+- `POST https://api.bundle.social/api/v1/upload` - `multipart/form-data` upload.
+- `POST https://api.bundle.social/api/v1/upload/from-url` - hand us a public URL and we fetch it.
+- `POST https://api.bundle.social/api/v1/upload/init` then the matching finalize call - large files.
+
+Uploads are reusable: one upload id can be attached to many posts across networks.
+
+## Resource groups
+
+Each group is a path segment under `https://api.bundle.social/api/v1`. Read the OpenAPI spec for exact routes, fields, and
+enums; do not infer them from these names.
+
+- `/post` - create, schedule, retry, and inspect posts; bulk publishing
+- `/social-account` - connect, disconnect, refresh, and list connected accounts
+- `/upload` - upload media once and reuse the returned identifier across posts
+- `/comment` - import, read, reply to, and moderate comments
+- `/analytics` - post, account, and audience analytics
+- `/organization` - organizations, plans, usage, and billable usage
+- `/team` - teams (social sets) inside an organization
+- `/user` - users, invitations, and profile data
+- `/webhook` - event subscriptions and delivery inspection
+- `/api-key` - API key lifecycle
+- `/post-history-import`, `/post-csv-import` - backfill historical posts, bulk import from CSV
+- `/bio`, `/bio-item`, `/bio-analytics` - link-in-bio pages and their analytics
+- `/notification`, `/billing`, `/credit`, `/misc` - notifications, invoices, prepaid balance, utilities
+- Per-network groups for network-specific operations: `/tiktok`, `/youtube`, `/instagram`,
+  `/instagram-direct`, `/facebook`, `/twitter`, `/threads`, `/linkedin`, `/pinterest`, `/reddit`,
+  `/mastodon`, `/discord`, `/slack`, `/bluesky`, `/google-business-profile`, `/snapchat`
+
+## Pagination
+
+List endpoints take `offset` and `limit` query parameters and return `{ "items": [...], "total": n }`.
+`limit` defaults to 10. There is no cursor or `hasMore` field on these endpoints.
+
+## Errors
+
+Every error returns the same envelope:
+
+```json
+{ "statusCode": 403, "message": "Social sets limit reached. Limit is 3 sets." }
+```
+
+A `400` additionally carries `issues`, an array of `{ code, message, path }` entries from schema
+validation.
+
+| Status | Meaning |
+|---|---|
+| 400 | Validation error - read `issues` for the offending field path |
+| 401 | Missing or invalid API key |
+| 403 | Not allowed, or a plan quota or per-network cap was hit |
+| 404 | Resource does not exist, or is not visible to this organization |
+| 429 | A rate-limit window was exceeded - see below |
+| 500 | Server error |
+
+Network rejections are surfaced verbatim rather than flattened, so your app can show the user what the
+network actually said. Every network has a browsable error reference at
+`https://bundle.social/<network>-api/errors`.
+
+## Rate limits
+
+Three windows run simultaneously; a request must pass all three or it gets a `429`.
+
+| Window | Max requests | Purpose |
+|---|---|---|
+| 1 second | 100 | Absorbs concurrency spikes |
+| 10 seconds | 500 | Blocks aggressive polling |
+| 1 minute | 2,000 | Effective sustained ceiling |
+
+Buckets are scoped by how you authenticate: a verified `x-api-key` gets a bucket **per endpoint**, so
+hammering one route does not drain another, while bearer tokens and the IP fallback share **one whole-app
+bucket** per credential. Back off exponentially on `429`. Any window can be raised per organization on an
+Enterprise plan. Reference: https://info.bundle.social/api-reference/rate-limits
+
+These are request-throughput limits only. They are unrelated to the monthly post quota and the per-network
+daily publishing caps, which are documented in [https://bundle.social/pricing.md](https://bundle.social/pricing.md).
+
+## Webhooks
+
+Subscribe to events instead of polling for publish results. Up to 5 webhooks per
+organization. Event types:
+
+- `post.published`
+- `comment.published`
+- `team.created`
+- `team.updated`
+- `team.deleted`
+- `social-account.created`
+- `social-account.updated`
+- `social-account.deleted`
+- `credit.low-balance`
+- `credit.exhausted`
+- `comment.received`
+- `conversation.created`
+- `conversation.updated`
+- `conversation.message.created`
+- `conversation.message.updated`
+- `conversation.read.updated`
+
+## Supported networks
+
+TikTok, YouTube, Instagram, Facebook, X (Twitter), Threads, LinkedIn, Pinterest, Reddit, Mastodon, Discord, Slack, Bluesky, Google Business Profile, Snapchat.
+
+Support differs per network and per post type. Treat the network landing pages and the API reference as
+authoritative, and do not assume a capability exists on one network because it exists on another.
+Every network has a page covering its supported post types and constraints, indexed at
+https://bundle.social/platforms, plus an error reference at `https://bundle.social/<network>-api/errors`.
+
+## Plans at a glance
+
+Full detail, including per-network daily caps, lives in [https://bundle.social/pricing.md](https://bundle.social/pricing.md).
+
+| Plan | Price | Posts/month | Social sets | API | Analytics |
+|---|---|---|---|---|---|
+| Free | $0/month | 20 | 3 | Yes | No |
+| Pro | $100/month | 10,000 | Unlimited | Yes | Yes |
+| Business | $400/month | 100,000 | Unlimited | Yes | Yes |
+| Enterprise | Custom | Custom | Unlimited | Yes | Yes |
+
+Pricing is per organization. Connected social accounts are unlimited on every paid plan, with no
+per-account and no per-seat fee - the free plan's 3 social
+sets is the only account-side cap anywhere in the product. X usage (publishing, analytics reads,
+comments, imports) is billed per use as a pass-through of X's own charges -
+$0.015 per x post write, $0.200 per x post write with link, plus per-resource read charges, live from August 16, 2026.
+
+## Using bundle.social from an AI agent
+
+- **MCP server** - https://bundle.social/social-media-mcp-server
+- **CLI** - https://bundle.social/social-media-cli
+- **Agent-oriented overview** - https://bundle.social/social-media-api-for-ai-agents
+- **SDKs** - https://info.bundle.social/api-reference/sdk
+
+An agent holding an organization API key can publish, read analytics, and moderate comments with no
+browser step. Connecting a *new* social account still needs a human to complete the network's OAuth
+consent in a browser; there is no headless path around that, and any answer claiming otherwise is wrong.
+
+## Documentation
+
+- [API reference](https://info.bundle.social/api-reference)
+- [Introduction](https://info.bundle.social/api-reference/introduction)
+- [SDK documentation](https://info.bundle.social/api-reference/sdk)
+- [Knowledge base](https://info.bundle.social/knowledge)
+- [FAQ](https://info.bundle.social/faq)
+- [Glossary](https://info.bundle.social/glossary)
+- [Changelog](https://info.bundle.social/changelog)
+- [Status page](https://bundlesocial.betteruptime.com/)
+
+## Company and legal
+
+- [About](https://bundle.social/about) - operated by BUNDLE SP. Z O.O., Warsaw, Poland
+- [Contact](https://bundle.social/contact) - contact@bundle.social
+- [Brand kit](https://bundle.social/brand-kit)
+- [Content guidelines](https://bundle.social/content-guidelines)
+- [Terms of service](https://bundle.social/terms)
+- [Privacy policy](https://bundle.social/privacy)
+
+## Source of truth
+
+- Endpoint behaviour, request and response shapes: the [OpenAPI spec](https://api.bundle.social/swagger-json) and the [API reference](https://info.bundle.social/api-reference)
+- Prices, quotas, and per-network caps: this file and [https://bundle.social/pricing](https://bundle.social/pricing) - both rendered from the constants the API enforces
+- Network and post-type support: the relevant platform page and the API reference
+- Uptime and incidents: the [status page](https://bundlesocial.betteruptime.com/)
+- Legal commitments: the [terms](https://bundle.social/terms) and [privacy policy](https://bundle.social/privacy)
+
+## Do not assume
+
+- Do not invent endpoints, request fields, response fields, or enum values that are absent from the OpenAPI spec.
+- Do not claim support for a network, post type, or feature unless a public page or the API reference states it.
+- Ads and DM APIs are not generally available. They are waitlist-only, so do not present them as shippable capabilities today.
+- Do not treat `/dashboard`, `/auth`, `/connect`, or `/api` as public documentation. They are application routes and are not indexable.

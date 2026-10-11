@@ -1,0 +1,15 @@
+User-Agent: *
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
+Allow: /pricing.md
+Allow: /.well-known/
+Allow: /sitemap.xml
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /connect/
+Disallow: /tmp/
+
+Host: https://bundle.social
+Sitemap: https://bundle.social/sitemap.xml

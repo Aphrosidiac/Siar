@@ -1,0 +1,195 @@
+method	path	summary
+GET	/api/v1/	Get health
+GET	/api/v1/organization/	Get organization
+GET	/api/v1/organization/usage/posts	Get organization posts usage
+GET	/api/v1/organization/usage/comments	Get organization comments usage
+GET	/api/v1/organization/usage/uploads	Get organization uploads usage
+GET	/api/v1/organization/usage/daily-limits	Get daily limits usage for one social account on a given day
+GET	/api/v1/organization/usage/imports	Get organization imports usage per social account (paginated)
+GET	/api/v1/team/{id}	Get team
+PATCH	/api/v1/team/{id}	Update team
+DELETE	/api/v1/team/{id}	Delete team
+GET	/api/v1/team/	Get list of teams
+POST	/api/v1/team/	Create new team
+POST	/api/v1/social-account/connect	Connect social account for team
+DELETE	/api/v1/social-account/disconnect	Disconnect social account from team
+POST	/api/v1/social-account/set-channel	Set channel for social account
+POST	/api/v1/social-account/unset-channel	Unset channel for social account
+POST	/api/v1/social-account/refresh-channels	Refresh channels for social account
+POST	/api/v1/social-account/create-portal-link	Create portal link
+POST	/api/v1/social-account/messaging/enable	Enable DM messaging for a social account
+POST	/api/v1/social-account/messaging/disable	Disable DM messaging for a social account
+POST	/api/v1/social-account/connection-check	Manually run connection/disconnect check
+POST	/api/v1/social-account/profile-refresh	Manually refresh social account profile info
+GET	/api/v1/social-account/by-type	Get social account by team and type
+POST	/api/v1/social-account/copy	Copy social accounts
+GET	/api/v1/social-account/to-delete	Get paginated social accounts scheduled to delete
+GET	/api/v1/upload/	Get upload list
+POST	/api/v1/upload/	Create upload
+DELETE	/api/v1/upload/	Delete many uploads
+GET	/api/v1/upload/{id}	Get upload
+DELETE	/api/v1/upload/{id}	Delete upload
+POST	/api/v1/upload/from-url	Create upload from URL
+POST	/api/v1/upload/init	Initialize large upload
+POST	/api/v1/upload/finalize	Finalize large upload
+POST	/api/v1/upload/multipart/init	Initialize multipart upload
+POST	/api/v1/upload/multipart/sign	Re-sign multipart upload parts
+POST	/api/v1/upload/multipart/complete	Complete multipart upload
+POST	/api/v1/upload/multipart/abort	Abort multipart upload
+GET	/api/v1/post/reconnect-social-account/candidates	Get posts that can be reconnected to a social account
+POST	/api/v1/post/reconnect-social-account	Reconnect social account to matching posts
+GET	/api/v1/post/reference-key/{referenceKey}	Get post by reference key
+GET	/api/v1/post/{id}	Get post
+PATCH	/api/v1/post/{id}	Update post
+DELETE	/api/v1/post/{id}	Delete post
+GET	/api/v1/post/	Get post list
+POST	/api/v1/post/	Create post
+POST	/api/v1/post/{id}/retry	Retry post
+GET	/api/v1/billing/credits/balance	Get credit balance
+POST	/api/v1/billing/billable-usage/quote	Quote a metered X action
+GET	/api/v1/analytics/social-account	Get Social Account Analytics
+GET	/api/v1/analytics/post	Get Post Analytics
+GET	/api/v1/analytics/social-account/raw	Get Social Account Analytics Raw
+GET	/api/v1/analytics/post/raw	Get Post Analytics Raw
+GET	/api/v1/analytics/post/bulk	Get Bulk Post Analytics
+POST	/api/v1/analytics/social-account/force	Force refresh social account analytics
+POST	/api/v1/analytics/post/force	Force refresh post analytics
+POST	/api/v1/comment/import	Start a new comment import for a post
+GET	/api/v1/comment/import	Get comment import list
+GET	/api/v1/comment/import/comments	Get fetched comments for a post
+POST	/api/v1/comment/import/comments/{commentId}/action	Run an action on a fetched comment
+GET	/api/v1/comment/import/{importId}	Get comment import by ID
+GET	/api/v1/comment/{id}	Get comment
+PATCH	/api/v1/comment/{id}	Update comment
+DELETE	/api/v1/comment/{id}	Delete comment
+GET	/api/v1/comment/	Get comment list
+POST	/api/v1/comment/	Create comment
+POST	/api/v1/comment/{id}/retry	Retry comment
+GET	/api/v1/conversations/	Get conversations
+GET	/api/v1/conversations/{id}	Get conversation
+PATCH	/api/v1/conversations/{id}	Update conversation
+GET	/api/v1/conversations/{id}/messages	Get conversation messages
+POST	/api/v1/conversations/{id}/messages	Send a conversation message
+POST	/api/v1/conversations/{id}/messages/{messageId}/reaction	React or unreact to a conversation message
+POST	/api/v1/conversations/{id}/read	Mark conversation as read
+POST	/api/v1/conversations/private-reply	Send a private reply to a fetched Meta comment
+POST	/api/v1/conversations/{id}/archive	Archive conversation
+POST	/api/v1/conversations/{id}/open	Open conversation
+GET	/api/v1/automations	Get automation flows
+POST	/api/v1/automations	Create an automation flow
+POST	/api/v1/automations/copy	Copy automation flows between teams
+GET	/api/v1/automations/{id}	Get an automation flow
+PATCH	/api/v1/automations/{id}	Update an automation flow
+DELETE	/api/v1/automations/{id}	Delete an automation flow
+POST	/api/v1/automations/{id}/publish	Publish an automation flow
+POST	/api/v1/automations/{id}/pause	Pause an automation flow
+POST	/api/v1/automations/{id}/activate	Activate an automation flow
+POST	/api/v1/automations/{id}/archive	Archive an automation flow
+GET	/api/v1/automations/{id}/executions	Get automation flow executions
+GET	/api/v1/automation-executions/{id}	Get an automation execution
+POST	/api/v1/automations/{id}/test	Run an automation flow test
+GET	/api/v1/automation-provider-settings	Get automation provider settings
+PUT	/api/v1/automation-provider-settings/{socialAccountId}/{type}	Create or update automation provider settings
+POST	/api/v1/automation-provider-settings/{id}/sync	Sync automation provider settings
+POST	/api/v1/automation-rich-messages/conversations/{conversationId}	Send a rich automation message to a conversation
+POST	/api/v1/misc/youtube/thumbnail	Set or change thumbnail for a YouTube video
+GET	/api/v1/misc/youtube/playlist	Get channel playlists
+POST	/api/v1/misc/youtube/playlist	Create a new playlist
+PUT	/api/v1/misc/youtube/playlist	Update an existing playlist
+DELETE	/api/v1/misc/youtube/playlist/{playlistId}	Delete a channel playlist
+POST	/api/v1/misc/youtube/playlist-items	Add a video to a playlist
+GET	/api/v1/misc/youtube/playlist-items	Get videos from a playlist
+DELETE	/api/v1/misc/youtube/playlist-items/{playlistItemId}	Remove a video from a playlist
+PATCH	/api/v1/misc/youtube/video	Edit YouTube video metadata
+DELETE	/api/v1/misc/youtube/video	Delete a YouTube video
+PATCH	/api/v1/misc/youtube/comment	Edit YouTube comment
+DELETE	/api/v1/misc/youtube/comment	Delete a YouTube comment
+GET	/api/v1/misc/youtube/video-categories	Get YouTube video categories
+GET	/api/v1/misc/youtube/regions	Get YouTube regions
+GET	/api/v1/misc/linkedin/mentions/tags	Get Linkedin mentionable tags (people & organizations)
+POST	/api/v1/misc/linkedin/mentions/builder	Build Linkedin text, insert mentions at tag placeholders.
+POST	/api/v1/misc/linkedin/post/reshare	Reshare an existing LinkedIn post
+PATCH	/api/v1/misc/linkedin/post	Edit an existing LinkedIn post
+DELETE	/api/v1/misc/linkedin/post	Delete a LinkedIn post
+PATCH	/api/v1/misc/linkedin/comment	Edit an existing LinkedIn comment
+DELETE	/api/v1/misc/linkedin/comment	Delete a LinkedIn comment
+POST	/api/v1/misc/google-business/media	Add a media item (photo/video) using uploadId and category
+GET	/api/v1/misc/google-business/media	List Google Business media items
+DELETE	/api/v1/misc/google-business/media	Delete Google Business media item
+DELETE	/api/v1/misc/google-business/post	Delete a Google Business post
+GET	/api/v1/misc/google-business/location	Get Google Business location profile
+PATCH	/api/v1/misc/google-business/location	Update Google Business location profile fields
+PATCH	/api/v1/misc/google-business/location/hours	Update Google Business regular/special/more hours
+GET	/api/v1/misc/google-business/location/attributes	Get Google Business location attributes
+PATCH	/api/v1/misc/google-business/location/attributes	Update Google Business location attributes
+GET	/api/v1/misc/google-business/location/attributes/available	List available Google Business attributes
+GET	/api/v1/misc/google-business/location/search-keywords	List the search terms customers used to find the location
+GET	/api/v1/misc/google-business/location/categories/available	List available Google Business categories
+GET	/api/v1/misc/google-business/location/service-list	Get Google Business service list
+PATCH	/api/v1/misc/google-business/location/service-list	Update Google Business service list
+GET	/api/v1/misc/google-business/location/food-menus	Get Google Business food menus
+PATCH	/api/v1/misc/google-business/location/food-menus	Update Google Business food menus
+GET	/api/v1/misc/google-business/location/place-action-links	List Google Business place action links
+POST	/api/v1/misc/google-business/location/place-action-links	Create Google Business place action link
+PATCH	/api/v1/misc/google-business/location/place-action-links	Update Google Business place action link
+DELETE	/api/v1/misc/google-business/location/place-action-links	Delete Google Business place action link
+POST	/api/v1/misc/google-business/reviews/import	Start a new Google Reviews import
+GET	/api/v1/misc/google-business/reviews/import	Get review import status list
+GET	/api/v1/misc/google-business/reviews/import/{importId}	Get review import by ID
+GET	/api/v1/misc/google-business/reviews	List imported Google Reviews
+GET	/api/v1/misc/google-business/reviews/{reviewId}	Get a single imported Google Review
+PUT	/api/v1/misc/google-business/reviews/{reviewId}/reply	Reply to a Google Review (creates or updates the owner reply)
+DELETE	/api/v1/misc/google-business/reviews/{reviewId}/reply	Delete the owner reply from a Google Review
+GET	/api/v1/misc/reddit/post-requirements	Get subreddit post requirements (flair required/enabled)
+GET	/api/v1/misc/reddit/subreddit-flairs	Get subreddit flairs list
+PATCH	/api/v1/misc/reddit/post	Edit an existing Reddit post
+DELETE	/api/v1/misc/reddit/post	Delete a Reddit post
+PATCH	/api/v1/misc/reddit/comment	Edit an existing Reddit comment
+DELETE	/api/v1/misc/reddit/comment	Delete a Reddit comment
+GET	/api/v1/misc/instagram/tags	Search for Instagram Business/Creator user by username
+GET	/api/v1/misc/instagram/locations	Search Instagram location IDs
+GET	/api/v1/misc/instagram/audio	Search Instagram audio assets
+DELETE	/api/v1/misc/instagram/comment	Delete an Instagram comment
+GET	/api/v1/misc/facebook/pages	Search Facebook Pages
+GET	/api/v1/misc/facebook/text-format-presets	List Facebook text background presets
+GET	/api/v1/misc/facebook/token-debug	Get Facebook token debug details
+POST	/api/v1/misc/facebook/recommendations/import	Start a new Facebook recommendations import
+GET	/api/v1/misc/facebook/recommendations/import	Get Facebook recommendations import status list
+GET	/api/v1/misc/facebook/recommendations/import/{importId}	Get Facebook recommendations import by ID
+GET	/api/v1/misc/facebook/recommendations	List imported Facebook recommendations
+GET	/api/v1/misc/facebook/recommendations/{recommendationId}	Get a single imported Facebook recommendation
+GET	/api/v1/misc/facebook/recommendations/{recommendationId}/comments	Get recommendation thread comments
+PUT	/api/v1/misc/facebook/recommendations/{recommendationId}/reply	Reply to a Facebook recommendation
+PUT	/api/v1/misc/facebook/recommendations/{recommendationId}/comments/{commentId}/reply	Reply to a Facebook recommendation thread comment
+PATCH	/api/v1/misc/facebook/post	Edit an existing Facebook post
+DELETE	/api/v1/misc/facebook/post	Delete a Facebook post
+PATCH	/api/v1/misc/facebook/comment	Edit a Facebook comment
+DELETE	/api/v1/misc/facebook/comment	Delete a Facebook comment
+PATCH	/api/v1/misc/pinterest/pin	[DISABLED] Edit an existing Pinterest pin
+DELETE	/api/v1/misc/pinterest/pin	Delete a Pinterest pin
+PATCH	/api/v1/misc/mastodon/status	Edit an existing Mastodon status
+DELETE	/api/v1/misc/mastodon/status	Delete a Mastodon status
+PATCH	/api/v1/misc/mastodon/comment	Edit a Mastodon comment
+DELETE	/api/v1/misc/mastodon/comment	Delete a Mastodon comment
+PATCH	/api/v1/misc/slack/message	Edit an existing Slack message
+DELETE	/api/v1/misc/slack/message	Delete a Slack message
+DELETE	/api/v1/misc/bluesky/post	Delete a Bluesky post
+DELETE	/api/v1/misc/bluesky/comment	Delete a Bluesky comment
+DELETE	/api/v1/misc/twitter/tweet	Delete a Twitter/X tweet
+DELETE	/api/v1/misc/twitter/comment	Delete a Twitter/X comment
+POST	/api/v1/misc/twitter/retweet	Repost a Twitter/X post
+DELETE	/api/v1/misc/twitter/retweet	Undo a Twitter/X repost
+DELETE	/api/v1/misc/discord/message	Delete a Discord message
+GET	/api/v1/misc/tiktok/cml/trending-list	Get popular tracks from TikTok Commercial Music Library
+DELETE	/api/v1/misc/tiktok/comment	Delete a TikTok comment
+POST	/api/v1/post-history-import/	Start a new post history import
+GET	/api/v1/post-history-import/	Get import status list
+GET	/api/v1/post-history-import/{importId}	Get import by ID
+GET	/api/v1/post-history-import/posts	Get imported posts with analytics for a social account
+DELETE	/api/v1/post-history-import/posts	Bulk delete imported posts and their analytics
+POST	/api/v1/post-history-import/{importId}/retry	Retry a failed import
+POST	/api/v1/post-csv-import/	Create post CSV import
+GET	/api/v1/post-csv-import/	Get post CSV import history
+GET	/api/v1/post-csv-import/{importId}	Get post CSV import details
+GET	/api/v1/post-csv-import/{importId}/status	Get post CSV import processing status
+GET	/api/v1/post-csv-import/{importId}/rows	Get post CSV import row results

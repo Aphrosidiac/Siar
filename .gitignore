@@ -1,0 +1,10 @@
+node_modules/
+.env
+.env.*
+!.env.example
+dist/
+docs/reference/*/shots/
+docs/reference/*/states/
+docs/qa/shots/
+docs/qa/states/
+.DS_Store
