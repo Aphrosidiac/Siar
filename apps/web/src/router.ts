@@ -32,7 +32,12 @@ const app: RouteRecordRaw[] = [
 
 export const router = createRouter({
   history: createWebHistory(),
-  scrollBehavior: (_to, _from, saved) => saved ?? { top: 0 },
+  // Opening a drawer (?post=, /posts/:id) or changing a filter stays where you are; only a new screen scrolls to the top.
+  scrollBehavior: (to, from, saved) => {
+    if (saved) return saved;
+    if (to.path === from.path || (to.meta.key && to.meta.key === from.meta.key)) return false;
+    return { top: 0 };
+  },
   routes: [
     { path: '/login', component: view('auth/Login'), meta: { guest: true, title: 'Sign in' } },
     { path: '/signup', component: view('auth/Signup'), meta: { guest: true, title: 'Create account' } },
