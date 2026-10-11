@@ -5,6 +5,7 @@
  */
 import { createServer } from 'node:http';
 import { deflateSync } from 'node:zlib';
+import { prisma } from '../src/platform/db.js';
 
 const API = process.env.API ?? 'http://localhost:3290';
 const MOCK = process.env.MOCK ?? 'http://127.0.0.1:3299';
@@ -62,6 +63,9 @@ async function until<T>(fn: () => Promise<T>, check: (v: T) => boolean, ms = 30_
 
 async function main() {
   await fetch(`${MOCK}/__reset`, { method: 'POST' });
+  // The mock hands every run the same Mastodon account, and daily caps follow the network account
+  // across organizations — so repeated runs on one day would hit the cap. Start each run at zero.
+  await prisma.dailyCounter.deleteMany({ where: { accountKey: { startsWith: 'MASTODON' } } });
   const health = await call('GET', '/api/v1/');
   ok(health.status === 200 && health.json.platforms?.MASTODON, 'health is public and lists networks');
 
@@ -170,6 +174,7 @@ async function main() {
   ok(go.status === 302 && go.headers.get('location') === 'https://example.com', 'bio link redirects and counts the click');
 
   hook.close();
+  await prisma.$disconnect();
   console.log(`\n${passed} checks passed`);
 }
 main().catch(err => { console.error(err); process.exit(1); });
