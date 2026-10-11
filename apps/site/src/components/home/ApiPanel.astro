@@ -1,0 +1,93 @@
+---
+/**
+ * Hero side panel: the request that made the post, and the post going out network by network
+ * (queued → publishing → posted). Laid out like the dashboard: "/ LABEL" mono heads over rules,
+ * table rows, pill status chips. Ink in both themes. Still under reduced motion.
+ */
+import NetIcon from '../NetIcon.astro';
+import type { NetworkType } from '../../lib/networks';
+const rows: [NetworkType, string, string, number][] = [
+  ['INSTAGRAM', 'Instagram', 'Reel', 404],
+  ['TIKTOK', 'TikTok', 'Video', 1120],
+  ['FACEBOOK', 'Facebook', 'Page post', 386],
+  ['THREADS', 'Threads', 'Own text', 512],
+  ['LINKEDIN', 'LinkedIn', 'Company page', 698],
+  ['GOOGLE_BUSINESS', 'Google Business', '3 outlets', 873],
+];
+---
+<div class="ap m-ink" data-api>
+  <div class="sec req">
+    <p class="hd"><span>/ Request</span><span class="ok">201 Created</span></p>
+<pre><code><em>POST</em> /api/v1/post
+{'{'}
+  <b>"socialAccountTypes"</b>: [<s>"INSTAGRAM"</s>,
+    <s>"TIKTOK"</s>, <s>"FACEBOOK"</s>, <s>"THREADS"</s>,
+    <s>"LINKEDIN"</s>, <s>"GOOGLE_BUSINESS"</s>],
+  <b>"postDate"</b>: <s>"2026-10-16T01:30:00Z"</s>,
+  <b>"data"</b>: {'{'} <b>"INSTAGRAM"</b>: {'{'} … {'}'}, <i>…</i> {'}'}
+{'}'}</code></pre>
+  </div>
+  <div class="sec out">
+    <p class="hd"><span>/ Going out</span><span>16 Oct · 09:30 MYT</span></p>
+    <ul>
+      {rows.map(([t, name, kind, ms]) => (
+        <li data-row data-s="posted" data-ms={ms}>
+          <NetIcon type={t} size={26} />
+          <span class="nm">{name}<span class="k">{kind}</span></span>
+          <span class="t">{ms} ms</span>
+          <span class="chip"><span class="q">Queued</span><span class="p">Publishing</span><span class="d">Posted</span></span>
+        </li>
+      ))}
+    </ul>
+  </div>
+</div>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-api]').forEach((panel) => {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const rows = [...panel.querySelectorAll<HTMLElement>('[data-row]')];
+    let timers: number[] = [];
+    let running = false;
+    const at = (ms: number, fn: () => void) => timers.push(window.setTimeout(fn, ms));
+    const cycle = () => {
+      rows.forEach((r) => { r.dataset.s = 'queued'; });
+      rows.forEach((r, i) => {
+        const start = 600 + i * 320;
+        at(start, () => { r.dataset.s = 'publishing'; });
+        at(start + Number(r.dataset.ms), () => { r.dataset.s = 'posted'; });
+      });
+      at(600 + rows.length * 320 + 1200 + 4200, cycle);
+    };
+    new IntersectionObserver(([e]) => {
+      if (e.isIntersecting && !running) { running = true; cycle(); }
+      else if (!e.isIntersecting && running) { running = false; timers.forEach(clearTimeout); timers = []; rows.forEach((r) => { r.dataset.s = 'posted'; }); }
+    }).observe(panel);
+  });
+</script>
+<style>
+  .ap { display: flex; flex-direction: column; border-radius: 14px; overflow: hidden; box-shadow: 0 0 0 1px rgba(255, 255, 255, .06), 0 40px 80px -40px rgba(11, 11, 10, .45); }
+  .sec { padding: 14px 18px; }
+  .sec + .sec { border-top: 1px solid var(--border); }
+  .out { flex: 1; display: flex; flex-direction: column; }
+  .hd { display: flex; justify-content: space-between; gap: 12px; margin: 0 0 10px; padding-bottom: 10px; border-bottom: 1px solid var(--text); font-family: var(--mono); font-size: var(--fs-11); line-height: 16px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-subtle); }
+  .hd span:first-child { color: var(--text); }
+  .ok { color: #8fd9ad; letter-spacing: .02em; }
+  pre { margin: 0; font-family: var(--mono); font-size: var(--fs-12); line-height: 17px; color: var(--text-muted); white-space: pre; overflow: hidden; }
+  em { font-style: normal; font-weight: 500; color: var(--text); }
+  b { font-weight: 400; color: var(--text); }
+  s { text-decoration: none; color: #e6b98a; }
+  i { font-style: normal; color: var(--text-faint); }
+  ul { list-style: none; margin: 0; padding: 0; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+  li { display: flex; align-items: center; gap: 10px; margin: 0; padding: 4px 0; }
+  li + li { border-top: 1px solid var(--border); }
+  .nm { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: var(--fs-13); line-height: 17px; font-weight: 500; color: var(--text); white-space: nowrap; }
+  .k { font-size: var(--fs-11); line-height: 15px; font-weight: 400; color: var(--text-subtle); }
+  .t { font-family: var(--mono); font-size: var(--fs-11); color: var(--text-faint); opacity: 0; transition: opacity 250ms; font-variant-numeric: tabular-nums; }
+  .chip { width: 82px; flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 22px; border-radius: 999px; font-size: var(--fs-12); line-height: 16px; font-weight: 500; box-shadow: inset 0 0 0 1px var(--border-strong); color: var(--text-subtle); transition: background 250ms, color 250ms, box-shadow 250ms; }
+  .chip > span { display: none; }
+  [data-s='queued'] .q, [data-s='publishing'] .p, [data-s='posted'] .d { display: inline; }
+  [data-s='publishing'] .chip { color: var(--text); box-shadow: inset 0 0 0 1px var(--text-faint); }
+  [data-s='publishing'] .chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--onair); animation: blink 600ms ease-in-out infinite alternate; }
+  [data-s='posted'] .chip { background: rgba(111, 210, 154, .14); box-shadow: none; color: #8fd9ad; }
+  [data-s='posted'] .t { opacity: 1; }
+  @keyframes blink { to { opacity: .3; } }
+</style>

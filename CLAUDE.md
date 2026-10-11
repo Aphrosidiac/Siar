@@ -66,7 +66,8 @@ Tokens live in `apps/web/src/styles.css`; the site mirrors them.
   plain layer. Never name a scoped class `.in`: the reveal script adds `in` to revealed elements.
 - Product screenshots in `apps/site/public/shots/` come from the real dashboard: reseed, then
   `node apps/site/scripts/shots.mjs [scene…]` (dashboard :5290 + API :3290). The `flow` scene schedules a
-  real post in the demo org, so reseed again afterwards if the demo must be clean.
+  real post in the demo org, so reseed again afterwards if the demo must be clean. The home hero's `posts` shot is
+  16:9 (1536×864) beside the request panel (`home/ApiPanel.astro`); the pair must fit one laptop screen.
 
 ## Running
 

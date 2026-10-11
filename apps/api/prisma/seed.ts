@@ -183,15 +183,19 @@ async function main() {
       }
     }
     // Posts across every state, spread over the last 30 days and the next 14.
-    for (let i = 0; i < 40; i++) {
-      const offset = int(-30, 14);
+    // Dates first, in order, so neighbouring posts in a list never share a text. Times are what a person
+    // picks: on the hour or half hour, 08:00–21:30 Malaysia time (midnight UTC is 08:00 MYT).
+    const today = new Date(); today.setUTCHours(0, 0, 0, 0);
+    const slots = Array.from({ length: 40 }, () => int(-30, 14)).sort((a, b) => a - b)
+      .map(offset => ({ date: new Date(today.getTime() + offset * DAY + int(0, 13) * 3600_000 + pick([0, 30]) * 60_000) }));
+    for (let i = 0; i < slots.length; i++) {
+      const { date } = slots[i];
+      const past = date.getTime() < Date.now();
       // Upcoming posts carry text only, so they go to networks that publish text without media —
       // otherwise the demo calendar is full of posts that would fail validation on any edit.
-      const pool = offset < 0 ? accounts : accounts.filter(a => !MEDIA_REQUIRED.has(a.type));
+      const pool = past ? accounts : accounts.filter(a => !MEDIA_REQUIRED.has(a.type));
       const subset = pool.filter(() => rnd() > 0.45).slice(0, 4);
       if (!subset.length) subset.push(pool[0] ?? accounts[0]);
-      const date = new Date(Date.now() + offset * DAY + int(0, 12) * 3600_000);
-      const past = offset < 0;
       const status = past ? pick(['POSTED', 'POSTED', 'POSTED', 'POSTED', 'ERROR', 'REVIEW'] as const) : pick(['SCHEDULED', 'SCHEDULED', 'DRAFT'] as const);
       const text = TEXTS[t.name][i % TEXTS[t.name].length];
       const data = Object.fromEntries(subset.map(a => [a.type, a.type === 'PINTEREST' ? { text, boardName: 'Official' } : a.type === 'REDDIT' ? { sr: 'r/startups', text } : a.type === 'DISCORD' || a.type === 'SLACK' ? { channelId: a.channelId, text } : a.type === 'TIKTOK' ? { text, privacy: 'PUBLIC_TO_EVERYONE' } : { text }]));

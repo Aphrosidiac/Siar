@@ -56,7 +56,8 @@ async function scene(name, path, { prep, dark = false, size } = {}) {
   }
 }
 
-await scene('posts', '/posts', { dark: true });
+// 16:9, the hero's frame
+await scene('posts', '/posts', { dark: true, size: { width: 1536, height: 864 } });
 await scene('calendar', '/calendar');
 await scene('analytics', '/analytics', { dark: true });
 await scene('inbox', '/inbox');
