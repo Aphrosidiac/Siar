@@ -29,7 +29,12 @@ function postSchema(): Plugin {
           return resolve(target, new Set([...seen, node.$ref]));
         }
         const out: any = {};
-        for (const [k, v] of Object.entries(node)) if (k !== 'description' && k !== 'example' && k !== 'examples') out[k] = resolve(v, seen);
+        for (const [k, v] of Object.entries(node)) {
+          // Drop prose, but keep a *property* that happens to be named "description" (its value is an object).
+          if ((k === 'description' || k === 'example') && typeof v === 'string') continue;
+          if (k === 'examples' || k === 'example') continue;
+          out[k] = resolve(v, seen);
+        }
         return out;
       };
       const op = doc.paths['/api/v1/post/'].post;

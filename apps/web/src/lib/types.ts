@@ -12,7 +12,8 @@ export type Body<K extends keyof Ops> = Ops[K] extends { requestBody?: infer RB 
 export type NetworkType = 'TIKTOK' | 'YOUTUBE' | 'INSTAGRAM' | 'FACEBOOK' | 'TWITTER' | 'THREADS' | 'LINKEDIN' | 'PINTEREST' | 'REDDIT' | 'MASTODON' | 'DISCORD' | 'SLACK' | 'BLUESKY' | 'GOOGLE_BUSINESS' | 'SNAPCHAT';
 export type Role = 'OWNER' | 'ADMIN' | 'MEMBER';
 
-export type AuthMe = Resp<'auth.me'> & { user: { isStaff?: boolean }; memberships: { tier?: string }[] };
+type MeBase = Resp<'auth.me'>;
+export type AuthMe = Omit<MeBase, 'user' | 'memberships'> & { user: MeBase['user'] & { isStaff?: boolean }; memberships: (MeBase['memberships'][number] & { tier?: string })[] };
 export type Organization = Resp<'organization.getOrganization'> & { tier?: 'FREE' | 'PRO' | 'BUSINESS' | 'ENTERPRISE'; trialEndsAt?: string | null; portalBrandName?: string | null; portalLogoUrl?: string | null; portalAccentColor?: string | null };
 
 export interface Channel { id: string; name?: string | null; username?: string | null; address?: string | null; avatarUrl?: string | null; webhook?: string | null; metadata?: unknown }

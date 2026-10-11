@@ -93,3 +93,6 @@ export function downloadText(name: string, text: string, type = 'text/plain') {
 }
 
 export const TIMEZONES: string[] = (() => { try { return (Intl as any).supportedValuesOf('timeZone') as string[]; } catch { return ['UTC', 'Asia/Kuala_Lumpur', 'Europe/London', 'America/New_York']; } })();
+
+/** "@name" without doubling an @ the network already put in the username. */
+export const handle = (u: string | null | undefined) => (u ? (u.startsWith('@') ? u : `@${u}`) : '');
