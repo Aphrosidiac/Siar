@@ -144,7 +144,7 @@ async function main() {
     for (const o of orgs) await prisma.organization.delete({ where: { id: o.id } });
     await prisma.user.delete({ where: { id: existing.id } });
   }
-  const user = await prisma.user.create({ data: { email: EMAIL, passwordHash: await hashPassword(PASSWORD), firstName: 'Demo', lastName: 'User', emailVerified: new Date(), timezone: 'Asia/Kuala_Lumpur' } });
+  const user = await prisma.user.create({ data: { email: EMAIL, passwordHash: await hashPassword(PASSWORD), firstName: 'Demo', lastName: 'User', emailVerified: new Date(), onboardedAt: new Date(), timezone: 'Asia/Kuala_Lumpur' } });
   const org = await prisma.organization.create({ data: { name: 'Demo Studio', createdById: user.id, tier: 'PRO', messagingEnabled: true, showVerboseErrors: true, billingName: 'Demo Studio Sdn Bhd', billingEmail: 'accounts@demostudio.example', billingAddress: 'Level 12, Menara Demo\nJalan Ampang\n50450 Kuala Lumpur\nMalaysia' } });
   await prisma.organizationMember.create({ data: { organizationId: org.id, userId: user.id, role: 'OWNER' } });
   await prisma.subscription.create({ data: { organizationId: org.id, provider: 'MOCK', status: 'active', tier: 'PRO', billingInterval: 'MONTHLY', unitAmountCents: 10_000, currentPeriodStart: new Date(Date.now() - 10 * DAY), currentPeriodEnd: new Date(Date.now() + 20 * DAY) } });

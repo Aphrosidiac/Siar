@@ -18,18 +18,31 @@ async function sessionPayload(userId: string, currentOrganizationId: string | nu
   const ms = await prisma.organizationMember.findMany({ where: { userId, organization: { deletedAt: null } }, include: { organization: true }, orderBy: { createdAt: 'asc' } });
   const current = ms.find(m => m.organizationId === currentOrganizationId)?.organizationId ?? ms[0]?.organizationId ?? null;
   return {
-    user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, avatarUrl: user.avatarUrl, timezone: user.timezone, emailVerifiedAt: user.emailVerified?.toISOString() ?? null, createdAt: user.createdAt.toISOString(), isStaff: user.role === 'ADMIN' },
+    user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, avatarUrl: user.avatarUrl, timezone: user.timezone, emailVerifiedAt: user.emailVerified?.toISOString() ?? null, onboardedAt: user.onboardedAt?.toISOString() ?? null, createdAt: user.createdAt.toISOString(), isStaff: user.role === 'ADMIN' },
     memberships: ms.map(m => ({ id: m.id, organizationId: m.organizationId, organizationName: m.organization.name ?? 'Organization', role: m.role, tier: m.organization.tier })),
     currentOrganizationId: current,
   };
 }
 
-/** A new organization with its owner, a credit account and (per PLAN D4) a trial of Pro. */
-async function createOrganization(tx: any, userId: string, name: string) {
+/** A new organization with its owner, a credit account and a first team, so nothing opens empty. */
+async function createOrganization(tx: any, userId: string, name: string, teamName = 'Main') {
   const org = await tx.organization.create({ data: { name, createdById: userId, trialEndsAt: null } });
   await tx.organizationMember.create({ data: { organizationId: org.id, userId, role: 'OWNER' } });
   await tx.creditAccount.create({ data: { organizationId: org.id } });
+  await tx.team.create({ data: { name: teamName, organizationId: org.id, createdById: userId } });
   return org;
+}
+
+/** The organization's first team when it has none (an owner who deleted them all, or one made before teams came with it). */
+async function ensureTeam(userId: string, organizationId: string) {
+  const m = await prisma.organizationMember.findUnique({ where: { organizationId_userId: { organizationId, userId } } });
+  if (!m || m.role === 'MEMBER') return;
+  if (await prisma.team.count({ where: { organizationId, deletedAt: null } })) return;
+  const u = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  await prisma.$transaction(async tx => {
+    const t = await tx.team.create({ data: { name: 'Main', organizationId, createdById: userId } });
+    await audit(tx, { kind: 'USER', organizationId, name: u.email, userId }, 'team.create', 'Team', t.id, `Created team ${t.name}`);
+  });
 }
 
 async function sendVerification(userId: string, email: string, welcome = false) {
@@ -61,7 +74,8 @@ define({
     if (await prisma.user.findUnique({ where: { email } })) throw conflict('An account with this email already exists. Sign in instead.');
     const out = await prisma.$transaction(async tx => {
       const user = await tx.user.create({ data: { email, passwordHash: await hashPassword(body.password), firstName: body.firstName, lastName: body.lastName ?? null, role: staff.has(email) ? 'ADMIN' : 'CUSTOMER' } });
-      const org = await createOrganization(tx, user.id, body.organizationName?.trim() || `${body.firstName.trim().split(/\s+/)[0]}'s organization`);
+      const orgName = body.organizationName?.trim();
+      const org = await createOrganization(tx, user.id, orgName || `${body.firstName.trim().split(/\s+/)[0]}'s organization`, orgName || 'Main');
       await audit(tx, { kind: 'USER', organizationId: org.id, name: email, userId: user.id }, 'organization.create', 'Organization', org.id, `Created organization ${org.name}`);
       return { user, org };
     });
@@ -120,7 +134,7 @@ define({
     let user = await prisma.user.findUnique({ where: { email: inv.email } });
     if (!user) {
       if (!body.password || String(body.password).length < 10) throw badRequest('Choose a password of at least 10 characters.', [{ code: 'too_short', message: 'At least 10 characters', path: ['password'] }]);
-      user = await prisma.user.create({ data: { email: inv.email, passwordHash: await hashPassword(body.password), firstName: body.firstName ?? null, emailVerified: new Date() } });
+      user = await prisma.user.create({ data: { email: inv.email, passwordHash: await hashPassword(body.password), firstName: body.firstName ?? null, emailVerified: new Date(), onboardedAt: new Date() } });
     }
     const uid = user.id;
     await prisma.$transaction(async tx => {
@@ -153,7 +167,7 @@ define({
 
   'user.me': async ({ sessionUser }) => {
     const u = await prisma.user.findUniqueOrThrow({ where: { id: sessionUser!.userId } });
-    return { id: u.id, email: u.email, firstName: u.firstName, lastName: u.lastName, avatarUrl: u.avatarUrl, timezone: u.timezone, emailVerifiedAt: u.emailVerified?.toISOString() ?? null, createdAt: u.createdAt.toISOString() };
+    return { id: u.id, email: u.email, firstName: u.firstName, lastName: u.lastName, avatarUrl: u.avatarUrl, timezone: u.timezone, emailVerifiedAt: u.emailVerified?.toISOString() ?? null, onboardedAt: u.onboardedAt?.toISOString() ?? null, createdAt: u.createdAt.toISOString() };
   },
 
   'user.updateMe': async ({ sessionUser, body }) => {
@@ -161,7 +175,7 @@ define({
     for (const k of ['firstName', 'lastName', 'timezone', 'avatarUrl'] as const) if (k in body) data[k] = body[k];
     if (data.timezone) { try { new Intl.DateTimeFormat('en', { timeZone: String(data.timezone) }); } catch { throw badRequest('Unknown timezone.', [{ code: 'invalid', message: 'Use an IANA timezone like Asia/Kuala_Lumpur', path: ['timezone'] }]); } }
     const u = await prisma.user.update({ where: { id: sessionUser!.userId }, data });
-    return { id: u.id, email: u.email, firstName: u.firstName, lastName: u.lastName, avatarUrl: u.avatarUrl, timezone: u.timezone, emailVerifiedAt: u.emailVerified?.toISOString() ?? null, createdAt: u.createdAt.toISOString() };
+    return { id: u.id, email: u.email, firstName: u.firstName, lastName: u.lastName, avatarUrl: u.avatarUrl, timezone: u.timezone, emailVerifiedAt: u.emailVerified?.toISOString() ?? null, onboardedAt: u.onboardedAt?.toISOString() ?? null, createdAt: u.createdAt.toISOString() };
   },
 
   'user.changePassword': async ({ sessionUser, body }) => {
@@ -174,8 +188,16 @@ define({
     return { success: true };
   },
 
+  /** Finish (or skip) the first-login welcome. Leaves the organization with at least one team either way. */
+  'user.completeOnboarding': async ({ sessionUser }) => {
+    const su = sessionUser as SessionUser;
+    if (su.organizationId) await ensureTeam(su.userId, su.organizationId);
+    await prisma.user.update({ where: { id: su.userId }, data: { onboardedAt: new Date() } });
+    return sessionPayload(su.userId, su.organizationId);
+  },
+
   'organization.create': async ({ sessionUser, body }) => {
-    const org = await prisma.$transaction(tx => createOrganization(tx, sessionUser!.userId, body.name.trim()));
+    const org = await prisma.$transaction(tx => createOrganization(tx, sessionUser!.userId, body.name.trim(), body.name.trim()));
     await prisma.session.update({ where: { id: sessionUser!.sessionId }, data: { organizationId: org.id } });
     return { id: org.id, organizationId: org.id, organizationName: org.name, role: 'OWNER' };
   },

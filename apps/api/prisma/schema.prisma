@@ -56,6 +56,8 @@ model User {
   lastName      String?
   avatarUrl     String?
   timezone      String?
+  /// Set when the first-login welcome is finished or skipped; invited members start onboarded.
+  onboardedAt   DateTime?
   /// ADMIN = Siar staff (FF). Customers are CUSTOMER.
   role          UserRole  @default(CUSTOMER)
   createdAt     DateTime  @default(now())

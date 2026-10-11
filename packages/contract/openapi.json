@@ -136892,6 +136892,11 @@
              "format": "date-time",
              "nullable": true
             },
+            "onboardedAt": {
+             "type": "string",
+             "format": "date-time",
+             "nullable": true
+            },
             "createdAt": {
              "type": "string",
              "format": "date-time"
@@ -137027,6 +137032,11 @@
              "nullable": true
             },
             "emailVerifiedAt": {
+             "type": "string",
+             "format": "date-time",
+             "nullable": true
+            },
+            "onboardedAt": {
              "type": "string",
              "format": "date-time",
              "nullable": true
@@ -137183,6 +137193,11 @@
              "nullable": true
             },
             "emailVerifiedAt": {
+             "type": "string",
+             "format": "date-time",
+             "nullable": true
+            },
+            "onboardedAt": {
              "type": "string",
              "format": "date-time",
              "nullable": true
@@ -137471,6 +137486,11 @@
              "format": "date-time",
              "nullable": true
             },
+            "onboardedAt": {
+             "type": "string",
+             "format": "date-time",
+             "nullable": true
+            },
             "createdAt": {
              "type": "string",
              "format": "date-time"
@@ -137588,6 +137608,11 @@
            "format": "date-time",
            "nullable": true
           },
+          "onboardedAt": {
+           "type": "string",
+           "format": "date-time",
+           "nullable": true
+          },
           "createdAt": {
            "type": "string",
            "format": "date-time"
@@ -137645,6 +137670,11 @@
            "format": "date-time",
            "nullable": true
           },
+          "onboardedAt": {
+           "type": "string",
+           "format": "date-time",
+           "nullable": true
+          },
           "createdAt": {
            "type": "string",
            "format": "date-time"
@@ -137686,6 +137716,114 @@
       }
      }
     }
+   }
+  },
+  "/api/v1/user/me/onboarding": {
+   "post": {
+    "operationId": "user.completeOnboarding",
+    "tags": [
+     "user"
+    ],
+    "summary": "Finish the first-login welcome",
+    "parameters": [],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "user": {
+           "type": "object",
+           "properties": {
+            "id": {
+             "type": "string"
+            },
+            "email": {
+             "type": "string"
+            },
+            "firstName": {
+             "type": "string",
+             "nullable": true
+            },
+            "lastName": {
+             "type": "string",
+             "nullable": true
+            },
+            "avatarUrl": {
+             "type": "string",
+             "nullable": true
+            },
+            "timezone": {
+             "type": "string",
+             "nullable": true
+            },
+            "emailVerifiedAt": {
+             "type": "string",
+             "format": "date-time",
+             "nullable": true
+            },
+            "onboardedAt": {
+             "type": "string",
+             "format": "date-time",
+             "nullable": true
+            },
+            "createdAt": {
+             "type": "string",
+             "format": "date-time"
+            }
+           },
+           "required": [
+            "id",
+            "email"
+           ]
+          },
+          "memberships": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "id": {
+              "type": "string"
+             },
+             "organizationId": {
+              "type": "string"
+             },
+             "organizationName": {
+              "type": "string"
+             },
+             "role": {
+              "type": "string",
+              "enum": [
+               "OWNER",
+               "ADMIN",
+               "MEMBER"
+              ]
+             }
+            },
+            "required": [
+             "id",
+             "organizationId",
+             "role"
+            ]
+           }
+          },
+          "currentOrganizationId": {
+           "type": "string",
+           "nullable": true
+          }
+         },
+         "required": [
+          "user",
+          "memberships"
+         ]
+        }
+       }
+      }
+     }
+    },
+    "description": "Marks the welcome as done (or skipped) and makes sure the organization has at least one team."
    }
   },
   "/api/v1/user/me/password": {
@@ -138187,6 +138325,11 @@
              "nullable": true
             },
             "emailVerifiedAt": {
+             "type": "string",
+             "format": "date-time",
+             "nullable": true
+            },
+            "onboardedAt": {
              "type": "string",
              "format": "date-time",
              "nullable": true

@@ -30,7 +30,7 @@ const op = (operationId, tags, summary, { body, params = [], res = ok, code = '2
 const PUBLIC = [];
 
 // ── shapes ──────────────────────────────────────────────────────────────
-const User = obj({ id: S.str, email: S.str, firstName: S.strN, lastName: S.strN, avatarUrl: S.strN, timezone: S.strN, emailVerifiedAt: S.dateN, createdAt: S.date }, ['id', 'email']);
+const User = obj({ id: S.str, email: S.str, firstName: S.strN, lastName: S.strN, avatarUrl: S.strN, timezone: S.strN, emailVerifiedAt: S.dateN, onboardedAt: S.dateN, createdAt: S.date }, ['id', 'email']);
 const Role = { type: 'string', enum: ['OWNER', 'ADMIN', 'MEMBER'] };
 const Membership = obj({ id: S.str, organizationId: S.str, organizationName: S.str, role: Role }, ['id', 'organizationId', 'role']);
 const Member = obj({ id: S.str, userId: S.str, email: S.str, firstName: S.strN, lastName: S.strN, role: Role, createdAt: S.date }, ['id', 'userId', 'email', 'role']);
@@ -73,6 +73,7 @@ export const extraPaths = {
     get: op('user.me', 'user', 'Get my profile', { res: User }),
     patch: op('user.updateMe', 'user', 'Update my profile', { body: obj({ firstName: S.str, lastName: S.strN, timezone: S.str, avatarUrl: S.strN }), res: User }),
   },
+  '/api/v1/user/me/onboarding': { post: op('user.completeOnboarding', 'user', 'Finish the first-login welcome', { description: 'Marks the welcome as done (or skipped) and makes sure the organization has at least one team.', res: Session }) },
   '/api/v1/user/me/password': { post: op('user.changePassword', 'user', 'Change my password', { body: obj({ currentPassword: S.str, newPassword: { type: 'string', minLength: 10 } }, ['currentPassword', 'newPassword']) }) },
   '/api/v1/user/members': { get: op('user.members', 'user', 'List organization members', { params: page, res: list(Member) }) },
   '/api/v1/user/members/{id}': {

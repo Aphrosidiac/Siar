@@ -9,16 +9,16 @@ import { loadSession } from '@/lib/store';
 
 const router = useRouter();
 // one name field: names don't split into first/last the same way everywhere
-const f = reactive({ name: '', email: '', password: '', organizationName: '' });
+const f = reactive({ name: '', email: '', password: '' });
 const busy = ref(false); const error = ref(''); const fields = ref<Record<string, string>>({});
 const pwOk = computed(() => f.password.length >= 10);
 const site = location.hostname.startsWith('app.') ? `${location.protocol}//${location.hostname.slice(4)}` : `${location.protocol}//${location.hostname}:4290`;
 async function submit() {
   busy.value = true; error.value = ''; fields.value = {};
   try {
-    await api.post('/auth/signup', { email: f.email.trim(), password: f.password, firstName: f.name.trim().replace(/\s+/g, ' '), ...(f.organizationName.trim() ? { organizationName: f.organizationName.trim() } : {}) }, { noAuthRedirect: true });
+    await api.post('/auth/signup', { email: f.email.trim(), password: f.password, firstName: f.name.trim().replace(/\s+/g, ' ') }, { noAuthRedirect: true });
     await loadSession(true);
-    await router.replace('/posts');
+    await router.replace('/welcome');
   } catch (e) {
     error.value = errorMessage(e);
     if (isApiError(e)) { const by = issuesByPath(e.issues); fields.value = { ...by, ...(by.firstName ? { name: by.firstName } : {}) }; }
@@ -36,7 +36,6 @@ async function submit() {
         <Input v-model="f.password" label="Password" type="password" required autocomplete="new-password" :error="fields.password" />
         <p v-if="!fields.password" class="pw small" :class="{ ok: pwOk }"><span class="tick" aria-hidden="true">{{ pwOk ? '✓' : '·' }}</span>At least 10 characters</p>
       </div>
-      <Input v-model="f.organizationName" label="Organization" placeholder="Your company or studio" :error="fields.organizationName" help="Optional. Billing and teams live here; rename it any time." />
       <Button type="submit" variant="primary" block :loading="busy">Create account <span aria-hidden="true">→</span></Button>
       <p class="terms tiny">By creating an account you agree to the <a :href="`${site}/terms`">Terms</a> and <a :href="`${site}/privacy`">Privacy Policy</a>.</p>
     </form>

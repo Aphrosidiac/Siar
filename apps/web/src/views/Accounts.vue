@@ -17,7 +17,7 @@ import Select from '@/components/ui/Select.vue';
 import Checkbox from '@/components/ui/Checkbox.vue';
 import Dropdown from '@/components/ui/Dropdown.vue';
 import { api } from '@/lib/api';
-import { currentTeam, isAdmin, refreshTeam, session } from '@/lib/store';
+import { currentTeam, isAdmin, loadPlatforms, platforms, refreshTeam, session } from '@/lib/store';
 import { META, NETWORKS, needsChannel, SET_CHANNEL_TYPES } from '@/lib/networks';
 import { confirm } from '@/lib/confirm';
 import { toast } from '@/lib/toast';
@@ -27,7 +27,9 @@ const route = useRoute(); const router = useRouter();
 const accounts = computed(() => new Map((currentTeam.value?.socialAccounts ?? []).map((a) => [a.type, a])));
 const connected = computed(() => NETWORKS.filter((n) => accounts.value.has(n.type)));
 const rows = computed(() => connected.value.map((n) => ({ n, a: accounts.value.get(n.type)! })));
-const available = computed(() => NETWORKS.filter((n) => !accounts.value.has(n.type)));
+const ready = (t: NetworkType) => platforms.value?.[t]?.available !== false;
+// networks still waiting on their app review sort last and can't be started
+const available = computed(() => NETWORKS.filter((n) => !accounts.value.has(n.type)).sort((a, b) => Number(!ready(a.type)) - Number(!ready(b.type))));
 const busy = ref<string | null>(null);
 
 // ── connect ──
@@ -53,6 +55,7 @@ async function go(type: NetworkType) {
 const channelFor = ref<SocialAccount | null>(null);
 const retryOffer = ref<{ type: NetworkType; total: number } | null>(null);
 onMounted(async () => {
+  void loadPlatforms();
   const q = route.query;
   if (q.success === undefined) return;
   const type = String(q.type ?? '') as NetworkType;
@@ -215,10 +218,10 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
       <section class="sec">
         <div class="label sec-h">{{ connected.length ? 'Add a network' : 'Networks' }} <span class="num">{{ available.length }}</span></div>
         <div class="list avail">
-          <button v-for="n in available" :key="n.type" type="button" class="av-row" :disabled="busy === n.type" @click="startConnect(n.type)">
+          <button v-for="n in available" :key="n.type" type="button" class="av-row" :class="{ soon: !ready(n.type) }" :disabled="busy === n.type || !ready(n.type)" :title="ready(n.type) ? undefined : `${n.name} is reviewing Siar's app. It switches on here once approved.`" @click="startConnect(n.type)">
             <NetworkIcon :type="n.type" :size="28" :title="false" />
-            <span class="grow"><span class="net d-block">{{ n.name }}</span><span class="tiny muted truncate d-block">{{ n.blurb }}</span></span>
-            <Plus :size="16" class="plus" />
+            <span class="grow"><span class="net d-block">{{ n.name }}</span><span class="tiny muted truncate d-block">{{ ready(n.type) ? n.blurb : 'Opening soon' }}</span></span>
+            <Plus v-if="ready(n.type)" :size="16" class="plus" />
           </button>
         </div>
       </section>
@@ -302,6 +305,7 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
 .av-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-elevated); min-width: 0; text-align: left; color: var(--text); cursor: pointer; transition: border-color 200ms, transform 300ms var(--ease-out), box-shadow 300ms var(--ease-out); }
 .av-row:hover:not(:disabled) { border-color: var(--text); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
 .av-row:disabled { opacity: .5; cursor: progress; }
+.av-row.soon { opacity: .55; cursor: default; background: transparent; }
 .plus { color: var(--text-subtle); flex: none; }
 .av-row:hover .plus { color: var(--text); }
 @media (max-width: 900px) {

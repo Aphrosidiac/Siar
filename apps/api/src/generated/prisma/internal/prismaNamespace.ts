@@ -4365,6 +4365,7 @@ export const UserScalarFieldEnum = {
   lastName: 'lastName',
   avatarUrl: 'avatarUrl',
   timezone: 'timezone',
+  onboardedAt: 'onboardedAt',
   role: 'role',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',

@@ -2692,6 +2692,26 @@ export interface paths {
         patch: operations["user.updateMe"];
         trace?: never;
     };
+    "/api/v1/user/me/onboarding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Finish the first-login welcome
+         * @description Marks the welcome as done (or skipped) and makes sure the organization has at least one team.
+         */
+        post: operations["user.completeOnboarding"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/user/me/password": {
         parameters: {
             query?: never;
@@ -46212,6 +46232,8 @@ export interface operations {
                             /** Format: date-time */
                             emailVerifiedAt?: string | null;
                             /** Format: date-time */
+                            onboardedAt?: string | null;
+                            /** Format: date-time */
                             createdAt?: string;
                         };
                         memberships: {
@@ -46259,6 +46281,8 @@ export interface operations {
                             timezone?: string | null;
                             /** Format: date-time */
                             emailVerifiedAt?: string | null;
+                            /** Format: date-time */
+                            onboardedAt?: string | null;
                             /** Format: date-time */
                             createdAt?: string;
                         };
@@ -46322,6 +46346,8 @@ export interface operations {
                             timezone?: string | null;
                             /** Format: date-time */
                             emailVerifiedAt?: string | null;
+                            /** Format: date-time */
+                            onboardedAt?: string | null;
                             /** Format: date-time */
                             createdAt?: string;
                         };
@@ -46477,6 +46503,8 @@ export interface operations {
                             /** Format: date-time */
                             emailVerifiedAt?: string | null;
                             /** Format: date-time */
+                            onboardedAt?: string | null;
+                            /** Format: date-time */
                             createdAt?: string;
                         };
                         memberships: {
@@ -46516,6 +46544,8 @@ export interface operations {
                         timezone?: string | null;
                         /** Format: date-time */
                         emailVerifiedAt?: string | null;
+                        /** Format: date-time */
+                        onboardedAt?: string | null;
                         /** Format: date-time */
                         createdAt?: string;
                     };
@@ -46557,7 +46587,52 @@ export interface operations {
                         /** Format: date-time */
                         emailVerifiedAt?: string | null;
                         /** Format: date-time */
+                        onboardedAt?: string | null;
+                        /** Format: date-time */
                         createdAt?: string;
+                    };
+                };
+            };
+        };
+    };
+    "user.completeOnboarding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        user: {
+                            id: string;
+                            email: string;
+                            firstName?: string | null;
+                            lastName?: string | null;
+                            avatarUrl?: string | null;
+                            timezone?: string | null;
+                            /** Format: date-time */
+                            emailVerifiedAt?: string | null;
+                            /** Format: date-time */
+                            onboardedAt?: string | null;
+                            /** Format: date-time */
+                            createdAt?: string;
+                        };
+                        memberships: {
+                            id: string;
+                            organizationId: string;
+                            organizationName?: string;
+                            /** @enum {string} */
+                            role: "OWNER" | "ADMIN" | "MEMBER";
+                        }[];
+                        currentOrganizationId?: string | null;
                     };
                 };
             };
@@ -46818,6 +46893,8 @@ export interface operations {
                             timezone?: string | null;
                             /** Format: date-time */
                             emailVerifiedAt?: string | null;
+                            /** Format: date-time */
+                            onboardedAt?: string | null;
                             /** Format: date-time */
                             createdAt?: string;
                         };

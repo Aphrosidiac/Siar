@@ -22,7 +22,8 @@ const site = computed(() => {
         <a :href="site" class="brand" aria-label="Siar home"><Logo :size="22" /></a>
         <div class="switch small"><slot name="switch" /></div>
       </header>
-      <div class="body" :class="{ wide }">
+      <div :key="title" class="body" :class="{ wide }">
+        <slot name="eyebrow" />
         <h1>{{ title }}</h1>
         <p v-if="subtitle" class="lead">{{ subtitle }}</p>
         <div class="content"><slot /></div>
@@ -36,15 +37,17 @@ const site = computed(() => {
       </footer>
     </main>
     <aside class="side art" aria-hidden="true">
-      <p class="kicker"><span>siar</span> /ˈsi.ar/ <i></i> Malay, to broadcast</p>
+      <p class="kicker"><slot name="kicker"><span>siar</span> /ˈsi.ar/ <i></i> Malay, to broadcast</slot></p>
       <div class="fan-wrap"><AuthFan /></div>
       <div class="pitch">
-        <p class="headline">Write it once.<br />Siar it everywhere.</p>
-        <ul>
-          <li><b>15 networks</b><span>One API, one dashboard</span></li>
-          <li><b>Unlimited</b><span>Connected accounts</span></li>
-          <li><b>One price</b><span>Per organization</span></li>
-        </ul>
+        <slot name="pitch">
+          <p class="headline">Write it once.<br />Siar it everywhere.</p>
+          <ul>
+            <li><b>15 networks</b><span>One API, one dashboard</span></li>
+            <li><b>Unlimited</b><span>Connected accounts</span></li>
+            <li><b>One price</b><span>Per organization</span></li>
+          </ul>
+        </slot>
       </div>
     </aside>
   </div>
@@ -76,8 +79,8 @@ h1 { font-size: clamp(32px, 3.4vw, 44px); line-height: 1.02; letter-spacing: -0.
 .art { position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; gap: 32px; padding: 40px clamp(32px, 4vw, 64px) 48px; background: #0b0b0a; color: #f3efe4; }
 :global(:root[data-theme='dark']) .art { background: #161614; box-shadow: inset 1px 0 0 #2a2a27; }
 .kicker { margin: 0; display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: var(--fs-12); letter-spacing: .08em; text-transform: uppercase; color: #a19d92; }
-.kicker span { color: #f3efe4; }
-.kicker i { width: 28px; height: 1px; background: currentColor; opacity: .5; }
+.kicker :deep(span) { color: #f3efe4; }
+.kicker :deep(i) { width: 28px; height: 1px; background: currentColor; opacity: .5; }
 .fan-wrap { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; }
 .fan-wrap :deep(.fan) { width: auto; height: min(52vh, 460px); max-width: 100%; }
 .headline { margin: 0 0 28px; font-size: clamp(30px, 3vw, 44px); line-height: 1; letter-spacing: -0.05em; font-weight: 600; }

@@ -1,7 +1,7 @@
-import { computed, reactive } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { api, setOrganizationId, isApiError } from './api';
 import { browserTz } from './format';
-import type { AuthMe, Organization, Team } from './types';
+import type { AuthMe, NetworkType, Organization, Team } from './types';
 
 /** Session-wide state: who is signed in, which organization and team they are working in. */
 export const session = reactive({
@@ -53,6 +53,13 @@ export async function loadTeams() {
   const key = `siar.team.${session.me?.currentOrganizationId}`;
   const saved = store.get(key);
   session.teamId = res.items.find((t) => t.id === session.teamId)?.id ?? res.items.find((t) => t.id === saved)?.id ?? res.items[0]?.id ?? null;
+}
+
+/** Which networks this server can connect right now (live mode needs each network's app approved). */
+export const platforms = ref<Partial<Record<NetworkType, { available: boolean }>> | null>(null);
+export async function loadPlatforms() {
+  if (platforms.value) return;
+  try { platforms.value = (await api.get<{ platforms: typeof platforms.value }>('/', undefined, { noAuthRedirect: true })).platforms; } catch { /* everything shows as connectable */ }
 }
 
 export function selectTeam(id: string) {

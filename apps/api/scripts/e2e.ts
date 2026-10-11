@@ -76,6 +76,11 @@ async function main() {
   const email = `e2e+${Date.now()}@example.com`;
   const su = await call('POST', '/api/v1/auth/signup', { email, password: 'correct horse battery', firstName: 'E2E', organizationName: 'E2E Org' }, { expect: 201 });
   ok(su.json.currentOrganizationId && cookie, 'sign up creates an organization and a session');
+  ok(!su.json.user.onboardedAt, 'a new owner starts on the welcome');
+  const first = await call('GET', '/api/v1/team/', undefined, { expect: 200 });
+  ok(first.json.total === 1 && first.json.items[0].name === 'E2E Org', 'sign up comes with a first team named after the organization');
+  const welcomed = await call('POST', '/api/v1/user/me/onboarding', undefined, { expect: 200 });
+  ok(welcomed.json.user.onboardedAt, 'finishing the welcome is remembered');
   ok((await call('POST', '/api/v1/auth/login', { email, password: 'wrong password!!' })).status === 401, 'wrong password is refused');
 
   const key = await call('POST', '/api/v1/api-key', { name: 'e2e' }, { expect: 201 });
@@ -90,8 +95,7 @@ async function main() {
   const team = await call('POST', '/api/v1/team/', { name: 'Brand A' }, { key: true, expect: 201 });
   ok(team.json.id && team.json.socialAccounts.length === 0, 'team created through the API key');
   await call('POST', '/api/v1/team/', { name: 'Brand B' }, { key: true, expect: 201 });
-  await call('POST', '/api/v1/team/', { name: 'Brand C' }, { key: true, expect: 201 });
-  const fourth = await call('POST', '/api/v1/team/', { name: 'Brand D' }, { key: true });
+  const fourth = await call('POST', '/api/v1/team/', { name: 'Brand C' }, { key: true });
   ok(fourth.status === 403 && /Social sets limit reached/.test(fourth.json.message), 'free plan stops at 3 social sets with the reference message');
 
   const bad = await call('POST', '/api/v1/team/', { avatarUrl: 'x' }, { key: true });

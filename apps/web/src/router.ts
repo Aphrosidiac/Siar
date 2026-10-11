@@ -46,6 +46,7 @@ export const router = createRouter({
     { path: '/reset-password', component: view('auth/Reset'), meta: { public: true, title: 'Reset password' } },
     { path: '/verify-email', component: view('auth/VerifyEmail'), meta: { public: true, title: 'Verify email' } },
     { path: '/accept-invite', component: view('auth/AcceptInvite'), meta: { public: true, title: 'Accept invitation' } },
+    { path: '/welcome', component: view('Welcome'), meta: { title: 'Welcome' } },
     { path: '/connect/:token', component: view('Portal'), meta: { public: true, title: 'Connect your accounts' } },
     { path: '/', component: () => import('./layouts/AppLayout.vue'), children: app },
     { path: '/:rest(.*)*', component: view('NotFound'), meta: { public: true, title: 'Not found' } },
@@ -58,10 +59,15 @@ setUnauthenticatedHandler(() => {
   if (!cur.meta.public && !cur.meta.guest) void router.replace({ path: '/login', query: { next: cur.fullPath } });
 });
 
+let welcomeShown = false;
 router.beforeEach(async (to) => {
   const me = await loadSession();
   if (to.meta.guest && me) return typeof to.query.next === 'string' && to.query.next.startsWith('/') ? to.query.next : '/posts';
   if (!to.meta.public && !to.meta.guest && !me) return { path: '/login', query: to.fullPath !== '/' ? { next: to.fullPath } : {} };
+  // the person who made the organization lands on the welcome until they finish or skip it; once per
+  // page load, so its own links (Social accounts, API keys) still open
+  if (me && !me.user.onboardedAt && !welcomeShown && !to.meta.public && to.path !== '/welcome') { welcomeShown = true; return '/welcome'; }
+  if (to.path === '/welcome') welcomeShown = true;
 });
 
 router.afterEach((to) => {
