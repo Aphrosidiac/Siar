@@ -137,6 +137,38 @@ async function main() {
   const list = await call('GET', `/api/v1/post/?teamId=${team.json.id}&limit=5`, undefined, { key: true });
   ok(list.json.total >= 1 && Array.isArray(list.json.items), 'post list uses { items, total }');
 
+  // ── comments ──
+  const cm = await call('POST', '/api/v1/comment/', { teamId: team.json.id, title: 'reply', internalPostId: post.json.id, postDate: new Date().toISOString(), status: 'SCHEDULED', socialAccountTypes: ['MASTODON'], data: { MASTODON: { text: 'Comment via API' } } }, { key: true });
+  ok(cm.status < 300, `comment created (${cm.status} ${cm.json?.message ?? ''})`);
+  const cmDone = await until(() => call('GET', `/api/v1/comment/${cm.json.id}`, undefined, { key: true }), r => ['POSTED', 'ERROR'].includes(r.json.status));
+  ok(cmDone.json.status === 'POSTED', `comment published (${cmDone.json.status} ${cmDone.json.error ?? ''})`);
+
+  // ── billing (mock provider) ──
+  const co = await call('POST', '/api/v1/billing/checkout', { plan: 'PRO', interval: 'MONTHLY' });
+  ok(co.status < 300 && co.json.url, `checkout returns a URL (${co.status} ${co.json?.message ?? ''})`);
+  const pid = new URL(co.json.url).pathname.split('/').pop();
+  const pay = await fetch(`${API}/mock-billing/${pid}/pay`, { method: 'POST', redirect: 'manual' });
+  ok(pay.status < 400, `mock payment settles (${pay.status})`);
+  const sub = await until(() => call('GET', '/api/v1/billing/subscription'), r => r.json.plan === 'PRO');
+  ok(sub.json.plan === 'PRO', `organization is on PRO after payment (${sub.json.plan})`);
+  ok((await call('POST', '/api/v1/team/', { name: 'Brand D' }, { key: true })).status < 300, 'team cap lifted on PRO');
+  const top = await call('POST', '/api/v1/billing/credits/top-up', { amountUsd: 10 });
+  const tpid = new URL(top.json.url).pathname.split('/').pop();
+  await fetch(`${API}/mock-billing/${tpid}/pay`, { method: 'POST', redirect: 'manual' });
+  const bal = await until(() => call('GET', '/api/v1/billing/credits/balance', undefined, { key: true }), r => r.json.balanceMicros >= 10_000_000);
+  ok(bal.json.balanceMicros === 10_000_000, `X credit top-up lands in the ledger (${bal.json.balanceMicros})`);
+
+  // ── link in bio ──
+  const slug = `e2e-${Date.now().toString(36)}`;
+  const bio = await call('POST', '/api/v1/bio', { teamId: team.json.id, slug, title: 'E2E Bio' }, { key: true });
+  ok(bio.status < 300, `bio created (${bio.status} ${bio.json?.message ?? ''})`);
+  const it = await call('POST', '/api/v1/bio-item', { bioId: bio.json.id, type: 'LINK', title: 'Site', url: 'https://example.com' }, { key: true });
+  await call('PATCH', `/api/v1/bio/${bio.json.id}`, { published: true }, { key: true });
+  const pub = await fetch(`${API}/b/${slug}`);
+  ok(pub.status === 200 && (await pub.text()).includes('E2E Bio'), 'public bio page renders');
+  const go = await fetch(`${API}/b/${slug}/go/${it.json.id}`, { redirect: 'manual' });
+  ok(go.status === 302 && go.headers.get('location') === 'https://example.com', 'bio link redirects and counts the click');
+
   hook.close();
   console.log(`\n${passed} checks passed`);
 }
