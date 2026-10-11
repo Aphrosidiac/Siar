@@ -2,7 +2,8 @@
 import { handle } from '@/lib/format';
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Link2, MoreHorizontal, Plus, RefreshCw, TriangleAlert, Unplug, Plug, Activity, Mail, ExternalLink } from 'lucide-vue-next';
+import { Link2, MoreHorizontal, Plus, RefreshCw, TriangleAlert, Unplug, Plug, Activity, Mail, ExternalLink, Flag, MapPin, MonitorPlay, Building2, UserRound, AtSign, LayoutGrid, Hash, MessagesSquare, Check } from 'lucide-vue-next';
+import type { Component } from 'vue';
 import PageHead from '@/components/PageHead.vue';
 import NoTeam from '@/components/NoTeam.vue';
 import NetworkIcon from '@/components/NetworkIcon.vue';
@@ -82,15 +83,49 @@ async function requeue() {
   } catch (e) { toast.fail(e); } finally { busy.value = null; }
 }
 
+// ── where each account publishes ──
+const KIND_ICON: Record<string, Component> = { page: Flag, location: MapPin, channel: MonitorPlay, organization: Building2, account: AtSign };
+/** Chosen per post in the composer, not on the account. */
+const PER_POST: Partial<Record<NetworkType, { noun: string; icon: Component }>> = {
+  PINTEREST: { noun: 'board', icon: LayoutGrid }, REDDIT: { noun: 'subreddit', icon: MessagesSquare },
+  DISCORD: { noun: 'channel', icon: Hash }, SLACK: { noun: 'channel', icon: Hash },
+};
+/** The login, not the page/location picked (choosing one renames the account to it). */
+const signedIn = (a: SocialAccount) => (a.userUsername ? handle(a.userUsername) : a.userDisplayName ?? (a.username ? handle(a.username) : a.displayName ?? ''));
+const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
+type Target = { tone: 'set' | 'self' | 'missing' | 'post'; icon: Component; name: string; sub: string; action?: string };
+function target(a: SocialAccount): Target {
+  const m = META[a.type]; const list = a.channels ?? [];
+  const pp = PER_POST[a.type];
+  if (pp) return { tone: 'post', icon: pp.icon, name: 'Chosen per post', sub: a.type === 'REDDIT' ? 'Pick the subreddit in the composer' : `${plural(list.length, pp.noun)} · pick in the composer` };
+  if (!SET_CHANNEL_TYPES.includes(a.type)) return { tone: 'self', icon: UserRound, name: 'Own profile', sub: 'The account you signed in with' };
+  const c = list.find((x) => x.id === a.channelId);
+  if (a.channelId) return { tone: 'set', icon: KIND_ICON[m.channelNoun] ?? Flag, name: c?.name ?? c?.username ?? a.channelId, sub: c?.address ?? (list.length > 1 ? `${cap(m.channelNoun)} · ${list.length - 1} more on this login` : cap(m.channelNoun)), action: 'Change' };
+  if (m.channel === 'required') return { tone: 'missing', icon: TriangleAlert, name: `No ${m.channelNoun} chosen`, sub: `Posts can't publish until you pick one`, action: 'Choose' };
+  return { tone: 'self', icon: UserRound, name: 'Own profile', sub: list.length ? `Or post as one of ${plural(list.length, m.channelNoun)}` : 'The account you signed in with', action: list.length ? 'Change' : undefined };
+}
+const cap = (w: string) => (w ? w[0]!.toUpperCase() + w.slice(1) : w);
+
 // ── channel picker ──
+const SELF = '__self';
 const pick = ref<string | null>(null);
-function openChannel(a: SocialAccount) { channelFor.value = a; pick.value = a.channelId ?? a.channels?.[0]?.id ?? null; }
+const pickerOptional = computed(() => !!channelFor.value && META[channelFor.value.type].channel !== 'required');
+const current = computed(() => channelFor.value?.channelId ?? (pickerOptional.value ? SELF : null));
+function openChannel(a: SocialAccount) { channelFor.value = a; pick.value = a.channelId ?? (META[a.type].channel !== 'required' ? SELF : a.channels?.[0]?.id ?? null); }
 async function saveChannel() {
   const a = channelFor.value; if (!a || !pick.value) return;
   busy.value = 'channel';
-  try { await api.post('/social-account/set-channel', { type: a.type, teamId: a.teamId, channelId: pick.value }); await refreshTeam(); toast.success(`${META[a.type].channelNoun[0]!.toUpperCase()}${META[a.type].channelNoun.slice(1)} selected`); const fresh = currentTeam.value?.socialAccounts.find((x) => x.id === a.id); channelFor.value = null; if (fresh) void offerRetry(fresh); }
-  catch (e) { toast.fail(e); } finally { busy.value = null; }
+  try {
+    if (pick.value === SELF) await api.post('/social-account/unset-channel', { type: a.type, teamId: a.teamId });
+    else await api.post('/social-account/set-channel', { type: a.type, teamId: a.teamId, channelId: pick.value });
+    await refreshTeam(); toast.success(`${META[a.type].name} now publishes to ${pickName.value}`);
+    const fresh = currentTeam.value?.socialAccounts.find((x) => x.id === a.id); channelFor.value = null; if (fresh) void offerRetry(fresh);
+  } catch (e) { toast.fail(e); } finally { busy.value = null; }
 }
+const pickName = computed(() => {
+  if (pick.value === SELF) return 'its own profile';
+  const c = channelFor.value?.channels?.find((x) => x.id === pick.value); return c?.name ?? c?.username ?? 'the selection';
+});
 async function refreshChannels(a: SocialAccount) {
   busy.value = 'refresh';
   try { await api.post('/social-account/refresh-channels', { type: a.type, teamId: a.teamId }); await refreshTeam(); channelFor.value = currentTeam.value?.socialAccounts.find((x) => x.id === a.id) ?? null; toast.success('Channels refreshed'); }
@@ -112,10 +147,6 @@ async function check(a: SocialAccount) {
 async function profile(a: SocialAccount) {
   busy.value = a.type;
   try { await api.post('/social-account/profile-refresh', { type: a.type, teamId: a.teamId }); await refreshTeam(); toast.success('Profile refreshed'); } catch (e) { toast.fail(e); } finally { busy.value = null; }
-}
-async function unsetChannel(a: SocialAccount) {
-  busy.value = a.type;
-  try { await api.post('/social-account/unset-channel', { type: a.type, teamId: a.teamId }); await refreshTeam(); toast.success('Channel cleared'); } catch (e) { toast.fail(e); } finally { busy.value = null; }
 }
 async function toggleMessaging(a: SocialAccount) {
   busy.value = a.type;
@@ -148,18 +179,14 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
         <Button size="sm" variant="ghost" @click="retryOffer = null">Not now</Button>
       </div>
       <section v-if="rows.length" class="sec">
-        <div class="grid-head label"><span /><span>Network</span><span>Account</span><span>Posts to</span><span>Status</span><span /></div>
+        <div class="grid-head label"><span /><span>Account</span><span>Publishes to</span><span>Status</span><span /></div>
         <article v-for="{ n, a } in rows" :key="n.type" class="acc">
           <NetworkIcon :type="n.type" :size="30" :title="false" />
-          <div class="cell"><div class="net">{{ n.name }}</div><div class="tiny muted truncate">{{ a.username ? handle(a.username) : '' }}</div></div>
-          <div class="cell row" style="gap: 8px"><Avatar :src="a.avatarUrl" :name="a.displayName ?? a.username" :size="22" /><span class="truncate">{{ a.displayName ?? a.username }}</span></div>
-          <div class="cell row" :class="{ nochan: !SET_CHANNEL_TYPES.includes(n.type) }" style="gap: 8px">
-            <template v-if="SET_CHANNEL_TYPES.includes(n.type)">
-              <span v-if="a.channelId" class="truncate">{{ a.channels?.find((c) => c.id === a.channelId)?.name ?? a.channelId }}</span>
-              <span v-else class="muted truncate">No {{ n.channelNoun }} chosen</span>
-              <button type="button" class="link-btn small nowrap" @click="openChannel(a)">{{ a.channelId ? 'Change' : 'Choose' }}</button>
-            </template>
-            <span v-else class="faint">—</span>
+          <div class="cell"><div class="net">{{ n.name }}</div><div class="tiny muted truncate">Signed in as {{ signedIn(a) }}</div></div>
+          <div v-for="t in [target(a)]" :key="t.tone" class="cell tgt" :class="t.tone">
+            <span class="tgt-ic"><component :is="t.icon" :size="14" /></span>
+            <span class="tgt-tx"><span class="tgt-name truncate">{{ t.name }}</span><span class="tiny muted truncate">{{ t.sub }}</span></span>
+            <Button v-if="t.action" size="sm" :variant="t.tone === 'missing' ? 'primary' : 'secondary'" @click="openChannel(a)">{{ t.action }}</Button>
           </div>
           <div class="cell">
             <Badge v-if="a.connectionState === 'NEEDS_RECONNECT'" tone="danger" size="sm">Needs reconnect</Badge>
@@ -171,7 +198,6 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
             <template #trigger="{ toggle }"><Button iconOnly label="Account actions" variant="ghost" size="sm" :icon="MoreHorizontal" @click="toggle" /></template>
             <button type="button" class="menu-item" data-close @click="check(a)"><Activity :size="14" />Check connection</button>
             <button type="button" class="menu-item" data-close @click="profile(a)"><RefreshCw :size="14" />Refresh profile</button>
-            <button v-if="SET_CHANNEL_TYPES.includes(n.type) && a.channelId" type="button" class="menu-item" data-close @click="unsetChannel(a)"><Unplug :size="14" />Clear {{ n.channelNoun }}</button>
             <button v-if="n.type === 'FACEBOOK' || n.type === 'INSTAGRAM'" type="button" class="menu-item" data-close @click="toggleMessaging(a)"><Mail :size="14" />{{ a.messagingStatus === 'ENABLED' ? 'Disable' : 'Enable' }} inbox messaging</button>
             <button type="button" class="menu-item" data-close @click="startConnect(n.type)"><Plug :size="14" />Reconnect</button>
             <div class="menu-sep" />
@@ -209,19 +235,30 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
     </Modal>
 
     <!-- channel picker -->
-    <Modal :open="!!channelFor" :title="channelFor ? `Choose a ${META[channelFor.type].channelNoun || 'channel'}` : ''" :description="channelFor ? `Where should Siar publish for ${META[channelFor.type].name}?` : ''" @close="channelFor = null">
+    <Modal :open="!!channelFor" :title="channelFor ? `Where ${META[channelFor.type].name} posts go` : ''" :description="channelFor ? `Signed in as ${signedIn(channelFor)}. Pick the ${META[channelFor.type].channelNoun} Siar publishes to.` : ''" @close="channelFor = null">
       <div v-if="channelFor" class="stack-16">
         <div v-if="!channelFor.channels?.length" class="callout warn">No {{ META[channelFor.type].channelNoun }}s were found on this login. Refresh the list or reconnect with more permissions.</div>
-        <div class="stack">
-          <label v-for="c in channelFor.channels ?? []" :key="c.id" class="chan" :class="{ on: pick === c.id }">
+        <div v-else class="opts" role="radiogroup">
+          <label v-if="pickerOptional" class="opt" :class="{ on: pick === SELF }">
+            <input v-model="pick" type="radio" name="channel" :value="SELF" class="sr-only" />
+            <span class="rd" aria-hidden="true" />
+            <span class="opt-ic"><UserRound :size="16" /></span>
+            <span class="opt-tx"><span class="strong">Own profile</span><span class="tiny muted">{{ signedIn(channelFor) }}, the account you signed in with</span></span>
+            <Badge v-if="current === SELF" size="sm">In use</Badge>
+          </label>
+          <div class="label opt-group">{{ cap(META[channelFor.type].channelNoun) }}s on this login · {{ channelFor.channels.length }}</div>
+          <label v-for="c in channelFor.channels" :key="c.id" class="opt" :class="{ on: pick === c.id }">
             <input v-model="pick" type="radio" name="channel" :value="c.id" class="sr-only" />
-            <Avatar :src="c.avatarUrl" :name="c.name ?? c.username" :size="28" />
-            <div class="grow"><div class="strong truncate">{{ c.name ?? c.username ?? c.id }}</div><div v-if="c.username || c.address" class="tiny muted truncate">{{ c.username ? handle(c.username) : c.address }}</div></div>
+            <span class="rd" aria-hidden="true" />
+            <Avatar v-if="c.avatarUrl" :src="c.avatarUrl" :name="c.name ?? c.username" :size="32" />
+            <span v-else class="opt-ic"><component :is="KIND_ICON[META[channelFor.type].channelNoun] ?? Flag" :size="16" /></span>
+            <span class="opt-tx"><span class="strong">{{ c.name ?? c.username ?? c.id }}</span><span v-if="c.address || c.username" class="tiny muted">{{ c.address ?? handle(c.username!) }}</span></span>
+            <Badge v-if="current === c.id" size="sm">In use</Badge>
           </label>
         </div>
         <div class="row" style="justify-content: space-between">
           <Button v-if="REFRESHABLE.includes(channelFor.type)" variant="ghost" size="sm" :icon="RefreshCw" :loading="busy === 'refresh'" @click="refreshChannels(channelFor)">Refresh list</Button><span v-else />
-          <div class="row"><Button variant="secondary" @click="channelFor = null">Later</Button><Button variant="primary" :disabled="!pick" :loading="busy === 'channel'" @click="saveChannel">Use this {{ META[channelFor.type].channelNoun || 'channel' }}</Button></div>
+          <div class="row"><Button variant="secondary" @click="channelFor = null">Cancel</Button><Button variant="primary" :icon="Check" :disabled="!pick || pick === current" :loading="busy === 'channel'" @click="saveChannel">Save</Button></div>
         </div>
       </div>
     </Modal>
@@ -245,7 +282,15 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
 .sec-h { display: flex; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--text); }
 .sec-h .num { color: var(--text-faint); }
 .d-block { display: block; }
-.grid-head, .acc { display: grid; grid-template-columns: 30px minmax(130px, 1fr) minmax(150px, 1.2fr) minmax(180px, 1.5fr) 150px 32px; column-gap: 16px; align-items: center; }
+.grid-head, .acc { display: grid; grid-template-columns: 30px minmax(160px, 1fr) minmax(260px, 1.6fr) 150px 32px; column-gap: 16px; align-items: center; }
+.tgt { display: flex; align-items: center; gap: 10px; }
+.tgt-ic { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--bg-muted); color: var(--text); }
+.tgt-tx { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.tgt-name { font-weight: 500; line-height: 20px; }
+.tgt.self .tgt-ic, .tgt.post .tgt-ic { background: transparent; box-shadow: inset 0 0 0 1px var(--border); color: var(--text-subtle); }
+.tgt.self .tgt-name, .tgt.post .tgt-name { font-weight: 400; color: var(--text-muted); }
+.tgt.missing .tgt-ic { background: var(--warn-soft); color: var(--warn); }
+.tgt.missing .tgt-name { color: var(--warn); }
 .grid-head { padding: 0 4px 10px; border-bottom: 1px solid var(--text); }
 .acc { padding: 10px 4px; border-bottom: 1px solid var(--border-soft); min-height: 58px; transition: background 180ms; }
 .acc:hover { background: var(--bg-hover); }
@@ -264,13 +309,21 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
   .acc { grid-template-columns: 30px minmax(0, 1fr) auto 32px; row-gap: 4px; }
   .acc > :first-child { grid-row: 1; grid-column: 1; }
   .acc > .cell:nth-of-type(1) { grid-row: 1; grid-column: 2; }
-  .acc > .cell:nth-of-type(2), .acc > .cell:nth-of-type(3) { grid-column: 2 / 5; }
-  .acc > .cell:nth-of-type(4) { grid-row: 1; grid-column: 3; }
+  .acc > .cell:nth-of-type(2) { grid-column: 2 / 5; }
+  .acc > .cell:nth-of-type(3) { grid-row: 1; grid-column: 3; }
   .acc > :deep(.dd) { grid-row: 1; grid-column: 4; }
-  .nochan { display: none; }
 }
-.chan { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: background var(--t-micro), border-color var(--t-micro); }
-.chan:hover { background: var(--bg-hover); }
-.chan.on { border-color: var(--text); background: var(--bg-hover); }
-.chan:has(input:focus-visible) { box-shadow: var(--focus); }
+.opts { display: flex; flex-direction: column; gap: 6px; }
+.opt-group { margin: 10px 0 2px; color: var(--text-subtle); }
+.opt { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-elevated); cursor: pointer; transition: background var(--t-micro), border-color var(--t-micro); }
+.opt:hover { border-color: var(--border-strong); }
+.opt.on { border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text); }
+.opt:has(input:focus-visible) { box-shadow: var(--focus); }
+.rd { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--border-strong); display: grid; place-items: center; transition: border-color var(--t-micro); }
+.rd::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--text); transform: scale(0); transition: transform 160ms var(--ease-out); }
+.opt.on .rd { border-color: var(--text); }
+.opt.on .rd::after { transform: scale(1); }
+.opt-ic { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--bg-muted); color: var(--text); }
+.opt-tx { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.opt-tx > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 </style>

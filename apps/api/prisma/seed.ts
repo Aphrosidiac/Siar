@@ -34,6 +34,23 @@ const TEAMS = [
 const HANDLES: Record<string, (t: string) => { username: string; displayName: string }> = {
   default: t => ({ username: t.toLowerCase().replace(/[^a-z]/g, ''), displayName: t }),
 };
+/** What a login can publish to, per network (pages, locations, channels…), as the network lists them. */
+function channelsFor(type: string, name: string, user: string): { name: string; username?: string; address?: string }[] {
+  switch (type) {
+    case 'FACEBOOK': return [{ name: `${name} Official`, username: `${user}official` }, { name: `${name} Catering`, username: `${user}catering` }];
+    case 'INSTAGRAM': return [{ name: `${name} Catering`, username: `${user}.catering` }, { name: `${name} Roastery`, username: `${user}.roastery` }];
+    case 'LINKEDIN': return [{ name: `${name} Sdn Bhd`, username: `${user}-sdn-bhd` }];
+    case 'YOUTUBE': return [{ name, username: `@${user}` }];
+    case 'GOOGLE_BUSINESS': return [
+      { name: `${name} Bangsar`, address: '12 Jalan Telawi 3, Bangsar Baru, 59100 Kuala Lumpur' },
+      { name: `${name} Damansara Uptown`, address: '28 Jalan SS 21/39, Damansara Utama, 47400 Petaling Jaya' },
+      { name: `${name} Mont Kiara`, address: 'G-07, Arcoris Mall, Jalan Kiara, 50480 Kuala Lumpur' },
+    ];
+    case 'PINTEREST': return [{ name: 'Official' }, { name: 'Menu ideas' }];
+    case 'DISCORD': case 'SLACK': return [{ name: '#announcements' }, { name: '#general' }];
+    default: return [];
+  }
+}
 const TEXTS = [
   'New seasonal menu drops this Friday. Which one are you trying first?',
   'Behind the scenes of our latest shoot — swipe to see the setup.',
@@ -74,11 +91,10 @@ async function main() {
     for (const type of t.networks) {
       const h = HANDLES.default(`${t.name}`);
       const ext = `${type.toLowerCase()}-${team.id.slice(-6)}`;
-      const channels = ['FACEBOOK', 'LINKEDIN', 'PINTEREST', 'GOOGLE_BUSINESS', 'DISCORD', 'SLACK', 'YOUTUBE'].includes(type)
-        ? [{ id: `${ext}-ch1`, name: type === 'DISCORD' || type === 'SLACK' ? '#announcements' : `${t.name} ${type === 'GOOGLE_BUSINESS' ? 'Bangsar' : 'Official'}` }] : [];
+      const channels = channelsFor(type, t.name, h.username).map((c, i) => ({ id: type === 'GOOGLE_BUSINESS' ? `accounts/${team.id.slice(-6)}/locations/${i + 1}` : `${ext}-ch${i + 1}`, ...c }));
       accounts.push(await prisma.socialAccount.create({ data: {
         type, teamId: team.id, username: h.username, displayName: h.displayName, externalId: channels[0]?.id ?? ext, providerPageId: ext,
-        userUsername: h.username, userDisplayName: h.displayName, channels, channelId: channels[0]?.id ?? null,
+        userUsername: h.username, userDisplayName: h.displayName, channels, channelId: type === 'INSTAGRAM' || type === 'LINKEDIN' ? null : channels[0]?.id ?? null,
         instagramConnectionMethod: type === 'INSTAGRAM' ? 'FACEBOOK' : null, state: type === 'REDDIT' ? 'NEEDS_RECONNECT' : 'CONNECTED',
         stateReason: type === 'REDDIT' ? 'The Reddit token was revoked.' : null, deleteOn: type === 'REDDIT' ? new Date(Date.now() + 2 * DAY) : null,
         messagingStatus: type === 'INSTAGRAM' ? 'ENABLED' : 'DISABLED',

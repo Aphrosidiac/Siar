@@ -28,7 +28,7 @@ const n = (m: NetworkMeta) => m;
 
 export const NETWORKS: NetworkMeta[] = [
   n({ type: 'TIKTOK', name: 'TikTok', mark: 'Tk', color: '#111111', ink: '#ffffff', textMax: 2200, textLabel: 'Caption', channel: 'none', channelNoun: '', connect: 'oauth', media: 'required', history: true, analytics: true, blurb: 'Videos and photo posts' }),
-  n({ type: 'YOUTUBE', name: 'YouTube', mark: 'Yt', color: '#ff0000', ink: '#ffffff', textMax: 100, textLabel: 'Title', descriptionMax: 5000, channel: 'required', channelNoun: 'channel', connect: 'oauth', media: 'required', history: true, analytics: true, blurb: 'Videos and Shorts' }),
+  n({ type: 'YOUTUBE', name: 'YouTube', mark: 'Yt', color: '#ff0000', ink: '#ffffff', textMax: 100, textLabel: 'Title', descriptionMax: 5000, channel: 'optional', channelNoun: 'channel', connect: 'oauth', media: 'required', history: true, analytics: true, blurb: 'Videos and Shorts' }),
   n({ type: 'INSTAGRAM', name: 'Instagram', mark: 'Ig', color: '#d62976', ink: '#ffffff', textMax: 2200, textLabel: 'Caption', channel: 'optional', channelNoun: 'account', connect: 'oauth', media: 'required', history: true, analytics: true, blurb: 'Posts, carousels, Reels, Stories' }),
   n({ type: 'FACEBOOK', name: 'Facebook', mark: 'f', color: '#1877f2', ink: '#ffffff', textMax: 63206, textLabel: 'Text', channel: 'required', channelNoun: 'page', connect: 'oauth', media: 'optional', history: true, analytics: true, blurb: 'Page posts, Reels, Stories' }),
   n({ type: 'TWITTER', name: 'X', mark: 'X', color: '#111111', ink: '#ffffff', textMax: 280, textLabel: 'Text', channel: 'none', channelNoun: '', connect: 'oauth', media: 'optional', history: true, analytics: true, blurb: 'Posts and threads, pay per use' }),
