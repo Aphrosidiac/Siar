@@ -207,7 +207,8 @@ const legend = [{ t: 'sched', l: 'Scheduled' }, { t: 'ok', l: 'Published' }, { t
 .mlabel { min-width: 150px; font-size: var(--fs-18); }
 .legend { display: flex; gap: 14px; flex-wrap: wrap; }
 .lg { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-12); color: var(--text-subtle); }
-.sw { width: 10px; height: 10px; border-radius: 3px; border-left: 3px solid var(--text); background: var(--bg-muted); }
+.sw { width: 8px; height: 8px; border-radius: 50%; background: var(--text); }
+.sw.ok { background: var(--success); } .sw.bad { background: var(--danger); } .sw.draft { background: var(--text-faint); }
 .layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 20px; align-items: start; }
 .cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-elevated); transition: opacity 200ms; }
 .cal.busy { opacity: .6; }
@@ -233,9 +234,9 @@ const legend = [{ t: 'sched', l: 'Scheduled' }, { t: 'ok', l: 'Published' }, { t
 .chip:hover { filter: brightness(.96); }
 .chip.drag { cursor: grab; }
 .chip.lifting { opacity: .4; }
-.chip.ok, .sw.ok { border-left-color: var(--success); background: var(--success-soft); }
-.chip.bad, .sw.bad { border-left-color: var(--danger); background: var(--danger-soft); }
-.chip.draft, .sw.draft { border-left-color: var(--text-faint); background: transparent; box-shadow: inset 0 0 0 1px var(--border); }
+.chip.ok { border-left-color: var(--success); background: var(--success-soft); }
+.chip.bad { border-left-color: var(--danger); background: var(--danger-soft); }
+.chip.draft { border-left-color: var(--text-faint); background: transparent; box-shadow: inset 0 0 0 1px var(--border); }
 .chip.wait { border-left-color: var(--warn); background: var(--warn-soft); }
 .tm { color: var(--text-subtle); flex: none; font-variant-numeric: tabular-nums; }
 .ti { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
