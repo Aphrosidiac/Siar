@@ -101,7 +101,7 @@ const profileOf = (u: any, boards: any[] = []): AccountProfile => {
 async function tokenRequest(ctx: NetworkContext, form: Record<string, string>, prev?: TokenSet): Promise<TokenSet> {
   const tok = await request(ctx, `${API}/oauth/token`, {
     form,
-    headers: { authorization: basicAuth(ctx.credentials.CLIENT_ID ?? '', ctx.credentials.CLIENT_SECRET ?? '') },
+    headers: { authorization: basicAuth(ctx.credentials.clientId ?? '', ctx.credentials.clientSecret ?? '') },
     mapError: (status, body, res) => (status === 400 || status === 401) ? new NetworkError('TOKEN_INVALID', body?.message ?? body?.error_description ?? 'Pinterest rejected the token request.', { httpStatus: status, meta: body }) : mapError(status, body, res),
   });
   return {
@@ -160,7 +160,7 @@ async function createPin(ctx: NetworkContext, input: PublishInput, body: Record<
 export const pinterest: NetworkAdapter = {
   type: 'PINTEREST',
   displayName: 'Pinterest',
-  credentialKeys: ['CLIENT_ID', 'CLIENT_SECRET'],
+  credentialKeys: ['clientId', 'clientSecret'],
   scopes: SCOPES,
   capabilities: {
     connect: 'oauth2', channels: 'optional', postTypes: ['PIN'],
@@ -191,7 +191,7 @@ export const pinterest: NetworkAdapter = {
 
   async authorize(ctx, input) {
     const url = authorizeUrl(AUTH_URL, {
-      client_id: ctx.credentials.CLIENT_ID, redirect_uri: ctx.redirectUri, response_type: 'code', scope: SCOPES.join(','), state: input.state,
+      client_id: ctx.credentials.clientId, redirect_uri: ctx.redirectUri, response_type: 'code', scope: SCOPES.join(','), state: input.state,
     });
     return { url };
   },
@@ -234,7 +234,7 @@ export const pinterest: NetworkAdapter = {
   async revoke(ctx, a) {
     await request(ctx, `${API}/oauth/token/revoke`, {
       method: 'POST', form: { token: a.token.accessToken },
-      headers: { authorization: basicAuth(ctx.credentials.CLIENT_ID ?? '', ctx.credentials.CLIENT_SECRET ?? '') },
+      headers: { authorization: basicAuth(ctx.credentials.clientId ?? '', ctx.credentials.clientSecret ?? '') },
     }).catch(() => undefined);
   },
 

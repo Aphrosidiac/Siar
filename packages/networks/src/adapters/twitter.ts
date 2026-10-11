@@ -256,8 +256,8 @@ const toComment = (t: any, users: Map<string, any>, rootId: string): FetchedComm
 
 async function tokenRequest(ctx: NetworkContext, form: Record<string, string>, prev?: TokenSet): Promise<TokenSet> {
   const tok = await request(ctx, `${API}/oauth2/token`, {
-    form: { ...form, client_id: ctx.credentials.CLIENT_ID },
-    headers: { authorization: basicAuth(ctx.credentials.CLIENT_ID ?? '', ctx.credentials.CLIENT_SECRET ?? '') },
+    form: { ...form, client_id: ctx.credentials.clientId },
+    headers: { authorization: basicAuth(ctx.credentials.clientId ?? '', ctx.credentials.clientSecret ?? '') },
     // A dead/rotated refresh token or a bad code comes back as 400 invalid_request: the grant is gone.
     mapError: (status, body, res) => (status === 400 || status === 401) && /invalid_(request|grant)/.test(String(body?.error))
       ? new NetworkError('TOKEN_INVALID', body.error_description ?? body.error, { httpStatus: status, meta: body })
@@ -276,7 +276,7 @@ const me = (ctx: NetworkContext, a: AccountRuntime) => api(ctx, a, '/users/me', 
 export const twitter: NetworkAdapter = {
   type: 'TWITTER',
   displayName: 'X',
-  credentialKeys: ['CLIENT_ID', 'CLIENT_SECRET'],
+  credentialKeys: ['clientId', 'clientSecret'],
   scopes: SCOPES,
   capabilities: {
     connect: 'oauth2', channels: 'none', postTypes: ['POST', 'THREAD'],
@@ -311,7 +311,7 @@ export const twitter: NetworkAdapter = {
 
   async authorize(ctx, input) {
     const url = authorizeUrl('https://x.com/i/oauth2/authorize', {
-      response_type: 'code', client_id: ctx.credentials.CLIENT_ID, redirect_uri: ctx.redirectUri, scope: SCOPES.join(' '), state: input.state,
+      response_type: 'code', client_id: ctx.credentials.clientId, redirect_uri: ctx.redirectUri, scope: SCOPES.join(' '), state: input.state,
       code_challenge: input.codeChallenge, code_challenge_method: 'S256',
     });
     return { url };
@@ -344,8 +344,8 @@ export const twitter: NetworkAdapter = {
 
   async revoke(ctx, a) {
     await request(ctx, `${API}/oauth2/revoke`, {
-      form: { token: a.token.refreshToken ?? a.token.accessToken, token_type_hint: a.token.refreshToken ? 'refresh_token' : 'access_token', client_id: ctx.credentials.CLIENT_ID },
-      headers: { authorization: basicAuth(ctx.credentials.CLIENT_ID ?? '', ctx.credentials.CLIENT_SECRET ?? '') },
+      form: { token: a.token.refreshToken ?? a.token.accessToken, token_type_hint: a.token.refreshToken ? 'refresh_token' : 'access_token', client_id: ctx.credentials.clientId },
+      headers: { authorization: basicAuth(ctx.credentials.clientId ?? '', ctx.credentials.clientSecret ?? '') },
     }).catch(() => undefined);
   },
 

@@ -128,7 +128,7 @@ async function mineChannels(ctx: NetworkContext, token: string): Promise<any[]> 
 }
 
 async function tokenRequest(ctx: NetworkContext, form: Record<string, string>, prev?: TokenSet): Promise<TokenSet> {
-  const tok = await request(ctx, TOKEN_URL, { form: { ...form, client_id: ctx.credentials.CLIENT_ID, client_secret: ctx.credentials.CLIENT_SECRET }, mapError });
+  const tok = await request(ctx, TOKEN_URL, { form: { ...form, client_id: ctx.credentials.clientId, client_secret: ctx.credentials.clientSecret }, mapError });
   return {
     accessToken: tok.access_token,
     // Google only returns a refresh token on the consent exchange; refreshes keep the one we have.
@@ -234,7 +234,7 @@ const parseCommentThread = (t: any, videoId: string): FetchedCommentInput[] => {
 export const youtube: NetworkAdapter = {
   type: 'YOUTUBE',
   displayName: 'YouTube',
-  credentialKeys: ['CLIENT_ID', 'CLIENT_SECRET'],
+  credentialKeys: ['clientId', 'clientSecret'],
   scopes: SCOPES,
   capabilities: {
     connect: 'oauth2', channels: 'optional', postTypes: ['VIDEO', 'SHORT'],
@@ -265,7 +265,7 @@ export const youtube: NetworkAdapter = {
 
   async authorize(ctx, input) {
     const url = authorizeUrl(AUTH_URL, {
-      client_id: ctx.credentials.CLIENT_ID, redirect_uri: ctx.redirectUri, response_type: 'code', scope: SCOPES.join(' '), state: input.state,
+      client_id: ctx.credentials.clientId, redirect_uri: ctx.redirectUri, response_type: 'code', scope: SCOPES.join(' '), state: input.state,
       access_type: 'offline', prompt: 'consent', include_granted_scopes: 'true', code_challenge: input.codeChallenge, code_challenge_method: 'S256',
     });
     return { url };

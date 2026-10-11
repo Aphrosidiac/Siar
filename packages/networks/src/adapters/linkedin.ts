@@ -176,7 +176,7 @@ const profileOf = (u: any, channels: Channel[] = []): AccountProfile => ({
 });
 
 async function tokenRequest(ctx: NetworkContext, form: Record<string, string>, prev?: TokenSet): Promise<TokenSet> {
-  const tok = await request(ctx, TOKEN_URL, { form: { ...form, client_id: ctx.credentials.CLIENT_ID, client_secret: ctx.credentials.CLIENT_SECRET }, mapError });
+  const tok = await request(ctx, TOKEN_URL, { form: { ...form, client_id: ctx.credentials.clientId, client_secret: ctx.credentials.clientSecret }, mapError });
   return {
     accessToken: tok.access_token, refreshToken: tok.refresh_token ?? prev?.refreshToken ?? null, expiresAt: expiresIn(tok.expires_in, ctx.now()),
     refreshTokenExpiresAt: tok.refresh_token_expires_in ? expiresIn(tok.refresh_token_expires_in, ctx.now()) : prev?.refreshTokenExpiresAt ?? null,
@@ -305,7 +305,7 @@ async function listPosts(ctx: NetworkContext, a: AccountRuntime, start: number, 
 export const linkedin: NetworkAdapter = {
   type: 'LINKEDIN',
   displayName: 'LinkedIn',
-  credentialKeys: ['CLIENT_ID', 'CLIENT_SECRET'],
+  credentialKeys: ['clientId', 'clientSecret'],
   scopes: SCOPES,
   capabilities: {
     connect: 'oauth2', channels: 'optional', postTypes: ['POST'],
@@ -337,7 +337,7 @@ export const linkedin: NetworkAdapter = {
 
   async authorize(ctx, input) {
     const url = authorizeUrl(AUTH_URL, {
-      response_type: 'code', client_id: ctx.credentials.CLIENT_ID, redirect_uri: ctx.redirectUri, state: input.state, scope: SCOPES.join(' '),
+      response_type: 'code', client_id: ctx.credentials.clientId, redirect_uri: ctx.redirectUri, state: input.state, scope: SCOPES.join(' '),
     });
     return { url };
   },
@@ -375,7 +375,7 @@ export const linkedin: NetworkAdapter = {
 
   async revoke(ctx, a) {
     await request(ctx, 'https://www.linkedin.com/oauth/v2/revoke', {
-      form: { token: a.token.accessToken, client_id: ctx.credentials.CLIENT_ID, client_secret: ctx.credentials.CLIENT_SECRET },
+      form: { token: a.token.accessToken, client_id: ctx.credentials.clientId, client_secret: ctx.credentials.clientSecret },
     }).catch(() => undefined);
   },
 
