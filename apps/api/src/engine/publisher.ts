@@ -37,7 +37,8 @@ export async function kickTargets(postId: string, at: Date) {
 /** Minute sweep: anything due that no job picked up (restarts, edits that moved the date). */
 export async function dispatchDue() {
   const due = await prisma.postSocialAccount.findMany({
-    where: { targetStatus: 'PENDING', post: { status: { in: ['SCHEDULED', 'RETRYING', 'PROCESSING'] }, postDate: { lte: new Date() }, deletedAt: null } },
+    // nextPollAt on a PENDING target is a "not before" (transient-failure backoff, media still converting).
+    where: { targetStatus: 'PENDING', OR: [{ nextPollAt: null }, { nextPollAt: { lte: new Date() } }], post: { status: { in: ['SCHEDULED', 'RETRYING', 'PROCESSING'] }, postDate: { lte: new Date() }, deletedAt: null } },
     select: { postId: true, socialAccountId: true }, take: 500,
   });
   for (const t of due) await enqueue(JOBS.publishTarget, { postId: t.postId, socialAccountId: t.socialAccountId }, { singletonKey: `pub:${t.postId}:${t.socialAccountId}:sweep`, retryLimit: 0 });
@@ -63,6 +64,8 @@ async function buildInput(postId: string, socialAccountId: string): Promise<Publ
   const ids: string[] = entry.mediaItems?.length ? entry.mediaItems.map((m: any) => m.uploadId) : entry.carouselItems?.length ? entry.carouselItems.map((c: any) => c.uploadId ?? c.uploadIds?.[0]).filter(Boolean) : entry.uploadIds ?? [];
   const alt = new Map<string, string>((entry.mediaItems ?? []).filter((m: any) => m.altText).map((m: any) => [m.uploadId, m.altText]));
   const rows = ids.length ? await prisma.upload.findMany({ where: { id: { in: ids } } }) : [];
+  const failed = rows.find(u => u.status === 'FAILED');
+  if (failed) throw new NetworkError('MEDIA_INVALID', `The video ${failed.originalName ?? failed.id} could not be converted to a format the networks accept. Upload it again as MP4 (H.264/AAC).`);
   const notReady = rows.find(u => u.status !== 'READY');
   if (notReady) throw Object.assign(new NetworkError('NETWORK_UNAVAILABLE', 'Media is still being processed.'), { notReady: true });
   const media = ids.map(id => rows.find(r => r.id === id)).filter(Boolean).map(u => mediaRef(u!, alt.get(u!.id) ?? (entry.altText && ids.length === 1 ? entry.altText : null)));
@@ -74,6 +77,7 @@ async function buildInput(postId: string, socialAccountId: string): Promise<Publ
     resolveUpload: async id => {
       const u = await prisma.upload.findFirst({ where: { id, organizationId: post.organizationId } });
       if (!u) throw new NetworkError('MEDIA_INVALID', `Upload ${id} was not found.`);
+      if (u.status === 'FAILED') throw new NetworkError('MEDIA_INVALID', `Upload ${id} could not be converted.`);
       if (u.status !== 'READY') throw Object.assign(new NetworkError('NETWORK_UNAVAILABLE', 'Media is still being processed.'), { notReady: true });
       return mediaRef(u);
     },
@@ -84,9 +88,10 @@ async function buildInput(postId: string, socialAccountId: string): Promise<Publ
 export async function publishTarget(postId: string, socialAccountId: string) {
   const attemptId = randomUUID();
   const claimed = await prisma.$executeRaw`
-    UPDATE "PostSocialAccount" t SET "targetStatus" = 'PROCESSING', "attemptId" = ${attemptId}, "claimedAt" = now(), "attempts" = t."attempts" + 1, "updatedAt" = now()
+    UPDATE "PostSocialAccount" t SET "targetStatus" = 'PROCESSING', "attemptId" = ${attemptId}, "claimedAt" = now(), "attempts" = t."attempts" + 1, "nextPollAt" = NULL, "updatedAt" = now()
     FROM "Post" p
     WHERE t."postId" = ${postId} AND t."socialAccountId" = ${socialAccountId} AND t."targetStatus" = 'PENDING'
+      AND (t."nextPollAt" IS NULL OR t."nextPollAt" <= now() + interval '2 seconds')
       AND p.id = t."postId" AND p."deletedAt" IS NULL AND p.status IN ('SCHEDULED', 'RETRYING', 'PROCESSING') AND p."postDate" <= now() + interval '5 seconds'`;
   if (!claimed) return 'skipped';
   await prisma.post.updateMany({ where: { id: postId, status: { in: ['SCHEDULED', 'RETRYING'] } }, data: { status: 'PROCESSING' } });
@@ -120,7 +125,7 @@ export async function publishTarget(postId: string, socialAccountId: string) {
     if (holdId) await credits.release(holdId);
     if ((err as any)?.notReady) {
       // Media still converting: hand the target back and try again shortly (not an attempt).
-      await prisma.postSocialAccount.updateMany({ where: { postId, socialAccountId, attemptId }, data: { targetStatus: 'PENDING', attemptId: null, attempts: { decrement: 1 } } });
+      await prisma.postSocialAccount.updateMany({ where: { postId, socialAccountId, attemptId }, data: { targetStatus: 'PENDING', attemptId: null, attempts: { decrement: 1 }, nextPollAt: new Date(Date.now() + 30_000) } });
       await enqueue(JOBS.publishTarget, { postId, socialAccountId }, { singletonKey: `pub:${postId}:${socialAccountId}:media:${Date.now()}`, startAfter: 30_000, retryLimit: 0 });
       return 'waiting-media';
     }
@@ -162,7 +167,7 @@ async function fail(postId: string, socialAccountId: string, attemptId: string, 
   // Transient failures retry on their own (they do not use up the 6 manual retries).
   if (ne.isTransient && attempts < AUTO_ATTEMPTS) {
     const delay = ne.rateLimitResetAt ? Math.max(5_000, ne.rateLimitResetAt.getTime() - Date.now()) : 30_000 * 2 ** (attempts - 1);
-    await prisma.postSocialAccount.updateMany({ where: { postId, socialAccountId, attemptId }, data: { targetStatus: 'PENDING', attemptId: null, error: ne.toVerbose() as object } });
+    await prisma.postSocialAccount.updateMany({ where: { postId, socialAccountId, attemptId }, data: { targetStatus: 'PENDING', attemptId: null, error: ne.toVerbose() as object, nextPollAt: new Date(Date.now() + delay) } });
     await enqueue(JOBS.publishTarget, { postId, socialAccountId }, { singletonKey: `pub:${postId}:${socialAccountId}:auto:${attempts}`, startAfter: delay, retryLimit: 0 });
     return;
   }

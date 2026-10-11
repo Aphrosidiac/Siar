@@ -14,6 +14,7 @@ import { kickTargets, recomputePost } from '../engine/publisher.js';
 import { teamOf } from './teams.js';
 import { networkFailure } from './accounts.js';
 import type { CreatedVia, PostStatus } from '../generated/prisma/enums.js';
+import { Prisma } from '../generated/prisma/client.js';
 
 export const postInclude = { uploads: { include: { upload: true } }, socialAccounts: { include: { socialAccount: true } } } as const;
 
@@ -194,7 +195,7 @@ define({
       for (const a of accounts) {
         await tx.postSocialAccount.upsert({
           where: { postId_socialAccountId: { postId: p.id, socialAccountId: a.id } },
-          update: { targetStatus: 'PENDING', error: undefined, attemptId: null, pendingRef: null, nextPollAt: null },
+          update: { targetStatus: 'PENDING', error: Prisma.DbNull, attemptId: null, pendingRef: null, nextPollAt: null },
           create: { postId: p.id, socialAccountId: a.id, type: a.type },
         });
       }
@@ -203,10 +204,9 @@ define({
       await tx.upload.updateMany({ where: { id: { in: uploads.map(u => u.id) } }, data: { pinned: true, lastUsedAt: new Date() } });
       const up = await tx.post.update({
         where: { id: p.id },
-        data: { title: merged.title, referenceKey: merged.referenceKey, postDate: merged.postDate, status: merged.status, data: merged.data, firstComment: merged.firstComment ?? undefined, error: null, countedAt: p.countedAt ?? (merged.status === 'SCHEDULED' ? new Date() : null) },
+        data: { title: merged.title, referenceKey: merged.referenceKey, postDate: merged.postDate, status: merged.status, data: merged.data, firstComment: merged.firstComment ?? Prisma.DbNull, error: null, errors: Prisma.DbNull, errorsVerbose: Prisma.DbNull, countedAt: p.countedAt ?? (merged.status === 'SCHEDULED' ? new Date() : null) },
         include: postInclude,
       });
-      await tx.postSocialAccount.updateMany({ where: { postId: p.id }, data: { error: undefined } });
       await audit(tx, actor, 'post.update', 'Post', p.id, `Updated "${up.title}"`);
       return up;
     });
@@ -246,7 +246,7 @@ define({
     const failed = p.socialAccounts.filter(t => t.targetStatus === 'ERROR');
     if (!failed.length) throw badRequest('Nothing to retry.');
     await prisma.$transaction(async tx => {
-      await tx.postSocialAccount.updateMany({ where: { postId: p.id, targetStatus: 'ERROR' }, data: { targetStatus: 'PENDING', attemptId: null, pendingRef: null, nextPollAt: null } });
+      await tx.postSocialAccount.updateMany({ where: { postId: p.id, targetStatus: 'ERROR' }, data: { targetStatus: 'PENDING', attemptId: null, pendingRef: null, nextPollAt: null, error: Prisma.DbNull } });
       await tx.post.update({ where: { id: p.id }, data: { status: 'RETRYING', retryCount: { increment: 1 }, error: null } });
       await audit(tx, actor, 'post.retry', 'Post', p.id, `Retried "${p.title}" on ${failed.map(t => t.type).join(', ')}`);
     });
