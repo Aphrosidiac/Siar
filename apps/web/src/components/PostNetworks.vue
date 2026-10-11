@@ -16,7 +16,7 @@ const tone = (s?: string | null) => (s === 'POSTED' ? 'ok' : s === 'ERROR' ? 'ba
 <style scoped>
 .pn { display: inline-flex; gap: 6px; flex-wrap: wrap; }
 .cell { position: relative; display: inline-flex; }
-.mark { position: absolute; right: -3px; bottom: -3px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--bg); background: var(--text-faint); }
+.mark { position: absolute; right: -3px; bottom: -3px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--bg-elevated); background: var(--text-faint); }
 .ok .mark { background: var(--success); }
 .bad .mark { background: var(--danger); }
 .wait .mark { background: var(--warn); }

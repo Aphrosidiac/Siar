@@ -6,7 +6,6 @@ import { Link2, MoreHorizontal, RefreshCw, TriangleAlert, Unplug, Plug, Activity
 import PageHead from '@/components/PageHead.vue';
 import NoTeam from '@/components/NoTeam.vue';
 import NetworkIcon from '@/components/NetworkIcon.vue';
-import StatusBadge from '@/components/StatusBadge.vue';
 import CopyField from '@/components/CopyField.vue';
 import Avatar from '@/components/ui/Avatar.vue';
 import Button from '@/components/ui/Button.vue';
@@ -25,6 +24,8 @@ import type { NetworkType, SocialAccount } from '@/lib/types';
 
 const route = useRoute(); const router = useRouter();
 const accounts = computed(() => new Map((currentTeam.value?.socialAccounts ?? []).map((a) => [a.type, a])));
+const connected = computed(() => NETWORKS.filter((n) => accounts.value.has(n.type)));
+const available = computed(() => NETWORKS.filter((n) => !accounts.value.has(n.type)));
 const busy = ref<string | null>(null);
 
 // ── connect ──
@@ -145,30 +146,29 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
         <Button size="sm" variant="primary" :loading="busy === 'requeue'" @click="requeue">Re-queue</Button>
         <Button size="sm" variant="ghost" @click="retryOffer = null">Not now</Button>
       </div>
-      <div class="tiles">
-        <article v-for="n in NETWORKS" :key="n.type" class="tile" :class="{ on: accounts.has(n.type) }">
-          <div class="row">
-            <NetworkIcon :type="n.type" :size="36" :title="false" />
-            <div class="grow"><h3>{{ n.name }}</h3><div class="tiny muted">{{ n.blurb }}</div></div>
-            <Dropdown v-if="accounts.get(n.type)" align="right">
-              <template #trigger="{ toggle }"><Button iconOnly label="Account actions" variant="ghost" size="sm" :icon="MoreHorizontal" @click="toggle" /></template>
-              <button type="button" class="menu-item" data-close @click="check(accounts.get(n.type)!)"><Activity :size="14" />Check connection</button>
-              <button type="button" class="menu-item" data-close @click="profile(accounts.get(n.type)!)"><RefreshCw :size="14" />Refresh profile</button>
-              <button v-if="SET_CHANNEL_TYPES.includes(n.type) && accounts.get(n.type)!.channelId" type="button" class="menu-item" data-close @click="unsetChannel(accounts.get(n.type)!)"><Unplug :size="14" />Clear {{ n.channelNoun }}</button>
-              <button v-if="n.type === 'FACEBOOK' || n.type === 'INSTAGRAM'" type="button" class="menu-item" data-close @click="toggleMessaging(accounts.get(n.type)!)"><Mail :size="14" />{{ accounts.get(n.type)!.messagingStatus === 'ENABLED' ? 'Disable' : 'Enable' }} inbox messaging</button>
-              <button type="button" class="menu-item" data-close @click="startConnect(n.type)"><Plug :size="14" />Reconnect</button>
-              <div class="menu-sep" />
-              <button v-if="isAdmin" type="button" class="menu-item danger" data-close @click="disconnect(accounts.get(n.type)!)"><Unplug :size="14" />Disconnect</button>
-            </Dropdown>
-          </div>
-
-          <template v-if="accounts.get(n.type)">
-            <div class="acct">
-              <Avatar :src="accounts.get(n.type)!.avatarUrl" :name="accounts.get(n.type)!.displayName ?? accounts.get(n.type)!.username" :size="32" />
-              <div class="grow"><div class="strong truncate">{{ accounts.get(n.type)!.displayName ?? accounts.get(n.type)!.username }}</div><div class="tiny muted truncate">{{ accounts.get(n.type)!.username ? handle(accounts.get(n.type)!.username) : '' }}</div></div>
-              <Badge v-if="accounts.get(n.type)!.connectionState === 'NEEDS_RECONNECT'" tone="danger" dot>Reconnect</Badge>
-              <StatusBadge v-else status="CONNECTED" size="sm" />
+      <section v-if="connected.length" class="sec">
+        <div class="label sec-h">Connected <span class="num">{{ connected.length }}</span></div>
+        <div class="list">
+          <article v-for="n in connected" :key="n.type" class="acc" :class="{ bad: accounts.get(n.type)!.connectionState === 'NEEDS_RECONNECT' }">
+            <div class="acc-head">
+              <NetworkIcon :type="n.type" :size="36" :title="false" />
+              <div class="who">
+                <div class="row gap-4"><span class="net">{{ n.name }}</span><span class="muted small">·</span><span class="small muted truncate">{{ accounts.get(n.type)!.username ? handle(accounts.get(n.type)!.username) : '' }}</span></div>
+                <div class="row" style="gap: 6px"><Avatar :src="accounts.get(n.type)!.avatarUrl" :name="accounts.get(n.type)!.displayName ?? accounts.get(n.type)!.username" :size="18" /><span class="small truncate">{{ accounts.get(n.type)!.displayName ?? accounts.get(n.type)!.username }}</span></div>
+              </div>
+              <Badge v-if="accounts.get(n.type)!.connectionState === 'NEEDS_RECONNECT'" tone="danger" dot>Needs reconnect</Badge>
+              <Dropdown v-if="accounts.get(n.type)" align="right">
+                <template #trigger="{ toggle }"><Button iconOnly label="Account actions" variant="ghost" size="sm" :icon="MoreHorizontal" @click="toggle" /></template>
+                <button type="button" class="menu-item" data-close @click="check(accounts.get(n.type)!)"><Activity :size="14" />Check connection</button>
+                <button type="button" class="menu-item" data-close @click="profile(accounts.get(n.type)!)"><RefreshCw :size="14" />Refresh profile</button>
+                <button v-if="SET_CHANNEL_TYPES.includes(n.type) && accounts.get(n.type)!.channelId" type="button" class="menu-item" data-close @click="unsetChannel(accounts.get(n.type)!)"><Unplug :size="14" />Clear {{ n.channelNoun }}</button>
+                <button v-if="n.type === 'FACEBOOK' || n.type === 'INSTAGRAM'" type="button" class="menu-item" data-close @click="toggleMessaging(accounts.get(n.type)!)"><Mail :size="14" />{{ accounts.get(n.type)!.messagingStatus === 'ENABLED' ? 'Disable' : 'Enable' }} inbox messaging</button>
+                <button type="button" class="menu-item" data-close @click="startConnect(n.type)"><Plug :size="14" />Reconnect</button>
+                <div class="menu-sep" />
+                <button v-if="isAdmin" type="button" class="menu-item danger" data-close @click="disconnect(accounts.get(n.type)!)"><Unplug :size="14" />Disconnect</button>
+              </Dropdown>
             </div>
+            <div class="acc-body">
             <div v-if="accounts.get(n.type)!.connectionState === 'NEEDS_RECONNECT'" class="callout danger small">
               <TriangleAlert :size="16" /><div class="grow">{{ accounts.get(n.type)!.connectionStateReason || 'The network rejected our access. Posts to this account will fail until you reconnect.' }}</div>
             </div>
@@ -180,12 +180,20 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
               <Button size="sm" :variant="needsChannel(accounts.get(n.type)!) ? 'primary' : 'secondary'" @click="openChannel(accounts.get(n.type)!)">{{ accounts.get(n.type)!.channelId ? 'Change' : 'Choose' }}</Button>
             </div>
             <div v-if="accounts.get(n.type)!.connectionState === 'NEEDS_RECONNECT'" class="row"><Button variant="primary" size="sm" :loading="busy === n.type" @click="startConnect(n.type)">Reconnect {{ n.name }}</Button></div>
-          </template>
-          <template v-else>
-            <div class="row" style="margin-top: auto"><Button variant="secondary" :icon="Plug" size="sm" :loading="busy === n.type" @click="startConnect(n.type)">Connect {{ n.name }}</Button></div>
-          </template>
-        </article>
-      </div>
+            </div>
+          </article>
+        </div>
+      </section>
+      <section class="sec">
+        <div class="label sec-h">{{ connected.length ? 'Add a network' : 'Networks' }} <span class="num">{{ available.length }}</span></div>
+        <div class="list avail">
+          <div v-for="n in available" :key="n.type" class="av-row">
+            <NetworkIcon :type="n.type" :size="32" :title="false" />
+            <div class="grow"><div class="net">{{ n.name }}</div><div class="small muted truncate">{{ n.blurb }}</div></div>
+            <Button variant="secondary" size="sm" :loading="busy === n.type" @click="startConnect(n.type)">Connect</Button>
+          </div>
+        </div>
+      </section>
     </template>
 
     <!-- connect options -->
@@ -231,12 +239,21 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
 </template>
 
 <style scoped>
-.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
-.tile { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; background: var(--bg); display: flex; flex-direction: column; gap: 12px; min-height: 148px; }
-.tile.on { border-color: var(--border-strong); }
-.acct { display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: var(--radius); background: var(--bg-subtle); border: 1px solid var(--border); }
-.chan { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; }
+.sec + .sec { margin-top: 36px; }
+.sec-h { display: flex; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--text); }
+.sec-h .num { color: var(--text-faint); }
+.list { display: flex; flex-direction: column; }
+.acc { padding: 18px 0; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; }
+.acc-head { display: flex; align-items: center; gap: 14px; }
+.who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.net { font-weight: 500; font-size: var(--fs-15); line-height: 22px; }
+.acc-body { display: flex; flex-direction: column; gap: 10px; padding-left: 50px; }
+.acc-body:empty { display: none; }
+.avail { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; }
+.av-row { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); min-width: 0; }
+@media (max-width: 760px) { .avail { grid-template-columns: minmax(0, 1fr); } .acc-body { padding-left: 0; } }
+.chan { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: background var(--t-micro), border-color var(--t-micro); }
 .chan:hover { background: var(--bg-hover); }
-.chan.on { border-color: var(--accent); background: var(--accent-soft); }
+.chan.on { border-color: var(--text); background: var(--bg-hover); }
 .chan:has(input:focus-visible) { box-shadow: var(--focus); }
 </style>

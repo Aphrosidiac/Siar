@@ -45,9 +45,9 @@ function onChange(e: Event) {
   </div>
 </template>
 <style scoped>
-.drop { border: 1px dashed var(--border-strong); border-radius: var(--radius); padding: 24px 16px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; cursor: pointer; background: var(--bg-subtle); transition: border-color 0.12s, background 0.12s; }
+.drop { border: 1px dashed var(--border-strong); border-radius: var(--radius-lg); padding: 28px 16px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; cursor: pointer; background: var(--bg-elevated); transition: border-color var(--t-micro), background var(--t-micro); }
 .drop.compact { padding: 12px; flex-direction: row; justify-content: center; gap: 8px; }
-.drop:hover, .drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.drop:hover, .drop.over { border-color: var(--text-subtle); background: var(--bg-hover); }
 .drop.disabled { opacity: 0.5; cursor: not-allowed; }
 .ic { color: var(--text-subtle); }
 .t { font-weight: 500; }

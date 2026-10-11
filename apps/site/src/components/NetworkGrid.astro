@@ -17,11 +17,11 @@ const href = (n: (typeof NETWORKS)[number]) => `/${n[target]}`;
   ))}
 </div>
 <style>
-  .ng { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
-  .item { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-elev); color: var(--fg); min-width: 0; }
-  .item:hover { border-color: var(--border-strong); text-decoration: none; }
+  .ng { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0 40px; }
+  .item { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-top: 1px solid var(--border); color: var(--text); min-width: 0; text-decoration: none; transition: border-color var(--t-micro); }
+  .item:hover { border-top-color: var(--text); }
   .t { display: flex; flex-direction: column; min-width: 0; }
-  .name { font-weight: 600; font-size: 15px; }
-  .types { font-size: 13px; color: var(--fg-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .name { font-weight: 500; font-size: var(--fs-15); line-height: 22px; }
+  .types { font-size: var(--fs-13); line-height: 18px; color: var(--text-subtle); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   @media (max-width: 480px) { .ng { grid-template-columns: minmax(0, 1fr); } }
 </style>

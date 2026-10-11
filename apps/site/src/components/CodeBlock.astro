@@ -9,7 +9,7 @@ const { code, lang = 'bash', title } = Astro.props;
 </div>
 <style>
   .cb { margin: 0 0 20px; min-width: 0; }
-  .cbt { font-size: 13px; font-family: var(--mono); color: var(--fg-3); border: 1px solid var(--border); border-bottom: 0; background: var(--bg-soft); padding: 8px 14px; border-radius: 8px 8px 0 0; }
-  .cbt + :global(pre) { border-top-left-radius: 0; border-top-right-radius: 0; }
+  .cbt { font-size: var(--fs-12); line-height: 16px; font-family: var(--mono); color: var(--code-muted); background: var(--code-bg); border: 1px solid var(--code-line); border-bottom-color: var(--code-line); padding: 10px 16px; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+  .cbt + :global(pre) { border-top-left-radius: 0; border-top-right-radius: 0; border-top: 0; }
   .cb :global(pre) { margin: 0; }
 </style>

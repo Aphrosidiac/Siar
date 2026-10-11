@@ -10,4 +10,4 @@ import { RESOURCE_LIMITS } from '../lib/plans';
   <li><strong>Media retention.</strong> Files are kept for {RESOURCE_LIMITS.mediaRetentionDays} days after their last use: from the upload, or from the last time a post using it finished publishing, whichever is later. Media on a draft or scheduled post is kept until that post finishes. Deleted uploads keep their file for {RESOURCE_LIMITS.softDeletedMediaDays} more days. Published posts on the networks are never affected.</li>
   <li><strong>Usage endpoints.</strong> Read current usage at any time from <code>GET /organization/usage/posts</code>, <code>/comments</code>, <code>/uploads</code>, <code>/daily-limits</code> and <code>/imports</code>.</li>
 </ul>
-<style>.rules li { margin-bottom: 10px; font-size: 15px; }</style>
+<style>.rules li { margin-bottom: 10px; font-size: var(--fs-15); }</style>

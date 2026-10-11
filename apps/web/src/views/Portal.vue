@@ -104,8 +104,8 @@ async function disconnect(t: string) {
 .wrap { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
 .head { display: flex; gap: 16px; align-items: center; }
 .logo { width: 48px; height: 48px; object-fit: contain; border-radius: var(--radius); }
-.card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; }
+.card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; }
 .center { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .tiles { display: flex; flex-direction: column; gap: 8px; }
-.tile { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.tile { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); }
 </style>

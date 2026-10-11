@@ -200,7 +200,7 @@ const submitLabel = computed(() => (form.when === 'now' ? 'Publish now' : form.w
       <div v-if="locked" class="callout warn mb-16"><TriangleAlert :size="16" />This post is already {{ loaded.data.value?.status.toLowerCase() }} and can no longer be edited.</div>
       <div class="cmp">
         <div class="stack-16" style="min-width: 0">
-          <Card title="1. Choose networks" :subtitle="accounts.length ? 'Tap an account to include it.' : ''">
+          <Card title="Networks" :subtitle="accounts.length ? 'Tap an account to include it.' : ''">
             <div v-if="!accounts.length" class="callout info">No accounts are connected to this team yet. <router-link to="/social-accounts">Connect an account</router-link> to start posting.</div>
             <div v-else class="chips">
               <button v-for="a in accounts" :key="a.id" type="button" class="chip" :class="{ on: form.types.includes(a.type) }" :disabled="!!blocked(a) && !form.types.includes(a.type)" :aria-pressed="form.types.includes(a.type)" :title="blocked(a) ?? undefined" @click="toggleType(a)">
@@ -210,7 +210,7 @@ const submitLabel = computed(() => (form.when === 'now' ? 'Publish now' : form.w
             </div>
           </Card>
 
-          <Card title="2. Write it">
+          <Card title="Content">
             <template #actions><Tabs v-model="tab" :tabs="tabs" size="sm" /></template>
             <div v-if="issuesFor.general.length" class="callout danger mb-16" role="alert"><div><div v-for="m in issuesFor.general" :key="m">{{ m }}</div></div></div>
 
@@ -271,7 +271,7 @@ const submitLabel = computed(() => (form.when === 'now' ? 'Publish now' : form.w
         </div>
 
         <aside class="stack-16 sticky">
-          <Card title="3. Publish">
+          <Card title="Publish">
             <div class="stack-16">
               <div class="pill-toggle" role="group" aria-label="When to publish">
                 <button type="button" :class="{ on: form.when === 'schedule' }" @click="form.when = 'schedule'">Schedule</button>
@@ -302,13 +302,15 @@ const submitLabel = computed(() => (form.when === 'now' ? 'Publish now' : form.w
 .sticky { position: sticky; top: 16px; }
 @media (max-width: 1100px) { .cmp { grid-template-columns: minmax(0, 1fr); } .sticky { position: static; } }
 .chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
-.chip { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--bg); cursor: pointer; color: var(--text); min-width: 0; }
-.chip:hover:not(:disabled) { background: var(--bg-hover); }
-.chip.on { border-color: var(--accent); background: var(--accent-soft); }
+.chip { position: relative; display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-elevated); cursor: pointer; color: var(--text); min-width: 0; }
+.chip { transition: border-color var(--t-micro), box-shadow var(--t-micro), background var(--t-micro); }
+.chip:hover:not(:disabled) { border-color: var(--border-strong); }
+.chip.on { border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text); }
+.chip.on::after { content: ''; position: absolute; top: 50%; right: 12px; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: var(--text); }
 .chip:disabled { opacity: 0.55; cursor: not-allowed; }
 .d-block { display: block; }
-.cnt { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-13); line-height: 18px; padding: 2px 8px; border: 1px solid var(--border); border-radius: 999px; color: var(--text-muted); }
-.cnt.over { color: var(--danger); border-color: var(--danger); }
+.cnt { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: var(--fs-12); line-height: 18px; padding: 2px 8px; background: var(--bg-muted); border-radius: var(--radius-sm); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.cnt.over { color: var(--danger-soft-text); background: var(--danger-soft); }
 .att { position: relative; width: 64px; height: 64px; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border); background: var(--bg-muted); }
 .att img { width: 100%; height: 100%; object-fit: cover; }
 .att .ph { width: 100%; height: 100%; display: grid; place-items: center; color: var(--text-subtle); }

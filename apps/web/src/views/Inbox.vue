@@ -189,19 +189,20 @@ watch(() => session.teamId, () => { activeId.value = null; offset.value = 0; });
 </template>
 
 <style scoped>
-.split { display: grid; grid-template-columns: 340px minmax(0, 1fr); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; height: calc(100vh - 260px); min-height: 460px; background: var(--bg); }
+.split { display: grid; grid-template-columns: 340px minmax(0, 1fr); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; height: calc(100vh - 260px); min-height: 460px; background: var(--bg-elevated); }
 @media (max-width: 900px) { .split { grid-template-columns: minmax(0, 1fr); height: auto; } .thread { min-height: 420px; } }
 .list { border-right: 1px solid var(--border); overflow-y: auto; min-width: 0; }
 .conv { display: flex; gap: 10px; align-items: center; width: 100%; padding: 10px 12px; border: 0; border-bottom: 1px solid var(--border); background: none; cursor: pointer; color: var(--text); }
 .conv:hover { background: var(--bg-hover); }
-.conv.on { background: var(--accent-soft); }
-.unread { background: var(--accent); color: var(--accent-fg); border-radius: 999px; font-size: var(--fs-12); line-height: 16px; padding: 0 6px; font-weight: 600; }
+.conv.on { background: var(--bg-hover); box-shadow: inset 2px 0 0 var(--text); }
+.unread { background: var(--text); color: var(--bg); border-radius: var(--radius-sm); font-family: var(--mono); font-size: var(--fs-11); line-height: 16px; padding: 0 5px; }
 .thread { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .th-head { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--border); }
 .msgs { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
 .bubble-row { display: flex; } .bubble-row.out { justify-content: flex-end; }
 .bubble { max-width: 75%; padding: 8px 12px; border-radius: 12px; background: var(--bg-muted); display: flex; flex-direction: column; gap: 4px; }
-.bubble.out { background: var(--accent-soft); color: var(--accent-soft-text); }
+.bubble.out { background: var(--text); color: var(--bg); }
+.bubble.out .meta { color: inherit; opacity: .65; }
 .bubble.failed { outline: 1px solid var(--danger); }
 .meta { color: var(--text-subtle); display: flex; gap: 6px; align-items: center; }
 .composer { border-top: 1px solid var(--border); padding: 12px 16px; }

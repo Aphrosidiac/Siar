@@ -73,14 +73,14 @@ const rcols = [{ key: 'rowNumber', label: 'Row', width: '70px' }, { key: 'status
   <div class="page">
     <PageHead title="Bulk post" subtitle="Schedule hundreds of posts from one CSV file. Each row becomes a post, with its own text, networks and media URLs." />
     <div class="grid-2" style="align-items: start">
-      <Card title="1. Get the template" :subtitle="currentTeam ? `Pre-filled with the ID of ${currentTeam.name}.` : undefined">
+      <Card title="Template" :subtitle="currentTeam ? `Pre-filled with the ID of ${currentTeam.name}.` : undefined">
         <div class="stack-16">
           <div class="grid-2" style="gap: 4px 12px"><Checkbox v-for="n in NETWORKS.filter((x) => PREFIX[x.type])" :key="n.type" :model-value="chosen.has(n.type)" :label="n.name" @update:model-value="tog(n.type, $event)" /></div>
           <div><Button :icon="Download" :disabled="!chosen.size" @click="template">Download template</Button></div>
           <p class="small muted">Separate several networks or several media URLs with <code>#</code>. Dates are ISO 8601 (<code>2026-11-01T09:00:00Z</code>). Status is SCHEDULED or DRAFT.</p>
         </div>
       </Card>
-      <Card title="2. Upload your CSV">
+      <Card title="Upload">
         <div class="stack-16">
           <FileDrop accept=".csv,text/csv" :multiple="false" title="Drop a .csv file here or click to browse" hint="Up to 10 MB" :disabled="uploading" @files="upload" />
           <div v-if="uploadError" class="callout danger" role="alert"><div><div class="strong">{{ uploadError.message }}</div><ul v-if="uploadError.issues.length > 1" class="small" style="margin: 4px 0 0; padding-left: 16px"><li v-for="i in uploadError.issues.slice(0, 8)" :key="i">{{ i }}</li></ul></div></div>

@@ -29,10 +29,10 @@ const tabs = computed(() => [{ value: 'general', label: 'General' }, { value: 'm
 
 // ── general ──
 const o = session.org as any;
-const f = reactive({ name: '', uploadsCompression: true, verboseErrors: true, remoteDisconnectChecks: true, deleteDisconnectedAfterHours: 72, portalBrandName: '', portalLogoUrl: '', portalAccentColor: '#4F46E5' });
+const f = reactive({ name: '', uploadsCompression: true, verboseErrors: true, remoteDisconnectChecks: true, deleteDisconnectedAfterHours: 72, portalBrandName: '', portalLogoUrl: '', portalAccentColor: '#161615' });
 function fill() {
   const org = session.org as any; if (!org) return;
-  Object.assign(f, { name: org.name ?? '', uploadsCompression: org.uploadsCompressionEnabled !== false, verboseErrors: org.showVerboseErrors !== false, remoteDisconnectChecks: org.disconnectCheckEnabled !== false, deleteDisconnectedAfterHours: org.deleteAccountAfter ?? 72, portalBrandName: org.portalBrandName ?? '', portalLogoUrl: org.portalLogoUrl ?? '', portalAccentColor: org.portalAccentColor ?? '#4F46E5' });
+  Object.assign(f, { name: org.name ?? '', uploadsCompression: org.uploadsCompressionEnabled !== false, verboseErrors: org.showVerboseErrors !== false, remoteDisconnectChecks: org.disconnectCheckEnabled !== false, deleteDisconnectedAfterHours: org.deleteAccountAfter ?? 72, portalBrandName: org.portalBrandName ?? '', portalLogoUrl: org.portalLogoUrl ?? '', portalAccentColor: org.portalAccentColor ?? '#161615' });
 }
 watch(() => session.org, fill, { immediate: true });
 void o;
@@ -147,5 +147,5 @@ const acols = [{ key: 'createdAt', label: 'When', width: '160px' }, { key: 'acto
 </template>
 
 <style scoped>
-.swatch { width: 40px; height: 36px; padding: 2px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--bg); cursor: pointer; }
+.swatch { width: 40px; height: 36px; padding: 2px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--bg-elevated); cursor: pointer; }
 </style>

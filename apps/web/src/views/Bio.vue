@@ -38,8 +38,8 @@ async function createBio() {
 }
 
 // edit settings
-const f = reactive({ slug: '', title: '', description: '', avatarUrl: '', accent: '#4F46E5', published: false });
-watch(bio, (b) => { if (b) Object.assign(f, { slug: b.slug, title: b.title ?? '', description: b.description ?? '', avatarUrl: b.avatarUrl ?? '', accent: b.theme?.accent ?? '#4F46E5', published: !!b.published }); }, { immediate: true });
+const f = reactive({ slug: '', title: '', description: '', avatarUrl: '', accent: '#161615', published: false });
+watch(bio, (b) => { if (b) Object.assign(f, { slug: b.slug, title: b.title ?? '', description: b.description ?? '', avatarUrl: b.avatarUrl ?? '', accent: b.theme?.accent ?? '#161615', published: !!b.published }); }, { immediate: true });
 const frame = ref(0);
 async function saveSettings(extra: Record<string, unknown> = {}) {
   if (!bio.value) return;
@@ -160,8 +160,8 @@ async function move(i: number, d: number) {
 .bio { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
 @media (max-width: 1100px) { .bio { grid-template-columns: minmax(0, 1fr); } .preview { display: none; } }
 .preview { position: sticky; top: 16px; }
-.phone { border: 8px solid var(--text); border-radius: 32px; overflow: hidden; height: 600px; background: var(--bg); }
+.phone { border: 8px solid var(--text); border-radius: 32px; overflow: hidden; height: 600px; background: var(--bg-elevated); }
 .phone iframe { width: 100%; height: 100%; border: 0; }
 .off { opacity: 0.55; }
-.swatch { width: 40px; height: 36px; padding: 2px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--bg); cursor: pointer; }
+.swatch { width: 40px; height: 36px; padding: 2px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--bg-elevated); cursor: pointer; }
 </style>

@@ -16,14 +16,14 @@ const headings: { depth: number; slug: string; text: string }[] = (Astro.props.h
 const crumbs = [{ name: 'Docs', href: '/docs' }, { name: title, href: path }];
 ---
 <Base title={`${title} | Siar docs`} description={description} jsonLd={[breadcrumbLd(crumbs), articleLd({ title, description: description ?? title, date: LAST_UPDATED, path })]}>
-  <div class="container dl">
+  <div class:list={['container', 'dl', { notoc: !(toc && headings.length > 2) }]}>
     <aside class="side">
       <details class="sidewrap" open>
         <summary class="sidesum">Documentation menu</summary>
         <nav aria-label="Documentation">
           {groups.map((g) => (
             <div class="grp">
-              <p class="gt">{g.title}</p>
+              <p class="gt label">{g.title}</p>
               <ul>{g.items.map((i) => <li><a href={i.href} class:list={[{ on: i.href === path }]} aria-current={i.href === path ? 'page' : undefined}>{i.label}</a></li>)}</ul>
             </div>
           ))}
@@ -43,7 +43,7 @@ const crumbs = [{ name: 'Docs', href: '/docs' }, { name: title, href: path }];
     </article>
     {toc && headings.length > 2 && (
       <aside class="toc" aria-label="On this page">
-        <p class="gt">On this page</p>
+        <p class="gt label">On this page</p>
         <ul>{headings.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}</ul>
       </aside>
     )}
@@ -51,36 +51,40 @@ const crumbs = [{ name: 'Docs', href: '/docs' }, { name: title, href: path }];
 </Base>
 <style>
   .dl { display: grid; grid-template-columns: 240px minmax(0, 1fr) 200px; gap: 48px; padding-top: 40px; padding-bottom: 80px; align-items: start; }
-  .side { position: sticky; top: 76px; max-height: calc(100vh - 92px); overflow-y: auto; }
+  .side { position: sticky; top: 84px; max-height: calc(100vh - 100px); overflow-y: auto; }
   .sidesum { display: none; }
-  .gt { font-size: 13px; font-weight: 600; color: var(--fg); margin: 0 0 8px; }
-  .grp { margin-bottom: 20px; }
+  .gt { margin: 0 0 8px; }
+  .grp { margin-bottom: 24px; }
   ul { list-style: none; margin: 0; padding: 0; }
   li { margin: 0; }
-  .side li a { display: block; padding: 6px 10px; font-size: 14px; color: var(--fg-2); border-radius: 6px; }
-  .side li a:hover { background: var(--bg-muted); color: var(--fg); text-decoration: none; }
-  .side li a.on { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
+  .side ul { border-left: 1px solid var(--border); }
+  .side li a { display: block; padding: 5px 12px; margin-left: -1px; border-left: 2px solid transparent; font-size: var(--fs-14); line-height: 20px; color: var(--text-subtle); text-decoration: none; transition: color var(--t-micro), border-color var(--t-micro); }
+  .side li a:hover { color: var(--text); border-left-color: var(--border-strong); }
+  .side li a.on { border-left-color: var(--text); color: var(--text); font-weight: 500; }
+  .dl.notoc { grid-template-columns: 240px minmax(0, 1fr); }
   .art { min-width: 0; max-width: 780px; }
+  .notoc .art { max-width: 920px; }
   .art h1 { margin-bottom: 12px; }
   .doc { margin-top: 24px; }
-  .doc :global(h2) { font-size: 24px; margin-top: 44px; padding-top: 4px; }
-  .doc :global(h3) { font-size: 18px; margin-top: 28px; }
-  .doc :global(p), .doc :global(li) { font-size: 16px; }
-  .doc :global(table) { font-size: 14px; }
+  .doc :global(h2) { margin-top: 44px; padding-top: 4px; }
+  .doc :global(h3) { font-size: var(--fs-18); margin-top: 28px; }
+  .doc :global(p), .doc :global(li) { font-size: var(--fs-16); }
+  .doc :global(table) { font-size: var(--fs-14); }
   .doc :global(.table-wrap) { margin-top: 12px; }
-  .toc { position: sticky; top: 76px; }
-  .toc li a { display: block; font-size: 13px; color: var(--fg-3); padding: 4px 0; }
-  .toc li a:hover { color: var(--fg); text-decoration: none; }
-  .pn { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 56px; }
-  .pn .card { padding: 16px; }
+  .toc { position: sticky; top: 84px; }
+  .toc li a { display: block; font-size: var(--fs-13); line-height: 18px; color: var(--text-subtle); padding: 4px 0; text-decoration: none; }
+  .toc li a:hover { color: var(--text); text-decoration: underline; text-decoration-color: currentColor; text-underline-offset: 3px; }
+  .pn { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 56px; }
+  .pn .card { padding: 16px 0 0; }
   .pn .r { text-align: right; }
-  @media (max-width: 1100px) { .dl { grid-template-columns: 220px minmax(0, 1fr); } .toc { display: none; } }
+  @media (max-width: 1100px) { .dl, .dl.notoc { grid-template-columns: 220px minmax(0, 1fr); } .toc { display: none; } }
   @media (max-width: 800px) {
-    .dl { grid-template-columns: minmax(0, 1fr); gap: 16px; padding-top: 16px; }
+    .dl, .dl.notoc { grid-template-columns: minmax(0, 1fr); gap: 16px; padding-top: 16px; }
     .side { position: static; max-height: none; }
-    .sidewrap { border: 1px solid var(--border); border-radius: 8px; padding: 0 12px; }
+    .sidewrap { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-elevated); padding: 0 12px; }
     .sidewrap[open] { padding-bottom: 12px; }
-    .sidesum { display: block; padding: 10px 0; font-size: 14px; font-weight: 600; }
+    .sidesum { display: block; padding: 10px 0; font-size: var(--fs-14); font-weight: 500; }
+    .pn { gap: 16px; }
   }
 </style>
 <script is:inline>

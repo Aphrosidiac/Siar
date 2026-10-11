@@ -83,7 +83,7 @@ const tip = computed(() => {
 .lc { position: relative; width: 100%; }
 svg { display: block; overflow: visible; }
 .grid line { stroke: var(--border); stroke-width: 1; }
-.ylab text, .xlab text { fill: var(--text-faint); font-size: 12px; }
+.ylab text, .xlab text { fill: var(--text-faint); font-size: var(--fs-12); }
 .cross { stroke: var(--border-strong); stroke-dasharray: 3 3; }
 .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; color: var(--text-muted); }
 .tip { position: absolute; top: 8px; min-width: 150px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); box-shadow: var(--shadow); padding: 8px 10px; pointer-events: none; display: flex; flex-direction: column; gap: 2px; }

@@ -52,7 +52,7 @@ const tone = (k?: string | null) => (k?.includes('error') || k?.includes('fail')
 </template>
 
 <style scoped>
-.nt { width: 100%; border: 0; border-top: 1px solid var(--border); background: var(--bg); cursor: pointer; color: var(--text); align-items: flex-start !important; }
+.nt { width: 100%; border: 0; border-top: 1px solid var(--border); background: var(--bg-elevated); cursor: pointer; color: var(--text); align-items: flex-start !important; }
 .nt:first-child { border-top: 0; }
 .nt:hover { background: var(--bg-hover); }
 .nt.unread { background: var(--bg-subtle); }

@@ -16,8 +16,8 @@ const to = computed(() => Math.min(props.offset + props.limit, props.total));
   </nav>
 </template>
 <style scoped>
-.pager { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0 0; }
-.pb { width: 32px; height: 32px; border: 1px solid var(--border-strong); background: var(--bg); border-radius: var(--radius); display: grid; place-items: center; cursor: pointer; color: var(--text-muted); }
-.pb:hover:not(:disabled) { background: var(--bg-hover); color: var(--text); }
-.pb:disabled { opacity: 0.4; cursor: not-allowed; }
+.pager { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0 0; }
+.pb { width: 30px; height: 30px; border: 1px solid var(--border); background: var(--bg-elevated); border-radius: var(--radius); display: grid; place-items: center; cursor: pointer; color: var(--text-muted); transition: border-color var(--t-micro), color var(--t-micro); }
+.pb:hover:not(:disabled) { border-color: var(--border-strong); color: var(--text); }
+.pb:disabled { opacity: 0.35; cursor: not-allowed; }
 </style>

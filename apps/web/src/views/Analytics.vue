@@ -69,7 +69,7 @@ const rows = computed(() => (top.data.value ?? []).map((r) => ({ id: r.post.id, 
     <EmptyState v-else-if="!available.length" :icon="BarChart3" title="No accounts to measure" description="Connect an account that supports analytics and numbers start appearing within a day."><Button variant="primary" to="/social-accounts">Connect an account</Button></EmptyState>
     <template v-else>
       <div class="toolbar">
-        <div class="chips">
+        <div class="nets">
           <button v-for="a in available" :key="a.type" type="button" class="nchip" :class="{ on: type === a.type }" :aria-pressed="type === a.type" @click="type = a.type"><NetworkIcon :type="a.type" :size="20" :title="false" />{{ META[a.type].name }}</button>
         </div>
         <span class="spacer" />
@@ -105,8 +105,10 @@ const rows = computed(() => (top.data.value ?? []).map((r) => ({ id: r.post.id, 
 
 <style scoped>
 .chips { display: flex; gap: 8px; flex-wrap: wrap; }
-.nchip { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px 5px 8px; border: 1px solid var(--border-strong); border-radius: 999px; background: var(--bg); cursor: pointer; color: var(--text); font-size: var(--fs-13); }
-.nchip:hover { background: var(--bg-hover); }
-.nchip.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-soft-text); font-weight: 600; }
+.nchip { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px 5px 8px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-elevated); cursor: pointer; color: var(--text-subtle); font-size: var(--fs-13); white-space: nowrap; flex: none; transition: border-color var(--t-micro), color var(--t-micro); }
+.nchip:hover { color: var(--text); border-color: var(--border-strong); }
+.nchip.on { border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text); color: var(--text); font-weight: 500; }
+.nets { display: flex; gap: 6px; flex-wrap: wrap; }
+@media (max-width: 640px) { .nets { flex: 1 1 100%; min-width: 0; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; } }
 @media (max-width: 900px) { .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
 </style>

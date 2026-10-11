@@ -20,15 +20,16 @@ import { dismiss, toasts } from '@/lib/toast';
 </template>
 <style scoped>
 .host { position: fixed; right: 16px; bottom: 16px; z-index: 80; display: flex; flex-direction: column; gap: 8px; width: min(380px, calc(100vw - 32px)); }
-.toast { display: flex; gap: 10px; align-items: flex-start; padding: 12px 12px 12px 14px; border-radius: var(--radius); background: var(--bg-elevated); border: 1px solid var(--border); box-shadow: var(--shadow); }
-.ic { flex: none; margin-top: 1px; }
-.success .ic { color: var(--success); }
-.error .ic { color: var(--danger); }
-.info .ic { color: var(--accent); }
+.toast { display: flex; gap: 10px; align-items: flex-start; padding: 12px 12px 12px 14px; border-radius: var(--radius-lg); background: var(--text); color: var(--bg); box-shadow: var(--shadow-lg); }
+.ic { flex: none; margin-top: 1px; opacity: .8; }
+.error .ic { color: var(--danger); opacity: 1; }
 .title { font-weight: 500; font-size: var(--fs-14); line-height: 20px; word-break: break-word; }
-.body { color: var(--text-subtle); font-size: var(--fs-13); line-height: 18px; margin-top: 2px; word-break: break-word; }
-.x { border: 0; background: none; color: var(--text-faint); cursor: pointer; padding: 2px; border-radius: 4px; }
-.x:hover { color: var(--text); background: var(--bg-hover); }
-.t-enter-active, .t-leave-active { transition: all 0.18s; }
-.t-enter-from, .t-leave-to { opacity: 0; transform: translateY(8px); }
+.body { opacity: .72; font-size: var(--fs-13); line-height: 18px; margin-top: 2px; word-break: break-word; }
+.x { border: 0; background: none; color: inherit; opacity: .6; cursor: pointer; padding: 2px; border-radius: 4px; }
+.x:hover { opacity: 1; }
+.t-move { transition: transform 360ms var(--ease-out); }
+.t-enter-active { transition: opacity 320ms var(--ease-out), transform 420ms var(--ease-out); }
+.t-leave-active { transition: opacity 180ms var(--ease-cut), transform 220ms var(--ease-cut); }
+.t-enter-from { opacity: 0; transform: translateY(14px) scale(.97); }
+.t-leave-to { opacity: 0; transform: translateX(32px); }
 </style>

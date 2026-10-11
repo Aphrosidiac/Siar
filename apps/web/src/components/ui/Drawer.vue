@@ -33,7 +33,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey));
 
 <style scoped>
 .overlay { position: fixed; inset: 0; background: var(--overlay); z-index: 55; }
-.drawer { position: absolute; top: 0; bottom: 0; background: var(--bg); border-color: var(--border); box-shadow: var(--shadow-lg); display: flex; flex-direction: column; outline: none; }
+.drawer { position: absolute; top: 0; bottom: 0; background: var(--bg-elevated); box-shadow: var(--shadow-lg); display: flex; flex-direction: column; outline: none; }
 .drawer.right { right: 0; border-left: 1px solid var(--border); }
 .drawer.left { left: 0; border-right: 1px solid var(--border); }
 .head { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); }
@@ -42,9 +42,11 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey));
 .x:hover { background: var(--bg-hover); color: var(--text); }
 .body { flex: 1; overflow-y: auto; padding: 16px 20px; min-height: 0; }
 .foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px; border-top: 1px solid var(--border); }
-.dr-enter-active, .dr-leave-active { transition: opacity 0.15s; }
-.dr-enter-active .drawer, .dr-leave-active .drawer { transition: transform 0.18s ease; }
+.dr-enter-active { transition: opacity 260ms var(--ease-out); }
+.dr-leave-active { transition: opacity 180ms var(--ease-cut); }
+.dr-enter-active .drawer { transition: transform 460ms var(--ease-out); }
+.dr-leave-active .drawer { transition: transform 200ms var(--ease-cut); }
 .dr-enter-from, .dr-leave-to { opacity: 0; }
-.dr-enter-from .drawer.right, .dr-leave-to .drawer.right { transform: translateX(24px); }
-.dr-enter-from .drawer.left, .dr-leave-to .drawer.left { transform: translateX(-24px); }
+.dr-enter-from .drawer.right, .dr-leave-to .drawer.right { transform: translateX(100%); }
+.dr-enter-from .drawer.left, .dr-leave-to .drawer.left { transform: translateX(-100%); }
 </style>

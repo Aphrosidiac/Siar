@@ -41,20 +41,20 @@ const Self = Astro.self;
 </ul>
 <style>
   .sf { list-style: none; margin: 0; padding: 0; }
-  .sf.root { border: 1px solid var(--border); border-radius: 8px; margin: 0 0 20px; }
+  .sf.root { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-elevated); margin: 0 0 20px; }
   .sf li { margin: 0; padding: 10px 14px; border-top: 1px solid var(--border); }
   .sf.root > li:first-child { border-top: 0; }
   .row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; }
-  .n { font-weight: 600; font-size: 13px; background: none !important; border: 0 !important; padding: 0 !important; color: var(--fg); }
-  .t { font-family: var(--mono); font-size: 12px; color: var(--fg-3); overflow-wrap: anywhere; }
-  .req { font-size: 12px; font-weight: 600; color: var(--accent-text); }
-  .opt { font-size: 12px; color: var(--fg-3); }
-  .enum { font-size: 13px; color: var(--fg-3); margin-top: 6px; line-height: 1.9; }
-  .enum code { font-size: 12px; }
+  .n { font-weight: 500; font-size: var(--fs-13); background: none !important; padding: 0 !important; color: var(--text); }
+  .t { font-family: var(--mono); font-size: var(--fs-12); color: var(--text-subtle); overflow-wrap: anywhere; }
+  .req { font-family: var(--mono); font-size: var(--fs-11); font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--text); }
+  .opt { font-size: var(--fs-12); color: var(--text-subtle); }
+  .enum { font-size: var(--fs-13); color: var(--text-subtle); margin-top: 6px; line-height: 28px; }
+  .enum code { font-size: var(--fs-12); }
   .kids { margin-top: 8px; }
-  .kids > summary { font-size: 13px; color: var(--fg-3); }
-  .kids :global(.sf) { border-left: 2px solid var(--border); margin: 8px 0 0 2px; }
+  .kids > summary { font-size: var(--fs-13); color: var(--text-subtle); }
+  .kids :global(.sf) { border-left: 1px solid var(--border-strong); margin: 8px 0 0 2px; }
   .kids :global(.sf li) { padding: 8px 0 8px 12px; border-top: 0; }
   .variant { margin-top: 8px; }
-  .vl { font-family: var(--mono); font-size: 12px; color: var(--fg-2); margin: 4px 0 0; }
+  .vl { font-family: var(--mono); font-size: var(--fs-12); color: var(--text-muted); margin: 4px 0 0; }
 </style>

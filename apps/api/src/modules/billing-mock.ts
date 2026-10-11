@@ -28,8 +28,8 @@ export function mockCheckoutPage(p: { id: string; purpose: string; tier: string 
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Test checkout · Siar</title>
 <style>
-:root{--bg:#F4F5F7;--card:#FFFFFF;--ink:#111827;--muted:#6B7280;--line:#E5E7EB;--accent:#4F46E5;--accent-ink:#FFFFFF}
-@media (prefers-color-scheme:dark){:root{--bg:#0B0D12;--card:#151821;--ink:#F3F4F6;--muted:#9CA3AF;--line:#2A2F3A;--accent:#818CF8;--accent-ink:#0B0D12}}
+:root{--bg:#F7F7F5;--card:#FFFFFF;--ink:#161615;--muted:#62615B;--line:#E2E1DC;--accent:#161615;--accent-ink:#FFFFFF}
+@media (prefers-color-scheme:dark){:root{--bg:#0F0F0E;--card:#171716;--ink:#EDECE8;--muted:#A3A19A;--line:#2A2A27;--accent:#EDECE8;--accent-ink:#121211}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}
 main{max-width:420px;margin:0 auto;padding:48px 16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:24px}

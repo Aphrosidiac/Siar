@@ -186,12 +186,13 @@ void session;
 .plans { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
 @media (max-width: 1100px) { .plans { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .plans { grid-template-columns: minmax(0, 1fr); } }
-.plan-card { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; background: var(--bg); display: flex; flex-direction: column; gap: 12px; }
+.plan-card { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; background: var(--bg-elevated); display: flex; flex-direction: column; gap: 12px; }
 .plan-card.cur { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-.amt { font-size: var(--fs-30); line-height: 36px; font-weight: 600; }
+.amt { font-size: var(--fs-30); line-height: 36px; font-weight: 500; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .per { font-size: var(--fs-14); font-weight: 400; color: var(--text-subtle); }
 .ok { color: var(--success); flex: none; margin-top: 3px; }
-.meter { height: 8px; border-radius: 4px; background: var(--bg-muted); overflow: hidden; margin-top: 6px; }
-.meter i { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
+.meter { height: 4px; border-radius: 2px; background: var(--bg-muted); overflow: hidden; margin-top: 6px; }
+.meter i { display: block; height: 100%; background: var(--text); border-radius: 2px; transform-origin: left; animation: grow 900ms var(--ease-out) backwards; }
+@keyframes grow { from { transform: scaleX(0); } }
 .meter.hot i { background: var(--danger); }
 </style>

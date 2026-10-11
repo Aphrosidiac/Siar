@@ -6,6 +6,7 @@ import {
   PenSquare, Plus, Send, Settings, Share2, Sun, UserCircle, Webhook, Cog,
 } from 'lucide-vue-next';
 import Dropdown from './ui/Dropdown.vue';
+import Logo from './Logo.vue';
 import Avatar from './ui/Avatar.vue';
 import Button from './ui/Button.vue';
 import Modal from './ui/Modal.vue';
@@ -68,10 +69,7 @@ const themes = [{ v: 'system', icon: Monitor, label: 'System' }, { v: 'light', i
 
 <template>
   <div class="sn">
-    <div class="brand">
-      <svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--accent)" /><path d="M10 20.5c1.4 1.3 3.4 2 5.8 2 3.2 0 5.2-1.5 5.2-3.8 0-2.1-1.4-3.1-4.6-3.8l-1.6-.3c-1.6-.3-2.2-.8-2.2-1.6 0-1 .9-1.6 2.5-1.6 1.6 0 2.9.6 3.9 1.6l1.8-2c-1.4-1.4-3.4-2.1-5.6-2.1-3.1 0-5.1 1.6-5.1 3.9 0 2 1.3 3.1 4.3 3.7l1.6.3c1.8.4 2.5.8 2.5 1.7 0 1-.9 1.7-2.7 1.7-1.8 0-3.3-.7-4.4-1.8L10 20.5z" fill="#fff" /></svg>
-      <span class="brand-name">Siar</span>
-    </div>
+    <div class="brand"><Logo /></div>
 
     <div class="switchers">
       <Dropdown width="100%" class="sw">
@@ -144,19 +142,23 @@ const themes = [{ v: 'system', icon: Monitor, label: 'System' }, { v: 'light', i
 </template>
 
 <style scoped>
-.sn { display: flex; flex-direction: column; height: 100%; min-height: 0; padding: 12px; gap: 12px; }
-.brand { display: flex; align-items: center; gap: 8px; padding: 4px 8px; font-weight: 700; font-size: var(--fs-18); letter-spacing: -0.01em; }
-.switchers { display: flex; flex-direction: column; gap: 4px; }
+.sn { display: flex; flex-direction: column; height: 100%; min-height: 0; padding: 16px 12px 12px; gap: 14px; }
+.brand { display: flex; align-items: center; padding: 2px 10px 6px; }
+.switchers { display: flex; flex-direction: column; gap: 2px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
 .sw, .me { display: block; width: 100%; }
-.sw-btn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 8px; border: 1px solid transparent; border-radius: var(--radius); background: none; cursor: pointer; text-align: left; font-size: var(--fs-14); line-height: 18px; color: var(--text); }
+.sw-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px 8px; border: 0; border-radius: var(--radius); background: none; cursor: pointer; text-align: left; font-size: var(--fs-14); line-height: 18px; font-weight: 500; color: var(--text); transition: background var(--t-micro); }
 .sw-btn:hover { background: var(--bg-hover); }
+.switchers .sw-btn .tiny { font-family: var(--mono); font-size: var(--fs-11); letter-spacing: .06em; text-transform: uppercase; font-weight: 400; color: var(--text-subtle); }
 .d-block { display: block; }
-.nav { flex: 1; overflow-y: auto; min-height: 0; display: flex; flex-direction: column; gap: 12px; }
-.gt { padding: 0 10px 4px; font-size: var(--fs-12); line-height: 16px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-faint); }
-.ni-link { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: var(--radius); color: var(--text-muted); font-size: var(--fs-14); line-height: 20px; text-decoration: none; }
-.ni-link:hover { background: var(--bg-hover); color: var(--text); text-decoration: none; }
-.ni-link.on { background: var(--accent-soft); color: var(--accent-soft-text); font-weight: 600; }
-.count { background: var(--accent); color: var(--accent-fg); border-radius: 999px; font-size: var(--fs-12); line-height: 16px; padding: 0 6px; font-weight: 600; }
-.th { width: 36px; height: 32px; border: 1px solid var(--border); background: var(--bg); color: var(--text-muted); border-radius: var(--radius-sm); display: grid; place-items: center; cursor: pointer; margin-right: 4px; }
-.th.on { background: var(--accent-soft); color: var(--accent-soft-text); border-color: transparent; }
+.nav { flex: 1; overflow-y: auto; min-height: 0; display: flex; flex-direction: column; gap: 18px; }
+.gt { padding: 0 10px 6px; font-family: var(--mono); font-size: var(--fs-11); line-height: 16px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--text-subtle); }
+.ni-link { position: relative; display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: var(--radius); color: var(--text-subtle); font-size: var(--fs-14); line-height: 20px; text-decoration: none; transition: background var(--t-micro), color var(--t-micro); }
+.ni-link:hover { background: var(--bg-hover); color: var(--text); }
+.ni-link.on { background: var(--bg-elevated); color: var(--text); font-weight: 500; box-shadow: inset 0 0 0 1px var(--border); }
+.ni-link.on::before { content: ''; position: absolute; left: -12px; top: 8px; bottom: 8px; width: 2px; border-radius: 0 2px 2px 0; background: var(--text); }
+.count { font-family: var(--mono); font-size: var(--fs-11); line-height: 16px; padding: 0 5px; border-radius: var(--radius-sm); background: var(--text); color: var(--bg); font-variant-numeric: tabular-nums; }
+.me { padding-top: 10px; border-top: 1px solid var(--border); }
+.th { width: 36px; height: 30px; border: 0; background: none; color: var(--text-subtle); border-radius: var(--radius-sm); display: grid; place-items: center; cursor: pointer; margin-right: 2px; transition: background var(--t-micro), color var(--t-micro); }
+.th:hover { color: var(--text); }
+.th.on { background: var(--bg-muted); color: var(--text); }
 </style>

@@ -115,13 +115,15 @@ const tone = (s: string) => (s === 'POSTED' ? 'ok' : s === 'ERROR' ? 'bad' : s =
 
 <style scoped>
 .mlabel { min-width: 180px; text-align: center; }
-.cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg); }
-.dow { padding: 8px; font-size: var(--fs-12); line-height: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-subtle); background: var(--bg-subtle); border-bottom: 1px solid var(--border); }
+.cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-elevated); }
+.dow { padding: 8px; font-family: var(--mono); font-size: var(--fs-11); line-height: 16px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--text-subtle); background: var(--bg-subtle); border-bottom: 1px solid var(--border); }
 .cell { min-height: 112px; padding: 6px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 3px; cursor: pointer; min-width: 0; }
 .cell:nth-child(7n) { border-right: 0; }
 .cell.out { background: var(--bg-subtle); }
 .cell.out .dn { color: var(--text-faint); }
-.cell.sel { box-shadow: inset 0 0 0 2px var(--accent); }
+.cell { transition: background var(--t-micro); }
+.cell:hover { background: var(--bg-hover); }
+.cell.sel { box-shadow: inset 0 0 0 1px var(--text); }
 .cell.today .dn { background: var(--accent); color: var(--accent-fg); }
 .dn { display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 4px; border-radius: 12px; font-size: var(--fs-13); font-weight: 500; }
 .add { opacity: 0; border: 0; background: none; color: var(--text-subtle); cursor: pointer; border-radius: var(--radius-sm); width: 22px; height: 22px; display: grid; place-items: center; }

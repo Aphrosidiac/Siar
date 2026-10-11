@@ -22,7 +22,8 @@ export const X_PRICE_LABELS: Record<keyof typeof X_PRICES, { label: string; unit
   TWITTER_USER_INTERACTION_CREATE: { label: 'Repost, like or follow', unit: 'per request' },
 };
 
+/** Lowest paid price per month on yearly billing, in whole dollars. */
 export const paidFrom = () => {
   const paid = TIERS.map((t) => PLANS[t]).filter((p) => (p.priceMonthlyCents ?? 0) > 0);
-  return paid.length ? Math.min(...paid.map((p) => p.priceYearlyMonthlyCents ?? p.priceMonthlyCents ?? 0)) : 0;
+  return paid.length ? Math.min(...paid.map((p) => p.priceYearlyMonthlyCents ?? p.priceMonthlyCents ?? 0)) / 100 : 0;
 };

@@ -10,7 +10,7 @@ const emit = defineEmits<{ 'update:modelValue': [v: boolean] }>();
 </template>
 <style scoped>
 .cb { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: var(--fs-14); }
-.cb.disabled { opacity: 0.55; cursor: not-allowed; }
-input { width: 16px; height: 16px; accent-color: var(--accent); margin: 0; cursor: inherit; }
+.cb.disabled { opacity: 0.5; cursor: not-allowed; }
+input { width: 16px; height: 16px; accent-color: var(--text); margin: 0; cursor: inherit; }
 input:focus-visible { box-shadow: var(--focus); }
 </style>

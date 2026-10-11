@@ -44,10 +44,19 @@ packages/sdk|cli|mcp  TypeScript SDK, JSON-first CLI, MCP server.
 
 ## Look
 
-Neutral, general-purpose developer-product look: white / near-black surfaces, grey neutrals, ONE
-calm accent (indigo/blue). **Not** the FF palette and **no lime green** (Fakhrul, 2026-10-11).
-FF appears only as "Siar by FF Dev Studio" in footers and legal pages. Inter/system font stack,
-whole-pixel type sizes ≥ 12px (Fakhrul reads on a 1x monitor), 4/8px spacing rhythm, 8px radii.
+Quiet, neutral, editorial (house UI conventions from FF Ops, **not** the FF palette, **no lime**,
+no indigo — Fakhrul 2026-10-11/12). Tokens live in `apps/web/src/styles.css`; the site mirrors them.
+- Warm-grey paper `#f7f7f5`, white panels, ink `#161615`. The primary action is ink (inverted in dark
+  mode). Colour only carries meaning: status (good/warn/bad/info) and chart series.
+- IBM Plex Sans 400/500/600 + Plex Mono for labels, table heads, counts (`.label`: 11px caps).
+  One whole-pixel scale (`--fs-11…38`), nothing under 11px; `scripts/check-type.sh` enforces it.
+  Antialiasing on Retina only (Fakhrul reads on a 1x monitor).
+- Hairline rules over boxes: lists separated by 1px rules, figures as a rule + mono label + number,
+  table heads under an ink rule. No card grids where a list will do; no numbered step titles.
+- Network marks are the real glyphs (`lib/glyphs.ts`, from simple-icons), monochrome — never initials.
+- Motion: page children rise in, tabs slide, modals/drawers/toasts ease out; all off under
+  reduced motion.
+- FF appears only as "Siar by FF Dev Studio" in footers and legal pages.
 
 ## Running
 

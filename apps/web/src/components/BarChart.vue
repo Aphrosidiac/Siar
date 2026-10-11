@@ -44,6 +44,6 @@ const hover = ref<number | null>(null);
 .bc { position: relative; width: 100%; }
 svg { display: block; }
 .grid { stroke: var(--border); }
-.lab { fill: var(--text-faint); font-size: 12px; }
+.lab { fill: var(--text-faint); font-size: var(--fs-12); }
 .tip { position: absolute; top: 0; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); box-shadow: var(--shadow); padding: 6px 10px; pointer-events: none; }
 </style>

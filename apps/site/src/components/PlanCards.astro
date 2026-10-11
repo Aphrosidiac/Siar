@@ -21,7 +21,7 @@ const yearlySaving = (() => {
       return (
         <div class:list={['plan', { featured: t === 'PRO' }]}>
           <div class="head">
-            <h3>{p.name}</h3>
+            <div class="hrow"><h3>{p.name}</h3>{t === 'PRO' && <span class="label pop">Most popular</span>}</div>
             <p class="tag">{p.tagline}</p>
           </div>
           <div class="price">
@@ -61,22 +61,27 @@ const yearlySaving = (() => {
   });
 </script>
 <style>
-  .toggle { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-soft); margin: 0 0 24px; }
-  .toggle button { font: inherit; font-size: 14px; border: 0; background: transparent; padding: 6px 14px; border-radius: 6px; cursor: pointer; color: var(--fg-2); display: inline-flex; align-items: center; gap: 8px; }
-  .toggle button[aria-pressed='true'] { background: var(--bg-elev); color: var(--fg); box-shadow: var(--shadow); font-weight: 600; }
-  .cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; text-align: left; }
+  .toggle { display: inline-flex; gap: 2px; padding: 2px; border-radius: var(--radius); background: var(--bg-muted); margin: 0 0 24px; }
+  .toggle button { font: inherit; font-size: var(--fs-13); line-height: 20px; font-weight: 500; border: 0; background: transparent; padding: 5px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--text-subtle); display: inline-flex; align-items: center; gap: 8px; transition: background var(--t-micro), color var(--t-micro); }
+  .toggle button:hover { color: var(--text); }
+  .toggle button[aria-pressed='true'] { background: var(--bg-elevated); color: var(--text); box-shadow: var(--shadow-sm); }
+  .toggle .badge { background: var(--bg-muted); }
+  /* one surface; hairlines between plans (the 1px gap shows the border colour) */
+  .cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; text-align: left; }
   @media (max-width: 1000px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 560px) { .cards { grid-template-columns: minmax(0, 1fr); } }
-  .plan { border: 1px solid var(--border); border-radius: 8px; padding: 24px; background: var(--bg-elev); display: flex; flex-direction: column; gap: 12px; }
-  .plan.featured { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-  .head h3 { margin: 0; font-size: 18px; }
-  .tag { margin: 4px 0 0; font-size: 14px; color: var(--fg-3); }
+  .plan { padding: 24px; background: var(--bg-elevated); display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .plan.featured { box-shadow: inset 0 2px 0 var(--text); }
+  .hrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .hrow h3 { margin: 0; font-size: var(--fs-18); }
+  .pop { margin: 0; color: var(--text); white-space: nowrap; }
+  .tag { margin: 4px 0 0; font-size: var(--fs-14); line-height: 20px; color: var(--text-subtle); }
   .price { display: flex; align-items: baseline; gap: 6px; }
-  .amt { font-size: 36px; font-weight: 700; letter-spacing: -0.02em; color: var(--fg); }
-  .per { color: var(--fg-3); font-size: 14px; }
-  .billed { margin: 0; font-size: 13px; color: var(--fg-3); min-height: 20px; }
+  .amt { font-size: var(--fs-38); line-height: 44px; font-weight: 600; letter-spacing: -0.03em; color: var(--text); font-variant-numeric: tabular-nums; }
+  .per { color: var(--text-subtle); font-size: var(--fs-14); }
+  .billed { margin: 0; font-size: var(--fs-13); line-height: 20px; color: var(--text-subtle); min-height: 20px; }
   .pc[data-billing='yearly'] .m, .pc[data-billing='monthly'] .y { display: none; }
   ul { list-style: none; padding: 0; margin: 8px 0 0; border-top: 1px solid var(--border); padding-top: 16px; }
-  li { font-size: 14px; margin: 0 0 8px; padding-left: 20px; position: relative; }
-  li::before { content: ''; position: absolute; left: 2px; top: 8px; width: 8px; height: 4px; border-left: 2px solid var(--accent-text); border-bottom: 2px solid var(--accent-text); transform: rotate(-45deg); }
+  li { font-size: var(--fs-14); line-height: 20px; margin: 0 0 10px; padding-left: 18px; position: relative; color: var(--text-muted); }
+  li::before { content: ''; position: absolute; left: 2px; top: 8px; width: 8px; height: 1px; background: var(--text-faint); }
 </style>

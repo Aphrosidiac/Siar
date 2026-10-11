@@ -17,12 +17,13 @@ withDefaults(defineProps<{ title?: string; subtitle?: string; padded?: boolean; 
   </section>
 </template>
 <style scoped>
-.card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); min-width: 0; }
-.card.danger { border-color: color-mix(in srgb, var(--danger) 40%, var(--border)); }
-.head { display: flex; align-items: flex-start; gap: 12px; padding: 16px 20px 0; flex-wrap: wrap; }
-.t { font-size: var(--fs-16); line-height: 24px; }
+.card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); min-width: 0; }
+.card.danger { border-color: color-mix(in srgb, var(--danger) 35%, var(--border)); }
+.head { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--border); flex-wrap: wrap; min-height: 54px; }
+.t { font-size: var(--fs-15); line-height: 22px; font-weight: 600; }
+.head p { margin-top: 2px; }
 .actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.pad { padding: 16px 20px 20px; }
-.foot { padding: 12px 20px; border-top: 1px solid var(--border); background: var(--bg-subtle); border-radius: 0 0 var(--radius) var(--radius); display: flex; gap: 8px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
-@media (max-width: 640px) { .head { padding: 12px 16px 0; } .pad { padding: 12px 16px 16px; } .foot { padding: 12px 16px; } }
+.pad { padding: 20px; }
+.foot { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+@media (max-width: 640px) { .head { padding: 12px 16px; } .pad { padding: 16px; } .foot { padding: 12px 16px; } }
 </style>

@@ -53,7 +53,8 @@ export default defineConfig({
   server: {
     port: 5290,
     strictPort: true,
-    proxy: Object.fromEntries(['/api', '/media', '/b', '/mock-billing'].map((p) => [p, { target, changeOrigin: false }])),
+    // Regex keys with the trailing slash: a bare '/api' or '/b' prefix also swallows SPA routes like /api-keys and /billing.
+    proxy: Object.fromEntries(['^/api/', '^/media/', '^/b/', '^/mock-billing/'].map((p) => [p, { target, changeOrigin: false }])),
   },
   preview: { port: 5290 },
   build: { target: 'es2022', sourcemap: false, chunkSizeWarningLimit: 900 },

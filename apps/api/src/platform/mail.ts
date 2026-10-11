@@ -10,19 +10,19 @@ const esc = (s: string) => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;
 
 /** Siar transactional email: neutral product look (not FF's palette), table layout, inline styles. */
 export function renderMail(m: MailBody) {
-  const cta = m.cta ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:28px 0 4px"><tr><td style="background:#111827;border-radius:8px"><a href="${esc(m.cta.url)}" style="display:inline-block;padding:12px 22px;font-size:14px;font-weight:600;color:#FFFFFF;text-decoration:none">${esc(m.cta.label)} &rarr;</a></td></tr></table>` : '';
+  const cta = m.cta ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:28px 0 4px"><tr><td style="background:#161615;border-radius:6px"><a href="${esc(m.cta.url)}" style="display:inline-block;padding:12px 22px;font-size:14px;font-weight:600;color:#FFFFFF;text-decoration:none">${esc(m.cta.label)} &rarr;</a></td></tr></table>` : '';
   const html = `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"></head>
-<body style="margin:0;padding:0;background:#F4F5F7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#111827">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F5F7"><tr><td align="center" style="padding:40px 16px">
+<body style="margin:0;padding:0;background:#F7F7F5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#161615">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F7F7F5"><tr><td align="center" style="padding:40px 16px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:540px">
-<tr><td style="padding-bottom:28px;font-size:20px;font-weight:700;letter-spacing:-.02em;color:#111827">Siar</td></tr>
-<tr><td style="background:#FFFFFF;border:1px solid #E5E7EB;border-radius:12px;padding:36px 32px">
+<tr><td style="padding-bottom:28px;font-size:20px;font-weight:600;letter-spacing:-.03em;color:#161615">siar</td></tr>
+<tr><td style="background:#FFFFFF;border:1px solid #E2E1DC;border-radius:8px;padding:36px 32px">
 <h1 style="margin:0 0 16px;font-size:24px;line-height:1.2;font-weight:600;letter-spacing:-.02em">${esc(m.heading)}</h1>
-${m.paragraphs.map(p => `<p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:#374151">${esc(p)}</p>`).join('')}
+${m.paragraphs.map(p => `<p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:#3B3A37">${esc(p)}</p>`).join('')}
 ${cta}
-${m.footnote ? `<p style="margin:22px 0 0;font-size:12px;line-height:1.6;color:#6B7280">${esc(m.footnote)}</p>` : ''}
+${m.footnote ? `<p style="margin:22px 0 0;font-size:12px;line-height:1.6;color:#62615B">${esc(m.footnote)}</p>` : ''}
 </td></tr>
-<tr><td style="padding:24px 4px 0;font-size:11px;line-height:1.7;color:#6B7280">Siar by FF DEV STUDIO (202603234793) &middot; ffdev.studio</td></tr>
+<tr><td style="padding:24px 4px 0;font-size:11px;line-height:1.7;color:#62615B">Siar by FF DEV STUDIO (202603234793) &middot; ffdev.studio</td></tr>
 </table></td></tr></table></body></html>`;
   const text = [m.heading, '', ...m.paragraphs, m.cta ? `\n${m.cta.label}: ${m.cta.url}` : '', m.footnote ?? '', '', 'Siar by FF DEV STUDIO (202603234793)'].join('\n');
   return { html, text };

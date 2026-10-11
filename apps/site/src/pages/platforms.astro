@@ -7,7 +7,7 @@ import { breadcrumbLd } from '../lib/seo';
 const cols = ['comments', 'editPost', 'postAnalytics', 'accountAnalytics', 'messaging'] as const;
 ---
 <Base title="Supported platforms" description={`The ${NETWORKS.length} social networks the Siar API publishes to: post types, connection method and what each supports.`} jsonLd={[breadcrumbLd([{ name: 'Platforms', href: '/platforms' }])]}>
-  <section class="section tight hero-bg">
+  <section class="section tight">
     <div class="container">
       <div class="section-head">
         <p class="eyebrow">Platforms</p>
@@ -17,7 +17,7 @@ const cols = ['comments', 'editPost', 'postAnalytics', 'accountAnalytics', 'mess
       <div class="grid g3">
         {NETWORKS.map((n) => (
           <a class="card" href={`/${n.apiSlug}`}>
-            <div class="h"><NetIcon type={n.type} size={40} /><h3>{n.name}</h3></div>
+            <div class="h"><NetIcon type={n.type} size={36} /><h3>{n.name}</h3></div>
             <p>{n.about}</p>
             <span class="more">{n.name} API</span>
           </a>

@@ -4,6 +4,7 @@ import { RouterLink, RouterView, useRoute } from 'vue-router';
 import { Bell, Menu } from 'lucide-vue-next';
 import Drawer from '@/components/ui/Drawer.vue';
 import SideNav from '@/components/SideNav.vue';
+import Logo from '@/components/Logo.vue';
 import { api } from '@/lib/api';
 import { session } from '@/lib/store';
 import { toast } from '@/lib/toast';
@@ -33,7 +34,7 @@ const trial = computed(() => { const t = session.org?.trialEndsAt; if (!t) retur
     <div class="main">
       <header v-if="mobile" class="topbar">
         <button type="button" class="icon-btn" aria-label="Open menu" @click="drawer = true"><Menu :size="20" /></button>
-        <span class="brand-name">Siar</span>
+        <Logo :size="18" />
         <span class="spacer" />
         <RouterLink to="/notifications" class="icon-btn" aria-label="Notifications"><Bell :size="20" /><span v-if="unread" class="dotbadge">{{ unread > 9 ? '9+' : unread }}</span></RouterLink>
       </header>
@@ -50,19 +51,20 @@ const trial = computed(() => { const t = session.org?.trialEndsAt; if (!t) retur
 </template>
 
 <style scoped>
-.shell { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 100vh; }
+.shell { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100vh; }
 .shell.mobile { display: block; }
 .side { position: sticky; top: 0; height: 100vh; border-right: 1px solid var(--border); background: var(--bg-subtle); }
 .main { min-width: 0; display: flex; flex-direction: column; min-height: 100vh; }
 .content { flex: 1; min-width: 0; }
-.topbar { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--bg); border-bottom: 1px solid var(--border); }
-.brand-name { font-weight: 700; font-size: var(--fs-18); }
-.icon-btn { position: relative; width: 36px; height: 36px; display: grid; place-items: center; border: 0; background: none; border-radius: var(--radius); color: var(--text); cursor: pointer; }
+.topbar { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+.icon-btn { position: relative; width: 38px; height: 38px; display: grid; place-items: center; border: 0; background: none; border-radius: var(--radius); color: var(--text); cursor: pointer; text-decoration: none; }
 .icon-btn:hover { background: var(--bg-hover); }
-.dotbadge { position: absolute; top: 2px; right: 0; background: var(--accent); color: var(--accent-fg); border-radius: 999px; font-size: var(--fs-12); line-height: 16px; padding: 0 5px; font-weight: 600; }
-.banner { display: flex; gap: 12px; align-items: center; justify-content: center; padding: 8px 16px; font-size: var(--fs-13); line-height: 18px; flex-wrap: wrap; }
+.dotbadge { position: absolute; top: 4px; right: 2px; background: var(--text); color: var(--bg); border-radius: var(--radius-sm); font-family: var(--mono); font-size: var(--fs-11); line-height: 14px; padding: 0 4px; }
+.banner { display: flex; gap: 12px; align-items: center; justify-content: center; padding: 8px 16px; font-size: var(--fs-13); line-height: 18px; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
 .banner.warn { background: var(--warn-soft); color: var(--warn-soft-text); }
-.banner.accent { background: var(--accent-soft); color: var(--accent-soft-text); }
+.banner.accent { background: var(--bg-subtle); color: var(--text-muted); }
+.banner a, .banner .link-btn { color: inherit; }
 .dn { margin: -16px -20px; height: 100dvh; background: var(--bg-subtle); }
-.foot { padding: 16px 32px; font-size: var(--fs-12); line-height: 16px; color: var(--text-faint); border-top: 1px solid var(--border); }
+.foot { padding: 16px 40px; font-size: var(--fs-12); line-height: 16px; color: var(--text-subtle); border-top: 1px solid var(--border); }
+@media (max-width: 900px) { .foot { padding: 16px; } }
 </style>

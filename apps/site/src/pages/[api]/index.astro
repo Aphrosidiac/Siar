@@ -46,10 +46,10 @@ const faq = [
 const capRows: [string, boolean][] = n.capabilityList.map((c) => [c.label, c.value]);
 ---
 <Base title={`${n.name} API: post, schedule and analyze`} description={`Publish and schedule ${n.name} posts through one REST API. ${n.postTypes.length} post type${n.postTypes.length > 1 ? 's' : ''}, limits, scopes, daily caps and a full error reference.`} jsonLd={[faqLd(faq), breadcrumbLd([{ name: 'Platforms', href: '/platforms' }, { name: `${n.name} API`, href: `/${n.apiSlug}` }])]}>
-  <section class="section tight hero-bg">
+  <section class="section tight">
     <div class="container">
       <p class="xs"><a href="/platforms">Platforms</a> / {n.name}</p>
-      <div class="hd"><NetIcon type={n.type} size={56} /><h1>{n.name} API</h1></div>
+      <div class="hd"><NetIcon type={n.type} size={48} /><h1>{n.name} API</h1></div>
       <p class="lead">{n.about}</p>
       <div class="btn-row">
         <a class="btn primary" href="/docs/quickstart">Quickstart</a>
@@ -139,9 +139,9 @@ const capRows: [string, boolean][] = n.capabilityList.map((c) => [c.label, c.val
   .hd { display: flex; align-items: center; gap: 16px; margin: 8px 0 12px; }
   .hd h1 { margin: 0; }
   .body { max-width: 900px; }
-  .body h2 { margin-top: 48px; font-size: 26px; }
+  .body h2 { margin-top: 48px; }
   .scopes { columns: 2; column-gap: 24px; list-style: none; padding: 0; }
   .scopes li { break-inside: avoid; overflow-wrap: anywhere; }
-  th[scope='row'] { width: 200px; background: var(--bg-soft); }
+  th[scope='row'] { width: 200px; background: var(--bg-subtle); }
   @media (max-width: 640px) { .scopes { columns: 1; } th[scope='row'] { width: 120px; } }
 </style>

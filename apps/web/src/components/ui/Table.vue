@@ -38,16 +38,20 @@ const onKey = (e: KeyboardEvent, r: R) => { if (props.clickable && (e.key === 'E
 </template>
 
 <style scoped>
-.tw { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); }
+.tw { width: 100%; overflow-x: auto; border-top: 1px solid var(--text); }
 .t { width: 100%; border-collapse: collapse; font-size: var(--fs-14); }
-th { text-align: left; font-weight: 500; font-size: var(--fs-12); line-height: 16px; color: var(--text-subtle); text-transform: uppercase; letter-spacing: 0.04em; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--bg-subtle); white-space: nowrap; }
-th:first-child { border-top-left-radius: var(--radius); }
-th:last-child { border-top-right-radius: var(--radius); }
-td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-tbody tr:last-child td { border-bottom: 0; }
+th { text-align: left; font-family: var(--mono); font-weight: 500; font-size: var(--fs-11); line-height: 16px; color: var(--text-subtle); text-transform: uppercase; letter-spacing: .06em; padding: 10px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+th:first-child, td:first-child { padding-left: 0; }
+th:last-child, td:last-child { padding-right: 0; }
+td { padding: 14px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tbody tr { animation: rise 420ms var(--ease-out) backwards; }
+tbody tr:nth-child(2) { animation-delay: 25ms; } tbody tr:nth-child(3) { animation-delay: 50ms; } tbody tr:nth-child(4) { animation-delay: 75ms; }
+tbody tr:nth-child(n + 5) { animation-delay: 100ms; }
 tr.clickable { cursor: pointer; }
-tr.clickable:hover td { background: var(--bg-subtle); }
-tr.clickable:focus-visible { outline: none; box-shadow: inset var(--focus); }
-.empty:not(:empty) { padding: 16px; }
-@media (max-width: 640px) { .hide-sm { display: none; } td, th { padding-left: 12px; padding-right: 12px; } }
+tr.clickable td { transition: background var(--t-micro); }
+tr.clickable:hover td { background: var(--bg-hover); }
+tr.clickable:focus-visible { outline: none; box-shadow: inset 2px 0 0 var(--text); }
+.empty:not(:empty) { padding: 8px 0 0; }
+.empty :deep(.empty) { border-top: 0; }
+@media (max-width: 640px) { .hide-sm { display: none; } td, th { padding-left: 8px; padding-right: 8px; } }
 </style>

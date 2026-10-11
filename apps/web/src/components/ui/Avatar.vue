@@ -12,7 +12,7 @@ const text = computed(() => initials(props.name ?? '?'));
   </span>
 </template>
 <style scoped>
-.av { display: inline-grid; place-items: center; border-radius: 50%; background: var(--bg-muted); color: var(--text-muted); font-weight: 600; overflow: hidden; flex: none; border: 1px solid var(--border); }
+.av { display: inline-grid; place-items: center; border-radius: 50%; background: var(--bg-muted); color: var(--text-muted); font-weight: 500; overflow: hidden; flex: none; }
 .av.square { border-radius: var(--radius-sm); }
 img { width: 100%; height: 100%; object-fit: cover; }
 </style>

@@ -119,14 +119,14 @@ const esc = (s: string | null | undefined) => (s ?? '').replace(/[&<>"']/g, c =>
 
 /** Public page: neutral theme (light/dark), mobile-first, no tracking beyond our own view/click counts. */
 function page(b: any, items: any[]) {
-  const accent = /^#[0-9a-f]{6}$/i.test(b.theme?.accent ?? '') ? b.theme.accent : '#4F46E5';
+  const accent = /^#[0-9a-f]{6}$/i.test(b.theme?.accent ?? '') ? b.theme.accent : '#161615';
   const rows = items.map(i => i.type === 'HEADER'
     ? `<h2>${esc(i.title)}</h2>`
     : i.type === 'TEXT' ? `<p class="t">${esc(i.title)}</p>`
     : `<a class="l" href="/b/${esc(b.slug)}/go/${esc(i.id)}" rel="noopener">${esc(i.title)}</a>`).join('\n');
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(b.title)}</title><meta name="description" content="${esc(b.description ?? b.title)}"><meta property="og:title" content="${esc(b.title)}">${b.avatarUrl ? `<meta property="og:image" content="${esc(b.avatarUrl)}">` : ''}
-<style>:root{--bg:#fff;--fg:#111827;--mute:#6B7280;--line:#E5E7EB;--card:#F9FAFB;--a:${accent}}@media(prefers-color-scheme:dark){:root{--bg:#0B0F19;--fg:#F3F4F6;--mute:#9CA3AF;--line:#1F2937;--card:#111827}}
+<style>:root{--bg:#F7F7F5;--fg:#161615;--mute:#62615B;--line:#E2E1DC;--card:#FFFFFF;--a:${accent}}@media(prefers-color-scheme:dark){:root{--bg:#0F0F0E;--fg:#EDECE8;--mute:#A3A19A;--line:#2A2A27;--card:#171716}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
 main{max-width:560px;margin:0 auto;padding:48px 16px 64px;text-align:center}img{width:88px;height:88px;border-radius:50%;object-fit:cover;border:1px solid var(--line)}
 h1{font-size:22px;margin:16px 0 4px}p.d{color:var(--mute);margin:0 0 28px}h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:28px 0 10px}

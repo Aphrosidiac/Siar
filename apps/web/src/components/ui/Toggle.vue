@@ -32,11 +32,11 @@ const fid = computed(() => props.id ?? `tg-${uid}`);
 
 <style scoped>
 .toggle-field { display: flex; align-items: flex-start; gap: 12px; }
-.switch { position: relative; width: 36px; height: 20px; border-radius: 999px; border: 0; background: var(--border-strong); cursor: pointer; flex: none; padding: 0; transition: background 0.15s; margin-top: 0; }
+.switch { position: relative; width: 34px; height: 20px; border-radius: 999px; border: 0; background: var(--border-strong); cursor: pointer; flex: none; padding: 0; transition: background 220ms var(--ease-out); margin-top: 0; }
 .switch.on { background: var(--accent); }
-.switch:disabled { opacity: 0.5; cursor: not-allowed; }
-.knob { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25); transition: transform 0.15s; }
-.switch.on .knob { transform: translateX(16px); }
+.switch:disabled { opacity: 0.45; cursor: not-allowed; }
+.knob { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--bg-elevated); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); transition: transform 260ms var(--ease-out); }
+.switch.on .knob { transform: translateX(14px); }
 .text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .text .field-label { cursor: pointer; }
 </style>
