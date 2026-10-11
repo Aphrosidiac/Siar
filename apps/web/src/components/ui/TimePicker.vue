@@ -72,7 +72,7 @@ const fieldEl = ref<HTMLElement | null>(null);
 const panel = ref<InstanceType<typeof PopPanel> | null>(null);
 const hoursCol = ref<HTMLElement | null>(null);
 const minsCol = ref<HTMLElement | null>(null);
-const { open, sheet, pos, close, show, place } = usePopover({ trigger: fieldEl, pop: computed(() => panel.value?.el), height: () => 300, minWidth: 220, maxWidth: 260 });
+const { open, sheet, pos, close, show, place } = usePopover({ trigger: fieldEl, pop: computed(() => panel.value?.el), height: () => 292, minWidth: 176, maxWidth: 200 });
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINS = Array.from({ length: 60 }, (_, i) => i);
 const hourOut = (h: number) => outOf(`${pad(h)}:59`);
@@ -175,14 +175,14 @@ function onFieldPointer(e: PointerEvent) {
 </template>
 
 <style scoped>
-.ui-tp-field { display: flex; align-items: center; gap: 1px; padding-right: 4px; cursor: text; font-variant-numeric: tabular-nums; }
+.ui-tp-field { display: flex; align-items: center; gap: 0; padding-right: 4px; cursor: text; font-variant-numeric: tabular-nums; }
 .ui-tp-field.disabled { background: var(--bg-subtle); color: var(--text-subtle); cursor: not-allowed; }
 .ui-tp-field:focus-within, .ui-tp-field.open { border-color: var(--text); }
-.ui-tp-seg { padding: 1px 2px; border-radius: 4px; outline: none; caret-color: transparent; min-width: 2ch; text-align: center; }
-.ui-tp-seg:focus { background: var(--text); color: var(--bg); }
+.ui-tp-seg { padding: 0 1px; border-radius: 3px; outline: none; caret-color: transparent; min-width: 2ch; text-align: center; }
+.ui-tp-seg:focus { background: var(--bg-muted); box-shadow: 0 0 0 1px var(--border-strong); }
 .ui-tp-seg.ph { color: var(--text-faint); }
-.ui-tp-seg.ph:focus { color: var(--bg); }
-.ui-tp-colon { color: var(--text-subtle); }
+.ui-tp-seg.ph:focus { color: var(--text-subtle); }
+.ui-tp-colon { color: var(--text-subtle); padding: 0 1px; }
 .ui-tp-btn { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border: 0; background: none; border-radius: 50%; color: var(--text-subtle); cursor: pointer; }
 .ui-tp-btn:hover:not(:disabled) { background: var(--bg-hover); color: var(--text); }
 </style>
@@ -191,14 +191,17 @@ function onFieldPointer(e: PointerEvent) {
 .ui-tp-cols { display: grid; grid-template-columns: 1fr 1fr; min-height: 0; flex: 1; }
 .ui-tp-col { display: flex; flex-direction: column; min-height: 0; }
 .ui-tp-col + .ui-tp-col { border-left: 1px solid var(--border-soft); }
-.ui-tp-head { padding: 8px 12px 6px; font-family: var(--mono); font-size: var(--fs-11); text-transform: uppercase; letter-spacing: .06em; color: var(--text-subtle); border-bottom: 1px solid var(--border-soft); }
-.ui-tp-list { list-style: none; margin: 0; padding: 4px; overflow-y: auto; overscroll-behavior: contain; max-height: 252px; position: relative; }
-.ui-tp-opt { padding: 6px 10px; border-radius: var(--radius); text-align: center; font-size: var(--fs-14); font-variant-numeric: tabular-nums; color: var(--text); cursor: pointer; }
-.ui-tp-opt:not(.q) { color: var(--text-muted); }
+.ui-tp-head { padding: 8px 0 6px; text-align: center; font-family: var(--mono); font-size: var(--fs-11); text-transform: uppercase; letter-spacing: .06em; color: var(--text-subtle); border-bottom: 1px solid var(--border-soft); }
+/* exactly 7 rows of 32px + padding, so no row is ever cut in half; soft fades say it scrolls */
+.ui-tp-list { list-style: none; margin: 0; padding: 6px; overflow-y: auto; overscroll-behavior: contain; height: 236px; position: relative; scrollbar-width: none;
+  mask-image: linear-gradient(transparent, #000 14px, #000 calc(100% - 14px), transparent); }
+.ui-tp-list::-webkit-scrollbar { display: none; }
+.ui-tp-opt { height: 32px; display: grid; place-items: center; border-radius: var(--radius); font-size: var(--fs-14); font-variant-numeric: tabular-nums; color: var(--text-muted); cursor: pointer; }
+.ui-tp-opt.q { color: var(--text); }
 .ui-tp-opt:hover:not(.dis) { background: var(--bg-hover); }
-.ui-tp-opt.sel { background: var(--text); color: var(--bg); font-weight: 600; }
-.ui-tp-opt.dis { opacity: .3; cursor: not-allowed; }
-.ui-pop.sheet .ui-tp-list { max-height: 50dvh; }
-.ui-pop.sheet .ui-tp-opt { padding: 11px 10px; font-size: var(--fs-16); }
-@media (pointer: coarse) { .ui-tp-opt { padding: 11px 10px; } }
+.ui-tp-opt.sel { background: var(--bg-muted); color: var(--text); font-weight: 600; box-shadow: inset 0 0 0 1px var(--border-strong); }
+.ui-tp-opt.dis { color: var(--text-faint); opacity: .5; cursor: not-allowed; }
+.ui-pop.sheet .ui-tp-list { height: calc(44px * 7 + 12px); }
+.ui-pop.sheet .ui-tp-opt { height: 44px; font-size: var(--fs-16); }
+@media (pointer: coarse) { .ui-tp-opt { height: 44px; } .ui-tp-list { height: calc(44px * 7 + 12px); } }
 </style>

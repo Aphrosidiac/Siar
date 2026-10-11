@@ -30,7 +30,9 @@ export function usePopover(opts: { trigger: ElRef; pop: ElRef; height: () => num
     const want = opts.height();
     const up = below < Math.min(want, 240) && above > below;
     const width = Math.min(Math.max(r.width, opts.minWidth ?? 200), opts.maxWidth ?? Infinity, vw - 16);
-    pos.value = { top: up ? r.top - 6 : r.bottom + 6, left: Math.max(8, Math.min(r.left, vw - 8 - width)), width, maxH: Math.max(160, Math.min(want, up ? above : below)), up };
+    // line up with the trigger: its left edge, or its right edge when the panel is wider and would run off the window
+    const left = r.left + width <= vw - 8 ? r.left : r.right - width;
+    pos.value = { top: up ? r.top - 6 : r.bottom + 6, left: Math.max(8, Math.min(left, vw - 8 - width)), width, maxH: Math.max(160, Math.min(want, up ? above : below)), up };
   }
   function show() { if (open.value) return; open.value = true; place(); }
   function close(refocus = true) {

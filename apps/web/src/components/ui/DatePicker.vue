@@ -207,12 +207,12 @@ watch(view, (v) => { if (v === 'days') focusDay(); });
 .ui-dp-day:focus-visible { box-shadow: inset 0 0 0 2px var(--text); }
 .ui-dp-day.out { color: var(--text-faint); }
 .ui-dp-day.today::after { content: ''; position: absolute; left: 50%; bottom: 5px; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: currentColor; }
-.ui-dp-day.sel { background: var(--text); color: var(--bg); font-weight: 600; }
-.ui-dp-day:disabled { color: var(--text-faint); opacity: .45; cursor: not-allowed; text-decoration: line-through; }
+.ui-dp-day.sel { background: var(--bg-muted); color: var(--text); font-weight: 600; box-shadow: inset 0 0 0 1px var(--border-strong); }
+.ui-dp-day:disabled { color: var(--text-faint); opacity: .5; cursor: not-allowed; }
 .ui-dp-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding: 4px 0; }
 .ui-dp-tile { height: 44px; border: 1px solid var(--border-soft); background: none; border-radius: var(--radius); font-size: var(--fs-13); color: var(--text); cursor: pointer; }
 .ui-dp-tile:hover:not(:disabled) { border-color: var(--border-strong); }
-.ui-dp-tile.sel { background: var(--text); color: var(--bg); border-color: var(--text); }
+.ui-dp-tile.sel { background: var(--bg-muted); border-color: var(--border-strong); font-weight: 600; }
 .ui-dp-tile:disabled { opacity: .35; cursor: not-allowed; }
 .ui-dp-foot { display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid var(--border-soft); }
 .ui-dp-link { border: 0; background: none; padding: 4px 6px; border-radius: var(--radius); font-size: var(--fs-13); font-weight: 500; color: var(--text); cursor: pointer; }

@@ -30,7 +30,7 @@ defineExpose({ el });
 <style>
 .ui-pop { position: fixed; z-index: calc(var(--z-modal) + 50); display: flex; flex-direction: column; border-radius: var(--radius-lg); background: var(--bg-elevated); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; }
 .ui-pop.up { transform: translateY(-100%); }
-.ui-pop.sheet { left: 0; right: 0; bottom: 0; top: auto; width: auto; max-height: min(78dvh, 560px); border-radius: 16px 16px 0 0; border-bottom: 0; padding-bottom: env(safe-area-inset-bottom); box-shadow: var(--shadow-lg); }
+.ui-pop.sheet { left: 0; right: 0; bottom: 0; top: auto; width: auto; max-height: min(78dvh, 560px); border-radius: 16px 16px 0 0; border-bottom: 0; padding-bottom: max(12px, env(safe-area-inset-bottom)); box-shadow: var(--shadow-lg); }
 .ui-pop-scrim { position: fixed; inset: 0; z-index: calc(var(--z-modal) + 40); background: rgba(11, 11, 10, .4); }
 .ui-pop-grab { display: flex; align-items: center; gap: 12px; padding: 12px 16px; flex: none; border-bottom: 1px solid var(--border-soft); }
 .ui-pop-title { flex: 1; min-width: 0; font-weight: 600; font-size: var(--fs-15); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
