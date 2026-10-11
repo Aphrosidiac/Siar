@@ -121,12 +121,17 @@ export async function recordInvoice(db: Db, i: InvoiceIn) {
     const to = await billingEmail(db, i.organizationId);
     if (to) {
       await queueMail(db, {
-        to, subject: `Your Siar receipt ${row.number}`, heading: `Receipt ${row.number}`,
-        paragraphs: [
-          `${row.description}: ${money(row.amountCents, row.currency)} paid${row.paidAt ? ` on ${day(row.paidAt)}` : ''}.`,
-          ...(row.periodStart && row.periodEnd ? [`Service period: ${day(row.periodStart)} to ${day(row.periodEnd)}.`] : []),
-          'Thank you. Your invoices are always in Billing in the Siar dashboard.',
+        to, subject: `Your Siar receipt ${row.number}`, kicker: 'Receipt', heading: `Thank you. ${money(row.amountCents, row.currency)} received.`,
+        preheader: `Receipt ${row.number}: ${row.description}, ${money(row.amountCents, row.currency)}.`,
+        paragraphs: ['Your payment went through. The invoice is below and always in Billing in the Siar dashboard.'],
+        details: [
+          ['Receipt', row.number],
+          ['For', row.description],
+          ['Amount', money(row.amountCents, row.currency)],
+          ...(row.paidAt ? [['Paid on', day(row.paidAt)] as [string, string]] : []),
+          ...(row.periodStart && row.periodEnd ? [['Period', `${day(row.periodStart)} to ${day(row.periodEnd)}`] as [string, string]] : []),
         ],
+        reason: 'You received this receipt because this address is the billing contact for a Siar organization.',
         cta: { label: 'View invoice', url: appUrl(`/billing/invoices/${row.id}`) },
       });
     }
@@ -337,14 +342,14 @@ async function chargeFailed(subId: string, paymentId: string, reason: string, to
       await tx.organization.update({ where: { id: sub.organizationId }, data: { tier: 'FREE' } });
       await audit(tx, actor, 'subscription.downgrade', 'Subscription', subId, `Moved to Free after ${attempts} failed payments (${reason})`, { paymentId });
       await notify(tx, sub.organizationId, { kind: 'billing', title: `Your ${plan} plan was moved to Free`, body: `We could not charge ${amount} after ${attempts} attempts. Nothing was deleted; choose a plan again to restore your limits.`, link: '/billing' }, ['OWNER', 'ADMIN']);
-      if (to) await queueMail(tx, { to, subject: `Your Siar ${plan} plan was moved to Free`, heading: `Your ${plan} plan was moved to Free`, paragraphs: [`We tried to charge ${amount} for ${plan} ${attempts} times and the payment did not go through (${reason}).`, 'Your organization is now on the Free plan. Nothing was deleted: teams over the Free limit stay, but new teams cannot be created until you choose a paid plan again.'], cta: { label: 'Choose a plan', url: appUrl('/billing') } });
+      if (to) await queueMail(tx, { to, subject: `Your Siar ${plan} plan was moved to Free`, kicker: 'Billing', alert: true, details: [['Plan', `${plan} → Free`], ['Amount due', amount], ['Attempts', String(attempts)]], reason: 'You received this email because this address is the billing contact for a Siar organization.', heading: `Your ${plan} plan was moved to Free`, paragraphs: [`We tried to charge ${amount} for ${plan} ${attempts} times and the payment did not go through (${reason}).`, 'Your organization is now on the Free plan. Nothing was deleted: teams over the Free limit stay, but new teams cannot be created until you choose a paid plan again.'], cta: { label: 'Choose a plan', url: appUrl('/billing') } });
       return 'downgraded' as const;
     }
     const next = addDays(new Date(), RETRY_GAP_DAYS[attempts - 1] ?? RETRY_GAP_DAYS[RETRY_GAP_DAYS.length - 1]);
     await tx.subscription.update({ where: { id: subId }, data: { status: 'past_due', failedAttempts: attempts, nextRetryAt: next, ...(tokenInvalid ? { providerPaymentToken: null } : {}) } });
     await audit(tx, actor, 'subscription.chargeFailed', 'Subscription', subId, `Renewal charge of ${amount} failed (${reason}), attempt ${attempts} of ${MAX_ATTEMPTS}; retrying ${day(next)}`, { paymentId });
     await notify(tx, sub.organizationId, { kind: 'billing', title: 'Payment failed', body: `We could not charge ${amount} for ${plan} (${reason}). We will try again on ${day(next)}. Update your card to keep your plan.`, link: '/billing' }, ['OWNER', 'ADMIN']);
-    if (to) await queueMail(tx, { to, subject: 'Action needed: your Siar payment did not go through', heading: 'Your payment did not go through', paragraphs: [`We could not charge ${amount} for your ${plan} plan (${reason}).`, `We will try again on ${day(next)}. After ${MAX_ATTEMPTS} failed attempts the organization moves to the Free plan. Updating your card now retries right away.`], cta: { label: 'Update card', url: appUrl('/billing') } });
+    if (to) await queueMail(tx, { to, subject: 'Action needed: your Siar payment did not go through', kicker: 'Action needed', alert: true, details: [['Plan', plan], ['Amount', amount], ['Next try', day(next)]], reason: 'You received this email because this address is the billing contact for a Siar organization.', heading: 'Your payment did not go through', paragraphs: [`We could not charge ${amount} for your ${plan} plan (${reason}).`, `We will try again on ${day(next)}. After ${MAX_ATTEMPTS} failed attempts the organization moves to the Free plan. Updating your card now retries right away.`], cta: { label: 'Update card', url: appUrl('/billing') } });
     return 'failed' as const;
   });
 }
@@ -359,7 +364,7 @@ export async function endSubscription(subId: string, why: string) {
     await tx.organization.update({ where: { id: sub.organizationId }, data: { tier: 'FREE' } });
     await audit(tx, systemActor(sub.organizationId), 'subscription.end', 'Subscription', subId, `${PLANS[sub.tier].name} ${why}; now on Free`);
     const to = await billingEmail(tx, sub.organizationId);
-    if (to) await queueMail(tx, { to, subject: `Your Siar ${PLANS[sub.tier].name} plan has ended`, heading: `Your ${PLANS[sub.tier].name} plan has ended`, paragraphs: ['Your organization is now on the Free plan. Nothing was deleted; choose a plan any time to restore your limits.'], cta: { label: 'View plans', url: appUrl('/billing') } });
+    if (to) await queueMail(tx, { to, subject: `Your Siar ${PLANS[sub.tier].name} plan has ended`, kicker: 'Billing', reason: 'You received this email because this address is the billing contact for a Siar organization.', heading: `Your ${PLANS[sub.tier].name} plan has ended`, paragraphs: ['Your organization is now on the Free plan. Nothing was deleted; choose a plan any time to restore your limits.'], cta: { label: 'View plans', url: appUrl('/billing') } });
   });
   if (sub.providerPaymentToken) await hooks.deleteToken(sub.provider, sub.providerPaymentToken).catch(err => logger.warn({ err }, 'card token delete failed'));
 }

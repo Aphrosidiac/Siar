@@ -175,7 +175,7 @@ async function cancelPlan(actor: Actor, sub: any) {
   const until = sub.currentPeriodEnd?.toISOString().slice(0, 10);
   await audit(prisma, actor, 'subscription.cancel', 'Subscription', sub.id, `Set ${PLANS[sub.tier as Tier].name} to end${until ? ` on ${until}` : ''}`);
   const to = await billingEmail(prisma, sub.organizationId);
-  if (to) await queueMail(prisma, { to, subject: `Your Siar ${PLANS[sub.tier as Tier].name} plan will end`, heading: 'Your plan is set to end', paragraphs: [`${PLANS[sub.tier as Tier].name} stays active${until ? ` until ${until}` : ' until the end of the period'}, then the organization moves to Free. Nothing is deleted.`, 'Changed your mind? Resume the plan from Billing before then.'], cta: { label: 'Open billing', url: appUrl('/billing') } });
+  if (to) await queueMail(prisma, { to, subject: `Your Siar ${PLANS[sub.tier as Tier].name} plan will end`, kicker: 'Billing', details: [['Plan', PLANS[sub.tier as Tier].name], ['Active until', until ?? 'End of the period'], ['Then', 'Free plan']], reason: 'You received this email because this address is the billing contact for a Siar organization.', heading: 'Your plan is set to end.', paragraphs: [`${PLANS[sub.tier as Tier].name} stays active${until ? ` until ${until}` : ' until the end of the period'}, then the organization moves to Free. Nothing is deleted.`, 'Changed your mind? Resume the plan from Billing before then.'], cta: { label: 'Open billing', url: appUrl('/billing') } });
 }
 
 async function resumePlan(actor: Actor, sub: any) {

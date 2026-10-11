@@ -20,14 +20,21 @@ async function submit() {
 }
 </script>
 <template>
-  <AuthShell title="Sign in to Siar" subtitle="One API to publish, schedule and measure across 15 networks.">
+  <AuthShell title="Welcome back." subtitle="Sign in to your Siar dashboard.">
+    <template #switch>New to Siar? <router-link to="/signup">Create an account</router-link></template>
     <form class="stack-16" @submit.prevent="submit">
       <div v-if="error" class="callout danger" role="alert">{{ error }}</div>
-      <Input v-model="email" label="Email" type="email" autocomplete="email" required autofocus />
-      <Input v-model="password" label="Password" type="password" autocomplete="current-password" required />
-      <div class="row between small"><span /><router-link to="/forgot-password">Forgot password?</router-link></div>
-      <Button type="submit" variant="primary" block :loading="busy">Sign in</Button>
+      <Input v-model="email" label="Email" type="email" autocomplete="email" placeholder="you@company.com" required autofocus />
+      <div class="pw">
+        <Input v-model="password" label="Password" type="password" autocomplete="current-password" required />
+        <router-link to="/forgot-password" class="forgot small">Forgot password?</router-link>
+      </div>
+      <Button type="submit" variant="primary" block :loading="busy">Sign in <span aria-hidden="true">→</span></Button>
     </form>
-    <template #below>New to Siar? <router-link to="/signup">Create an account</router-link></template>
   </AuthShell>
 </template>
+<style scoped>
+.pw { position: relative; }
+.forgot { position: absolute; top: 0; right: 0; line-height: 18px; color: var(--text-subtle); }
+.forgot:hover { color: var(--text); }
+</style>

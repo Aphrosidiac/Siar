@@ -32,10 +32,27 @@ async function createOrganization(tx: any, userId: string, name: string) {
   return org;
 }
 
-async function sendVerification(userId: string, email: string) {
+async function sendVerification(userId: string, email: string, welcome = false) {
   const token = randomToken();
   await prisma.authToken.create({ data: { id: sha256(token), kind: 'VERIFY_EMAIL', userId, expiresAt: new Date(Date.now() + 3 * 86400_000) } });
-  await queueMail(prisma, { to: email, subject: 'Confirm your email for Siar', heading: 'Confirm your email', paragraphs: ['Confirm this address to keep receiving publishing alerts and invoices from Siar.'], cta: { label: 'Confirm email', url: appUrl(`/verify-email?token=${token}`) }, footnote: 'The link works for 3 days. If you did not sign up for Siar, ignore this email.' });
+  const url = appUrl(`/verify-email?token=${token}`);
+  await queueMail(prisma, welcome
+    ? {
+      to: email, subject: 'Welcome to Siar: confirm your email', kicker: 'Welcome', heading: 'Welcome to Siar.',
+      preheader: 'Confirm your email, then connect your first account.',
+      paragraphs: ['Your account is ready. Confirm this address so publishing alerts, invoices and password resets reach you.'],
+      cta: { label: 'Confirm email', url },
+      steps: [['Connect an account', 'Instagram, LinkedIn, Bluesky or any of the 15 networks, or send your customer a connect link.'], ['Write it once', 'Pick the accounts, write the post, then tailor it for each network.'], ['Schedule it, or use the API', 'Publish from the dashboard, or create an API key and post from your own app.']],
+      footnote: 'The link works for 3 days. If you did not create a Siar account, ignore this email and nothing happens.',
+      reason: 'You received this email because this address was used to create a Siar account.',
+    }
+    : {
+      to: email, subject: 'Confirm your email for Siar', kicker: 'Confirm email', heading: 'Confirm your email.',
+      paragraphs: ['Confirm this address so publishing alerts, invoices and password resets from Siar reach you.'],
+      cta: { label: 'Confirm email', url },
+      footnote: 'The link works for 3 days. If you did not ask for this, ignore this email.',
+      reason: 'You received this email because confirmation was requested for this Siar account.',
+    });
 }
 
 define({
@@ -44,11 +61,11 @@ define({
     if (await prisma.user.findUnique({ where: { email } })) throw conflict('An account with this email already exists. Sign in instead.');
     const out = await prisma.$transaction(async tx => {
       const user = await tx.user.create({ data: { email, passwordHash: await hashPassword(body.password), firstName: body.firstName, lastName: body.lastName ?? null, role: staff.has(email) ? 'ADMIN' : 'CUSTOMER' } });
-      const org = await createOrganization(tx, user.id, body.organizationName?.trim() || `${body.firstName}'s organization`);
+      const org = await createOrganization(tx, user.id, body.organizationName?.trim() || `${body.firstName.trim().split(/\s+/)[0]}'s organization`);
       await audit(tx, { kind: 'USER', organizationId: org.id, name: email, userId: user.id }, 'organization.create', 'Organization', org.id, `Created organization ${org.name}`);
       return { user, org };
     });
-    await sendVerification(out.user.id, email);
+    await sendVerification(out.user.id, email, true);
     setSessionCookie(reply, await createSession(out.user.id, out.org.id, req));
     return sessionPayload(out.user.id, out.org.id);
   },
@@ -81,7 +98,7 @@ define({
     if (user && !user.deletedAt) {
       const token = randomToken();
       await prisma.authToken.create({ data: { id: sha256(token), kind: 'RESET_PASSWORD', userId: user.id, expiresAt: new Date(Date.now() + 3600_000) } });
-      await queueMail(prisma, { to: user.email, subject: 'Reset your Siar password', heading: 'Reset your password', paragraphs: ['Someone (hopefully you) asked to reset the password for this Siar account.'], cta: { label: 'Choose a new password', url: appUrl(`/reset-password?token=${token}`) }, footnote: 'The link works for one hour. If you did not ask for this, your password is unchanged.' });
+      await queueMail(prisma, { to: user.email, subject: 'Reset your Siar password', kicker: 'Security', heading: 'Reset your password.', paragraphs: ['Someone (hopefully you) asked to reset the password for this Siar account.'], details: [['Account', user.email]], reason: 'You received this email because a password reset was requested for this Siar account.', cta: { label: 'Choose a new password', url: appUrl(`/reset-password?token=${token}`) }, footnote: 'The link works for one hour. If you did not ask for this, your password is unchanged.' });
     }
     return { success: true };
   },
@@ -271,7 +288,7 @@ define({
     const inv = await prisma.$transaction(async tx => {
       await tx.invitation.updateMany({ where: { organizationId: actor.organizationId, email, acceptedAt: null, revokedAt: null }, data: { revokedAt: new Date() } });
       const inv = await tx.invitation.create({ data: { organizationId: actor.organizationId, email, role: body.role, tokenHash: sha256(token), invitedById: actor.userId, expiresAt: new Date(Date.now() + 7 * 86400_000) } });
-      await queueMail(tx, { to: email, subject: `You're invited to ${org.name} on Siar`, heading: `Join ${org.name} on Siar`, paragraphs: [`${actor.name} invited you to ${org.name} as ${body.role.toLowerCase()}. Siar is where the team schedules and publishes to social networks.`], cta: { label: 'Accept invitation', url: appUrl(`/accept-invite?token=${token}`) }, footnote: 'The invitation is valid for 7 days.' });
+      await queueMail(tx, { to: email, subject: `You're invited to ${org.name} on Siar`, kicker: 'Invitation', heading: `Join ${org.name} on Siar.`, details: [['Organization', org.name], ['Invited by', actor.name], ['Role', body.role.charAt(0) + body.role.slice(1).toLowerCase()], ['Expires', inv.expiresAt.toISOString().slice(0, 10)]], reason: `You received this email because ${actor.name} invited this address to ${org.name}.`, paragraphs: [`${actor.name} invited you to ${org.name} as ${body.role.toLowerCase()}. Siar is where the team schedules and publishes to social networks.`], cta: { label: 'Accept invitation', url: appUrl(`/accept-invite?token=${token}`) }, footnote: 'The invitation is valid for 7 days.' });
       await audit(tx, actor, 'member.invite', 'Invitation', inv.id, `Invited ${email} as ${body.role.toLowerCase()}`);
       return inv;
     });

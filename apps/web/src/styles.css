@@ -315,3 +315,9 @@ button, input, select, textarea { font: inherit; color: inherit; letter-spacing:
   .main { margin: 0 !important; padding: 0 !important; }
   .page > * { animation: none !important; }
 }
+
+/* Chrome paints autofilled fields light blue; keep them on the field colour */
+input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-elevated) inset; -webkit-text-fill-color: var(--text); caret-color: var(--text);
+  transition: background-color 9999s ease-out 0s;
+}
