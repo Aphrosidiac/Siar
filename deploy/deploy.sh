@@ -25,7 +25,7 @@ pnpm --filter @siar/api db:generate
 pnpm --filter @siar/api build
 pnpm --filter @siar/web build
 SITE_DOMAIN="$DOMAIN" pnpm --filter @siar/site build
-rsync -a --delete apps/site/dist/ /var/www/siar-site/
+mkdir -p /srv/siar/current && rsync -a --delete apps/site/dist/ /srv/siar/current/site/
 cd apps/api && npx prisma migrate deploy && cd ../..
 pm2 startOrReload deploy/ecosystem.config.cjs --update-env
 pm2 save

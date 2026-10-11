@@ -31,9 +31,9 @@ id -u siar >/dev/null 2>&1 || useradd -m -s /bin/bash siar
 grep -q node22 /home/siar/.profile || echo 'export PATH="/opt/node22/bin:$HOME/.local/bin:$PATH"' >> /home/siar/.profile
 sudo -iu siar bash -c 'command -v pnpm >/dev/null || npm install -g --prefix ~/.local pnpm@11 >/dev/null'
 
-mkdir -p /srv/siar /var/backups/siar /var/www/siar-site
+mkdir -p /srv/siar /var/backups/siar /srv/siar/current/site
 [ -d /srv/siar/.git ] || git init -q -b main /srv/siar
-chown -R siar:siar /srv/siar /var/www/siar-site && chown postgres:postgres /var/backups/siar
+chown -R siar:siar /srv/siar /srv/siar/current/site && chown postgres:postgres /var/backups/siar
 
 ENV=/srv/siar/apps/api/.env
 mkdir -p /srv/siar/apps/api && chown siar:siar /srv/siar/apps /srv/siar/apps/api
@@ -72,8 +72,8 @@ mkdir -p /srv/siar-storage && chown siar:siar /srv/siar-storage
 sudo -u postgres psql -qtc "SELECT 1 FROM pg_database WHERE datname='siar'" | grep -q 1 || sudo -u postgres createdb -O siar siar
 
 mkdir -p /etc/ssl/cloudflare
-install -o root -g root -m 644 "$STAGE/origin.pem" /etc/ssl/cloudflare/siar.pem
-install -o root -g root -m 600 "$STAGE/origin.key" /etc/ssl/cloudflare/siar.key
+install -o root -g root -m 644 "$STAGE/origin.pem" /etc/ssl/cloudflare/$DOMAIN.pem
+install -o root -g root -m 600 "$STAGE/origin.key" /etc/ssl/cloudflare/$DOMAIN.key
 rm -rf "$STAGE"
 
 cat > /etc/cron.d/siar-backup <<CRON
