@@ -159,7 +159,7 @@ async function move(i: number, d: number) {
 <style scoped>
 .bio { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
 @media (max-width: 1100px) { .bio { grid-template-columns: minmax(0, 1fr); } .preview { display: none; } }
-.preview { position: sticky; top: 16px; }
+.preview { position: sticky; top: calc(var(--topbar) + 16px); }
 .phone { border: 8px solid var(--text); border-radius: 32px; overflow: hidden; height: 600px; background: var(--bg-elevated); }
 .phone iframe { width: 100%; height: 100%; border: 0; }
 .off { opacity: 0.55; }

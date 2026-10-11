@@ -60,10 +60,10 @@ const trial = computed(() => { const t = session.org?.trialEndsAt; if (!t) retur
 
 <style scoped>
 .shell { min-height: 100vh; }
-.side { position: fixed; inset: 0 auto 0 0; z-index: 300; width: var(--sidebar); border-right: 1px solid var(--side-line); transition: transform 420ms var(--ease-out); }
+.side { position: fixed; inset: 0 auto 0 0; z-index: var(--z-side); width: var(--sidebar); border-right: 1px solid var(--side-line); transition: transform 420ms var(--ease-out); }
 .main { margin-left: var(--sidebar); min-width: 0; min-height: 100vh; display: flex; flex-direction: column; overflow-x: clip; }
 .content { flex: 1; min-width: 0; }
-.top { position: sticky; top: 0; z-index: 200; height: var(--topbar); display: flex; align-items: center; gap: 12px; padding: 0 28px; background: var(--bg); border-bottom: 1px solid var(--border-soft); }
+.top { position: sticky; top: 0; z-index: var(--z-top); height: var(--topbar); display: flex; align-items: center; gap: 12px; padding: 0 28px; background: var(--bg); border-bottom: 1px solid var(--border-soft); }
 .search { display: flex; align-items: center; gap: 10px; width: min(380px, 34vw); height: 38px; padding: 0 8px 0 14px; border-radius: var(--radius-pill); border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text-subtle); font-size: var(--fs-14); text-align: left; cursor: pointer; transition: border-color 200ms, box-shadow 300ms var(--ease-out); }
 .search:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
 .ib { position: relative; width: 38px; height: 38px; display: grid; place-items: center; border: 0; border-radius: 50%; background: none; color: var(--text-muted); cursor: pointer; transition: background-color 200ms, color 200ms; text-decoration: none; }
@@ -73,7 +73,7 @@ const trial = computed(() => { const t = session.org?.trialEndsAt; if (!t) retur
 .banner { display: flex; gap: 12px; align-items: center; justify-content: center; padding: 8px 16px; font-size: var(--fs-13); line-height: 18px; flex-wrap: wrap; border-bottom: 1px solid var(--border-soft); color: var(--text-muted); }
 .banner.warn { background: var(--warn-soft); color: var(--warn-soft-text); }
 .banner a, .banner .link-btn { color: inherit; }
-.scrim { position: fixed; inset: 0; z-index: 250; background: var(--overlay); }
+.scrim { position: fixed; inset: 0; z-index: var(--z-scrim); background: var(--overlay); }
 .foot { padding: 16px 40px; font-size: var(--fs-12); line-height: 16px; color: var(--text-subtle); border-top: 1px solid var(--border-soft); }
 @media (max-width: 900px) {
   .side { width: min(290px, 86vw); transform: translateX(-102%); }

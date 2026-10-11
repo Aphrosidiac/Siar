@@ -19,7 +19,7 @@ import { dismiss, toasts } from '@/lib/toast';
   </div>
 </template>
 <style scoped>
-.host { position: fixed; right: 16px; bottom: 16px; z-index: 80; display: flex; flex-direction: column; gap: 8px; width: min(380px, calc(100vw - 32px)); }
+.host { position: fixed; right: 16px; bottom: 16px; z-index: var(--z-toast); display: flex; flex-direction: column; gap: 8px; width: min(380px, calc(100vw - 32px)); }
 .toast { display: flex; gap: 10px; align-items: flex-start; padding: 12px 12px 12px 14px; border-radius: var(--radius-lg); background: var(--text); color: var(--bg); box-shadow: var(--shadow-lg); }
 .ic { flex: none; margin-top: 1px; opacity: .8; }
 .error .ic { color: var(--danger); opacity: 1; }

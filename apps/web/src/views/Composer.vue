@@ -299,7 +299,7 @@ const submitLabel = computed(() => (form.when === 'now' ? 'Publish now' : form.w
 
 <style scoped>
 .cmp { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
-.sticky { position: sticky; top: 16px; }
+.sticky { position: sticky; top: calc(var(--topbar) + 16px); }
 @media (max-width: 1100px) { .cmp { grid-template-columns: minmax(0, 1fr); } .sticky { position: static; } }
 .chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
 .chip { position: relative; display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-elevated); cursor: pointer; color: var(--text); min-width: 0; }

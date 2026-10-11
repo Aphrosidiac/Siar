@@ -79,6 +79,8 @@
   --sidebar: 244px;
   --topbar: 64px;
   --radius-pill: 999px;
+  /* layers: shell < overlays. Anything teleported to body must clear the sidebar and top bar. */
+  --z-top: 200; --z-scrim: 250; --z-side: 300; --z-drawer: 400; --z-modal: 500; --z-toast: 900; --z-palette: 1000;
   --fs-display: clamp(32px, 3.2vw, 46px);
   color-scheme: light;
 }

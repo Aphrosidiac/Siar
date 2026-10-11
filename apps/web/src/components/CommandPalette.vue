@@ -61,7 +61,7 @@ const idx = (it: It) => flat.value.indexOf(it);
   </Teleport>
 </template>
 <style scoped>
-.cp-root { position: fixed; inset: 0; z-index: 1000; display: flex; justify-content: center; padding: 12vh 16px 16px; background: var(--overlay); backdrop-filter: blur(4px); }
+.cp-root { position: fixed; inset: 0; z-index: var(--z-palette); display: flex; justify-content: center; padding: 12vh 16px 16px; background: var(--overlay); backdrop-filter: blur(4px); }
 .cp { position: relative; width: min(640px, 100%); max-height: 70vh; display: flex; flex-direction: column; border-radius: 14px; background: var(--bg-elevated); border: 1px solid var(--border); box-shadow: var(--shadow-lg); overflow: hidden; align-self: flex-start; }
 .bar { display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--border); color: var(--text-subtle); }
 .bar input { flex: 1; min-width: 0; border: 0; background: none; outline: none; font-size: var(--fs-16); color: var(--text); }

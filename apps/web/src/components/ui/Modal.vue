@@ -57,7 +57,7 @@ onBeforeUnmount(() => { document.removeEventListener('keydown', onKey, true); do
 </template>
 
 <style scoped>
-.overlay { position: fixed; inset: 0; background: var(--overlay); z-index: 60; display: flex; align-items: flex-start; justify-content: center; padding: 72px 16px 16px; overflow-y: auto; }
+.overlay { position: fixed; inset: 0; background: var(--overlay); z-index: var(--z-modal); display: flex; align-items: flex-start; justify-content: center; padding: 72px 16px 16px; overflow-y: auto; }
 .panel { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 100%; display: flex; flex-direction: column; max-height: calc(100vh - 104px); outline: none; }
 .panel.sm { max-width: 420px; } .panel.md { max-width: 560px; } .panel.lg { max-width: 760px; } .panel.xl { max-width: 1040px; }
 .head { display: flex; align-items: flex-start; gap: 12px; padding: 20px 24px 0; }

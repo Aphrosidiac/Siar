@@ -32,7 +32,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey));
 </template>
 
 <style scoped>
-.overlay { position: fixed; inset: 0; background: var(--overlay); z-index: 55; }
+.overlay { position: fixed; inset: 0; background: var(--overlay); z-index: var(--z-drawer); }
 .drawer { position: absolute; top: 0; bottom: 0; background: var(--bg-elevated); box-shadow: var(--shadow-lg); display: flex; flex-direction: column; outline: none; }
 .drawer.right { right: 0; border-left: 1px solid var(--border); }
 .drawer.left { left: 0; border-right: 1px solid var(--border); }
