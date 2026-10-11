@@ -61,13 +61,16 @@ Tokens live in `apps/web/src/styles.css`; the site mirrors them.
 - FF appears only as "Siar by FF Dev Studio" in footers and legal pages.
 - Marketing pages (home, product tour, pricing, networks, use cases) add `apps/site/src/styles/marketing.css`:
   display type, pill buttons, framed product shots, ink bands, `data-reveal`/`data-lines` rise-ins
-  (`src/scripts/reveal.ts`). The home walkthrough is a click/auto-advance demo player, never scroll-linked
-  or zooming (Fakhrul found the sticky scroll version confusing). The one extra colour is the on-air red, used only for "live". Docs keep the
+  (`src/scripts/reveal.ts`). The home walkthrough is a click/auto-advance demo player of real screen recordings,
+  never scroll-linked or zooming (Fakhrul found the sticky scroll version confusing, and stills with a 6.5 s timer slow and boring). The one extra colour is the on-air red, used only for "live". Docs keep the
   plain layer. Never name a scoped class `.in`: the reveal script adds `in` to revealed elements.
 - Product screenshots in `apps/site/public/shots/` come from the real dashboard: reseed, then
   `node apps/site/scripts/shots.mjs [scene…]` (dashboard :5290 + API :3290). The `flow` scene schedules a
   real post in the demo org, so reseed again afterwards if the demo must be clean. The home hero's `posts` shot is
   16:9 (1536×864) beside the request panel (`home/ApiPanel.astro`); the pair must fit one laptop screen.
+  Walkthrough clips: reseed, `node apps/site/scripts/clips.mjs [clip…]` (also needs mocks :3299) → `public/clips/*.mp4`
+  + posters; it connects LinkedIn and schedules a post, so reseed after. Test playback in Chrome (`channel: 'chrome'`):
+  Playwright's Chromium has no H.264.
 
 ## Running
 
