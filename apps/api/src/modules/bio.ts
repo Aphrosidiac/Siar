@@ -126,7 +126,7 @@ function page(b: any, items: any[]) {
     : `<a class="l" href="/b/${esc(b.slug)}/go/${esc(i.id)}" rel="noopener">${esc(i.title)}</a>`).join('\n');
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(b.title)}</title><meta name="description" content="${esc(b.description ?? b.title)}"><meta property="og:title" content="${esc(b.title)}">${b.avatarUrl ? `<meta property="og:image" content="${esc(b.avatarUrl)}">` : ''}
-<style>:root{--bg:#F7F7F5;--fg:#161615;--mute:#62615B;--line:#E2E1DC;--card:#FFFFFF;--a:${accent}}@media(prefers-color-scheme:dark){:root{--bg:#0F0F0E;--fg:#EDECE8;--mute:#A3A19A;--line:#2A2A27;--card:#171716}}
+<style>:root{--bg:#F3EFE4;--fg:#0F0F0E;--mute:#625F57;--line:#DCD6C9;--card:#FBFAF6;--a:${accent}}@media(prefers-color-scheme:dark){:root{--bg:#0F0F0E;--fg:#EDECE8;--mute:#A3A19A;--line:#2A2A27;--card:#171716}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
 main{max-width:560px;margin:0 auto;padding:48px 16px 64px;text-align:center}img{width:88px;height:88px;border-radius:50%;object-fit:cover;border:1px solid var(--line)}
 h1{font-size:22px;margin:16px 0 4px}p.d{color:var(--mute);margin:0 0 28px}h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:28px 0 10px}

@@ -90,10 +90,10 @@ export function setSession(me: AuthMe) {
 
 // ── theme ──
 export type ThemePref = 'system' | 'light' | 'dark';
-export const theme = reactive({ pref: (store.get('siar.theme') as ThemePref) || 'system' });
+export const theme = reactive({ pref: (store.get('siar.theme') as ThemePref) || 'light' });
 export function setTheme(p: ThemePref) {
   theme.pref = p;
-  store.set('siar.theme', p === 'system' ? null : p);
+  store.set('siar.theme', p);
   if (p === 'system') delete document.documentElement.dataset.theme;
   else document.documentElement.dataset.theme = p;
 }

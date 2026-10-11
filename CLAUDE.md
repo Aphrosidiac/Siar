@@ -46,7 +46,8 @@ packages/sdk|cli|mcp  TypeScript SDK, JSON-first CLI, MCP server.
 
 Quiet, neutral, editorial (house UI conventions from FF Ops, **not** the FF palette, **no lime**,
 no indigo — Fakhrul 2026-10-11/12). Tokens live in `apps/web/src/styles.css`; the site mirrors them.
-- Warm-grey paper `#f7f7f5`, white panels, ink `#161615`. The primary action is ink (inverted in dark
+- Light is the default (dark is opt-in). Cream paper `#f3efe4`, panels `#fbfaf6`, ink `#0f0f0e` (FF Ops light,
+  no lime). The primary action is ink (inverted in dark
   mode). Colour only carries meaning: status (good/warn/bad/info) and chart series.
 - IBM Plex Sans 400/500/600 + Plex Mono for labels, table heads, counts (`.label`: 11px caps).
   One whole-pixel scale (`--fs-11…38`), nothing under 11px; `scripts/check-type.sh` enforces it.

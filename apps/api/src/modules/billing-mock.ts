@@ -28,7 +28,7 @@ export function mockCheckoutPage(p: { id: string; purpose: string; tier: string 
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Test checkout · Siar</title>
 <style>
-:root{--bg:#F7F7F5;--card:#FFFFFF;--ink:#161615;--muted:#62615B;--line:#E2E1DC;--accent:#161615;--accent-ink:#FFFFFF}
+:root{--bg:#F3EFE4;--card:#FBFAF6;--ink:#0F0F0E;--muted:#625F57;--line:#DCD6C9;--accent:#121211;--accent-ink:#FFFFFF}
 @media (prefers-color-scheme:dark){:root{--bg:#0F0F0E;--card:#171716;--ink:#EDECE8;--muted:#A3A19A;--line:#2A2A27;--accent:#EDECE8;--accent-ink:#121211}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}
 main{max-width:420px;margin:0 auto;padding:48px 16px}

@@ -40,8 +40,7 @@ const ld = [org, ...jsonLd];
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
     <link rel="sitemap" href="/sitemap-index.xml" />
-    <meta name="theme-color" content="#f7f7f5" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0f0f0e" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f3efe4" />
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content={SITE_NAME} />
     <meta property="og:title" content={fullTitle} />
@@ -52,7 +51,7 @@ const ld = [org, ...jsonLd];
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
     <script is:inline>
-      try { var t = localStorage.getItem('siar-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+      try { var t = localStorage.getItem('siar-theme'); document.documentElement.dataset.theme = t === 'dark' ? 'dark' : 'light'; } catch (e) {}
     </script>
     {ld.map((x) => <script type="application/ld+json" set:html={JSON.stringify(x)} />)}
   </head>
