@@ -177,7 +177,7 @@ async function softDelete(actor: Actor | ReturnType<typeof systemActor>, account
 }
 export const disconnectAccount = softDelete;
 
-const optionKeys = ['disableAutoLogin', 'tiktokForceLogin', 'forceBrowserOAuth', 'instagramConnectionMethod', 'withBusinessScope', 'withMessagingScope'];
+const optionKeys = ['disableAutoLogin', 'tiktokForceLogin', 'forceBrowserOAuth', 'instagramConnectionMethod', 'withBusinessScope', 'withMessagingScope', 'appPassword', 'identifier'];
 const pickOptions = (b: Record<string, unknown>) => Object.fromEntries(Object.entries(b).filter(([k]) => optionKeys.includes(k) || k.startsWith('with')));
 
 define({

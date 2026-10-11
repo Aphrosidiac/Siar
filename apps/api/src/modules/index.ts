@@ -16,6 +16,7 @@ import { contentRawRoutes } from './content.js';
 import { billingRawRoutes } from './billing.js';
 import { bioRawRoutes } from './bio.js';
 import { messagingRawRoutes } from './messaging.js';
+import { blueskyRawRoutes } from './bluesky-oauth.js';
 
 /** Imported for its side effects; kept as a function so app.ts reads as a sequence. */
 export function registerModules() {}
@@ -28,4 +29,5 @@ export async function registerRawRoutes(app: FastifyInstance) {
   await billingRawRoutes(app);
   await bioRawRoutes(app);
   await messagingRawRoutes(app);
+  await blueskyRawRoutes(app);
 }
