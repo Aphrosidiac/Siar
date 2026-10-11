@@ -10,16 +10,16 @@ Values used everywhere (change in one place if the name/domain changes):
 |---|---|
 | App / product name | **Siar** |
 | Legal entity | FF DEV STUDIO (SSM 202603234793), Malaysia |
-| Website | https://siar.dev |
-| Dashboard | https://app.siar.dev |
-| API | https://api.siar.dev |
-| Media domain (verify for TikTok URL pull) | https://media.siar.dev |
-| Privacy policy | https://siar.dev/privacy |
-| Terms of service | https://siar.dev/terms |
-| Data deletion instructions | https://siar.dev/data-deletion |
-| Support email | hello@siar.dev (must exist and receive mail before any review) |
-| OAuth callback pattern | `https://api.siar.dev/api/v1/social-account/callback/<NETWORK>` |
-| Meta webhook | `https://api.siar.dev/api/v1/webhooks/meta` |
+| Website | https://siaran.my |
+| Dashboard | https://app.siaran.my |
+| API | https://api.siaran.my |
+| Media domain (verify for TikTok URL pull) | https://media.siaran.my |
+| Privacy policy | https://siaran.my/privacy |
+| Terms of service | https://siaran.my/terms |
+| Data deletion instructions | https://siaran.my/data-deletion |
+| Support email | hello@siaran.my (must exist and receive mail before any review) |
+| OAuth callback pattern | `https://api.siaran.my/api/v1/social-account/callback/<NETWORK>` |
+| Meta webhook | `https://api.siaran.my/api/v1/webhooks/meta` |
 | App icon | 1024×1024 PNG from the site's brand kit |
 | Reviewer login | a seeded organization (apps/api/prisma/seed-reviewer.ts) — email/password given only inside each platform's private reviewer field |
 

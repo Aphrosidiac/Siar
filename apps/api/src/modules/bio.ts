@@ -133,7 +133,7 @@ h1{font-size:22px;margin:16px 0 4px}p.d{color:var(--mute);margin:0 0 28px}h2{fon
 a.l{display:block;padding:14px 16px;margin:10px 0;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg);text-decoration:none;font-weight:600}
 a.l:hover,a.l:focus-visible{border-color:var(--a);outline:none}p.t{color:var(--mute)}footer{margin-top:40px;font-size:12px;color:var(--mute)}footer a{color:var(--mute)}</style></head>
 <body><main>${b.avatarUrl ? `<img src="${esc(b.avatarUrl)}" alt="">` : ''}<h1>${esc(b.title)}</h1>${b.description ? `<p class="d">${esc(b.description)}</p>` : ''}
-${rows}<footer>Made with <a href="https://siar.dev">Siar</a></footer></main></body></html>`;
+${rows}<footer>Made with <a href="https://siaran.my">Siar</a></footer></main></body></html>`;
 }
 
 export async function bioRawRoutes(app: FastifyInstance) {

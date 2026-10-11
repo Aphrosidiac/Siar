@@ -12,9 +12,9 @@ Meta Business Suite → Business settings → Business info → **Start verifica
 - Legal business name: `FF DEV STUDIO` (exactly as on the SSM certificate)
 - Registration number: `202603234793`
 - Address + phone: as on SSM; phone must receive a code
-- Website: `https://siar.dev` (the footer must show "FF DEV STUDIO (202603234793)" — it does)
+- Website: `https://siaran.my` (the footer must show "FF DEV STUDIO (202603234793)" — it does)
 - Documents: SSM certificate (PDF) + a utility bill or bank statement in the business name if asked
-- Domain verification: Business settings → Brand safety → Domains → add `siar.dev`, DNS TXT record
+- Domain verification: Business settings → Brand safety → Domains → add `siaran.my`, DNS TXT record
 
 ## 2. App settings (I fill these)
 
@@ -22,14 +22,14 @@ Meta Business Suite → Business settings → Business info → **Start verifica
 |---|---|
 | App type | Business |
 | Display name | Siar |
-| App domains | siar.dev, app.siar.dev, api.siar.dev |
-| Privacy policy URL | https://siar.dev/privacy |
-| Terms of service URL | https://siar.dev/terms |
-| User data deletion | Data deletion instructions URL: https://siar.dev/data-deletion |
+| App domains | siaran.my, app.siaran.my, api.siaran.my |
+| Privacy policy URL | https://siaran.my/privacy |
+| Terms of service URL | https://siaran.my/terms |
+| User data deletion | Data deletion instructions URL: https://siaran.my/data-deletion |
 | Category | Business and pages |
 | App icon | 1024×1024 PNG |
-| Valid OAuth redirect URIs | https://api.siar.dev/api/v1/social-account/callback/FACEBOOK, …/INSTAGRAM, …/THREADS |
-| Webhooks | Callback https://api.siar.dev/api/v1/webhooks/meta, verify token = NETWORK_META_WEBHOOK_VERIFY_TOKEN; fields: Page `feed`, `messages`, `messaging_postbacks`, `message_reactions`, `message_echoes`; Instagram `comments`, `messages`, `messaging_postbacks`, `message_reactions` |
+| Valid OAuth redirect URIs | https://api.siaran.my/api/v1/social-account/callback/FACEBOOK, …/INSTAGRAM, …/THREADS |
+| Webhooks | Callback https://api.siaran.my/api/v1/webhooks/meta, verify token = NETWORK_META_WEBHOOK_VERIFY_TOKEN; fields: Page `feed`, `messages`, `messaging_postbacks`, `message_reactions`, `message_echoes`; Instagram `comments`, `messages`, `messaging_postbacks`, `message_reactions` |
 
 ## 3. App Review — submission A (publishing, comments, insights)
 
@@ -37,7 +37,7 @@ Submit after deploy. For each permission: the description below + a screencast o
 UI** doing exactly that (never Meta's UI), recorded at 1280×800, English captions, under 3 min.
 
 **Reviewer instructions (paste into "Testing instructions"):**
-> Siar is a social media publishing API with a web dashboard. Log in at https://app.siar.dev with
+> Siar is a social media publishing API with a web dashboard. Log in at https://app.siaran.my with
 > the credentials below. Open Social accounts → Connect Facebook (or Instagram), complete Facebook
 > Login with your test user, choose a Page. Then Posts → New post: select the network, write text,
 > attach an image, Publish now. The post appears on the Page/Instagram account. Inbox → Comments
@@ -73,5 +73,5 @@ messages the account owner wrote; no promotional messages outside the 24-hour wi
 
 Answer: Siar processes data only to provide the features the user connected the account for;
 tokens are encrypted at rest; data is deleted when the user disconnects the account or deletes the
-organization, or on request via https://siar.dev/data-deletion; no data is sold or used for
+organization, or on request via https://siaran.my/data-deletion; no data is sold or used for
 advertising.

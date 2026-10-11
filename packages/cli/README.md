@@ -1,6 +1,6 @@
 # @siar/cli
 
-JSON-first command line for the [Siar](https://siar.dev) unified social media API.
+JSON-first command line for the [Siar](https://siaran.my) unified social media API.
 
 ```bash
 npm i -g @siar/cli

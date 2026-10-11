@@ -33,7 +33,7 @@ export interface NetworkContext {
   /** fetch with mock-mode URL rewriting, timeouts and request logging. */
   fetch: (url: string, init?: RequestInit & { timeoutMs?: number }) => Promise<Response>;
   credentials: AppCredentials;
-  /** Our OAuth callback for this network, e.g. https://api.siar.dev/api/v1/social-account/callback/MASTODON */
+  /** Our OAuth callback for this network, e.g. https://api.siaran.my/api/v1/social-account/callback/MASTODON */
   redirectUri: string;
   /** Public base of our API (for webhooks the network calls back, e.g. Meta, TikTok). */
   apiUrl: string;

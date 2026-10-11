@@ -16,6 +16,6 @@ FF Reddit account. Paste:
   (post requirements and flair are checked before submitting) and Reddit's rate limits.
 - **Data use:** no scraping, no model training, no resale, no data on non-users beyond the
   comments on the user's own posts; tokens deleted on disconnect.
-- **Contact:** hello@siar.dev, FF DEV STUDIO (202603234793).
+- **Contact:** hello@siaran.my, FF DEV STUDIO (202603234793).
 Then create a **web app** at reddit.com/prefs/apps with redirect
-https://api.siar.dev/api/v1/social-account/callback/REDDIT.
+https://api.siaran.my/api/v1/social-account/callback/REDDIT.

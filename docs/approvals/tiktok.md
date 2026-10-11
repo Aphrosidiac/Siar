@@ -6,7 +6,7 @@ Before the audit an app can post, but every post is forced to **private (SELF_ON
 ## [F] Day 1
 1. developers.tiktok.com → sign up with the business email → create organization "FF DEV STUDIO".
 2. Create app **Siar**. I fill the rest.
-3. URL properties → verify `siar.dev` (DNS TXT) and the media prefix `https://media.siar.dev/` —
+3. URL properties → verify `siaran.my` (DNS TXT) and the media prefix `https://media.siaran.my/` —
    required for `PULL_FROM_URL` video posting.
 
 ## App details (paste)
@@ -15,9 +15,9 @@ Before the audit an app can post, but every post is forced to **private (SELF_ON
 | App name | Siar |
 | Category | Business / Productivity |
 | Description | Siar lets businesses and developers publish and schedule videos and photo posts to their own TikTok accounts from one dashboard and API. Users connect their account with Login Kit, choose privacy and interaction settings for every post, and see the post status. |
-| Terms / Privacy | https://siar.dev/terms · https://siar.dev/privacy |
-| Platforms | Web — https://app.siar.dev |
-| Redirect URI | https://api.siar.dev/api/v1/social-account/callback/TIKTOK |
+| Terms / Privacy | https://siaran.my/terms · https://siaran.my/privacy |
+| Platforms | Web — https://app.siaran.my |
+| Redirect URI | https://api.siaran.my/api/v1/social-account/callback/TIKTOK |
 | Products | Login Kit, Content Posting API (enable **Direct Post**) |
 | Scopes | user.info.basic, user.info.profile, user.info.stats, video.publish, video.upload, video.list |
 

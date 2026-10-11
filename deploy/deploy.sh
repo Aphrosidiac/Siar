@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Deploy Siar. Run from the Mac, repo root:   SIAR_HOST=<ssh-alias> SIAR_DOMAIN=siar.dev deploy/deploy.sh
+# Deploy Siar. Run from the Mac, repo root:   SIAR_HOST=<ssh-alias> SIAR_DOMAIN=siaran.my deploy/deploy.sh
 # GitHub first (main, clean tree), then a git bundle to the server (private repo, no deploy key),
 # build as `siar`, migrate, reload pm2, publish the static site, swap the nginx vhosts only if
 # `nginx -t` passes, health check through the public URL.
 set -euo pipefail
 HOST="${SIAR_HOST:?set SIAR_HOST}"
-DOMAIN="${SIAR_DOMAIN:-siar.dev}"
+DOMAIN="${SIAR_DOMAIN:-siaran.my}"
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 [ "$BRANCH" = "main" ] || { echo "Deploy from main (on $BRANCH)."; exit 1; }
 [ -z "$(git status --porcelain)" ] || { echo "Commit your changes first."; exit 1; }

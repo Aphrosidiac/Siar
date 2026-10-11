@@ -113,7 +113,7 @@ export const mastodon: NetworkAdapter = {
   async prepareServer(ctx, serverUrl) {
     const res = await request<{ client_id: string; client_secret: string }>(ctx, `${serverUrl.replace(/\/$/, '')}/api/v1/apps`, {
       method: 'POST',
-      json: { client_name: 'Siar', redirect_uris: ctx.redirectUri, scopes: SCOPES.join(' '), website: 'https://siar.dev' },
+      json: { client_name: 'Siar', redirect_uris: ctx.redirectUri, scopes: SCOPES.join(' '), website: 'https://siaran.my' },
     });
     return { clientId: res.client_id, clientSecret: res.client_secret };
   },

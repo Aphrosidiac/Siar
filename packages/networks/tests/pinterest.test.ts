@@ -27,10 +27,10 @@ describe('pinterest (v5)', () => {
   });
 
   it('pins an image and a carousel to a board resolved by name, then edits, reads and deletes', async () => {
-    const one = await pinterest.publish(ctx(), h.input(acc, { text: 'Hero', description: 'Spring drop', boardName: 'product shots', link: 'https://siar.dev', altText: 'a pixel', isAiGenerated: true }, [media()]));
+    const one = await pinterest.publish(ctx(), h.input(acc, { text: 'Hero', description: 'Spring drop', boardName: 'product shots', link: 'https://siaran.my', altText: 'a pixel', isAiGenerated: true }, [media()]));
     expect(one.status).toBe('POSTED');
     const st = h.state().pinterest;
-    expect(st.pins[0]).toMatchObject({ board_id: '549755885175', title: 'Hero', link: 'https://siar.dev', alt_text: 'a pixel' });
+    expect(st.pins[0]).toMatchObject({ board_id: '549755885175', title: 'Hero', link: 'https://siaran.my', alt_text: 'a pixel' });
     expect(st.pins[0].source).toEqual({ source_type: 'image_url', url: 'https://media.siar.test/file.png' });
     const id = (one as any).externalPostId;
     expect((one as any).permalink).toBe(`https://www.pinterest.com/pin/${id}/`);
@@ -88,6 +88,6 @@ describe('pinterest (v5)', () => {
     expect(v({ boardName: 'b' }, Array.from({ length: 6 }, () => media()))).toContain('too_many');
     expect(v({ boardName: 'b', link: 'ftp://x' })).toContain('invalid');
     expect(v({ boardName: 'b', dominantColor: 'red' })).toContain('invalid');
-    expect(v({ boardName: 'b', text: 'ok', description: 'd', link: 'https://siar.dev', dominantColor: '#aabbcc' })).toEqual([]);
+    expect(v({ boardName: 'b', text: 'ok', description: 'd', link: 'https://siaran.my', dominantColor: '#aabbcc' })).toEqual([]);
   });
 });

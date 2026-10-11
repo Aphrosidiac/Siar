@@ -2,7 +2,7 @@
 
 ## [F] Day 1
 1. console.cloud.google.com → new project **siar-prod** (organization: none is fine).
-2. search.google.com/search-console → add `siar.dev` (DNS) — Google requires the homepage
+2. search.google.com/search-console → add `siaran.my` (DNS) — Google requires the homepage
    domain to be verified by a project owner.
 3. Enable APIs: YouTube Data API v3, YouTube Analytics API, My Business Account Management API,
    My Business Business Information API, Google My Business API (v4), Business Profile
@@ -12,12 +12,12 @@
 | Field | Value |
 |---|---|
 | App name | Siar |
-| Support email | hello@siar.dev |
+| Support email | hello@siaran.my |
 | Logo | 120×120 PNG |
-| Home page / Privacy / Terms | https://siar.dev · /privacy · /terms |
-| Authorized domains | siar.dev |
+| Home page / Privacy / Terms | https://siaran.my · /privacy · /terms |
+| Authorized domains | siaran.my |
 | Scopes | youtube.upload, youtube, youtube.force-ssl, yt-analytics.readonly, business.manage, openid, email, profile |
-| Redirect URIs | https://api.siar.dev/api/v1/social-account/callback/YOUTUBE · …/GOOGLE_BUSINESS |
+| Redirect URIs | https://api.siaran.my/api/v1/social-account/callback/YOUTUBE · …/GOOGLE_BUSINESS |
 
 **Scope justifications (paste):**
 - `youtube.upload` — Upload videos and Shorts the user schedules in Siar to the channel they connected.
@@ -35,7 +35,7 @@ upload costs ~1,600), so the audit is needed for real volume.
 - Use case: multi-tenant publishing tool; each user acts only on their own channel.
 - Requested quota: 1,000,000 units/day (justify: ~500 uploads/day at launch + reads).
 - Compliance: no API data shown to users other than the channel owner; analytics stored ≤30 days
-  for refresh only; tokens deletable via disconnect and https://siar.dev/data-deletion; links to
+  for refresh only; tokens deletable via disconnect and https://siaran.my/data-deletion; links to
   YouTube ToS and Google privacy policy on the connect screen (built in).
 
 ## Business Profile API access [F]

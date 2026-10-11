@@ -3,7 +3,7 @@
  * platform reviewers' test login (docs/approvals). Idempotent per email: re-running replaces the
  * demo organization.
  *
- *   SEED_EMAIL=demo@siar.dev SEED_PASSWORD='…' pnpm --filter @siar/api db:seed
+ *   SEED_EMAIL=demo@siaran.my SEED_PASSWORD='…' pnpm --filter @siar/api db:seed
  *
  * Accounts are inserted directly (connected to the mock networks' identities), so this is for
  * development and review environments only — it refuses NODE_ENV=production unless SEED_FORCE=1.
@@ -18,7 +18,7 @@ import type { NetworkType } from '@siar/networks';
 
 if (process.env.NODE_ENV === 'production' && process.env.SEED_FORCE !== '1') { console.error('Refusing to seed demo data in production (set SEED_FORCE=1 for a review environment).'); process.exit(1); }
 
-const EMAIL = (process.env.SEED_EMAIL ?? 'demo@siar.dev').toLowerCase();
+const EMAIL = (process.env.SEED_EMAIL ?? 'demo@siaran.my').toLowerCase();
 const PASSWORD = process.env.SEED_PASSWORD ?? 'demo-password-123';
 const DAY = 86400_000;
 let r = 7;

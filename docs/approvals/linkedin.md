@@ -7,14 +7,14 @@ need the Community Management API, which LinkedIn grants to registered legal ent
 1. linkedin.com/company/setup → create the **FF DEV STUDIO** company page (or use the existing one),
    logo + website https://ffdev.studio.
 2. linkedin.com/developers → Create app: name **Siar**, LinkedIn Page = FF DEV STUDIO, privacy
-   https://siar.dev/privacy, logo. Then on the app's Settings tab → **Verify** the page (a page
+   https://siaran.my/privacy, logo. Then on the app's Settings tab → **Verify** the page (a page
    admin approves the verification URL).
 3. Products tab: add **Sign In with LinkedIn using OpenID Connect** and **Share on LinkedIn**
    (instant). Request **Community Management API** — this must be the only other product on the app;
    if LinkedIn insists, create a second app "Siar Pages" just for it.
 
 ## Community Management API request (paste)
-- Company: FF DEV STUDIO, Malaysia, SSM 202603234793; business email hello@siar.dev.
+- Company: FF DEV STUDIO, Malaysia, SSM 202603234793; business email hello@siaran.my.
 - Use case: *"Siar is a social media management API and dashboard. Organizations connect the
   LinkedIn Pages they administer to publish and schedule posts (text, images, video, documents,
   articles), reply to and moderate comments, and see page and post analytics. Members can also

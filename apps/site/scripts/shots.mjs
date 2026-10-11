@@ -24,7 +24,7 @@ const browser = await chromium.launch();
 async function context(theme = 'light', size = { width: W, height: H }) {
   const ctx = await browser.newContext({ extraHTTPHeaders: { 'x-siar': '1' }, viewport: size, deviceScaleFactor: 2, colorScheme: theme, reducedMotion: 'reduce', locale: 'en-GB', timezoneId: 'Asia/Kuala_Lumpur' });
   await ctx.addInitScript((t) => { try { localStorage.setItem('siar.theme', t); } catch {} }, theme);
-  const res = await ctx.request.post(`${APP}/api/v1/auth/login`, { data: { email: 'demo@siar.dev', password: 'demo-password-123' } });
+  const res = await ctx.request.post(`${APP}/api/v1/auth/login`, { data: { email: 'demo@siaran.my', password: 'demo-password-123' } });
   if (!res.ok()) throw new Error(`login failed: ${res.status()}`);
   return ctx;
 }
@@ -65,7 +65,7 @@ await scene('accounts', '/social-accounts');
 await scene('webhooks', '/webhooks', { prep: async (page) => { await page.getByRole('button', { name: 'Deliveries' }).first().click(); await settle(page); } });
 await scene('api-keys', '/api-keys');
 // the public link reads the browser's origin; show the production one, not localhost
-await scene('bio', '/bio', { prep: (page) => page.evaluate(() => document.querySelectorAll('input').forEach((i) => { if (i.value.includes('localhost')) i.value = i.value.replace(/^https?:\/\/[^/]+/, 'https://app.siar.dev'); })) });
+await scene('bio', '/bio', { prep: (page) => page.evaluate(() => document.querySelectorAll('input').forEach((i) => { if (i.value.includes('localhost')) i.value = i.value.replace(/^https?:\/\/[^/]+/, 'https://app.siaran.my'); })) });
 await scene('posts-phone', '/posts', { size: { width: 390, height: 844 } });
 await scene('calendar-phone', '/calendar', { size: { width: 390, height: 844 } });
 

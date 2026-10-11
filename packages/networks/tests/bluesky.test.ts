@@ -19,7 +19,7 @@ describe('bluesky (app password)', () => {
     expect(acc.token.expiresAt).toBeInstanceOf(Date);
 
     // Facets use UTF-8 byte offsets (the emoji is 4 bytes, é is 2).
-    const text = 'Héllo 🌍 @friend.bsky.social read https://siar.dev/docs. #siar';
+    const text = 'Héllo 🌍 @friend.bsky.social read https://siaran.my/docs. #siar';
     const input = h.input(acc, { text, tags: ['dev'], labels: ['graphic-media'] }, [media({ altText: 'a square' })]);
     const r = await bluesky.publish(ctx, input);
     expect(r.status).toBe('POSTED');
@@ -27,9 +27,9 @@ describe('bluesky (app password)', () => {
     expect(uri).toMatch(/^at:\/\/did:plc:siartest\d+[a-f]*\/app\.bsky\.feed\.post\/[2-7a-j][2-7a-z]{12}$/);
     const rec = posts()[0].value;
     const slice = (f: any) => Buffer.from(text).subarray(f.index.byteStart, f.index.byteEnd).toString();
-    expect(rec.facets.map((f: any) => [f.features[0].$type.split('#')[1], slice(f)])).toEqual([['mention', '@friend.bsky.social'], ['link', 'https://siar.dev/docs'], ['tag', '#siar']]);
+    expect(rec.facets.map((f: any) => [f.features[0].$type.split('#')[1], slice(f)])).toEqual([['mention', '@friend.bsky.social'], ['link', 'https://siaran.my/docs'], ['tag', '#siar']]);
     expect(rec.facets[0].features[0].did).toBe('did:plc:friend0000000000000000');
-    expect(rec.facets[1].features[0].uri).toBe('https://siar.dev/docs');
+    expect(rec.facets[1].features[0].uri).toBe('https://siaran.my/docs');
     expect(rec.embed.images[0]).toMatchObject({ alt: 'a square', aspectRatio: { width: 64, height: 64 } });
     expect(rec.labels.values).toEqual([{ val: 'graphic-media' }]);
     expect(rec.tags).toEqual(['dev']);

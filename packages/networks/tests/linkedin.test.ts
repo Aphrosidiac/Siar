@@ -51,8 +51,8 @@ describe('linkedin', () => {
     expect(d.status).toBe('POSTED'); // documents are AVAILABLE straight away
     expect(st.posts[(d as any).externalPostId].content.media.title).toMatch(/\.pdf$/);
 
-    const art = await linkedin.publish(ctx(), h.input(acc, { text: 'Read this', link: 'https://siar.dev/blog', mediaTitle: 'The blog', thumbnail: 't1' }));
-    expect(st.posts[(art as any).externalPostId].content.article).toMatchObject({ source: 'https://siar.dev/blog', title: 'The blog', thumbnail: expect.stringMatching(/^urn:li:image:/) });
+    const art = await linkedin.publish(ctx(), h.input(acc, { text: 'Read this', link: 'https://siaran.my/blog', mediaTitle: 'The blog', thumbnail: 't1' }));
+    expect(st.posts[(art as any).externalPostId].content.article).toMatchObject({ source: 'https://siaran.my/blog', title: 'The blog', thumbnail: expect.stringMatching(/^urn:li:image:/) });
   });
 
   it('uploads video in parts, waits for AVAILABLE, then posts as the organization', async () => {
@@ -151,6 +151,6 @@ describe('linkedin', () => {
     expect(v({ text: 'ok' }, [media({ type: 'document', mime: 'image/png' })])).toContain('mime');
     expect(v({ text: 'ok', link: 'javascript:alert(1)' })).toContain('invalid');
     expect(v({ text: 'ok', privacy: 'EVERYONE' })).toContain('invalid');
-    expect(v({ text: 'ok', privacy: 'PUBLIC', link: 'https://siar.dev' }, [media()])).toEqual([]);
+    expect(v({ text: 'ok', privacy: 'PUBLIC', link: 'https://siaran.my' }, [media()])).toEqual([]);
   });
 });

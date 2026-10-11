@@ -58,7 +58,7 @@ const doc = {
     description: 'One REST API to publish, schedule, comment on and measure social media across 15 networks. Authenticate with your organization API key in the x-api-key header.',
     contact: { name: 'FF DEV STUDIO', email: 'hello@ffdev.studio', url: 'https://ffdev.studio' },
   },
-  servers: [{ url: process.env.SIAR_API_URL ?? 'https://api.siar.dev' }],
+  servers: [{ url: process.env.SIAR_API_URL ?? 'https://api.siaran.my' }],
   security: [{ ApiKeyAuth: [] }],
   components: { securitySchemes: { ApiKeyAuth: { type: 'apiKey', name: 'x-api-key', in: 'header' } } },
   tags: [...new Set(Object.values(paths).flatMap(o => Object.values(o).flatMap(x => x.tags ?? [])))].map(name => ({ name })),

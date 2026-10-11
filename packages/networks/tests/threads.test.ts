@@ -23,12 +23,12 @@ describe('threads', () => {
     expect(acc.token.expiresAt).toBeTruthy();
     expect((await threads.refresh!(ctx(), acc)).accessToken).not.toBe(acc.token.accessToken);
 
-    const r = await post(acc, { text: 'Hello Threads', replyControl: 'mentioned_only', topicTag: 'siar', linkAttachment: 'https://siar.dev', poll: undefined });
+    const r = await post(acc, { text: 'Hello Threads', replyControl: 'mentioned_only', topicTag: 'siar', linkAttachment: 'https://siaran.my', poll: undefined });
     expect(r.status).toBe('POSTED');
     const id = (r as any).externalPostId;
     expect((r as any).permalink).toContain('threads.net');
     const st = h.state().threads;
-    expect(st.containers[st.posts[0].containerId]).toMatchObject({ media_type: 'TEXT', reply_control: 'mentioned_only', topic_tag: 'siar', link_attachment: 'https://siar.dev' });
+    expect(st.containers[st.posts[0].containerId]).toMatchObject({ media_type: 'TEXT', reply_control: 'mentioned_only', topic_tag: 'siar', link_attachment: 'https://siaran.my' });
 
     const poll = await post(acc, { text: 'Vote', poll: { optionA: 'Yes', optionB: 'No' } });
     expect(poll.status).toBe('POSTED');

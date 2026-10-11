@@ -23,7 +23,7 @@ export default function pinterest(m: MockRegistry) {
   }));
   const API = 'api.pinterest.com';
   const UPLOAD = 'pinterest-media-upload.s3-accelerate.amazonaws.com';
-  const user = { account_type: 'BUSINESS', id: '1234567890123456789', username: 'siartest', business_name: 'Siar Test', profile_image: 'https://i.pinimg.example/avatar.jpg', about: 'Testing Siar', website_url: 'https://siar.dev', board_count: 2, follower_count: 840, following_count: 12, monthly_views: 15400 };
+  const user = { account_type: 'BUSINESS', id: '1234567890123456789', username: 'siartest', business_name: 'Siar Test', profile_image: 'https://i.pinimg.example/avatar.jpg', about: 'Testing Siar', website_url: 'https://siaran.my', board_count: 2, follower_count: 840, following_count: 12, monthly_views: 15400 };
   const err = (status: number, code: number, message: string): MockResponse => ({ status, json: { code, message } });
   const check = (req: MockRequest): MockResponse | null => {
     if (!req.bearer || !s().tokens[req.bearer]) return err(401, 2, 'Authentication failed.');

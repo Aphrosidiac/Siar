@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # First-time provisioning of a DEDICATED Ubuntu 24.04 box for Siar (docs/PLAN.md D6).
-# Run from the Mac, repo root:   SIAR_HOST=<ssh-alias> SIAR_DOMAIN=siar.dev deploy/setup-server.sh
+# Run from the Mac, repo root:   SIAR_HOST=<ssh-alias> SIAR_DOMAIN=siaran.my deploy/setup-server.sh
 # Idempotent. Installs: Node 22 + pnpm + pm2, PostgreSQL 16, Redis, ffmpeg, nginx, ufw.
 # Creates user `siar`, db `siar`, /srv/siar, apps/api/.env with generated secrets (never overwritten),
 # nightly pg_dump (14 days), Cloudflare origin certificate from ~/.config/siar/origin.{pem,key}.
 set -euo pipefail
 HOST="${SIAR_HOST:?set SIAR_HOST to the ssh alias of the Siar server}"
-DOMAIN="${SIAR_DOMAIN:-siar.dev}"
+DOMAIN="${SIAR_DOMAIN:-siaran.my}"
 CONF="$HOME/.config/siar"
 [ -s "$CONF/origin.pem" ] && [ -s "$CONF/origin.key" ] || { echo "No Cloudflare origin certificate in $CONF (origin.pem/origin.key for *.$DOMAIN + $DOMAIN)." >&2; exit 1; }
 STAGE=$(ssh "$HOST" mktemp -d)

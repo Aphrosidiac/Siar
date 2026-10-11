@@ -6,13 +6,13 @@ import {
 import { Uploads } from './uploads.js';
 import { Webhooks } from './webhooks.js';
 
-export const DEFAULT_BASE_URL = 'https://api.siar.dev';
+export const DEFAULT_BASE_URL = 'https://api.siaran.my';
 export const SDK_VERSION = '0.1.0';
 
 export interface SiarOptions {
   /** API key (sent as `x-api-key`). Defaults to `process.env.SIAR_API_KEY`. */
   apiKey?: string;
-  /** API origin. Defaults to `process.env.SIAR_API_URL`, then https://api.siar.dev. */
+  /** API origin. Defaults to `process.env.SIAR_API_URL`, then https://api.siaran.my. */
   baseUrl?: string;
   /** Custom fetch (tests, proxies, older runtimes). Defaults to the global fetch. */
   fetch?: typeof fetch;

@@ -47,7 +47,7 @@ const schema = z.object({
   /** MYR per USD used to price CHIP checkouts (CHIP settles in MYR). */
   CHIP_USD_MYR: z.coerce.number().default(4.7),
   SMTP_URL: z.string().default(''),
-  MAIL_FROM: z.string().default('Siar <hello@siar.dev>'),
+  MAIL_FROM: z.string().default('Siar <hello@siaran.my>'),
   RUN_JOBS_IN_API: bool('false'),
   /** Emails that become Siar staff (User.role = ADMIN) on sign-up. */
   STAFF_EMAILS: z.string().default('hello@ffdev.studio'),

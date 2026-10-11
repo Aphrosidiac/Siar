@@ -48,7 +48,7 @@ async function context(size = { width: W, height: H }) {
   const ctx = await browser.newContext({ extraHTTPHeaders: { 'x-siar': '1' }, viewport: size, deviceScaleFactor: 2, colorScheme: 'light', locale: 'en-GB', timezoneId: 'Asia/Kuala_Lumpur' });
   await ctx.addInitScript(() => { try { localStorage.setItem('siar.theme', 'light'); } catch {} });
   await ctx.addInitScript(CURSOR);
-  const res = await ctx.request.post(`${APP}/api/v1/auth/login`, { data: { email: 'demo@siar.dev', password: 'demo-password-123' } });
+  const res = await ctx.request.post(`${APP}/api/v1/auth/login`, { data: { email: 'demo@siaran.my', password: 'demo-password-123' } });
   if (!res.ok()) throw new Error(`login failed: ${res.status()}`);
   return ctx;
 }

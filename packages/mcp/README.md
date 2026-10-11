@@ -1,6 +1,6 @@
 # @siar/mcp
 
-MCP server for the [Siar](https://siar.dev) unified social media API — post, schedule, read
+MCP server for the [Siar](https://siaran.my) unified social media API — post, schedule, read
 analytics and manage comments on 15 networks from Claude, Cursor or any MCP client.
 
 ```json

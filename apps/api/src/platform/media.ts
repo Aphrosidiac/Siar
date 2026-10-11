@@ -144,7 +144,7 @@ export async function fetchPublic(raw: string, maxBytes: number, allowLocal = fa
       if (!addrs.length) throw badRequest(`Could not resolve ${u.hostname}.`);
       if (addrs.some(a => isPrivate(a.address))) throw badRequest('That URL points to a private network address and cannot be fetched.');
     }
-    const res = await fetch(u, { redirect: 'manual', signal: AbortSignal.timeout(120_000), headers: { 'user-agent': 'SiarMediaFetcher/1.0 (+https://siar.dev)' } });
+    const res = await fetch(u, { redirect: 'manual', signal: AbortSignal.timeout(120_000), headers: { 'user-agent': 'SiarMediaFetcher/1.0 (+https://siaran.my)' } });
     if (res.status >= 300 && res.status < 400 && res.headers.get('location')) { url = new URL(res.headers.get('location')!, u).toString(); continue; }
     if (!res.ok) throw badRequest(`Fetching the URL failed with HTTP ${res.status}.`);
     const len = Number(res.headers.get('content-length') ?? 0);

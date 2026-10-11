@@ -3,13 +3,13 @@
 Dedicated Ubuntu 24.04 VPS (4 vCPU / 8 GB to start), Cloudflare in front (proxied, SSL Full strict).
 **Nothing here runs without Fakhrul's go** (deploys are never automatic).
 
-1. DNS (Cloudflare): `siar.dev`, `www`, `app`, `api`, `media` → the VPS IP, proxied.
-   Cloudflare → SSL/TLS → Origin Server → create a certificate for `siar.dev, *.siar.dev`; save as
+1. DNS (Cloudflare): `siaran.my`, `www`, `app`, `api`, `media` → the VPS IP, proxied.
+   Cloudflare → SSL/TLS → Origin Server → create a certificate for `siaran.my, *.siaran.my`; save as
    `~/.config/siar/origin.pem` and `origin.key` on the Mac.
-2. `SIAR_HOST=<alias> SIAR_DOMAIN=siar.dev deploy/setup-server.sh` — provisions the box.
+2. `SIAR_HOST=<alias> SIAR_DOMAIN=siaran.my deploy/setup-server.sh` — provisions the box.
 3. Fill network/billing/storage/SMTP secrets in `/srv/siar/apps/api/.env` on the server as they
    arrive (docs/approvals). Networks without keys stay unavailable — the API says so.
-4. `SIAR_HOST=<alias> SIAR_DOMAIN=siar.dev deploy/deploy.sh` — push to GitHub, build, migrate,
+4. `SIAR_HOST=<alias> SIAR_DOMAIN=siaran.my deploy/deploy.sh` — push to GitHub, build, migrate,
    reload, publish the site, swap nginx only if `nginx -t` passes, health check.
 
 Media: start with local storage on the VPS disk (`/srv/siar-storage`); switch to Cloudflare R2

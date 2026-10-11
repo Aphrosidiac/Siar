@@ -39,9 +39,9 @@ describe('reddit', () => {
     expect(st.posts[0]).toMatchObject({ sr: 'siartest', kind: 'self', title: 'A post from Siar', text: 'Body **markdown**', nsfw: true, flairId: 'flair-discuss', resubmit: 'true' });
 
     // link post
-    const link = await pub({ sr: 'siartest', text: '', link: 'https://siar.dev/launch' }, 'Siar launched').run();
+    const link = await pub({ sr: 'siartest', text: '', link: 'https://siaran.my/launch' }, 'Siar launched').run();
     expect(link.status).toBe('POSTED');
-    expect(st.posts[1]).toMatchObject({ kind: 'link', url: 'https://siar.dev/launch' });
+    expect(st.posts[1]).toMatchObject({ kind: 'link', url: 'https://siaran.my/launch' });
 
     // image: lease → S3 upload → submit → PROCESSING → poll → POSTED
     const img = pub({ sr: 'siartest', text: '' }, 'Look at this', [media({ mime: 'image/png' })]);

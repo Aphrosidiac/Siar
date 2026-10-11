@@ -1,5 +1,5 @@
 /** Site-wide settings. Every page, endpoint and legal text reads from here. */
-const domain = (typeof process !== 'undefined' && process.env?.SITE_DOMAIN) || 'siar.dev';
+const domain = (typeof process !== 'undefined' && process.env?.SITE_DOMAIN) || 'siaran.my';
 
 export const SITE_NAME = 'Siar';
 export const DOMAIN = domain;

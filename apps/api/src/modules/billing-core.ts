@@ -98,7 +98,7 @@ export async function billTo(db: Db, organizationId: string) {
 }
 
 /** The issuer printed on every Siar invoice. */
-export const ISSUER = { name: 'FF DEV STUDIO', registration: '202603234793', product: 'Siar', country: 'Malaysia', email: 'billing@siar.dev', website: 'siar.dev' };
+export const ISSUER = { name: 'FF DEV STUDIO', registration: '202603234793', product: 'Siar', country: 'Malaysia', email: 'billing@siaran.my', website: 'siaran.my' };
 
 /** Create or update the invoice for a provider document (idempotent on provider + providerInvoiceId). Emails a receipt when it becomes paid. */
 export async function recordInvoice(db: Db, i: InvoiceIn) {
