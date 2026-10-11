@@ -16,6 +16,7 @@ SHA="$(git rev-parse --short=12 HEAD)"
 WORK="$(mktemp -d)"; OUT="$WORK/$SHA"; trap 'rm -rf "$WORK"' EXIT
 
 echo "› build"
+CI=true pnpm install --offline --frozen-lockfile >/dev/null
 pnpm --filter @siar/contract build >/dev/null
 pnpm --filter @siar/api db:generate >/dev/null
 pnpm --filter @siar/api build >/dev/null
@@ -23,6 +24,8 @@ pnpm --filter @siar/web build >/dev/null
 SITE_DOMAIN="$DOMAIN" pnpm --filter @siar/site build >/dev/null
 # production dependencies for the box (Linux x64, glibc), assembled here
 pnpm --filter @siar/api deploy --prod --legacy --os linux --cpu x64 --libc glibc "$OUT/api" >/dev/null
+# `pnpm deploy` leaves the workspace marked as a Linux production install; put the Mac's back
+CI=true pnpm install --offline --frozen-lockfile >/dev/null
 rm -rf "$OUT/api/src" "$OUT/api/storage" "$OUT/api/scripts" "$OUT/api/tsup.config.ts" "$OUT/api/tsconfig.json" "$OUT/api"/.env*
 sed -i '' '/dotenv\/config/d' "$OUT/api/prisma.config.ts"   # the box passes the env file instead
 cp -R apps/web/dist "$OUT/web"
