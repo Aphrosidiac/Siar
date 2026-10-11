@@ -19,7 +19,6 @@ const faq = [
   { q: 'Can my own customers connect their accounts?', a: 'Yes. Create a team per customer and send them a hosted connect link, branded with your logo and name. They authorize in their own browser and land back in your app; you never handle their passwords or tokens.' },
   { q: 'Do I need to register developer apps with each network?', a: 'No. Accounts connect through the network apps Siar operates, so you do not register or maintain developer apps yourself. What each network requires of the connected account (a business profile, a Page, a channel) is described on its platform page.' },
   { q: 'What if a network rejects a post?', a: 'You get the network\'s own error message and code on the post, a webhook when the post reaches a final state, and a retry endpoint. Every platform page has an error reference that explains the common rejections and how to fix them.' },
-  { q: 'Is it compatible with another unified social API?', a: 'The request and response shapes follow the v1 shape used by bundle.social, so an integration written against that API usually needs a new base URL and API key rather than a rewrite. Check the API reference for any field you rely on.' },
 ];
 ---
 <Base title="Siar | One unified social media API" description={DESCRIPTION} jsonLd={[softwareLd(), faqLd(faq)]}>
