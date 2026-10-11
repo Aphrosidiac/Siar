@@ -79,6 +79,8 @@
   --sidebar: 244px;
   --topbar: 64px;
   --radius-pill: 999px;
+  /* filled destructive buttons: a plain red in both themes (the dark --danger is a soft text tint) */
+  --danger-solid: #dc2626; --danger-solid-hover: #b91c1c;
   /* layers: shell < overlays. Anything teleported to body must clear the sidebar and top bar. */
   --z-top: 200; --z-scrim: 250; --z-side: 300; --z-drawer: 400; --z-modal: 500; --z-toast: 900; --z-palette: 1000;
   --fs-display: clamp(32px, 3.2vw, 46px);

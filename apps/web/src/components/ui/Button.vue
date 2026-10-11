@@ -66,10 +66,10 @@ const attrs = computed(() => {
 .btn-secondary:hover:not(:disabled) { border-color: var(--text); background: var(--bg-muted); }
 .btn-ghost { background: transparent; color: var(--text-muted); }
 .btn-ghost:hover:not(:disabled) { background: var(--bg-muted); color: var(--text); }
-.btn-danger { background: var(--danger); color: #fff; }
-.btn-danger:hover:not(:disabled) { background: var(--danger-hover); }
+.btn-danger { background: var(--danger-solid); color: #fff; }
+.btn-danger:hover:not(:disabled) { background: var(--danger-solid-hover); }
 .btn-danger-ghost { background: transparent; color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, transparent); }
-.btn-danger-ghost:hover:not(:disabled) { background: var(--danger); color: #fff; border-color: var(--danger); }
+.btn-danger-ghost:hover:not(:disabled) { background: var(--danger-solid); color: #fff; border-color: var(--danger-solid); }
 .btn-link { background: none; color: var(--text); padding: 0; height: auto; border-radius: 0; text-decoration: underline; text-decoration-color: var(--border-strong); text-underline-offset: 3px; }
 .btn-link:hover:not(:disabled) { text-decoration-color: currentColor; }
 .btn-label { display: inline-flex; align-items: center; gap: 6px; }
