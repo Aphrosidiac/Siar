@@ -26,7 +26,7 @@ const app: RouteRecordRaw[] = [
   { path: '/bulk', component: view('Bulk'), meta: { title: 'Bulk post' } },
   { path: '/billing', component: view('Billing'), meta: { title: 'Billing' } },
   { path: '/organization', component: view('OrgSettings'), meta: { title: 'Organization settings' } },
-  { path: '/notifications', component: view('Notifications'), meta: { title: 'Notifications' } },
+  { path: '/notifications', redirect: { path: '/posts', query: { notifications: '1' } } },
   { path: '/settings', component: view('PersonalSettings'), meta: { title: 'Settings' } },
 ];
 

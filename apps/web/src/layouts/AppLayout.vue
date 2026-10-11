@@ -1,16 +1,21 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { RouterLink, RouterView, useRoute } from 'vue-router';
+import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router';
 import { Bell, Menu, Plus, Search } from 'lucide-vue-next';
 import SideNav from '@/components/SideNav.vue';
 import TeamSwitcher from '@/components/TeamSwitcher.vue';
 import CommandPalette from '@/components/CommandPalette.vue';
+import NotificationsModal from '@/components/NotificationsModal.vue';
 import Button from '@/components/ui/Button.vue';
 import { api } from '@/lib/api';
 import { session } from '@/lib/store';
 import { toast } from '@/lib/toast';
 
 const route = useRoute();
+const router = useRouter();
+const bell = ref(false);
+// /notifications (old links, emails) lands here with ?notifications=1 and opens the modal.
+watch(() => route.query.notifications, (v) => { if (v) { bell.value = true; const { notifications: _n, ...rest } = route.query; void router.replace({ query: rest }); } }, { immediate: true });
 const mobileOpen = ref(false);
 const palette = ref(false);
 const unread = ref(0);
@@ -42,9 +47,9 @@ const trial = computed(() => { const t = session.org?.trialEndsAt; if (!t) retur
         </button>
         <span class="spacer" />
         <Button variant="primary" size="sm" :icon="Plus" to="/compose" class="new">New post</Button>
-        <RouterLink to="/notifications" class="ib bell" aria-label="Notifications">
+        <button type="button" class="ib bell" aria-label="Notifications" @click="bell = true">
           <Bell :size="18" /><Transition name="fade"><span v-if="unread" class="bc">{{ unread > 99 ? '99+' : unread }}</span></Transition>
-        </RouterLink>
+        </button>
       </header>
       <div v-if="unverified" class="banner warn">
         <span>Confirm your email address to keep receiving publishing alerts.</span>
@@ -55,6 +60,7 @@ const trial = computed(() => { const t = session.org?.trialEndsAt; if (!t) retur
       <footer class="foot">Siar by FF Dev Studio</footer>
     </div>
     <CommandPalette v-model:open="palette" />
+    <NotificationsModal :open="bell" @close="bell = false" @changed="pollUnread" />
   </div>
 </template>
 
