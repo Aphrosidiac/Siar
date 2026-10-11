@@ -1,0 +1,49 @@
+---
+import Logo from './Logo.astro';
+import { NETWORKS } from '../lib/networks';
+import { LEGAL_ENTITY, CONTACT_EMAIL, COMPANY_URL } from '../config';
+const year = 2026;
+const cols = [
+  { h: 'Product', l: [['/features', 'Features'], ['/pricing', 'Pricing'], ['/platforms', 'Platforms'], ['/changelog', 'Changelog'], ['/errors', 'Error reference'], ['/social-media-api', 'Social media API']] },
+  { h: 'Use cases', l: [['/social-media-posting-api', 'Posting API'], ['/social-media-scheduling-api', 'Scheduling API'], ['/multi-tenant-social-media-api', 'Multi-tenant'], ['/social-media-api-for-saas', 'For SaaS'], ['/social-media-api-for-ai-agents', 'For AI agents'], ['/white-label-social-media-api', 'White-label connect']] },
+  { h: 'Developers', l: [['/docs', 'Documentation'], ['/docs/quickstart', 'Quickstart'], ['/docs/api', 'API reference'], ['/docs/webhooks', 'Webhooks'], ['/llms.txt', 'llms.txt'], ['/openapi.json', 'OpenAPI']] },
+  { h: 'Company', l: [['/about', 'About'], ['/contact', 'Contact'], ['/blog', 'Blog'], ['/brand-kit', 'Brand kit'], ['/content-guidelines', 'Content guidelines']] },
+  { h: 'Legal', l: [['/terms', 'Terms of service'], ['/privacy', 'Privacy policy'], ['/data-deletion', 'Data deletion'], ['/cookies', 'Cookie notice']] },
+];
+---
+<footer class="ftr">
+  <div class="container">
+    <div class="top">
+      <div class="about">
+        <Logo size={24} />
+        <p class="small muted">One REST API for publishing, scheduling, comments and analytics across {NETWORKS.length} social networks.</p>
+        <p class="xs muted nets">{NETWORKS.map((n, i) => <><a href={`/${n.slug}`}>{n.name}</a>{i < NETWORKS.length - 1 ? ' · ' : ''}</>)}</p>
+      </div>
+      {cols.map((c) => (
+        <div class="col">
+          <p class="h">{c.h}</p>
+          <ul>{c.l.map(([href, label]) => <li><a href={href}>{label}</a></li>)}</ul>
+        </div>
+      ))}
+    </div>
+    <div class="bottom">
+      <p class="xs"><strong>Siar by <a href={COMPANY_URL} rel="noopener">FF Dev Studio</a></strong></p>
+      <p class="xs muted">© {year} {LEGAL_ENTITY}. <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></p>
+      <p class="xs muted">Network names are trademarks of their owners and are used only to describe compatibility. Siar is not affiliated with or endorsed by any of them.</p>
+    </div>
+  </div>
+</footer>
+<style>
+  .ftr { border-top: 1px solid var(--border); background: var(--bg-soft); padding: 56px 0 32px; margin-top: 0; }
+  .top { display: grid; grid-template-columns: 1.6fr repeat(5, 1fr); gap: 32px; }
+  .about p { margin-top: 12px; max-width: 320px; }
+  .nets a { color: var(--fg-3); }
+  .h { font-size: 13px; font-weight: 600; color: var(--fg); margin: 0 0 12px; }
+  ul { list-style: none; padding: 0; margin: 0; }
+  li { margin: 0 0 8px; }
+  li a { font-size: 14px; color: var(--fg-2); }
+  .bottom { border-top: 1px solid var(--border); margin-top: 40px; padding-top: 24px; }
+  .bottom p { margin: 0 0 6px; }
+  @media (max-width: 960px) { .top { grid-template-columns: repeat(3, minmax(0, 1fr)); } .about { grid-column: 1 / -1; } }
+  @media (max-width: 560px) { .top { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>

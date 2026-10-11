@@ -1,0 +1,9 @@
+---
+import Base from '../layouts/Base.astro';
+import NetworkGrid from '../components/NetworkGrid.astro';
+import PlanCards from '../components/PlanCards.astro';
+import { NETWORKS } from '../lib/networks';
+import { operations } from '../lib/openapi';
+import { WEBHOOK_EVENTS } from '../lib/events';
+---
+<Base title="Test"><div class="container"><p>{NETWORKS.length} {operations().length} {WEBHOOK_EVENTS.length}</p><NetworkGrid /><PlanCards /></div></Base>

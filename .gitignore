@@ -10,3 +10,4 @@ docs/qa/states/
 .DS_Store
 src/generated/
 storage/
+apps/site/.astro/

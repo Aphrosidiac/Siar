@@ -1,0 +1,60 @@
+---
+import type { Field } from '../lib/openapi';
+interface Props { fields: Field[]; depth?: number; open?: boolean }
+const { fields, depth = 0, open = false } = Astro.props;
+const fmt = (v: unknown) => (typeof v === 'string' ? `"${v}"` : JSON.stringify(v));
+const Self = Astro.self;
+---
+<ul class:list={['sf', { root: depth === 0 }]}>
+  {fields.map((f) => (
+    <li>
+      <div class="row">
+        <code class="n">{f.name}</code>
+        <span class="t">{f.type}</span>
+        {f.required && <span class="req">required</span>}
+        {f.nullable && <span class="opt">nullable</span>}
+        {f.default !== undefined && f.default !== null && <span class="opt">default {fmt(f.default)}</span>}
+        {f.notes.map((n) => <span class="opt">{n}</span>)}
+      </div>
+      {f.enum && f.enum.length > 0 && (
+        <div class="enum">One of: {f.enum.map((e, i) => <><code>{String(e)}</code>{i < f.enum!.length - 1 ? ' ' : ''}</>)}</div>
+      )}
+      {f.children && f.children.length > 0 && (
+        <details open={open && depth === 0} class="kids">
+          <summary>{f.children.length} field{f.children.length === 1 ? '' : 's'}</summary>
+          <Self fields={f.children} depth={depth + 1} />
+        </details>
+      )}
+      {f.variants && f.variants.length > 0 && (
+        <details class="kids">
+          <summary>One of {f.variants.length} shapes</summary>
+          {f.variants.map((v) => (
+            <div class="variant">
+              <p class="vl">{v.label}</p>
+              {v.fields.length ? <Self fields={v.fields} depth={depth + 1} /> : null}
+            </div>
+          ))}
+        </details>
+      )}
+    </li>
+  ))}
+</ul>
+<style>
+  .sf { list-style: none; margin: 0; padding: 0; }
+  .sf.root { border: 1px solid var(--border); border-radius: 8px; margin: 0 0 20px; }
+  .sf li { margin: 0; padding: 10px 14px; border-top: 1px solid var(--border); }
+  .sf.root > li:first-child { border-top: 0; }
+  .row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; }
+  .n { font-weight: 600; font-size: 13px; background: none !important; border: 0 !important; padding: 0 !important; color: var(--fg); }
+  .t { font-family: var(--mono); font-size: 12px; color: var(--fg-3); overflow-wrap: anywhere; }
+  .req { font-size: 12px; font-weight: 600; color: var(--accent-text); }
+  .opt { font-size: 12px; color: var(--fg-3); }
+  .enum { font-size: 13px; color: var(--fg-3); margin-top: 6px; line-height: 1.9; }
+  .enum code { font-size: 12px; }
+  .kids { margin-top: 8px; }
+  .kids > summary { font-size: 13px; color: var(--fg-3); }
+  .kids :global(.sf) { border-left: 2px solid var(--border); margin: 8px 0 0 2px; }
+  .kids :global(.sf li) { padding: 8px 0 8px 12px; border-top: 0; }
+  .variant { margin-top: 8px; }
+  .vl { font-family: var(--mono); font-size: 12px; color: var(--fg-2); margin: 4px 0 0; }
+</style>

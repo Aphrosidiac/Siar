@@ -1,0 +1,13 @@
+---
+import { RESOURCE_LIMITS } from '../lib/plans';
+---
+<ul class="rules">
+  <li><strong>Monthly quotas</strong> count what your organization <em>creates</em> in a UTC calendar month: posts, comments and uploads. A scheduled post counts in the month you create it (or move it out of <code>DRAFT</code>), not the month it publishes, so you can schedule ahead as far as your quota allows.</li>
+  <li><strong>Drafts are free.</strong> A post starts counting when it leaves <code>DRAFT</code>.</li>
+  <li><strong>Daily caps</strong> count posts and comments aimed at one connected account on one <code>postDate</code> day (UTC). They follow the underlying network identity, so disconnecting and reconnecting an account, or connecting it to a second team, does not reset them.</li>
+  <li><strong>Checked once.</strong> Quotas and caps are enforced when you create or schedule. A scheduled post is never refused later because of a quota.</li>
+  <li><strong>Retries are free.</strong> A failed post can be retried up to {RESOURCE_LIMITS.maxRetries} times without counting again.</li>
+  <li><strong>Media retention.</strong> Files are kept for {RESOURCE_LIMITS.mediaRetentionDays} days after their last use: from the upload, or from the last time a post using it finished publishing, whichever is later. Media on a draft or scheduled post is kept until that post finishes. Deleted uploads keep their file for {RESOURCE_LIMITS.softDeletedMediaDays} more days. Published posts on the networks are never affected.</li>
+  <li><strong>Usage endpoints.</strong> Read current usage at any time from <code>GET /organization/usage/posts</code>, <code>/comments</code>, <code>/uploads</code>, <code>/daily-limits</code> and <code>/imports</code>.</li>
+</ul>
+<style>.rules li { margin-bottom: 10px; font-size: 15px; }</style>

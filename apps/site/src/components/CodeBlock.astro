@@ -1,0 +1,15 @@
+---
+import { Code } from 'astro:components';
+interface Props { code: string; lang?: string; title?: string }
+const { code, lang = 'bash', title } = Astro.props;
+---
+<div class="cb">
+  {title && <div class="cbt">{title}</div>}
+  <Code code={code} lang={lang as any} themes={{ light: 'github-light', dark: 'github-dark' }} defaultColor={false} />
+</div>
+<style>
+  .cb { margin: 0 0 20px; min-width: 0; }
+  .cbt { font-size: 13px; font-family: var(--mono); color: var(--fg-3); border: 1px solid var(--border); border-bottom: 0; background: var(--bg-soft); padding: 8px 14px; border-radius: 8px 8px 0 0; }
+  .cbt + :global(pre) { border-top-left-radius: 0; border-top-right-radius: 0; }
+  .cb :global(pre) { margin: 0; }
+</style>

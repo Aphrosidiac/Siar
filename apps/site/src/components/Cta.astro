@@ -1,0 +1,27 @@
+---
+import { SIGNUP_URL } from '../config';
+import { PLANS } from '../lib/plans';
+interface Props { title?: string; text?: string }
+const free = PLANS.FREE;
+const { title = 'Start building today', text = `The Free plan includes ${free.posts} posts and ${free.uploads} uploads a month across ${free.teams} teams. No card needed.` } = Astro.props;
+---
+<section class="section">
+  <div class="container">
+    <div class="cta">
+      <div>
+        <h2>{title}</h2>
+        <p>{text}</p>
+      </div>
+      <div class="btn-row">
+        <a class="btn primary lg" href={SIGNUP_URL}>Get an API key</a>
+        <a class="btn lg" href="/docs/quickstart">Read the quickstart</a>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .cta { border: 1px solid var(--border); border-radius: 8px; padding: 40px; display: flex; gap: 24px; align-items: center; justify-content: space-between; flex-wrap: wrap; background: var(--bg-soft); background-image: radial-gradient(ellipse 60% 120% at 100% 0%, var(--accent-soft), transparent 70%); }
+  .cta h2 { font-size: 26px; margin-bottom: 8px; }
+  .cta p { margin: 0; max-width: 560px; }
+  @media (max-width: 640px) { .cta { padding: 24px; } }
+</style>

@@ -1,0 +1,32 @@
+---
+import { Code } from 'astro:components';
+interface Props { tabs: { label: string; lang: string; code: string }[]; id?: string }
+const { tabs } = Astro.props;
+---
+<div class="ct" data-tabs>
+  <div class="bar" role="tablist">
+    {tabs.map((t, i) => <button type="button" role="tab" aria-selected={i === 0 ? 'true' : 'false'} data-i={i}>{t.label}</button>)}
+  </div>
+  {tabs.map((t, i) => (
+    <div class="pane" data-pane={i} hidden={i !== 0}>
+      <Code code={t.code} lang={t.lang as any} themes={{ light: 'github-light', dark: 'github-dark' }} defaultColor={false} />
+    </div>
+  ))}
+</div>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-tabs]').forEach((root) => {
+    const btns = root.querySelectorAll<HTMLButtonElement>('.bar button');
+    const panes = root.querySelectorAll<HTMLElement>('[data-pane]');
+    btns.forEach((b) => b.addEventListener('click', () => {
+      btns.forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+      panes.forEach((p) => (p.hidden = p.dataset.pane !== b.dataset.i));
+    }));
+  });
+</script>
+<style>
+  .ct { margin: 0 0 20px; min-width: 0; }
+  .bar { display: flex; gap: 2px; border: 1px solid var(--border); border-bottom: 0; border-radius: 8px 8px 0 0; background: var(--bg-soft); padding: 4px 4px 0; overflow-x: auto; }
+  .bar button { font: inherit; font-size: 13px; padding: 6px 12px; border: 0; background: transparent; color: var(--fg-3); cursor: pointer; border-radius: 6px 6px 0 0; white-space: nowrap; }
+  .bar button[aria-selected='true'] { background: var(--code-bg); color: var(--fg); font-weight: 600; }
+  .pane :global(pre) { margin: 0; border-top-left-radius: 0; border-top-right-radius: 0; }
+</style>

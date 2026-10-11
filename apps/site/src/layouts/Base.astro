@@ -1,0 +1,78 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE_NAME, SITE_URL, DESCRIPTION, LEGAL_NAME, LEGAL_REG, CONTACT_EMAIL, COMPANY_URL } from '../config';
+
+interface Props {
+  title: string;
+  description?: string;
+  jsonLd?: object[];
+  noindex?: boolean;
+  ogType?: string;
+  bare?: boolean;
+}
+const { title, description = DESCRIPTION, jsonLd = [], noindex = false, ogType = 'website', bare = false } = Astro.props;
+const fullTitle = /siar/i.test(title) ? title : `${title} | ${SITE_NAME}`;
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const canonical = `${SITE_URL}${path === '/' ? '' : path}`;
+const org = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  '@id': `${SITE_URL}/#org`,
+  name: SITE_NAME,
+  url: SITE_URL,
+  logo: `${SITE_URL}/favicon.svg`,
+  email: CONTACT_EMAIL,
+  parentOrganization: { '@type': 'Organization', name: LEGAL_NAME, url: COMPANY_URL, identifier: LEGAL_REG, address: { '@type': 'PostalAddress', addressCountry: 'MY' } },
+};
+const ld = [org, ...jsonLd];
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0b0b0f" media="(prefers-color-scheme: dark)" />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <script is:inline>
+      try { var t = localStorage.getItem('siar-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+    </script>
+    {ld.map((x) => <script type="application/ld+json" set:html={JSON.stringify(x)} />)}
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    {!bare && <Header />}
+    <main id="main"><slot /></main>
+    {!bare && <Footer />}
+    <script is:inline>
+      (function () {
+        var b = document.querySelector('[data-theme-toggle]');
+        if (!b) return;
+        b.addEventListener('click', function () {
+          var root = document.documentElement;
+          var cur = root.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          var next = cur === 'dark' ? 'light' : 'dark';
+          root.dataset.theme = next;
+          try { localStorage.setItem('siar-theme', next); } catch (e) {}
+        });
+      })();
+    </script>
+  </body>
+</html>

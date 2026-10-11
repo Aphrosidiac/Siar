@@ -1,0 +1,82 @@
+---
+import { PLANS, TIERS, fmtCents, fmtQuota } from '../lib/plans';
+import { SIGNUP_URL } from '../config';
+interface Props { compact?: boolean }
+const { compact = false } = Astro.props;
+const yearlySaving = (() => {
+  const p = PLANS.PRO;
+  if (!p.priceMonthlyCents || !p.priceYearlyMonthlyCents) return null;
+  return Math.round((1 - p.priceYearlyMonthlyCents / p.priceMonthlyCents) * 100);
+})();
+---
+<div class="pc" data-billing="yearly">
+  <div class="toggle" role="group" aria-label="Billing period">
+    <button type="button" data-set="monthly" aria-pressed="false">Monthly</button>
+    <button type="button" data-set="yearly" aria-pressed="true">Yearly{yearlySaving ? <span class="badge accent">save {yearlySaving}%</span> : null}</button>
+  </div>
+  <div class="cards">
+    {TIERS.map((t) => {
+      const p = PLANS[t];
+      const custom = p.priceMonthlyCents === null;
+      return (
+        <div class:list={['plan', { featured: t === 'PRO' }]}>
+          <div class="head">
+            <h3>{p.name}</h3>
+            <p class="tag">{p.tagline}</p>
+          </div>
+          <div class="price">
+            {custom ? <span class="amt">Custom</span> : (
+              <>
+                <span class="amt m">{fmtCents(p.priceMonthlyCents)}</span>
+                <span class="amt y">{fmtCents(p.priceYearlyMonthlyCents)}</span>
+                <span class="per">/ month</span>
+              </>
+            )}
+          </div>
+          <p class="billed">{custom ? 'Quoted per organization' : p.priceMonthlyCents === 0 ? 'No card needed' : <><span class="m">Billed monthly</span><span class="y">Billed yearly</span></>}</p>
+          <a class:list={['btn', t === 'PRO' ? 'primary' : '']} href={custom ? '/contact' : SIGNUP_URL}>{custom ? 'Talk to us' : p.priceMonthlyCents === 0 ? 'Start free' : `Choose ${p.name}`}</a>
+          {!compact && (
+            <ul>
+              <li><strong>{fmtQuota(p.posts)}</strong> posts / month</li>
+              <li><strong>{fmtQuota(p.comments)}</strong> comments / month</li>
+              <li><strong>{fmtQuota(p.uploads)}</strong> uploads / month</li>
+              <li><strong>{p.teams === null ? 'Unlimited' : p.teams}</strong> teams{p.teams === null ? ', so unlimited accounts' : ''}</li>
+              <li>{p.analytics ? 'Analytics included' : 'No analytics'}</li>
+              <li>{t === 'ENTERPRISE' ? 'Raisable quotas, caps and rate limits' : 'Full API, webhooks, SDK, CLI, MCP'}</li>
+            </ul>
+          )}
+        </div>
+      );
+    })}
+  </div>
+</div>
+<script>
+  document.querySelectorAll<HTMLElement>('.pc').forEach((root) => {
+    root.querySelectorAll<HTMLButtonElement>('[data-set]').forEach((b) =>
+      b.addEventListener('click', () => {
+        root.dataset.billing = b.dataset.set!;
+        root.querySelectorAll('[data-set]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      }),
+    );
+  });
+</script>
+<style>
+  .toggle { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-soft); margin: 0 0 24px; }
+  .toggle button { font: inherit; font-size: 14px; border: 0; background: transparent; padding: 6px 14px; border-radius: 6px; cursor: pointer; color: var(--fg-2); display: inline-flex; align-items: center; gap: 8px; }
+  .toggle button[aria-pressed='true'] { background: var(--bg-elev); color: var(--fg); box-shadow: var(--shadow); font-weight: 600; }
+  .cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; text-align: left; }
+  @media (max-width: 1000px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+  .plan { border: 1px solid var(--border); border-radius: 8px; padding: 24px; background: var(--bg-elev); display: flex; flex-direction: column; gap: 12px; }
+  .plan.featured { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .head h3 { margin: 0; font-size: 18px; }
+  .tag { margin: 4px 0 0; font-size: 14px; color: var(--fg-3); }
+  .price { display: flex; align-items: baseline; gap: 6px; }
+  .amt { font-size: 36px; font-weight: 700; letter-spacing: -0.02em; color: var(--fg); }
+  .per { color: var(--fg-3); font-size: 14px; }
+  .billed { margin: 0; font-size: 13px; color: var(--fg-3); min-height: 20px; }
+  .pc[data-billing='yearly'] .m, .pc[data-billing='monthly'] .y { display: none; }
+  ul { list-style: none; padding: 0; margin: 8px 0 0; border-top: 1px solid var(--border); padding-top: 16px; }
+  li { font-size: 14px; margin: 0 0 8px; padding-left: 20px; position: relative; }
+  li::before { content: ''; position: absolute; left: 2px; top: 8px; width: 8px; height: 4px; border-left: 2px solid var(--accent-text); border-bottom: 2px solid var(--accent-text); transform: rotate(-45deg); }
+</style>

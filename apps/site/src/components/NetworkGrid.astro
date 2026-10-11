@@ -1,0 +1,27 @@
+---
+import NetIcon from './NetIcon.astro';
+import { NETWORKS } from '../lib/networks';
+interface Props { target?: 'slug' | 'apiSlug' | 'docs'; showTypes?: boolean }
+const { target = 'slug', showTypes = true } = Astro.props;
+const href = (n: (typeof NETWORKS)[number]) => (target === 'docs' ? `/docs/platforms/${n.slug}` : `/${n[target]}`);
+---
+<div class="ng">
+  {NETWORKS.map((n) => (
+    <a class="item" href={href(n)}>
+      <NetIcon type={n.type} size={36} />
+      <span class="t">
+        <span class="name">{n.name}</span>
+        {showTypes && <span class="types">{n.postTypes.map((t) => t.toLowerCase().replace(/_/g, ' ')).join(' · ')}</span>}
+      </span>
+    </a>
+  ))}
+</div>
+<style>
+  .ng { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+  .item { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-elev); color: var(--fg); min-width: 0; }
+  .item:hover { border-color: var(--border-strong); text-decoration: none; }
+  .t { display: flex; flex-direction: column; min-width: 0; }
+  .name { font-weight: 600; font-size: 15px; }
+  .types { font-size: 13px; color: var(--fg-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  @media (max-width: 480px) { .ng { grid-template-columns: minmax(0, 1fr); } }
+</style>

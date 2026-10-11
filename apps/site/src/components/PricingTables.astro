@@ -1,0 +1,111 @@
+---
+import { PLANS, TIERS, CAP_TIERS, dailyPostCaps, dailyCommentCaps, COMMENT_LENGTH, RESOURCE_LIMITS, X_PRICES, X_PRICE_LABELS, fmtQuota, fmtInt, fmtMicro } from '../lib/plans';
+import { NETWORKS } from '../lib/networks';
+interface Props { show?: ('quotas' | 'imports' | 'messaging' | 'caps' | 'comments' | 'length' | 'resources' | 'x')[] }
+const { show = ['quotas', 'imports', 'messaging', 'caps', 'comments', 'length', 'resources', 'x'] } = Astro.props;
+const has = (k: string) => show.includes(k as any);
+const row = (label: string, f: (t: (typeof TIERS)[number]) => string) => ({ label, cells: TIERS.map(f) });
+const quotas = [
+  row('Posts created', (t) => fmtQuota(PLANS[t].posts)),
+  row('Comments created', (t) => fmtQuota(PLANS[t].comments)),
+  row('Media uploads', (t) => fmtQuota(PLANS[t].uploads)),
+  row('Teams (social sets)', (t) => fmtQuota(PLANS[t].teams)),
+  row('Connected accounts', (t) => (PLANS[t].teams === null ? 'Unlimited' : `Up to ${PLANS[t].teams! * NETWORKS.length} (${NETWORKS.length} per team)`)),
+  row('Analytics', (t) => (PLANS[t].analytics ? 'Included' : 'Not included')),
+];
+const imports = [
+  row('Historical posts per account', (t) => fmtQuota(PLANS[t].importPostsPerAccount)),
+  row('Comments stored per imported post', (t) => fmtQuota(PLANS[t].commentImportPerPost)),
+  row('Reviews per account', (t) => fmtQuota(PLANS[t].reviewImportPerAccount)),
+];
+const messaging = [
+  row('Direct messages sent per account', (t) => fmtQuota(PLANS[t].dmsPerAccount)),
+  row('Automation runs per account', (t) => fmtQuota(PLANS[t].automationRunsPerAccount)),
+];
+const pc = CAP_TIERS.map((t) => dailyPostCaps(t));
+const cc = CAP_TIERS.map((t) => dailyCommentCaps(t));
+const xGroups = (Object.keys(X_PRICES) as (keyof typeof X_PRICES)[]);
+---
+{has('quotas') && (
+  <>
+    <h3 id="quotas">Monthly quotas, per organization</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Per calendar month (UTC)</th>{TIERS.map((t) => <th class="num">{PLANS[t].name}</th>)}</tr></thead>
+      <tbody>{quotas.map((r) => <tr><td>{r.label}</td>{r.cells.map((c) => <td class="num">{c}</td>)}</tr>)}</tbody>
+    </table></div>
+    <p class="xs muted">Enterprise figures are starting points; each Enterprise organization can have its own quotas.</p>
+  </>
+)}
+{has('imports') && (
+  <>
+    <h3 id="imports">Import quotas</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Per connected account, per month</th>{TIERS.map((t) => <th class="num">{PLANS[t].name}</th>)}</tr></thead>
+      <tbody>{imports.map((r) => <tr><td>{r.label}</td>{r.cells.map((c) => <td class="num">{c}</td>)}</tr>)}</tbody>
+    </table></div>
+    <p class="xs muted">Per request, on every plan: at most {fmtInt(RESOURCE_LIMITS.historyImportPerCall)} posts per history-import call and {fmtInt(RESOURCE_LIMITS.reviewImportPerCall)} reviews per review-import call.</p>
+  </>
+)}
+{has('messaging') && (
+  <>
+    <h3 id="messaging">Direct messages and automations</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Per connected account, per month</th>{TIERS.map((t) => <th class="num">{PLANS[t].name}</th>)}</tr></thead>
+      <tbody>{messaging.map((r) => <tr><td>{r.label}</td>{r.cells.map((c) => <td class="num">{c}</td>)}</tr>)}</tbody>
+    </table></div>
+  </>
+)}
+{has('caps') && (
+  <>
+    <h3 id="daily-caps">Daily publishing caps, per account</h3>
+    <p class="small">Each connected account can receive this many posts per UTC day. The caps protect accounts from being throttled or flagged by the network for publishing too often. Enterprise uses the Business caps unless agreed otherwise.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Network</th>{CAP_TIERS.map((t) => <th class="num">{PLANS[t].name}</th>)}</tr></thead>
+      <tbody>{NETWORKS.map((n) => <tr><td><a href={`/${n.slug}`}>{n.name}</a></td>{pc.map((c) => <td class="num">{fmtInt(c[n.type])}</td>)}</tr>)}</tbody>
+    </table></div>
+  </>
+)}
+{has('comments') && (
+  <>
+    <h3 id="comment-caps">Daily comment caps, per account</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Network</th>{CAP_TIERS.map((t) => <th class="num">{PLANS[t].name}</th>)}</tr></thead>
+      <tbody>{NETWORKS.map((n) => <tr><td>{n.name}</td>{cc.map((c) => <td class="num">{fmtInt(c[n.type])}</td>)}</tr>)}</tbody>
+    </table></div>
+  </>
+)}
+{has('length') && (
+  <>
+    <h3 id="comment-length">Comment length, per network</h3>
+    <p class="small">Applies to comments, replies and a post's <code>firstComment</code>. Networks not listed do not take comments through Siar.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Network</th><th class="num">Max characters</th></tr></thead>
+      <tbody>{NETWORKS.filter((n) => COMMENT_LENGTH[n.type] !== undefined).map((n) => <tr><td>{n.name}</td><td class="num">{fmtInt(COMMENT_LENGTH[n.type]!)}</td></tr>)}</tbody>
+    </table></div>
+  </>
+)}
+{has('resources') && (
+  <>
+    <h3 id="resource-limits">Resource limits, every plan</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Resource</th><th>Scope</th><th class="num">Limit</th></tr></thead>
+      <tbody>
+        <tr><td>API keys</td><td>per organization</td><td class="num">{RESOURCE_LIMITS.apiKeys}</td></tr>
+        <tr><td>Webhooks</td><td>per organization</td><td class="num">{RESOURCE_LIMITS.webhooks}</td></tr>
+        <tr><td>Bot identities</td><td>per team</td><td class="num">{RESOURCE_LIMITS.botsPerTeam}</td></tr>
+        <tr><td>Manual retries of a failed post</td><td>per post</td><td class="num">{RESOURCE_LIMITS.maxRetries}</td></tr>
+        <tr><td>Media retention after last use</td><td>per upload</td><td class="num">{RESOURCE_LIMITS.mediaRetentionDays} days</td></tr>
+      </tbody>
+    </table></div>
+  </>
+)}
+{has('x') && (
+  <>
+    <h3 id="x-pricing">X (Twitter) pass-through prices</h3>
+    <p class="small">X charges developers for every API call. Siar passes those charges through at cost from a prepaid credit balance; anything not listed is free. If the balance runs out, X actions fail with a top-up message and every other network in the same post still publishes.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Action</th><th>Billed</th><th class="num">Price (USD)</th></tr></thead>
+      <tbody>{xGroups.map((k) => <tr><td>{X_PRICE_LABELS[k].label}</td><td>{X_PRICE_LABELS[k].unit}</td><td class="num">{fmtMicro(X_PRICES[k])}</td></tr>)}</tbody>
+    </table></div>
+  </>
+)}
