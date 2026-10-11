@@ -6,8 +6,16 @@ import './accounts.js';
 import './uploads.js';
 import './posts.js';
 import './system.js';
+import './content.js';
+import './billing.js';
+import './bio.js';
+import './messaging.js';
 import { accountRawRoutes } from './accounts.js';
 import { uploadRawRoutes } from './uploads.js';
+import { contentRawRoutes } from './content.js';
+import { billingRawRoutes } from './billing.js';
+import { bioRawRoutes } from './bio.js';
+import { messagingRawRoutes } from './messaging.js';
 
 /** Imported for its side effects; kept as a function so app.ts reads as a sequence. */
 export function registerModules() {}
@@ -16,4 +24,8 @@ export function registerModules() {}
 export async function registerRawRoutes(app: FastifyInstance) {
   await accountRawRoutes(app);
   await uploadRawRoutes(app);
+  await contentRawRoutes(app);
+  await billingRawRoutes(app);
+  await bioRawRoutes(app);
+  await messagingRawRoutes(app);
 }

@@ -332,6 +332,11 @@ export interface NetworkAdapter {
   limits: NetworkLimits;
   /** Scopes requested at connect. */
   scopes: string[];
+  /**
+   * Real rejection cases this network returns, for the public error reference
+   * (site: /<network>-api/errors). `code` is the network's own code or HTTP status.
+   */
+  errorReference?: { code: string; message: string; meaning: string; fix: string }[];
 
   // connect
   authorize(ctx: NetworkContext, input: AuthorizeInput): Promise<{ url: string; extra?: Record<string, unknown> }>;
