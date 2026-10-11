@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-import { Check, ChevronsUpDown, LogOut, Monitor, Moon, Plus, Sun, UserCircle } from 'lucide-vue-next';
+import { Check, ChevronsUpDown, LogOut, Monitor, Moon, Plus, Sun } from 'lucide-vue-next';
 import Dropdown from './ui/Dropdown.vue';
 import Avatar from './ui/Avatar.vue';
 import Button from './ui/Button.vue';
@@ -86,7 +86,6 @@ void props;
           <component :is="t.icon" :size="14" /><span class="grow">{{ t.label }}</span><Check v-if="theme.pref === t.v" :size="14" />
         </button>
         <div class="menu-sep" />
-        <RouterLink to="/settings" class="menu-item" data-close><UserCircle :size="14" />Your account</RouterLink>
         <button type="button" class="menu-item" @click="signOut"><LogOut :size="14" />Sign out</button>
       </Dropdown>
     </div>

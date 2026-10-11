@@ -200,6 +200,9 @@ button, input, select, textarea { font: inherit; color: inherit; letter-spacing:
 .page { max-width: 1240px; margin: 0 auto; padding: 36px 40px 96px; }
 .page.wide { max-width: 1480px; }
 .page.narrow { max-width: 760px; }
+/* settings pages: FF Ops' left-aligned column of panels */
+.sections { display: flex; flex-direction: column; gap: 16px; max-width: 920px; padding-bottom: 80px; }
+.span-2 { grid-column: 1 / -1; }
 @media (max-width: 900px) { .page { padding: 20px 16px 48px; } }
 .page > * { animation: rise var(--t-reveal) var(--ease-out) backwards; }
 .page > *:nth-child(2) { animation-delay: 50ms; }
