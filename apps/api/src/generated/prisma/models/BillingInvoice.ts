@@ -46,6 +46,7 @@ export type BillingInvoiceMinAggregateOutputType = {
   status: string | null
   pdfUrl: string | null
   hostedUrl: string | null
+  paymentMethod: string | null
   periodStart: Date | null
   periodEnd: Date | null
   paidAt: Date | null
@@ -64,6 +65,7 @@ export type BillingInvoiceMaxAggregateOutputType = {
   status: string | null
   pdfUrl: string | null
   hostedUrl: string | null
+  paymentMethod: string | null
   periodStart: Date | null
   periodEnd: Date | null
   paidAt: Date | null
@@ -82,6 +84,9 @@ export type BillingInvoiceCountAggregateOutputType = {
   status: number
   pdfUrl: number
   hostedUrl: number
+  lines: number
+  billTo: number
+  paymentMethod: number
   periodStart: number
   periodEnd: number
   paidAt: number
@@ -110,6 +115,7 @@ export type BillingInvoiceMinAggregateInputType = {
   status?: true
   pdfUrl?: true
   hostedUrl?: true
+  paymentMethod?: true
   periodStart?: true
   periodEnd?: true
   paidAt?: true
@@ -128,6 +134,7 @@ export type BillingInvoiceMaxAggregateInputType = {
   status?: true
   pdfUrl?: true
   hostedUrl?: true
+  paymentMethod?: true
   periodStart?: true
   periodEnd?: true
   paidAt?: true
@@ -146,6 +153,9 @@ export type BillingInvoiceCountAggregateInputType = {
   status?: true
   pdfUrl?: true
   hostedUrl?: true
+  lines?: true
+  billTo?: true
+  paymentMethod?: true
   periodStart?: true
   periodEnd?: true
   paidAt?: true
@@ -251,6 +261,9 @@ export type BillingInvoiceGroupByOutputType = {
   status: string
   pdfUrl: string | null
   hostedUrl: string | null
+  lines: runtime.JsonValue | null
+  billTo: runtime.JsonValue | null
+  paymentMethod: string | null
   periodStart: Date | null
   periodEnd: Date | null
   paidAt: Date | null
@@ -292,6 +305,9 @@ export type BillingInvoiceWhereInput = {
   status?: Prisma.StringFilter<"BillingInvoice"> | string
   pdfUrl?: Prisma.StringNullableFilter<"BillingInvoice"> | string | null
   hostedUrl?: Prisma.StringNullableFilter<"BillingInvoice"> | string | null
+  lines?: Prisma.JsonNullableFilter<"BillingInvoice">
+  billTo?: Prisma.JsonNullableFilter<"BillingInvoice">
+  paymentMethod?: Prisma.StringNullableFilter<"BillingInvoice"> | string | null
   periodStart?: Prisma.DateTimeNullableFilter<"BillingInvoice"> | Date | string | null
   periodEnd?: Prisma.DateTimeNullableFilter<"BillingInvoice"> | Date | string | null
   paidAt?: Prisma.DateTimeNullableFilter<"BillingInvoice"> | Date | string | null
@@ -311,6 +327,9 @@ export type BillingInvoiceOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   pdfUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   hostedUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  lines?: Prisma.SortOrderInput | Prisma.SortOrder
+  billTo?: Prisma.SortOrderInput | Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrderInput | Prisma.SortOrder
   periodStart?: Prisma.SortOrderInput | Prisma.SortOrder
   periodEnd?: Prisma.SortOrderInput | Prisma.SortOrder
   paidAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -334,6 +353,9 @@ export type BillingInvoiceWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.StringFilter<"BillingInvoice"> | string
   pdfUrl?: Prisma.StringNullableFilter<"BillingInvoice"> | string | null
   hostedUrl?: Prisma.StringNullableFilter<"BillingInvoice"> | string | null
+  lines?: Prisma.JsonNullableFilter<"BillingInvoice">
+  billTo?: Prisma.JsonNullableFilter<"BillingInvoice">
+  paymentMethod?: Prisma.StringNullableFilter<"BillingInvoice"> | string | null
   periodStart?: Prisma.DateTimeNullableFilter<"BillingInvoice"> | Date | string | null
   periodEnd?: Prisma.DateTimeNullableFilter<"BillingInvoice"> | Date | string | null
   paidAt?: Prisma.DateTimeNullableFilter<"BillingInvoice"> | Date | string | null
@@ -353,6 +375,9 @@ export type BillingInvoiceOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   pdfUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   hostedUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  lines?: Prisma.SortOrderInput | Prisma.SortOrder
+  billTo?: Prisma.SortOrderInput | Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrderInput | Prisma.SortOrder
   periodStart?: Prisma.SortOrderInput | Prisma.SortOrder
   periodEnd?: Prisma.SortOrderInput | Prisma.SortOrder
   paidAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -379,6 +404,9 @@ export type BillingInvoiceScalarWhereWithAggregatesInput = {
   status?: Prisma.StringWithAggregatesFilter<"BillingInvoice"> | string
   pdfUrl?: Prisma.StringNullableWithAggregatesFilter<"BillingInvoice"> | string | null
   hostedUrl?: Prisma.StringNullableWithAggregatesFilter<"BillingInvoice"> | string | null
+  lines?: Prisma.JsonNullableWithAggregatesFilter<"BillingInvoice">
+  billTo?: Prisma.JsonNullableWithAggregatesFilter<"BillingInvoice">
+  paymentMethod?: Prisma.StringNullableWithAggregatesFilter<"BillingInvoice"> | string | null
   periodStart?: Prisma.DateTimeNullableWithAggregatesFilter<"BillingInvoice"> | Date | string | null
   periodEnd?: Prisma.DateTimeNullableWithAggregatesFilter<"BillingInvoice"> | Date | string | null
   paidAt?: Prisma.DateTimeNullableWithAggregatesFilter<"BillingInvoice"> | Date | string | null
@@ -396,6 +424,9 @@ export type BillingInvoiceCreateInput = {
   status: string
   pdfUrl?: string | null
   hostedUrl?: string | null
+  lines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  billTo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  paymentMethod?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
   paidAt?: Date | string | null
@@ -415,6 +446,9 @@ export type BillingInvoiceUncheckedCreateInput = {
   status: string
   pdfUrl?: string | null
   hostedUrl?: string | null
+  lines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  billTo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  paymentMethod?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
   paidAt?: Date | string | null
@@ -432,6 +466,9 @@ export type BillingInvoiceUpdateInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   pdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hostedUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  billTo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -451,6 +488,9 @@ export type BillingInvoiceUncheckedUpdateInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   pdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hostedUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  billTo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -469,6 +509,9 @@ export type BillingInvoiceCreateManyInput = {
   status: string
   pdfUrl?: string | null
   hostedUrl?: string | null
+  lines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  billTo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  paymentMethod?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
   paidAt?: Date | string | null
@@ -486,6 +529,9 @@ export type BillingInvoiceUpdateManyMutationInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   pdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hostedUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  billTo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -504,6 +550,9 @@ export type BillingInvoiceUncheckedUpdateManyInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   pdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hostedUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  billTo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -537,6 +586,9 @@ export type BillingInvoiceCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   pdfUrl?: Prisma.SortOrder
   hostedUrl?: Prisma.SortOrder
+  lines?: Prisma.SortOrder
+  billTo?: Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrder
   periodStart?: Prisma.SortOrder
   periodEnd?: Prisma.SortOrder
   paidAt?: Prisma.SortOrder
@@ -559,6 +611,7 @@ export type BillingInvoiceMaxOrderByAggregateInput = {
   status?: Prisma.SortOrder
   pdfUrl?: Prisma.SortOrder
   hostedUrl?: Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrder
   periodStart?: Prisma.SortOrder
   periodEnd?: Prisma.SortOrder
   paidAt?: Prisma.SortOrder
@@ -577,6 +630,7 @@ export type BillingInvoiceMinOrderByAggregateInput = {
   status?: Prisma.SortOrder
   pdfUrl?: Prisma.SortOrder
   hostedUrl?: Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrder
   periodStart?: Prisma.SortOrder
   periodEnd?: Prisma.SortOrder
   paidAt?: Prisma.SortOrder
@@ -640,6 +694,9 @@ export type BillingInvoiceCreateWithoutOrganizationInput = {
   status: string
   pdfUrl?: string | null
   hostedUrl?: string | null
+  lines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  billTo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  paymentMethod?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
   paidAt?: Date | string | null
@@ -657,6 +714,9 @@ export type BillingInvoiceUncheckedCreateWithoutOrganizationInput = {
   status: string
   pdfUrl?: string | null
   hostedUrl?: string | null
+  lines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  billTo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  paymentMethod?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
   paidAt?: Date | string | null
@@ -704,6 +764,9 @@ export type BillingInvoiceScalarWhereInput = {
   status?: Prisma.StringFilter<"BillingInvoice"> | string
   pdfUrl?: Prisma.StringNullableFilter<"BillingInvoice"> | string | null
   hostedUrl?: Prisma.StringNullableFilter<"BillingInvoice"> | string | null
+  lines?: Prisma.JsonNullableFilter<"BillingInvoice">
+  billTo?: Prisma.JsonNullableFilter<"BillingInvoice">
+  paymentMethod?: Prisma.StringNullableFilter<"BillingInvoice"> | string | null
   periodStart?: Prisma.DateTimeNullableFilter<"BillingInvoice"> | Date | string | null
   periodEnd?: Prisma.DateTimeNullableFilter<"BillingInvoice"> | Date | string | null
   paidAt?: Prisma.DateTimeNullableFilter<"BillingInvoice"> | Date | string | null
@@ -721,6 +784,9 @@ export type BillingInvoiceCreateManyOrganizationInput = {
   status: string
   pdfUrl?: string | null
   hostedUrl?: string | null
+  lines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  billTo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  paymentMethod?: string | null
   periodStart?: Date | string | null
   periodEnd?: Date | string | null
   paidAt?: Date | string | null
@@ -738,6 +804,9 @@ export type BillingInvoiceUpdateWithoutOrganizationInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   pdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hostedUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  billTo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -755,6 +824,9 @@ export type BillingInvoiceUncheckedUpdateWithoutOrganizationInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   pdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hostedUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  billTo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -772,6 +844,9 @@ export type BillingInvoiceUncheckedUpdateManyWithoutOrganizationInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   pdfUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hostedUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lines?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  billTo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  paymentMethod?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   periodStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   periodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -792,6 +867,9 @@ export type BillingInvoiceSelect<ExtArgs extends runtime.Types.Extensions.Intern
   status?: boolean
   pdfUrl?: boolean
   hostedUrl?: boolean
+  lines?: boolean
+  billTo?: boolean
+  paymentMethod?: boolean
   periodStart?: boolean
   periodEnd?: boolean
   paidAt?: boolean
@@ -811,6 +889,9 @@ export type BillingInvoiceSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   status?: boolean
   pdfUrl?: boolean
   hostedUrl?: boolean
+  lines?: boolean
+  billTo?: boolean
+  paymentMethod?: boolean
   periodStart?: boolean
   periodEnd?: boolean
   paidAt?: boolean
@@ -830,6 +911,9 @@ export type BillingInvoiceSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   status?: boolean
   pdfUrl?: boolean
   hostedUrl?: boolean
+  lines?: boolean
+  billTo?: boolean
+  paymentMethod?: boolean
   periodStart?: boolean
   periodEnd?: boolean
   paidAt?: boolean
@@ -849,13 +933,16 @@ export type BillingInvoiceSelectScalar = {
   status?: boolean
   pdfUrl?: boolean
   hostedUrl?: boolean
+  lines?: boolean
+  billTo?: boolean
+  paymentMethod?: boolean
   periodStart?: boolean
   periodEnd?: boolean
   paidAt?: boolean
   createdAt?: boolean
 }
 
-export type BillingInvoiceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "provider" | "providerInvoiceId" | "number" | "description" | "amountCents" | "currency" | "status" | "pdfUrl" | "hostedUrl" | "periodStart" | "periodEnd" | "paidAt" | "createdAt", ExtArgs["result"]["billingInvoice"]>
+export type BillingInvoiceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "provider" | "providerInvoiceId" | "number" | "description" | "amountCents" | "currency" | "status" | "pdfUrl" | "hostedUrl" | "lines" | "billTo" | "paymentMethod" | "periodStart" | "periodEnd" | "paidAt" | "createdAt", ExtArgs["result"]["billingInvoice"]>
 export type BillingInvoiceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }
@@ -883,6 +970,18 @@ export type $BillingInvoicePayload<ExtArgs extends runtime.Types.Extensions.Inte
     status: string
     pdfUrl: string | null
     hostedUrl: string | null
+    /**
+     * [{ description, quantity, unitAmountCents, amountCents, periodStart?, periodEnd? }]
+     */
+    lines: runtime.JsonValue | null
+    /**
+     * Who it was billed to when issued: { name, email, address, taxId }
+     */
+    billTo: runtime.JsonValue | null
+    /**
+     * "Visa •••• 4242", "FPX (Maybank2u)"… as the provider reported it
+     */
+    paymentMethod: string | null
     periodStart: Date | null
     periodEnd: Date | null
     paidAt: Date | null
@@ -1322,6 +1421,9 @@ export interface BillingInvoiceFieldRefs {
   readonly status: Prisma.FieldRef<"BillingInvoice", 'String'>
   readonly pdfUrl: Prisma.FieldRef<"BillingInvoice", 'String'>
   readonly hostedUrl: Prisma.FieldRef<"BillingInvoice", 'String'>
+  readonly lines: Prisma.FieldRef<"BillingInvoice", 'Json'>
+  readonly billTo: Prisma.FieldRef<"BillingInvoice", 'Json'>
+  readonly paymentMethod: Prisma.FieldRef<"BillingInvoice", 'String'>
   readonly periodStart: Prisma.FieldRef<"BillingInvoice", 'DateTime'>
   readonly periodEnd: Prisma.FieldRef<"BillingInvoice", 'DateTime'>
   readonly paidAt: Prisma.FieldRef<"BillingInvoice", 'DateTime'>

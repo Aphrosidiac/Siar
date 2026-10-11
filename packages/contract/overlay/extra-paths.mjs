@@ -46,7 +46,10 @@ const BioItem = obj({ id: S.str, bioId: S.str, type: { type: 'string', enum: ['L
 const Bio = obj({ id: S.str, teamId: S.str, slug: S.str, title: S.str, description: S.strN, avatarUrl: S.strN, theme: S.json, published: S.bool, items: arr(BioItem), createdAt: S.date, updatedAt: S.date }, ['id', 'slug', 'title']);
 const Plan = { type: 'string', enum: ['FREE', 'PRO', 'BUSINESS', 'ENTERPRISE'] };
 const Subscription = obj({ plan: Plan, interval: { type: 'string', enum: ['MONTHLY', 'YEARLY'], nullable: true }, status: { type: 'string', enum: ['trialing', 'active', 'canceled', 'incomplete', 'incomplete_expired', 'past_due', 'unpaid', 'paused'], nullable: true }, provider: { type: 'string', enum: ['STRIPE', 'CHIP', 'MOCK'], nullable: true }, currentPeriodEnd: S.dateN, trialEndsAt: S.dateN, cancelAtPeriodEnd: S.bool, currency: S.str }, ['plan']);
-const Invoice = obj({ id: S.str, number: S.str, amountCents: S.int, currency: S.str, status: S.str, pdfUrl: S.strN, hostedUrl: S.strN, periodStart: S.dateN, periodEnd: S.dateN, createdAt: S.date }, ['id', 'number', 'amountCents']);
+const Invoice = obj({ id: S.str, number: S.str, description: S.str, amountCents: S.int, currency: S.str, status: S.str, provider: S.str, pdfUrl: S.strN, hostedUrl: S.strN, periodStart: S.dateN, periodEnd: S.dateN, paidAt: S.dateN, paymentMethod: S.strN, createdAt: S.date }, ['id', 'number', 'amountCents']);
+const InvoiceLine = obj({ description: S.str, quantity: S.int, unitAmountCents: S.int, amountCents: S.int, periodStart: S.dateN, periodEnd: S.dateN }, ['description', 'amountCents']);
+const BillingDetails = obj({ name: S.strN, email: S.strN, address: S.strN, taxId: S.strN }, []);
+const InvoiceDocument = { ...Invoice, properties: { ...Invoice.properties, lines: arr(InvoiceLine), subtotalCents: S.int, totalCents: S.int, amountPaidCents: S.int, amountDueCents: S.int, billTo: { ...BillingDetails, nullable: true }, issuer: S.json } };
 const LedgerRow = obj({ id: S.str, deltaMicroUsd: S.int, reason: S.str, action: S.strN, refType: S.strN, refId: S.strN, createdAt: S.date }, ['id', 'deltaMicroUsd', 'reason']);
 const Bot = obj({ id: S.str, teamId: S.str, name: S.str, avatarUrl: S.strN, createdAt: S.date }, ['id', 'name']);
 const AuditRow = obj({ id: S.str, actorType: S.str, actorName: S.str, action: S.str, entity: S.str, entityId: S.strN, summary: S.str, createdAt: S.date }, ['id', 'summary']);
@@ -157,6 +160,11 @@ export const extraPaths = {
   '/api/v1/billing/cancel': { post: op('billing.cancel', 'billing', 'Cancel at the end of the period', { res: Subscription }) },
   '/api/v1/billing/resume': { post: op('billing.resume', 'billing', 'Undo a pending cancellation', { res: Subscription }) },
   '/api/v1/billing/invoices': { get: op('billing.invoices', 'billing', 'List invoices', { params: page, res: list(Invoice) }) },
+  '/api/v1/billing/invoices/{id}': { get: op('billing.invoice', 'billing', 'Get an invoice with its lines', { params: [idParam], res: InvoiceDocument }) },
+  '/api/v1/billing/details': {
+    get: op('billing.details', 'billing', 'Billing details printed on invoices', { res: BillingDetails }),
+    patch: op('billing.updateDetails', 'billing', 'Update billing details', { body: obj({ name: { type: 'string', maxLength: 200, nullable: true }, email: { type: 'string', format: 'email', maxLength: 254, nullable: true }, address: { type: 'string', maxLength: 600, nullable: true }, taxId: { type: 'string', maxLength: 60, nullable: true } }), res: BillingDetails }),
+  },
   '/api/v1/billing/credits/top-up': { post: op('billing.topUp', 'billing', 'Buy X credit', { body: obj({ amountUsd: { type: 'integer', minimum: 5, maximum: 5000 }, provider: { type: 'string', enum: ['STRIPE', 'CHIP'] } }, ['amountUsd']), res: Checkout }) },
   '/api/v1/billing/credits/ledger': { get: op('billing.ledger', 'billing', 'Credit movements', { params: page, res: list(LedgerRow) }) },
   '/api/v1/billing/credits/settings': { patch: op('billing.creditSettings', 'billing', 'Set the low-balance threshold', { body: obj({ lowBalanceThresholdMicroUsd: S.int }, ['lowBalanceThresholdMicroUsd']), res: S.json }) },

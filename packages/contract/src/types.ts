@@ -3316,6 +3316,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/billing/invoices/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an invoice with its lines */
+        get: operations["billing.invoice"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/details": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Billing details printed on invoices */
+        get: operations["billing.details"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update billing details */
+        patch: operations["billing.updateDetails"];
+        trace?: never;
+    };
     "/api/v1/billing/credits/top-up": {
         parameters: {
             query?: never;
@@ -48200,9 +48235,11 @@ export interface operations {
                         items: {
                             id: string;
                             number: string;
+                            description?: string;
                             amountCents: number;
                             currency?: string;
                             status?: string;
+                            provider?: string;
                             pdfUrl?: string | null;
                             hostedUrl?: string | null;
                             /** Format: date-time */
@@ -48210,9 +48247,136 @@ export interface operations {
                             /** Format: date-time */
                             periodEnd?: string | null;
                             /** Format: date-time */
+                            paidAt?: string | null;
+                            paymentMethod?: string | null;
+                            /** Format: date-time */
                             createdAt?: string;
                         }[];
                         total: number;
+                    };
+                };
+            };
+        };
+    };
+    "billing.invoice": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        id: string;
+                        number: string;
+                        description?: string;
+                        amountCents: number;
+                        currency?: string;
+                        status?: string;
+                        provider?: string;
+                        pdfUrl?: string | null;
+                        hostedUrl?: string | null;
+                        /** Format: date-time */
+                        periodStart?: string | null;
+                        /** Format: date-time */
+                        periodEnd?: string | null;
+                        /** Format: date-time */
+                        paidAt?: string | null;
+                        paymentMethod?: string | null;
+                        /** Format: date-time */
+                        createdAt?: string;
+                        lines?: {
+                            description: string;
+                            quantity?: number;
+                            unitAmountCents?: number;
+                            amountCents: number;
+                            /** Format: date-time */
+                            periodStart?: string | null;
+                            /** Format: date-time */
+                            periodEnd?: string | null;
+                        }[];
+                        subtotalCents?: number;
+                        totalCents?: number;
+                        amountPaidCents?: number;
+                        amountDueCents?: number;
+                        billTo?: {
+                            name?: string | null;
+                            email?: string | null;
+                            address?: string | null;
+                            taxId?: string | null;
+                        } | null;
+                        issuer?: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "billing.details": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        name?: string | null;
+                        email?: string | null;
+                        address?: string | null;
+                        taxId?: string | null;
+                    };
+                };
+            };
+        };
+    };
+    "billing.updateDetails": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name?: string | null;
+                    /** Format: email */
+                    email?: string | null;
+                    address?: string | null;
+                    taxId?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        name?: string | null;
+                        email?: string | null;
+                        address?: string | null;
+                        taxId?: string | null;
                     };
                 };
             };

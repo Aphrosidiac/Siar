@@ -58,3 +58,8 @@ export interface Post {
 }
 
 export interface Paged<T> { items: T[]; total: number }
+
+export interface Invoice { id: string; number: string; description: string; amountCents: number; currency: string; status: string; provider: string; pdfUrl?: string | null; hostedUrl?: string | null; periodStart?: string | null; periodEnd?: string | null; paidAt?: string | null; paymentMethod?: string | null; createdAt: string }
+export interface InvoiceLine { description: string; quantity: number; unitAmountCents: number; amountCents: number; periodStart?: string | null; periodEnd?: string | null }
+export interface BillingDetails { name: string | null; email: string | null; address: string | null; taxId: string | null }
+export interface InvoiceDocument extends Invoice { lines: InvoiceLine[]; subtotalCents: number; totalCents: number; amountPaidCents: number; amountDueCents: number; billTo: BillingDetails | null; issuer: { name: string; registration: string; product: string; country: string; email: string; website: string } }

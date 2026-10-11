@@ -3,7 +3,7 @@ import { audit } from '../platform/audit.js';
 import { authenticate, requirePermission, type Actor } from '../platform/auth.js';
 import { apiUrl, appUrl, config, isProd } from '../platform/config.js';
 import { prisma } from '../platform/db.js';
-import { badRequest, conflict, unavailable } from '../platform/errors.js';
+import { badRequest, conflict, notFound, unavailable } from '../platform/errors.js';
 import { listOf, pageOf } from '../platform/http.js';
 import { logger } from '../platform/logger.js';
 import { queueMail } from '../platform/mail.js';
@@ -13,7 +13,7 @@ import { registerJob, runJob } from '../engine/jobs.js';
 import { balance, ensureAccount } from '../domain/credits.js';
 import { PLANS } from '../domain/plans.js';
 import {
-  billingEmail, failPayment, hadPaidPlan, hooks, invoiceView, LIVE_STATUSES, money, planLabel, RANK, renewalCharger, runRenewals, settlePayment,
+  billingEmail, failPayment, hadPaidPlan, hooks, invoiceDocument, invoiceView, LIVE_STATUSES, money, planLabel, RANK, renewalCharger, runRenewals, settlePayment,
   subscriptionView, toMyr, usdCents, type Interval, type Requested, type Tier,
 } from './billing-core.js';
 import { chip, chipConfigured, chipPublicKeys, PAID, verifySignature, type ChipPurchase } from './billing-chip.js';
@@ -59,7 +59,7 @@ renewalCharger.charge = async (sub, payment) => {
   const purchase = await chip.createPurchase({
     reference: `Siar ${plan.name} renewal`, clientId: sub.providerCustomerId ?? org.chipClientId,
     products: [{ name: `${planLabel(payment.tier, payment.billingInterval)} renewal`, price: toMyr(payment.amountCents) }],
-    metadata: { siar_payment: payment.id, organizationId: sub.organizationId }, successUrl: appUrl('/organization/billing'),
+    metadata: { siar_payment: payment.id, organizationId: sub.organizationId }, successUrl: appUrl('/billing'),
   });
   await prisma.billingPayment.update({ where: { id: payment.id }, data: { providerRef: purchase.id } });
   const r = await chip.charge(purchase.id, sub.providerPaymentToken);
@@ -73,9 +73,9 @@ registerJob(JOBS.billingRenewals, () => runRenewals());
 // ───────────────────────── checkouts ─────────────────────────
 
 const returnUrl = (p: { purpose: string; tier: string | null }, ok: boolean) =>
-  p.purpose === 'CREDIT_TOPUP' ? appUrl(`/organization/billing?tab=credits&topup=${ok ? 'success' : 'canceled'}`)
-    : !p.tier ? appUrl(`/organization/billing?card=${ok ? 'updated' : 'canceled'}`)
-      : appUrl(`/organization/billing?checkout=${ok ? 'success' : 'canceled'}`);
+  p.purpose === 'CREDIT_TOPUP' ? appUrl(`/billing?tab=credits&topup=${ok ? 'success' : 'canceled'}`)
+    : !p.tier ? appUrl(`/billing?card=${ok ? 'updated' : 'canceled'}`)
+      : appUrl(`/billing?checkout=${ok ? 'success' : 'canceled'}`);
 
 async function chipClientFor(organizationId: string) {
   const org = await prisma.organization.findUniqueOrThrow({ where: { id: organizationId } });
@@ -120,7 +120,7 @@ async function changePlan(actor: Actor, sub: any, tier: Tier, interval: Interval
   if (sub.status === 'past_due') throw conflict('Your last payment did not go through. Update your card in the billing portal first, then change plans.');
   const m = meta(sub.metadata);
   const requested = m.requestedProvider ?? sub.provider;
-  const done = (q: string) => ({ url: appUrl(`/organization/billing?${q}`), ...providerOut(sub.provider, requested) });
+  const done = (q: string) => ({ url: appUrl(`/billing?${q}`), ...providerOut(sub.provider, requested) });
   if (tier === 'FREE') { await cancelPlan(actor, sub); return done('downgrade=scheduled'); }
   if (sub.tier === tier && sub.billingInterval === interval) {
     if (!sub.cancelAtPeriodEnd && !m.pendingChange) throw conflict(`You are already on ${PLANS[tier].name} (${interval.toLowerCase()}).`);
@@ -175,7 +175,7 @@ async function cancelPlan(actor: Actor, sub: any) {
   const until = sub.currentPeriodEnd?.toISOString().slice(0, 10);
   await audit(prisma, actor, 'subscription.cancel', 'Subscription', sub.id, `Set ${PLANS[sub.tier as Tier].name} to end${until ? ` on ${until}` : ''}`);
   const to = await billingEmail(prisma, sub.organizationId);
-  if (to) await queueMail(prisma, { to, subject: `Your Siar ${PLANS[sub.tier as Tier].name} plan will end`, heading: 'Your plan is set to end', paragraphs: [`${PLANS[sub.tier as Tier].name} stays active${until ? ` until ${until}` : ' until the end of the period'}, then the organization moves to Free. Nothing is deleted.`, 'Changed your mind? Resume the plan from Billing before then.'], cta: { label: 'Open billing', url: appUrl('/organization/billing') } });
+  if (to) await queueMail(prisma, { to, subject: `Your Siar ${PLANS[sub.tier as Tier].name} plan will end`, heading: 'Your plan is set to end', paragraphs: [`${PLANS[sub.tier as Tier].name} stays active${until ? ` until ${until}` : ' until the end of the period'}, then the organization moves to Free. Nothing is deleted.`, 'Changed your mind? Resume the plan from Billing before then.'], cta: { label: 'Open billing', url: appUrl('/billing') } });
 }
 
 async function resumePlan(actor: Actor, sub: any) {
@@ -256,6 +256,31 @@ define({
     const where = { organizationId: actor.organizationId };
     const [rows, total] = await Promise.all([prisma.billingInvoice.findMany({ where, orderBy: { createdAt: 'desc' }, skip, take }), prisma.billingInvoice.count({ where })]);
     return listOf(rows.map(invoiceView), total);
+  },
+
+  'billing.invoice': async ({ actor, params }) => {
+    requirePermission(actor, 'billing');
+    const row = await prisma.billingInvoice.findFirst({ where: { id: params.id, organizationId: actor.organizationId } });
+    if (!row) throw notFound('Invoice');
+    return invoiceDocument(row);
+  },
+
+  'billing.details': async ({ actor }) => {
+    requirePermission(actor, 'billing');
+    const o = await prisma.organization.findUniqueOrThrow({ where: { id: actor.organizationId }, select: { billingName: true, billingEmail: true, billingAddress: true, billingTaxId: true } });
+    return { name: o.billingName, email: o.billingEmail, address: o.billingAddress, taxId: o.billingTaxId };
+  },
+
+  'billing.updateDetails': async ({ actor, body }) => {
+    requirePermission(actor, 'billing');
+    const clean = (v: unknown) => (typeof v === 'string' ? v.trim() || null : v === null ? null : undefined);
+    const o = await prisma.organization.update({
+      where: { id: actor.organizationId },
+      data: { billingName: clean(body.name), billingEmail: clean(body.email)?.toLowerCase(), billingAddress: clean(body.address), billingTaxId: clean(body.taxId) },
+      select: { billingName: true, billingEmail: true, billingAddress: true, billingTaxId: true },
+    });
+    await audit(prisma, actor, 'billing.details', 'Organization', actor.organizationId, 'Updated billing details');
+    return { name: o.billingName, email: o.billingEmail, address: o.billingAddress, taxId: o.billingTaxId };
   },
 
   'billing.topUp': async ({ actor, body }) => {

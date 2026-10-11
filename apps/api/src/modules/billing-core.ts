@@ -83,23 +83,37 @@ export async function billingEmail(db: Db, organizationId: string) {
   return o?.billingEmail ?? o?.members[0]?.user.email ?? null;
 }
 
+export interface InvoiceLine { description: string; quantity: number; unitAmountCents: number; amountCents: number; periodStart?: string | null; periodEnd?: string | null }
 export interface InvoiceIn {
   organizationId: string; provider: BillingProvider; providerInvoiceId: string; description: string; amountCents: number; currency: string;
   status: string; periodStart?: Date | null; periodEnd?: Date | null; paidAt?: Date | null; hostedUrl?: string | null; pdfUrl?: string | null;
+  /** Defaults to one line for the whole amount. */
+  lines?: InvoiceLine[]; paymentMethod?: string | null;
 }
+
+/** Who the organization is billed as, right now (snapshotted onto each invoice). */
+export async function billTo(db: Db, organizationId: string) {
+  const o = await db.organization.findUniqueOrThrow({ where: { id: organizationId }, select: { name: true, billingName: true, billingAddress: true, billingTaxId: true } });
+  return { name: o.billingName || o.name, email: await billingEmail(db, organizationId), address: o.billingAddress ?? null, taxId: o.billingTaxId ?? null };
+}
+
+/** The issuer printed on every Siar invoice. */
+export const ISSUER = { name: 'FF DEV STUDIO', registration: '202603234793', product: 'Siar', country: 'Malaysia', email: 'billing@siar.dev', website: 'siar.dev' };
 
 /** Create or update the invoice for a provider document (idempotent on provider + providerInvoiceId). Emails a receipt when it becomes paid. */
 export async function recordInvoice(db: Db, i: InvoiceIn) {
   const cur = await db.billingInvoice.findUnique({ where: { provider_providerInvoiceId: { provider: i.provider, providerInvoiceId: i.providerInvoiceId } } });
   let row;
   if (cur) {
-    row = await db.billingInvoice.update({ where: { id: cur.id }, data: { status: i.status, amountCents: i.amountCents, paidAt: i.paidAt ?? cur.paidAt, hostedUrl: i.hostedUrl ?? cur.hostedUrl, pdfUrl: i.pdfUrl ?? cur.pdfUrl } });
+    row = await db.billingInvoice.update({ where: { id: cur.id }, data: { status: i.status, amountCents: i.amountCents, paidAt: i.paidAt ?? cur.paidAt, hostedUrl: i.hostedUrl ?? cur.hostedUrl, pdfUrl: i.pdfUrl ?? cur.pdfUrl, ...(i.lines ? { lines: i.lines as object[] } : {}), paymentMethod: i.paymentMethod ?? cur.paymentMethod } });
   } else {
     row = await db.billingInvoice.create({
       data: {
         organizationId: i.organizationId, provider: i.provider, providerInvoiceId: i.providerInvoiceId, number: await nextInvoiceNumber(db), description: i.description,
         amountCents: i.amountCents, currency: i.currency.toLowerCase(), status: i.status, periodStart: i.periodStart ?? null, periodEnd: i.periodEnd ?? null,
-        paidAt: i.paidAt ?? null, hostedUrl: i.hostedUrl ?? null, pdfUrl: i.pdfUrl ?? null,
+        paidAt: i.paidAt ?? null, hostedUrl: i.hostedUrl ?? null, pdfUrl: i.pdfUrl ?? null, paymentMethod: i.paymentMethod ?? null,
+        lines: (i.lines ?? [{ description: i.description, quantity: 1, unitAmountCents: i.amountCents, amountCents: i.amountCents, periodStart: i.periodStart?.toISOString() ?? null, periodEnd: i.periodEnd?.toISOString() ?? null }]) as object[],
+        billTo: await billTo(db, i.organizationId),
       },
     });
   }
@@ -113,7 +127,7 @@ export async function recordInvoice(db: Db, i: InvoiceIn) {
           ...(row.periodStart && row.periodEnd ? [`Service period: ${day(row.periodStart)} to ${day(row.periodEnd)}.`] : []),
           'Thank you. Your invoices are always in Billing in the Siar dashboard.',
         ],
-        cta: { label: 'View billing', url: appUrl('/organization/billing?tab=invoices') },
+        cta: { label: 'View invoice', url: appUrl(`/billing/invoices/${row.id}`) },
       });
     }
   }
@@ -123,8 +137,15 @@ export async function recordInvoice(db: Db, i: InvoiceIn) {
 export const invoiceView = (r: any) => ({
   id: r.id, number: r.number, description: r.description, amountCents: r.amountCents, currency: r.currency, status: r.status, provider: r.provider,
   pdfUrl: r.pdfUrl, hostedUrl: r.hostedUrl, periodStart: r.periodStart?.toISOString() ?? null, periodEnd: r.periodEnd?.toISOString() ?? null,
-  paidAt: r.paidAt?.toISOString() ?? null, createdAt: r.createdAt.toISOString(),
+  paidAt: r.paidAt?.toISOString() ?? null, paymentMethod: r.paymentMethod ?? null, createdAt: r.createdAt.toISOString(),
 });
+
+/** The full document: lines, who it was billed to and who issued it. */
+export const invoiceDocument = (r: any) => {
+  const lines = (Array.isArray(r.lines) && r.lines.length ? r.lines : [{ description: r.description, quantity: 1, unitAmountCents: r.amountCents, amountCents: r.amountCents, periodStart: r.periodStart?.toISOString() ?? null, periodEnd: r.periodEnd?.toISOString() ?? null }]) as InvoiceLine[];
+  const subtotal = lines.reduce((n, l) => n + l.amountCents, 0);
+  return { ...invoiceView(r), lines, subtotalCents: subtotal, totalCents: r.amountCents, amountPaidCents: r.status === 'paid' ? r.amountCents : 0, amountDueCents: r.status === 'paid' || r.status === 'void' ? 0 : r.amountCents, billTo: r.billTo ?? null, issuer: ISSUER };
+};
 
 // ───────────────────────── subscription view ─────────────────────────
 
@@ -235,7 +256,7 @@ export async function settlePayment(paymentId: string, s: Settlement): Promise<'
     });
     const what = trial ? `Started a ${config.TRIAL_DAYS}-day ${PLANS[tier].name} trial` : renewal ? `Renewed ${PLANS[tier].name} (${per(interval)}ly) for ${money(amount, currency)}` : `Subscribed to ${PLANS[tier].name} (${per(interval)}ly) for ${money(amount, currency)}`;
     await audit(tx, actor, renewal ? 'subscription.renew' : 'subscription.start', 'Subscription', row.id, what, { paymentId: p.id, via: s.via });
-    if (sub?.status === 'past_due') await notify(tx, p.organizationId, { kind: 'billing', title: 'Payment received', body: `${PLANS[tier].name} is paid up again.`, link: '/organization/billing' }, ['OWNER']);
+    if (sub?.status === 'past_due') await notify(tx, p.organizationId, { kind: 'billing', title: 'Payment received', body: `${PLANS[tier].name} is paid up again.`, link: '/billing' }, ['OWNER']);
     return 'settled' as const;
   });
   for (const t of oldTokens) await hooks.deleteToken(t.provider, t.token).catch(err => logger.warn({ err }, 'old card token delete failed'));
@@ -315,15 +336,15 @@ async function chargeFailed(subId: string, paymentId: string, reason: string, to
       await tx.subscription.update({ where: { id: subId }, data: { status: 'canceled', canceledAt: new Date(), failedAttempts: attempts, nextRetryAt: null, cancelAtPeriodEnd: false } });
       await tx.organization.update({ where: { id: sub.organizationId }, data: { tier: 'FREE' } });
       await audit(tx, actor, 'subscription.downgrade', 'Subscription', subId, `Moved to Free after ${attempts} failed payments (${reason})`, { paymentId });
-      await notify(tx, sub.organizationId, { kind: 'billing', title: `Your ${plan} plan was moved to Free`, body: `We could not charge ${amount} after ${attempts} attempts. Nothing was deleted; choose a plan again to restore your limits.`, link: '/organization/billing' }, ['OWNER', 'ADMIN']);
-      if (to) await queueMail(tx, { to, subject: `Your Siar ${plan} plan was moved to Free`, heading: `Your ${plan} plan was moved to Free`, paragraphs: [`We tried to charge ${amount} for ${plan} ${attempts} times and the payment did not go through (${reason}).`, 'Your organization is now on the Free plan. Nothing was deleted: teams over the Free limit stay, but new teams cannot be created until you choose a paid plan again.'], cta: { label: 'Choose a plan', url: appUrl('/organization/billing') } });
+      await notify(tx, sub.organizationId, { kind: 'billing', title: `Your ${plan} plan was moved to Free`, body: `We could not charge ${amount} after ${attempts} attempts. Nothing was deleted; choose a plan again to restore your limits.`, link: '/billing' }, ['OWNER', 'ADMIN']);
+      if (to) await queueMail(tx, { to, subject: `Your Siar ${plan} plan was moved to Free`, heading: `Your ${plan} plan was moved to Free`, paragraphs: [`We tried to charge ${amount} for ${plan} ${attempts} times and the payment did not go through (${reason}).`, 'Your organization is now on the Free plan. Nothing was deleted: teams over the Free limit stay, but new teams cannot be created until you choose a paid plan again.'], cta: { label: 'Choose a plan', url: appUrl('/billing') } });
       return 'downgraded' as const;
     }
     const next = addDays(new Date(), RETRY_GAP_DAYS[attempts - 1] ?? RETRY_GAP_DAYS[RETRY_GAP_DAYS.length - 1]);
     await tx.subscription.update({ where: { id: subId }, data: { status: 'past_due', failedAttempts: attempts, nextRetryAt: next, ...(tokenInvalid ? { providerPaymentToken: null } : {}) } });
     await audit(tx, actor, 'subscription.chargeFailed', 'Subscription', subId, `Renewal charge of ${amount} failed (${reason}), attempt ${attempts} of ${MAX_ATTEMPTS}; retrying ${day(next)}`, { paymentId });
-    await notify(tx, sub.organizationId, { kind: 'billing', title: 'Payment failed', body: `We could not charge ${amount} for ${plan} (${reason}). We will try again on ${day(next)}. Update your card to keep your plan.`, link: '/organization/billing' }, ['OWNER', 'ADMIN']);
-    if (to) await queueMail(tx, { to, subject: 'Action needed: your Siar payment did not go through', heading: 'Your payment did not go through', paragraphs: [`We could not charge ${amount} for your ${plan} plan (${reason}).`, `We will try again on ${day(next)}. After ${MAX_ATTEMPTS} failed attempts the organization moves to the Free plan. Updating your card now retries right away.`], cta: { label: 'Update card', url: appUrl('/organization/billing') } });
+    await notify(tx, sub.organizationId, { kind: 'billing', title: 'Payment failed', body: `We could not charge ${amount} for ${plan} (${reason}). We will try again on ${day(next)}. Update your card to keep your plan.`, link: '/billing' }, ['OWNER', 'ADMIN']);
+    if (to) await queueMail(tx, { to, subject: 'Action needed: your Siar payment did not go through', heading: 'Your payment did not go through', paragraphs: [`We could not charge ${amount} for your ${plan} plan (${reason}).`, `We will try again on ${day(next)}. After ${MAX_ATTEMPTS} failed attempts the organization moves to the Free plan. Updating your card now retries right away.`], cta: { label: 'Update card', url: appUrl('/billing') } });
     return 'failed' as const;
   });
 }
@@ -338,7 +359,7 @@ export async function endSubscription(subId: string, why: string) {
     await tx.organization.update({ where: { id: sub.organizationId }, data: { tier: 'FREE' } });
     await audit(tx, systemActor(sub.organizationId), 'subscription.end', 'Subscription', subId, `${PLANS[sub.tier].name} ${why}; now on Free`);
     const to = await billingEmail(tx, sub.organizationId);
-    if (to) await queueMail(tx, { to, subject: `Your Siar ${PLANS[sub.tier].name} plan has ended`, heading: `Your ${PLANS[sub.tier].name} plan has ended`, paragraphs: ['Your organization is now on the Free plan. Nothing was deleted; choose a plan any time to restore your limits.'], cta: { label: 'View plans', url: appUrl('/organization/billing') } });
+    if (to) await queueMail(tx, { to, subject: `Your Siar ${PLANS[sub.tier].name} plan has ended`, heading: `Your ${PLANS[sub.tier].name} plan has ended`, paragraphs: ['Your organization is now on the Free plan. Nothing was deleted; choose a plan any time to restore your limits.'], cta: { label: 'View plans', url: appUrl('/billing') } });
   });
   if (sub.providerPaymentToken) await hooks.deleteToken(sub.provider, sub.providerPaymentToken).catch(err => logger.warn({ err }, 'card token delete failed'));
 }

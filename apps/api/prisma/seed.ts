@@ -66,6 +66,33 @@ const TEXTS = [
 
 const MEDIA_REQUIRED = new Set(['TIKTOK', 'YOUTUBE', 'INSTAGRAM', 'PINTEREST', 'SNAPCHAT']);
 
+/** Six months on Pro (one paid invoice per period) and the X credit top-up the ledger shows. */
+async function seedInvoices(organizationId: string) {
+  const billTo = { name: 'Demo Studio Sdn Bhd', email: 'accounts@demostudio.example', address: 'Level 12, Menara Demo\nJalan Ampang\n50450 Kuala Lumpur\nMalaysia', taxId: null };
+  const docs: { at: Date; description: string; amountCents: number; periodStart?: Date; periodEnd?: Date; ref: string }[] = [];
+  for (let k = 5; k >= 0; k--) {
+    const start = new Date(Date.now() - 10 * DAY - k * 30 * DAY); const end = new Date(start.getTime() + 30 * DAY);
+    docs.push({ at: start, description: `Siar Pro (monthly)${k === 5 ? '' : ' renewal'}`, amountCents: 10_000, periodStart: start, periodEnd: end, ref: `seed_sub_${k}` });
+  }
+  docs.push({ at: new Date(Date.now() - 20 * DAY), description: 'X credit top-up ($25.00)', amountCents: 2_500, ref: 'seed_topup_1' });
+  docs.sort((a, b) => a.at.getTime() - b.at.getTime());
+  const seq = new Map<number, number>();
+  for (const d of docs) {
+    const y = d.at.getUTCFullYear();
+    if (!seq.has(y)) {
+      const last = await prisma.billingInvoice.findFirst({ where: { number: { startsWith: `SIAR-${y}-` } }, orderBy: { number: 'desc' }, select: { number: true } });
+      seq.set(y, last ? Number(last.number.slice(`SIAR-${y}-`.length)) : 0);
+    }
+    const n = seq.get(y)! + 1; seq.set(y, n);
+    await prisma.billingInvoice.create({ data: {
+      organizationId, provider: 'MOCK', providerInvoiceId: `${d.ref}_${organizationId.slice(-8)}`, number: `SIAR-${y}-${String(n).padStart(5, '0')}`,
+      description: d.description, amountCents: d.amountCents, status: 'paid', paidAt: d.at, createdAt: d.at, periodStart: d.periodStart ?? null, periodEnd: d.periodEnd ?? null,
+      paymentMethod: 'Visa •••• 4242', billTo,
+      lines: [{ description: d.description.replace(' renewal', ''), quantity: 1, unitAmountCents: d.amountCents, amountCents: d.amountCents, periodStart: d.periodStart?.toISOString() ?? null, periodEnd: d.periodEnd?.toISOString() ?? null }],
+    } });
+  }
+}
+
 async function main() {
   const existing = await prisma.user.findUnique({ where: { email: EMAIL } });
   if (existing) {
@@ -74,7 +101,7 @@ async function main() {
     await prisma.user.delete({ where: { id: existing.id } });
   }
   const user = await prisma.user.create({ data: { email: EMAIL, passwordHash: await hashPassword(PASSWORD), firstName: 'Demo', lastName: 'User', emailVerified: new Date(), timezone: 'Asia/Kuala_Lumpur' } });
-  const org = await prisma.organization.create({ data: { name: 'Demo Studio', createdById: user.id, tier: 'PRO', messagingEnabled: true, showVerboseErrors: true } });
+  const org = await prisma.organization.create({ data: { name: 'Demo Studio', createdById: user.id, tier: 'PRO', messagingEnabled: true, showVerboseErrors: true, billingName: 'Demo Studio Sdn Bhd', billingEmail: 'accounts@demostudio.example', billingAddress: 'Level 12, Menara Demo\nJalan Ampang\n50450 Kuala Lumpur\nMalaysia' } });
   await prisma.organizationMember.create({ data: { organizationId: org.id, userId: user.id, role: 'OWNER' } });
   await prisma.subscription.create({ data: { organizationId: org.id, provider: 'MOCK', status: 'active', tier: 'PRO', billingInterval: 'MONTHLY', unitAmountCents: 10_000, currentPeriodStart: new Date(Date.now() - 10 * DAY), currentPeriodEnd: new Date(Date.now() + 20 * DAY) } });
   await prisma.creditAccount.create({ data: { organizationId: org.id, balanceMicros: 18_455_000n } });
@@ -82,7 +109,7 @@ async function main() {
     { organizationId: org.id, deltaMicros: 25_000_000n, reason: 'TOPUP', refType: 'seed', refId: 'topup-1', createdAt: new Date(Date.now() - 20 * DAY) },
     { organizationId: org.id, deltaMicros: -6_545_000n, reason: 'CHARGE', action: 'TWITTER_CONTENT_CREATE_WITH_URL', note: 'Seeded X usage' },
   ] });
-  await prisma.billingInvoice.create({ data: { organizationId: org.id, provider: 'MOCK', number: `SIAR-${new Date().getUTCFullYear()}-${String(int(10000, 99999))}`, description: 'Siar Pro — monthly', amountCents: 10_000, status: 'paid', paidAt: new Date(Date.now() - 10 * DAY), periodStart: new Date(Date.now() - 10 * DAY), periodEnd: new Date(Date.now() + 20 * DAY) } });
+  await seedInvoices(org.id);
 
   for (const t of TEAMS) {
     const team = await prisma.team.create({ data: { name: t.name, organizationId: org.id, createdById: user.id } });

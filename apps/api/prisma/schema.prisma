@@ -153,6 +153,10 @@ model Organization {
   suspended             Boolean   @default(false)
   trialEndsAt           DateTime?
   billingEmail          String?
+  /// Printed on invoices as "Bill to". Snapshotted onto each invoice when it is issued.
+  billingName           String?
+  billingAddress        String?
+  billingTaxId          String?
   stripeCustomerId      String?   @unique
   chipClientId          String?   @unique
   /// Hosted connect portal branding.
@@ -282,6 +286,12 @@ model BillingInvoice {
   status            String
   pdfUrl            String?
   hostedUrl         String?
+  /// [{ description, quantity, unitAmountCents, amountCents, periodStart?, periodEnd? }]
+  lines             Json?
+  /// Who it was billed to when issued: { name, email, address, taxId }
+  billTo            Json?
+  /// "Visa •••• 4242", "FPX (Maybank2u)"… as the provider reported it
+  paymentMethod     String?
   periodStart       DateTime?
   periodEnd         DateTime?
   paidAt            DateTime?

@@ -76,7 +76,7 @@ export async function checkoutSubscription(o: { organizationId: string; paymentI
     line_items: [{ price: await priceId(o.tier, o.interval), quantity: 1 }],
     subscription_data: { metadata: { organizationId: o.organizationId, tier: o.tier, interval: o.interval }, ...(o.trial ? { trial_period_days: config.TRIAL_DAYS } : {}) },
     metadata: meta, ...(discounts ? { discounts } : { allow_promotion_codes: true }),
-    success_url: appUrl('/organization/billing?checkout=success'), cancel_url: appUrl('/organization/billing?checkout=canceled'),
+    success_url: appUrl('/billing?checkout=success'), cancel_url: appUrl('/billing?checkout=canceled'),
   }, { idempotencyKey: `checkout-${o.paymentId}` });
   return { url: session.url!, ref: session.id };
 }
@@ -87,13 +87,13 @@ export async function checkoutTopUp(o: { organizationId: string; paymentId: stri
     mode: 'payment', customer: await ensureCustomer(o.organizationId), client_reference_id: o.organizationId,
     line_items: [{ price_data: { currency: 'usd', unit_amount: o.amountUsd * 100, product_data: { name: 'Siar X credit', description: 'Prepaid balance for X (Twitter) pass-through charges' } }, quantity: 1 }],
     metadata: meta, payment_intent_data: { metadata: meta },
-    success_url: appUrl('/organization/billing?tab=credits&topup=success'), cancel_url: appUrl('/organization/billing?tab=credits&topup=canceled'),
+    success_url: appUrl('/billing?tab=credits&topup=success'), cancel_url: appUrl('/billing?tab=credits&topup=canceled'),
   }, { idempotencyKey: `topup-${o.paymentId}` });
   return { url: session.url!, ref: session.id };
 }
 
 export async function portalUrl(organizationId: string) {
-  const s = await stripe().billingPortal.sessions.create({ customer: await ensureCustomer(organizationId), return_url: appUrl('/organization/billing') });
+  const s = await stripe().billingPortal.sessions.create({ customer: await ensureCustomer(organizationId), return_url: appUrl('/billing') });
   return s.url;
 }
 
@@ -259,9 +259,9 @@ export async function handleStripeEvent(event: Stripe.Event): Promise<{ handled:
         const amount = money(inv.amount_due, inv.currency);
         const next = ts(inv.next_payment_attempt);
         await audit(tx, systemActor(r.orgId), 'subscription.chargeFailed', 'BillingInvoice', r.row.id, `Stripe could not charge ${amount} (attempt ${inv.attempt_count ?? 1})`);
-        await notify(tx, r.orgId, { kind: 'billing', title: 'Payment failed', body: `We could not charge ${amount}.${next ? ` Stripe retries on ${next.toISOString().slice(0, 10)}.` : ''} Update your card to keep your plan.`, link: '/organization/billing' }, ['OWNER', 'ADMIN']);
+        await notify(tx, r.orgId, { kind: 'billing', title: 'Payment failed', body: `We could not charge ${amount}.${next ? ` Stripe retries on ${next.toISOString().slice(0, 10)}.` : ''} Update your card to keep your plan.`, link: '/billing' }, ['OWNER', 'ADMIN']);
         const to = await billingEmail(tx, r.orgId);
-        if (to) await queueMail(tx, { to, subject: 'Action needed: your Siar payment did not go through', heading: 'Your payment did not go through', paragraphs: [`We could not charge ${amount} for invoice ${r.row.number}.`, next ? `Stripe will try again on ${next.toISOString().slice(0, 10)}. Updating your card now keeps your plan running.` : 'Update your card to keep your plan running.'], cta: { label: 'Update card', url: appUrl('/organization/billing') } });
+        if (to) await queueMail(tx, { to, subject: 'Action needed: your Siar payment did not go through', heading: 'Your payment did not go through', paragraphs: [`We could not charge ${amount} for invoice ${r.row.number}.`, next ? `Stripe will try again on ${next.toISOString().slice(0, 10)}. Updating your card now keeps your plan running.` : 'Update your card to keep your plan running.'], cta: { label: 'Update card', url: appUrl('/billing') } });
       });
       return { handled: true };
     }

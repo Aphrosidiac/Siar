@@ -141475,6 +141475,9 @@
              "number": {
               "type": "string"
              },
+             "description": {
+              "type": "string"
+             },
              "amountCents": {
               "type": "integer"
              },
@@ -141482,6 +141485,9 @@
               "type": "string"
              },
              "status": {
+              "type": "string"
+             },
+             "provider": {
               "type": "string"
              },
              "pdfUrl": {
@@ -141500,6 +141506,15 @@
              "periodEnd": {
               "type": "string",
               "format": "date-time",
+              "nullable": true
+             },
+             "paidAt": {
+              "type": "string",
+              "format": "date-time",
+              "nullable": true
+             },
+             "paymentMethod": {
+              "type": "string",
               "nullable": true
              },
              "createdAt": {
@@ -141523,6 +141538,283 @@
           "total"
          ]
         }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/billing/invoices/{id}": {
+   "get": {
+    "operationId": "billing.invoice",
+    "tags": [
+     "billing"
+    ],
+    "summary": "Get an invoice with its lines",
+    "parameters": [
+     {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          },
+          "number": {
+           "type": "string"
+          },
+          "description": {
+           "type": "string"
+          },
+          "amountCents": {
+           "type": "integer"
+          },
+          "currency": {
+           "type": "string"
+          },
+          "status": {
+           "type": "string"
+          },
+          "provider": {
+           "type": "string"
+          },
+          "pdfUrl": {
+           "type": "string",
+           "nullable": true
+          },
+          "hostedUrl": {
+           "type": "string",
+           "nullable": true
+          },
+          "periodStart": {
+           "type": "string",
+           "format": "date-time",
+           "nullable": true
+          },
+          "periodEnd": {
+           "type": "string",
+           "format": "date-time",
+           "nullable": true
+          },
+          "paidAt": {
+           "type": "string",
+           "format": "date-time",
+           "nullable": true
+          },
+          "paymentMethod": {
+           "type": "string",
+           "nullable": true
+          },
+          "createdAt": {
+           "type": "string",
+           "format": "date-time"
+          },
+          "lines": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "description": {
+              "type": "string"
+             },
+             "quantity": {
+              "type": "integer"
+             },
+             "unitAmountCents": {
+              "type": "integer"
+             },
+             "amountCents": {
+              "type": "integer"
+             },
+             "periodStart": {
+              "type": "string",
+              "format": "date-time",
+              "nullable": true
+             },
+             "periodEnd": {
+              "type": "string",
+              "format": "date-time",
+              "nullable": true
+             }
+            },
+            "required": [
+             "description",
+             "amountCents"
+            ]
+           }
+          },
+          "subtotalCents": {
+           "type": "integer"
+          },
+          "totalCents": {
+           "type": "integer"
+          },
+          "amountPaidCents": {
+           "type": "integer"
+          },
+          "amountDueCents": {
+           "type": "integer"
+          },
+          "billTo": {
+           "type": "object",
+           "properties": {
+            "name": {
+             "type": "string",
+             "nullable": true
+            },
+            "email": {
+             "type": "string",
+             "nullable": true
+            },
+            "address": {
+             "type": "string",
+             "nullable": true
+            },
+            "taxId": {
+             "type": "string",
+             "nullable": true
+            }
+           },
+           "required": [],
+           "nullable": true
+          },
+          "issuer": {
+           "type": "object",
+           "additionalProperties": true
+          }
+         },
+         "required": [
+          "id",
+          "number",
+          "amountCents"
+         ]
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/billing/details": {
+   "get": {
+    "operationId": "billing.details",
+    "tags": [
+     "billing"
+    ],
+    "summary": "Billing details printed on invoices",
+    "parameters": [],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "name": {
+           "type": "string",
+           "nullable": true
+          },
+          "email": {
+           "type": "string",
+           "nullable": true
+          },
+          "address": {
+           "type": "string",
+           "nullable": true
+          },
+          "taxId": {
+           "type": "string",
+           "nullable": true
+          }
+         },
+         "required": []
+        }
+       }
+      }
+     }
+    }
+   },
+   "patch": {
+    "operationId": "billing.updateDetails",
+    "tags": [
+     "billing"
+    ],
+    "summary": "Update billing details",
+    "parameters": [],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "name": {
+           "type": "string",
+           "nullable": true
+          },
+          "email": {
+           "type": "string",
+           "nullable": true
+          },
+          "address": {
+           "type": "string",
+           "nullable": true
+          },
+          "taxId": {
+           "type": "string",
+           "nullable": true
+          }
+         },
+         "required": []
+        }
+       }
+      }
+     }
+    },
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "name": {
+          "type": "string",
+          "maxLength": 200,
+          "nullable": true
+         },
+         "email": {
+          "type": "string",
+          "format": "email",
+          "maxLength": 254,
+          "nullable": true
+         },
+         "address": {
+          "type": "string",
+          "maxLength": 600,
+          "nullable": true
+         },
+         "taxId": {
+          "type": "string",
+          "maxLength": 60,
+          "nullable": true
+         }
+        },
+        "required": []
        }
       }
      }

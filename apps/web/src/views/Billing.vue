@@ -1,6 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { Check, CreditCard, ExternalLink, Wallet } from 'lucide-vue-next';
+import { computed, onMounted, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { Check, ChevronRight, CreditCard, Wallet } from 'lucide-vue-next';
+import SettingsSection from '@/components/settings/SettingsSection.vue';
+import SaveBar from '@/components/settings/SaveBar.vue';
+import Tabs from '@/components/ui/Tabs.vue';
+import { useDraft } from '@/lib/dirty';
+import type { BillingDetails, Invoice } from '@/lib/types';
 import PageHead from '@/components/PageHead.vue';
 import QueryState from '@/components/QueryState.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
@@ -42,7 +48,31 @@ const credit = useQuery(() => api.get<Credit>('/billing/credits/balance'));
 const lOffset = ref(0);
 const ledger = useQuery(() => api.get<{ items: { id: string; deltaMicroUsd: number; reason: string; action?: string | null; note?: string | null; createdAt?: string | null }[]; total: number }>('/billing/credits/ledger', { limit: 10, offset: lOffset.value }), { deps: [lOffset] });
 const iOffset = ref(0);
-const invoices = useQuery(() => api.get<{ items: { id: string; number: string; description?: string; amountCents: number; currency?: string; status?: string; pdfUrl?: string | null; hostedUrl?: string | null; createdAt?: string }[]; total: number }>('/billing/invoices', { limit: 10, offset: iOffset.value }), { deps: [iOffset] });
+const invoices = useQuery(() => api.get<{ items: Invoice[]; total: number }>('/billing/invoices', { limit: 12, offset: iOffset.value }), { deps: [iOffset] });
+
+// tabs (?tab= so receipts and checkout returns land on the right one)
+const route = useRoute(); const router = useRouter();
+const TABS = [{ value: 'overview', label: 'Overview' }, { value: 'plans', label: 'Plans' }, { value: 'credits', label: 'X credit' }, { value: 'invoices', label: 'Invoices' }, { value: 'details', label: 'Billing details' }];
+const tab = ref(TABS.some((t) => t.value === route.query.tab) ? String(route.query.tab) : 'overview');
+watch(tab, (t) => void router.replace({ query: { ...route.query, tab: t === 'overview' ? undefined : t, checkout: undefined, topup: undefined } }));
+onMounted(() => {
+  const q = route.query;
+  if (q.checkout === 'success') toast.success('Payment received', 'Your plan is active.');
+  if (q.checkout === 'canceled') toast.info('Checkout canceled', 'Nothing was charged.');
+  if (q.topup === 'success') toast.success('Credit added');
+  if (q.topup === 'canceled') toast.info('Top-up canceled', 'Nothing was charged.');
+});
+
+// billing details (printed on invoices)
+const det = useDraft<BillingDetails>({ name: '', email: '', address: '', taxId: '' });
+const detQ = useQuery(async () => { const d = await api.get<BillingDetails>('/billing/details'); det.reset({ name: d.name ?? '', email: d.email ?? '', address: d.address ?? '', taxId: d.taxId ?? '' }); return d; });
+async function saveDetails() {
+  busy.value = 'details';
+  const f = det.form;
+  try { await api.patch('/billing/details', { name: f.name || null, email: f.email || null, address: f.address || null, taxId: f.taxId || null }); det.commit(); toast.success('Billing details saved', 'New invoices use them.'); }
+  catch (e) { toast.fail(e); } finally { busy.value = null; }
+}
+const openInvoice = (r: Invoice) => void router.push(`/billing/invoices/${r.id}`);
 
 const interval = ref<'MONTHLY' | 'YEARLY'>('MONTHLY');
 const busy = ref<string | null>(null);
@@ -82,15 +112,16 @@ async function saveThreshold() {
 const pct = (u: Usage) => Math.min(100, Math.round((u.used / Math.max(1, u.limit)) * 100));
 const meters = computed(() => (usage.data.value ? [{ l: 'Posts this month', u: usage.data.value.posts }, { l: 'Comments this month', u: usage.data.value.comments }, { l: 'Uploads', u: usage.data.value.uploads }] : []));
 const lcols = [{ key: 'createdAt', label: 'When', width: '160px' }, { key: 'reason', label: 'Entry' }, { key: 'delta', label: 'Amount', align: 'right' as const, width: '130px' }];
-const icols = [{ key: 'number', label: 'Invoice', width: '170px' }, { key: 'description', label: 'Description', hideSm: true }, { key: 'amountCents', label: 'Amount', align: 'right' as const, width: '110px' }, { key: 'status', label: 'Status', width: '100px' }, { key: 'links', label: '', width: '100px', align: 'right' as const }];
+const icols = [{ key: 'number', label: 'Invoice', width: '170px' }, { key: 'createdAt', label: 'Date', width: '130px' }, { key: 'description', label: 'Description', hideSm: true }, { key: 'status', label: 'Status', width: '100px' }, { key: 'amountCents', label: 'Amount', align: 'right' as const, width: '110px' }, { key: 'go', label: '', width: '40px', align: 'right' as const }];
 void session;
 </script>
 
 <template>
   <div class="page">
     <PageHead title="Billing" subtitle="Plan, usage, X pay-per-use credit and invoices for the whole organization." />
-    <div class="stack-24">
-      <!-- current plan -->
+    <Tabs v-model="tab" :tabs="TABS" class="mb-16" />
+
+    <div v-if="tab === 'overview'" class="stack-24">
       <QueryState :loading="sub.loading.value" :error="sub.error.value" :status="sub.status.value" :has-data="!!sub.data.value" feature="Billing" skeleton="block" @retry="sub.reload">
         <Card v-if="sub.data.value" title="Current plan">
           <template #actions><StatusBadge :status="sub.data.value.status ?? 'active'" /></template>
@@ -111,10 +142,16 @@ void session;
           <div v-if="sub.data.value.status === 'past_due'" class="callout danger mt-16">The last payment failed. Update your payment method to keep your plan.</div>
         </Card>
       </QueryState>
+      <Card title="Usage">
+        <QueryState :loading="usage.loading.value" :error="usage.error.value" :status="usage.status.value" :has-data="!!usage.data.value" feature="Usage" skeleton="block" @retry="usage.reload">
+          <div class="stack-16"><div v-for="m in meters" :key="m.l"><div class="row between small"><span>{{ m.l }}</span><span class="muted">{{ formatNumber(m.u.used) }} of {{ formatNumber(m.u.limit) }}</span></div><div class="meter" :class="{ hot: pct(m.u) >= 90 }"><i :style="{ width: `${pct(m.u)}%` }" /></div></div></div>
+        </QueryState>
+      </Card>
+    </div>
 
-      <!-- plans -->
+    <div v-else-if="tab === 'plans'">
       <section>
-        <div class="row between wrap mb-16"><h2>Plans</h2><div class="pill-toggle"><button :class="{ on: interval === 'MONTHLY' }" @click="interval = 'MONTHLY'">Monthly</button><button :class="{ on: interval === 'YEARLY' }" @click="interval = 'YEARLY'">Yearly · save 10%</button></div></div>
+        <div class="row between wrap mb-16"><span class="small muted">Billed per organization, never per connected account.</span><div class="pill-toggle"><button :class="{ on: interval === 'MONTHLY' }" @click="interval = 'MONTHLY'">Monthly</button><button :class="{ on: interval === 'YEARLY' }" @click="interval = 'YEARLY'">Yearly · save 10%</button></div></div>
         <div class="plans">
           <article v-for="p in PLANS" :key="p.tier" class="plan-card" :class="{ cur: p.tier === current }">
             <div class="row between"><h3>{{ p.name }}</h3><Badge v-if="p.tier === current" tone="accent" size="sm">Current</Badge></div>
@@ -130,15 +167,9 @@ void session;
           </article>
         </div>
       </section>
+    </div>
 
-      <!-- usage -->
-      <Card title="Usage">
-        <QueryState :loading="usage.loading.value" :error="usage.error.value" :status="usage.status.value" :has-data="!!usage.data.value" feature="Usage" skeleton="block" @retry="usage.reload">
-          <div class="stack-16"><div v-for="m in meters" :key="m.l"><div class="row between small"><span>{{ m.l }}</span><span class="muted">{{ formatNumber(m.u.used) }} of {{ formatNumber(m.u.limit) }}</span></div><div class="meter" :class="{ hot: pct(m.u) >= 90 }"><i :style="{ width: `${pct(m.u)}%` }" /></div></div></div>
-        </QueryState>
-      </Card>
-
-      <!-- credit -->
+    <div v-else-if="tab === 'credits'">
       <Card title="X (Twitter) credit" subtitle="Posting to X is billed pay per use by X itself. Credit is held while a post publishes and charged when it succeeds.">
         <template #actions><Button variant="primary" :icon="Wallet" @click="topUp = true">Top up</Button></template>
         <QueryState :loading="credit.loading.value" :error="credit.error.value" :status="credit.status.value" :has-data="!!credit.data.value" feature="Credit" skeleton="block" @retry="credit.reload">
@@ -156,19 +187,35 @@ void session;
           </div>
         </QueryState>
       </Card>
+    </div>
 
-      <!-- invoices -->
-      <Card title="Invoices" :padded="false">
-        <QueryState :loading="invoices.loading.value" :error="invoices.error.value" :status="invoices.status.value" :has-data="!!invoices.data.value" feature="Invoices" @retry="invoices.reload">
-          <Table :columns="icols" :rows="invoices.data.value?.items ?? []">
-            <template #cell-amountCents="{ row }">{{ usd(row.amountCents, row.currency ?? 'usd') }}</template>
-            <template #cell-status="{ row }"><StatusBadge :status="row.status" size="sm" /></template>
-            <template #cell-links="{ row }"><a v-if="row.hostedUrl || row.pdfUrl" :href="row.pdfUrl ?? row.hostedUrl ?? ''" target="_blank" rel="noopener" class="row gap-4" style="justify-content: flex-end">View <ExternalLink :size="12" /></a></template>
-            <template #empty><EmptyState compact title="No invoices yet" description="Invoices appear here after your first payment." /></template>
-          </Table>
-          <div style="padding: 0 16px 16px"><Pager v-if="invoices.data.value" :total="invoices.data.value.total" :limit="10" v-model:offset="iOffset" /></div>
+    <div v-else-if="tab === 'invoices'">
+      <QueryState :loading="invoices.loading.value" :error="invoices.error.value" :status="invoices.status.value" :has-data="!!invoices.data.value" feature="Invoices" @retry="invoices.reload">
+        <Table :columns="icols" :rows="invoices.data.value?.items ?? []" clickable @row-click="openInvoice">
+          <template #cell-number="{ row }"><RouterLink :to="`/billing/invoices/${row.id}`" class="mono-n" @click.stop>{{ row.number }}</RouterLink></template>
+          <template #cell-createdAt="{ row }"><span class="small">{{ formatDate(row.createdAt, timezone) }}</span></template>
+          <template #cell-description="{ row }"><span>{{ row.description }}</span><span v-if="row.periodStart" class="tiny muted d-block">{{ formatDate(row.periodStart, timezone) }} – {{ formatDate(row.periodEnd, timezone) }}</span></template>
+          <template #cell-status="{ row }"><StatusBadge :status="row.status" size="sm" /></template>
+          <template #cell-amountCents="{ row }"><span class="num">{{ usd(row.amountCents, row.currency ?? 'usd') }}</span></template>
+          <template #cell-go><ChevronRight :size="16" class="faint" /></template>
+          <template #empty><EmptyState compact title="No invoices yet" description="Invoices appear here after your first payment." /></template>
+        </Table>
+        <Pager v-if="invoices.data.value" :total="invoices.data.value.total" :limit="12" v-model:offset="iOffset" class="mt-16" />
+      </QueryState>
+    </div>
+
+    <div v-else-if="tab === 'details'" class="sections">
+      <SettingsSection title="Billing details" description="Printed under “Billed to” on new invoices. Invoices already issued keep the details they were issued with.">
+        <QueryState :loading="detQ.loading.value" :error="detQ.error.value" :status="detQ.status.value" :has-data="!!detQ.data.value" feature="Billing details" skeleton="block" @retry="detQ.reload">
+          <div class="grid-2">
+            <Input v-model="det.form.name" label="Company or name" :placeholder="session.org?.name ?? ''" help="Leave empty to use the organization name." />
+            <Input v-model="det.form.email" type="email" label="Billing email" placeholder="accounts@company.com" help="Receipts and payment problems go here. Empty: the owner." />
+            <div class="field span-2"><label class="field-label" for="baddr">Address</label><textarea id="baddr" v-model="det.form.address" class="control ta" rows="4" placeholder="Street, city, postcode, country" /></div>
+            <Input v-model="det.form.taxId" label="Tax ID" placeholder="Optional" help="SST, VAT or GST number, if you need it on invoices." />
+          </div>
         </QueryState>
-      </Card>
+      </SettingsSection>
+      <SaveBar :dirty="det.dirty.value" :busy="busy === 'details'" @save="saveDetails" @discard="det.discard" />
     </div>
 
     <Modal :open="topUp" title="Top up X credit" size="sm" @close="topUp = false">
@@ -195,4 +242,9 @@ void session;
 .meter i { display: block; height: 100%; background: var(--text); border-radius: 2px; transform-origin: left; animation: grow 900ms var(--ease-out) backwards; }
 @keyframes grow { from { transform: scaleX(0); } }
 .meter.hot i { background: var(--danger); }
+.mono-n { font-family: var(--mono); font-size: var(--fs-13); color: var(--text); text-decoration: none; }
+.mono-n:hover { text-decoration: underline; }
+.d-block { display: block; }
+.num { font-variant-numeric: tabular-nums; }
+.ta { height: auto; padding-top: 10px; padding-bottom: 10px; resize: vertical; line-height: 20px; }
 </style>

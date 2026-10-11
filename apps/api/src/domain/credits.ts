@@ -40,7 +40,7 @@ export async function hold(organizationId: string, action: XAction, count = 1, r
       WHERE "organizationId" = ${organizationId} AND "balanceMicros" - "heldMicros" >= ${amount} RETURNING "organizationId"`;
     if (!rows.length) {
       const ids = await emit(tx, organizationId, 'credit.exhausted', { organizationId, action });
-      await notify(tx, organizationId, { kind: 'credit', title: 'X credit exhausted', body: 'X posts, comments and analytics are paused until you top up.', link: '/organization/billing?tab=credits' }, ['OWNER', 'ADMIN']);
+      await notify(tx, organizationId, { kind: 'credit', title: 'X credit exhausted', body: 'X posts, comments and analytics are paused until you top up.', link: '/billing?tab=credits' }, ['OWNER', 'ADMIN']);
       void flushDeliveries(ids);
       throw forbidden(`Not enough X credit for this action ($${(Number(amount) / 1e6).toFixed(3)}). Top up your balance in Billing → Credits.`);
     }
@@ -60,7 +60,7 @@ export async function capture(holdId: string, note?: string) {
     const available = acc.balanceMicros - acc.heldMicros;
     if (acc.lowBalanceThresholdMicros !== null && available < acc.lowBalanceThresholdMicros && (!acc.lowBalanceNotifiedAt || Date.now() - acc.lowBalanceNotifiedAt.getTime() > 86_400_000)) {
       await tx.creditAccount.update({ where: { organizationId: h.organizationId }, data: { lowBalanceNotifiedAt: new Date() } });
-      await notify(tx, h.organizationId, { kind: 'credit', title: 'X credit is running low', body: `$${(Number(available) / 1e6).toFixed(2)} left.`, link: '/organization/billing?tab=credits' }, ['OWNER', 'ADMIN']);
+      await notify(tx, h.organizationId, { kind: 'credit', title: 'X credit is running low', body: `$${(Number(available) / 1e6).toFixed(2)} left.`, link: '/billing?tab=credits' }, ['OWNER', 'ADMIN']);
       return emit(tx, h.organizationId, 'credit.low-balance', { organizationId: h.organizationId, availableMicros: Number(available) });
     }
     return [];

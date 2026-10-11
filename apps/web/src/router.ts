@@ -25,6 +25,7 @@ const app: RouteRecordRaw[] = [
   { path: '/webhooks', component: view('Webhooks'), meta: { title: 'Webhooks' } },
   { path: '/bulk', component: view('Bulk'), meta: { title: 'Bulk post' } },
   { path: '/billing', component: view('Billing'), meta: { title: 'Billing' } },
+  { path: '/billing/invoices/:id', component: view('Invoice'), meta: { title: 'Invoice' } },
   { path: '/organization', component: view('OrgSettings'), meta: { title: 'Organization settings' } },
   { path: '/notifications', redirect: { path: '/posts', query: { notifications: '1' } } },
   { path: '/settings', component: view('PersonalSettings'), meta: { title: 'Your account' } },

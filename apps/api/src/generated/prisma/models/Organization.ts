@@ -92,6 +92,9 @@ export type OrganizationMinAggregateOutputType = {
   suspended: boolean | null
   trialEndsAt: Date | null
   billingEmail: string | null
+  billingName: string | null
+  billingAddress: string | null
+  billingTaxId: string | null
   stripeCustomerId: string | null
   chipClientId: string | null
   portalBrandName: string | null
@@ -134,6 +137,9 @@ export type OrganizationMaxAggregateOutputType = {
   suspended: boolean | null
   trialEndsAt: Date | null
   billingEmail: string | null
+  billingName: string | null
+  billingAddress: string | null
+  billingTaxId: string | null
   stripeCustomerId: string | null
   chipClientId: string | null
   portalBrandName: string | null
@@ -178,6 +184,9 @@ export type OrganizationCountAggregateOutputType = {
   suspended: number
   trialEndsAt: number
   billingEmail: number
+  billingName: number
+  billingAddress: number
+  billingTaxId: number
   stripeCustomerId: number
   chipClientId: number
   portalBrandName: number
@@ -256,6 +265,9 @@ export type OrganizationMinAggregateInputType = {
   suspended?: true
   trialEndsAt?: true
   billingEmail?: true
+  billingName?: true
+  billingAddress?: true
+  billingTaxId?: true
   stripeCustomerId?: true
   chipClientId?: true
   portalBrandName?: true
@@ -298,6 +310,9 @@ export type OrganizationMaxAggregateInputType = {
   suspended?: true
   trialEndsAt?: true
   billingEmail?: true
+  billingName?: true
+  billingAddress?: true
+  billingTaxId?: true
   stripeCustomerId?: true
   chipClientId?: true
   portalBrandName?: true
@@ -342,6 +357,9 @@ export type OrganizationCountAggregateInputType = {
   suspended?: true
   trialEndsAt?: true
   billingEmail?: true
+  billingName?: true
+  billingAddress?: true
+  billingTaxId?: true
   stripeCustomerId?: true
   chipClientId?: true
   portalBrandName?: true
@@ -473,6 +491,9 @@ export type OrganizationGroupByOutputType = {
   suspended: boolean
   trialEndsAt: Date | null
   billingEmail: string | null
+  billingName: string | null
+  billingAddress: string | null
+  billingTaxId: string | null
   stripeCustomerId: string | null
   chipClientId: string | null
   portalBrandName: string | null
@@ -540,6 +561,9 @@ export type OrganizationWhereInput = {
   suspended?: Prisma.BoolFilter<"Organization"> | boolean
   trialEndsAt?: Prisma.DateTimeNullableFilter<"Organization"> | Date | string | null
   billingEmail?: Prisma.StringNullableFilter<"Organization"> | string | null
+  billingName?: Prisma.StringNullableFilter<"Organization"> | string | null
+  billingAddress?: Prisma.StringNullableFilter<"Organization"> | string | null
+  billingTaxId?: Prisma.StringNullableFilter<"Organization"> | string | null
   stripeCustomerId?: Prisma.StringNullableFilter<"Organization"> | string | null
   chipClientId?: Prisma.StringNullableFilter<"Organization"> | string | null
   portalBrandName?: Prisma.StringNullableFilter<"Organization"> | string | null
@@ -601,6 +625,9 @@ export type OrganizationOrderByWithRelationInput = {
   suspended?: Prisma.SortOrder
   trialEndsAt?: Prisma.SortOrderInput | Prisma.SortOrder
   billingEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  billingName?: Prisma.SortOrderInput | Prisma.SortOrder
+  billingAddress?: Prisma.SortOrderInput | Prisma.SortOrder
+  billingTaxId?: Prisma.SortOrderInput | Prisma.SortOrder
   stripeCustomerId?: Prisma.SortOrderInput | Prisma.SortOrder
   chipClientId?: Prisma.SortOrderInput | Prisma.SortOrder
   portalBrandName?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -667,6 +694,9 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   suspended?: Prisma.BoolFilter<"Organization"> | boolean
   trialEndsAt?: Prisma.DateTimeNullableFilter<"Organization"> | Date | string | null
   billingEmail?: Prisma.StringNullableFilter<"Organization"> | string | null
+  billingName?: Prisma.StringNullableFilter<"Organization"> | string | null
+  billingAddress?: Prisma.StringNullableFilter<"Organization"> | string | null
+  billingTaxId?: Prisma.StringNullableFilter<"Organization"> | string | null
   portalBrandName?: Prisma.StringNullableFilter<"Organization"> | string | null
   portalLogoUrl?: Prisma.StringNullableFilter<"Organization"> | string | null
   portalAccentColor?: Prisma.StringNullableFilter<"Organization"> | string | null
@@ -726,6 +756,9 @@ export type OrganizationOrderByWithAggregationInput = {
   suspended?: Prisma.SortOrder
   trialEndsAt?: Prisma.SortOrderInput | Prisma.SortOrder
   billingEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  billingName?: Prisma.SortOrderInput | Prisma.SortOrder
+  billingAddress?: Prisma.SortOrderInput | Prisma.SortOrder
+  billingTaxId?: Prisma.SortOrderInput | Prisma.SortOrder
   stripeCustomerId?: Prisma.SortOrderInput | Prisma.SortOrder
   chipClientId?: Prisma.SortOrderInput | Prisma.SortOrder
   portalBrandName?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -778,6 +811,9 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   suspended?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
   trialEndsAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Organization"> | Date | string | null
   billingEmail?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
+  billingName?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
+  billingAddress?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
+  billingTaxId?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
   stripeCustomerId?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
   chipClientId?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
   portalBrandName?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
@@ -821,6 +857,9 @@ export type OrganizationCreateInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -882,6 +921,9 @@ export type OrganizationUncheckedCreateInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -941,6 +983,9 @@ export type OrganizationUpdateInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1002,6 +1047,9 @@ export type OrganizationUncheckedUpdateInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1062,6 +1110,9 @@ export type OrganizationCreateManyInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -1105,6 +1156,9 @@ export type OrganizationUpdateManyMutationInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1149,6 +1203,9 @@ export type OrganizationUncheckedUpdateManyInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1203,6 +1260,9 @@ export type OrganizationCountOrderByAggregateInput = {
   suspended?: Prisma.SortOrder
   trialEndsAt?: Prisma.SortOrder
   billingEmail?: Prisma.SortOrder
+  billingName?: Prisma.SortOrder
+  billingAddress?: Prisma.SortOrder
+  billingTaxId?: Prisma.SortOrder
   stripeCustomerId?: Prisma.SortOrder
   chipClientId?: Prisma.SortOrder
   portalBrandName?: Prisma.SortOrder
@@ -1262,6 +1322,9 @@ export type OrganizationMaxOrderByAggregateInput = {
   suspended?: Prisma.SortOrder
   trialEndsAt?: Prisma.SortOrder
   billingEmail?: Prisma.SortOrder
+  billingName?: Prisma.SortOrder
+  billingAddress?: Prisma.SortOrder
+  billingTaxId?: Prisma.SortOrder
   stripeCustomerId?: Prisma.SortOrder
   chipClientId?: Prisma.SortOrder
   portalBrandName?: Prisma.SortOrder
@@ -1304,6 +1367,9 @@ export type OrganizationMinOrderByAggregateInput = {
   suspended?: Prisma.SortOrder
   trialEndsAt?: Prisma.SortOrder
   billingEmail?: Prisma.SortOrder
+  billingName?: Prisma.SortOrder
+  billingAddress?: Prisma.SortOrder
+  billingTaxId?: Prisma.SortOrder
   stripeCustomerId?: Prisma.SortOrder
   chipClientId?: Prisma.SortOrder
   portalBrandName?: Prisma.SortOrder
@@ -1668,6 +1734,9 @@ export type OrganizationCreateWithoutCreatedByInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -1727,6 +1796,9 @@ export type OrganizationUncheckedCreateWithoutCreatedByInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -1816,6 +1888,9 @@ export type OrganizationScalarWhereInput = {
   suspended?: Prisma.BoolFilter<"Organization"> | boolean
   trialEndsAt?: Prisma.DateTimeNullableFilter<"Organization"> | Date | string | null
   billingEmail?: Prisma.StringNullableFilter<"Organization"> | string | null
+  billingName?: Prisma.StringNullableFilter<"Organization"> | string | null
+  billingAddress?: Prisma.StringNullableFilter<"Organization"> | string | null
+  billingTaxId?: Prisma.StringNullableFilter<"Organization"> | string | null
   stripeCustomerId?: Prisma.StringNullableFilter<"Organization"> | string | null
   chipClientId?: Prisma.StringNullableFilter<"Organization"> | string | null
   portalBrandName?: Prisma.StringNullableFilter<"Organization"> | string | null
@@ -1859,6 +1934,9 @@ export type OrganizationCreateWithoutMembersInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -1919,6 +1997,9 @@ export type OrganizationUncheckedCreateWithoutMembersInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -1993,6 +2074,9 @@ export type OrganizationUpdateWithoutMembersInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2053,6 +2137,9 @@ export type OrganizationUncheckedUpdateWithoutMembersInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2111,6 +2198,9 @@ export type OrganizationCreateWithoutInvitationsInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -2171,6 +2261,9 @@ export type OrganizationUncheckedCreateWithoutInvitationsInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -2245,6 +2338,9 @@ export type OrganizationUpdateWithoutInvitationsInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2305,6 +2401,9 @@ export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2363,6 +2462,9 @@ export type OrganizationCreateWithoutApiKeysInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -2423,6 +2525,9 @@ export type OrganizationUncheckedCreateWithoutApiKeysInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -2497,6 +2602,9 @@ export type OrganizationUpdateWithoutApiKeysInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2557,6 +2665,9 @@ export type OrganizationUncheckedUpdateWithoutApiKeysInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2615,6 +2726,9 @@ export type OrganizationCreateWithoutSubscriptionInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -2675,6 +2789,9 @@ export type OrganizationUncheckedCreateWithoutSubscriptionInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -2749,6 +2866,9 @@ export type OrganizationUpdateWithoutSubscriptionInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2809,6 +2929,9 @@ export type OrganizationUncheckedUpdateWithoutSubscriptionInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2867,6 +2990,9 @@ export type OrganizationCreateWithoutInvoicesInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -2927,6 +3053,9 @@ export type OrganizationUncheckedCreateWithoutInvoicesInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -3001,6 +3130,9 @@ export type OrganizationUpdateWithoutInvoicesInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3061,6 +3193,9 @@ export type OrganizationUncheckedUpdateWithoutInvoicesInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3119,6 +3254,9 @@ export type OrganizationCreateWithoutPaymentsInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -3179,6 +3317,9 @@ export type OrganizationUncheckedCreateWithoutPaymentsInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -3253,6 +3394,9 @@ export type OrganizationUpdateWithoutPaymentsInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3313,6 +3457,9 @@ export type OrganizationUncheckedUpdateWithoutPaymentsInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3371,6 +3518,9 @@ export type OrganizationCreateWithoutCreditAccountInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -3431,6 +3581,9 @@ export type OrganizationUncheckedCreateWithoutCreditAccountInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -3505,6 +3658,9 @@ export type OrganizationUpdateWithoutCreditAccountInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3565,6 +3721,9 @@ export type OrganizationUncheckedUpdateWithoutCreditAccountInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3623,6 +3782,9 @@ export type OrganizationCreateWithoutCreditLedgerInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -3683,6 +3845,9 @@ export type OrganizationUncheckedCreateWithoutCreditLedgerInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -3757,6 +3922,9 @@ export type OrganizationUpdateWithoutCreditLedgerInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3817,6 +3985,9 @@ export type OrganizationUncheckedUpdateWithoutCreditLedgerInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3875,6 +4046,9 @@ export type OrganizationCreateWithoutCreditHoldsInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -3935,6 +4109,9 @@ export type OrganizationUncheckedCreateWithoutCreditHoldsInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -4009,6 +4186,9 @@ export type OrganizationUpdateWithoutCreditHoldsInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4069,6 +4249,9 @@ export type OrganizationUncheckedUpdateWithoutCreditHoldsInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4127,6 +4310,9 @@ export type OrganizationCreateWithoutTeamsInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -4187,6 +4373,9 @@ export type OrganizationUncheckedCreateWithoutTeamsInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -4261,6 +4450,9 @@ export type OrganizationUpdateWithoutTeamsInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4321,6 +4513,9 @@ export type OrganizationUncheckedUpdateWithoutTeamsInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4379,6 +4574,9 @@ export type OrganizationCreateWithoutPortalLinksInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -4439,6 +4637,9 @@ export type OrganizationUncheckedCreateWithoutPortalLinksInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -4513,6 +4714,9 @@ export type OrganizationUpdateWithoutPortalLinksInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4573,6 +4777,9 @@ export type OrganizationUncheckedUpdateWithoutPortalLinksInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4631,6 +4838,9 @@ export type OrganizationCreateWithoutUploadsInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -4691,6 +4901,9 @@ export type OrganizationUncheckedCreateWithoutUploadsInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -4765,6 +4978,9 @@ export type OrganizationUpdateWithoutUploadsInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4825,6 +5041,9 @@ export type OrganizationUncheckedUpdateWithoutUploadsInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4883,6 +5102,9 @@ export type OrganizationCreateWithoutPostsInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -4943,6 +5165,9 @@ export type OrganizationUncheckedCreateWithoutPostsInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -5017,6 +5242,9 @@ export type OrganizationUpdateWithoutPostsInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5077,6 +5305,9 @@ export type OrganizationUncheckedUpdateWithoutPostsInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5135,6 +5366,9 @@ export type OrganizationCreateWithoutCsvImportsInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -5195,6 +5429,9 @@ export type OrganizationUncheckedCreateWithoutCsvImportsInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -5269,6 +5506,9 @@ export type OrganizationUpdateWithoutCsvImportsInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5329,6 +5569,9 @@ export type OrganizationUncheckedUpdateWithoutCsvImportsInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5387,6 +5630,9 @@ export type OrganizationCreateWithoutWebhooksInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -5447,6 +5693,9 @@ export type OrganizationUncheckedCreateWithoutWebhooksInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -5521,6 +5770,9 @@ export type OrganizationUpdateWithoutWebhooksInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5581,6 +5833,9 @@ export type OrganizationUncheckedUpdateWithoutWebhooksInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5639,6 +5894,9 @@ export type OrganizationCreateWithoutAuditLogsInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -5699,6 +5957,9 @@ export type OrganizationUncheckedCreateWithoutAuditLogsInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -5773,6 +6034,9 @@ export type OrganizationUpdateWithoutAuditLogsInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5833,6 +6097,9 @@ export type OrganizationUncheckedUpdateWithoutAuditLogsInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5891,6 +6158,9 @@ export type OrganizationCreateManyCreatedByInput = {
   suspended?: boolean
   trialEndsAt?: Date | string | null
   billingEmail?: string | null
+  billingName?: string | null
+  billingAddress?: string | null
+  billingTaxId?: string | null
   stripeCustomerId?: string | null
   chipClientId?: string | null
   portalBrandName?: string | null
@@ -5934,6 +6204,9 @@ export type OrganizationUpdateWithoutCreatedByInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -5993,6 +6266,9 @@ export type OrganizationUncheckedUpdateWithoutCreatedByInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6052,6 +6328,9 @@ export type OrganizationUncheckedUpdateManyWithoutCreatedByInput = {
   suspended?: Prisma.BoolFieldUpdateOperationsInput | boolean
   trialEndsAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   billingEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingTaxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chipClientId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   portalBrandName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -6244,6 +6523,9 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   suspended?: boolean
   trialEndsAt?: boolean
   billingEmail?: boolean
+  billingName?: boolean
+  billingAddress?: boolean
+  billingTaxId?: boolean
   stripeCustomerId?: boolean
   chipClientId?: boolean
   portalBrandName?: boolean
@@ -6306,6 +6588,9 @@ export type OrganizationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   suspended?: boolean
   trialEndsAt?: boolean
   billingEmail?: boolean
+  billingName?: boolean
+  billingAddress?: boolean
+  billingTaxId?: boolean
   stripeCustomerId?: boolean
   chipClientId?: boolean
   portalBrandName?: boolean
@@ -6351,6 +6636,9 @@ export type OrganizationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   suspended?: boolean
   trialEndsAt?: boolean
   billingEmail?: boolean
+  billingName?: boolean
+  billingAddress?: boolean
+  billingTaxId?: boolean
   stripeCustomerId?: boolean
   chipClientId?: boolean
   portalBrandName?: boolean
@@ -6396,6 +6684,9 @@ export type OrganizationSelectScalar = {
   suspended?: boolean
   trialEndsAt?: boolean
   billingEmail?: boolean
+  billingName?: boolean
+  billingAddress?: boolean
+  billingTaxId?: boolean
   stripeCustomerId?: boolean
   chipClientId?: boolean
   portalBrandName?: boolean
@@ -6406,7 +6697,7 @@ export type OrganizationSelectScalar = {
   deletedAt?: boolean
 }
 
-export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdById" | "promotionCodeId" | "name" | "avatarUrl" | "ref" | "tier" | "dailyPostLimit" | "dailyCommentLimit" | "monthlyPostLimit" | "monthlyCommentLimit" | "monthlyUploadLimit" | "monthlyImportLimitPerAccount" | "commentImportLimitPerPost" | "monthlyReviewImportLimitPerAccount" | "monthlyMessageLimitPerAccount" | "monthlyAutomationExecutionLimitPerAccount" | "rateLimitMultiplier" | "apiAccess" | "analyticsDisabled" | "analyticsPostsDisabled" | "uploadsCompressionEnabled" | "analyticsInterval" | "analyticsPostsInterval" | "forcedAccountAnalyticsDailyLimit" | "forcedPostAnalyticsDailyLimit" | "showVerboseErrors" | "disconnectCheckEnabled" | "deleteAccountAfter" | "messagingEnabled" | "suspended" | "trialEndsAt" | "billingEmail" | "stripeCustomerId" | "chipClientId" | "portalBrandName" | "portalLogoUrl" | "portalAccentColor" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["organization"]>
+export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "createdById" | "promotionCodeId" | "name" | "avatarUrl" | "ref" | "tier" | "dailyPostLimit" | "dailyCommentLimit" | "monthlyPostLimit" | "monthlyCommentLimit" | "monthlyUploadLimit" | "monthlyImportLimitPerAccount" | "commentImportLimitPerPost" | "monthlyReviewImportLimitPerAccount" | "monthlyMessageLimitPerAccount" | "monthlyAutomationExecutionLimitPerAccount" | "rateLimitMultiplier" | "apiAccess" | "analyticsDisabled" | "analyticsPostsDisabled" | "uploadsCompressionEnabled" | "analyticsInterval" | "analyticsPostsInterval" | "forcedAccountAnalyticsDailyLimit" | "forcedPostAnalyticsDailyLimit" | "showVerboseErrors" | "disconnectCheckEnabled" | "deleteAccountAfter" | "messagingEnabled" | "suspended" | "trialEndsAt" | "billingEmail" | "billingName" | "billingAddress" | "billingTaxId" | "stripeCustomerId" | "chipClientId" | "portalBrandName" | "portalLogoUrl" | "portalAccentColor" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   members?: boolean | Prisma.Organization$membersArgs<ExtArgs>
@@ -6495,6 +6786,12 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     suspended: boolean
     trialEndsAt: Date | null
     billingEmail: string | null
+    /**
+     * Printed on invoices as "Bill to". Snapshotted onto each invoice when it is issued.
+     */
+    billingName: string | null
+    billingAddress: string | null
+    billingTaxId: string | null
     stripeCustomerId: string | null
     chipClientId: string | null
     /**
@@ -6979,6 +7276,9 @@ export interface OrganizationFieldRefs {
   readonly suspended: Prisma.FieldRef<"Organization", 'Boolean'>
   readonly trialEndsAt: Prisma.FieldRef<"Organization", 'DateTime'>
   readonly billingEmail: Prisma.FieldRef<"Organization", 'String'>
+  readonly billingName: Prisma.FieldRef<"Organization", 'String'>
+  readonly billingAddress: Prisma.FieldRef<"Organization", 'String'>
+  readonly billingTaxId: Prisma.FieldRef<"Organization", 'String'>
   readonly stripeCustomerId: Prisma.FieldRef<"Organization", 'String'>
   readonly chipClientId: Prisma.FieldRef<"Organization", 'String'>
   readonly portalBrandName: Prisma.FieldRef<"Organization", 'String'>
