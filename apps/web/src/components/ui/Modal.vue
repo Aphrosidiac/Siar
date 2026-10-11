@@ -11,6 +11,8 @@ let restore: HTMLElement | null = null;
 const focusables = () => Array.from(panel.value?.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])') ?? []);
 function onKey(e: KeyboardEvent) {
   if (!props.open) return;
+  // an open dropdown (teleported to <body>) handles its own Esc and Tab first
+  if (document.querySelector('.ui-sel-pop')) return;
   if (e.key === 'Escape' && props.dismissable) { e.stopPropagation(); emit('close'); }
   if (e.key === 'Tab') {
     const f = focusables(); if (!f.length) return;
