@@ -136,7 +136,7 @@ const pickName = computed(() => {
 });
 async function refreshChannels(a: SocialAccount) {
   busy.value = 'refresh';
-  try { await api.post('/social-account/refresh-channels', { type: a.type, teamId: a.teamId }); await refreshTeam(); channelFor.value = currentTeam.value?.socialAccounts.find((x) => x.id === a.id) ?? null; toast.success('Channels refreshed'); }
+  try { await api.post('/social-account/refresh-channels', { type: a.type, teamId: a.teamId }); await refreshTeam(); channelFor.value = currentTeam.value?.socialAccounts.find((x) => x.id === a.id) ?? null; const noun = META[a.type].channelNoun || 'channel'; toast.success(`${noun[0].toUpperCase()}${noun.slice(1)}s refreshed`); }
   catch (e) { toast.fail(e); } finally { busy.value = null; }
 }
 const REFRESHABLE = ['FACEBOOK', 'INSTAGRAM', 'LINKEDIN', 'YOUTUBE', 'GOOGLE_BUSINESS'];
