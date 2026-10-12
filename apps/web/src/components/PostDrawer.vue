@@ -24,8 +24,18 @@ async function retry(p: Post) {
   busy.value = true;
   try { await api.post(`/post/${p.id}/retry`); toast.success('Retry queued'); await detail.reload(); emit('changed'); } catch (e) { toast.fail(e); } finally { busy.value = false; }
 }
+// networks whose API cannot delete a published post (the adapters' deletePost: false)
+const NO_API_DELETE = new Set(['INSTAGRAM', 'TIKTOK', 'SNAPCHAT']);
+function deleteMessage(p: Post) {
+  const live = (p.socialAccounts ?? []).filter((t) => t.status === 'POSTED').map((t) => t.socialAccount?.type ?? '');
+  if (!live.length) return 'It will not be published.';
+  const gone = live.filter((t) => !NO_API_DELETE.has(t)).map(networkName);
+  const kept = live.filter((t) => NO_API_DELETE.has(t)).map(networkName);
+  const list = (xs: string[]) => xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}` : xs[0];
+  return [gone.length ? `It is deleted from ${list(gone)} too.` : '', kept.length ? `${list(kept)} ${kept.length > 1 ? 'do' : 'does'} not let apps delete posts, so delete it there yourself.` : ''].filter(Boolean).join(' ');
+}
 async function remove(p: Post) {
-  if (!(await confirm({ title: 'Delete this post?', message: p.status === 'POSTED' ? 'It is removed from Siar. Copies already published on the networks stay up unless you delete them there.' : 'It will not be published.', confirmLabel: 'Delete', danger: true }))) return;
+  if (!(await confirm({ title: 'Delete this post?', message: deleteMessage(p), confirmLabel: 'Delete', danger: true }))) return;
   busy.value = true;
   try { await api.del(`/post/${p.id}`); toast.success('Post deleted'); emit('changed'); emit('close'); } catch (e) { toast.fail(e); } finally { busy.value = false; }
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Archive, Download, EyeOff, Eye, Heart, Inbox as InboxIcon, MessageCircle, Reply, Send, Trash2, ArchiveRestore, TriangleAlert } from 'lucide-vue-next';
 import PageHead from '@/components/PageHead.vue';
@@ -69,7 +69,7 @@ const active = computed(() => convs.data.value?.items.find((c) => c.id === activ
 const msgs = useQuery(() => api.get<{ items: Message[] }>(`/conversations/${activeId.value}/messages`, { limit: 100 }), { deps: [activeId], enabled: () => !!activeId.value });
 const ordered = computed(() => [...(msgs.data.value?.items ?? [])].sort((a, b) => (a.sentAt ?? a.createdAt).localeCompare(b.sentAt ?? b.createdAt)));
 const thread = ref<HTMLElement | null>(null);
-watch(ordered, async () => { await nextTick(); if (thread.value) thread.value.scrollTop = thread.value.scrollHeight; });
+watch(() => ordered.value.at(-1)?.id, async () => { await nextTick(); if (thread.value) thread.value.scrollTop = thread.value.scrollHeight; });
 async function openConv(c: Conversation) {
   activeId.value = c.id;
   if (c.unreadCount) { try { await api.post(`/conversations/${c.id}/read`, {}); c.unreadCount = 0; } catch { /* non-critical */ } }
@@ -98,7 +98,24 @@ const IG_ACCESS_HINT = 'Messages on. Instagram only shares DMs once you allow it
 const hasIgConversation = computed(() => (convs.data.value?.items ?? []).some((c) => c.platform === 'INSTAGRAM'));
 const igHint = (a: SocialAccount) => a.type === 'INSTAGRAM' && msgState(a) === 'on' && convs.data.value && !hasIgConversation.value;
 // The conversation list runs a health check on the server (e.g. Instagram blocking message access): pick it up.
-watch(() => convs.data.value, () => { void refreshTeam(); });
+// the list load runs the messaging health check; pick up its result (at most every 30 s while polling)
+let teamAt = 0;
+watch(() => convs.data.value, () => { if (Date.now() - teamAt < 30000) return; teamAt = Date.now(); void refreshTeam(); });
+
+// New comments and DMs arrive by webhook; show them without a reload while the Inbox is open.
+let poll = 0;
+onMounted(() => {
+  poll = window.setInterval(() => {
+    if (document.visibilityState !== 'visible') return;
+    if (tab.value === 'comments') { void comments.refresh(); return; }
+    void convs.refresh().then(() => {
+      const a = active.value;
+      if (a?.unreadCount) void api.post(`/conversations/${a.id}/read`, {}).then(() => { a.unreadCount = 0; }).catch(() => undefined);
+    });
+    if (activeId.value) void msgs.refresh();
+  }, 5000);
+});
+onBeforeUnmount(() => clearInterval(poll));
 async function messagesCheck(a: SocialAccount) {
   busy.value = `msg-${a.type}`;
   try { await api.post('/social-account/messaging/enable', { teamId: a.teamId, type: a.type }); await refreshTeam(); toast.success(`${META[a.type].name} messages are flowing`, 'New direct messages arrive here.'); }
