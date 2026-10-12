@@ -261,7 +261,7 @@ export const instagram: NetworkAdapter = {
     const messaging = !!input.options?.withMessagingScope;
     if (method === 'FACEBOOK') {
       const scopes = [...FB_SCOPES, ...(messaging ? FB_MESSAGING_SCOPES : [])];
-      return { url: facebookDialogUrl(ctx, String(ctx.credentials.clientId ?? ''), scopes, input.state, input.forceLogin), extra: { method } };
+      return { url: facebookDialogUrl(ctx, String(ctx.credentials.clientId ?? ''), scopes, input.state, input.forceLogin, messaging), extra: { method } };
     }
     return {
       url: authorizeUrl(`${IG_WWW}/oauth/authorize`, {

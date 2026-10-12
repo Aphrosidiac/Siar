@@ -32,14 +32,25 @@ Meta Business Suite → Business settings → Business info → **Start verifica
 | Valid OAuth redirect URIs | https://api.siaran.my/api/v1/social-account/callback/FACEBOOK, …/INSTAGRAM, …/THREADS |
 | Webhooks | Callback https://api.siaran.my/api/v1/webhooks/meta, verify token = NETWORK_META_WEBHOOK_VERIFY_TOKEN; fields: Page `feed`, `messages`, `messaging_postbacks`, `message_reactions`, `message_echoes`; Instagram `comments`, `messages`, `messaging_postbacks`, `message_reactions` |
 
-## 2b. Facebook Login for Business — check before recording
+## 2b. Facebook Login for Business configurations (created 2026-10-12)
 
-Business-type apps may only offer Facebook Login for Business. Open the connect flow in Development
-mode with a tester first. If Meta shows "Invalid Scopes" or ignores permissions: Facebook Login for
-Business → Configurations → create "Siar Pages" (user access token, the Facebook permissions in
-the table below) and "Siar Instagram" (the instagram_* + pages_show_list/pages_read_engagement/
-business_management set), then set `NETWORK_FACEBOOK_LOGIN_CONFIG_ID` and
-`NETWORK_INSTAGRAM_LOGIN_CONFIG_ID`. Siar sends `config_id` when these are present.
+Business apps should send `config_id` instead of `scope` (Meta still accepts `scope`, but recommends
+against it). Four user-access-token configurations exist; Siar sends the messaging one only when
+the connect request asks for messaging (`withMessagingScope`), else the base one:
+
+| Env | Configuration | Permissions |
+|---|---|---|
+| `NETWORK_FACEBOOK_LOGIN_CONFIG_ID=1093944906861491` | Siar Facebook Pages | pages_show_list, pages_read_engagement, pages_read_user_content, pages_manage_posts, pages_manage_engagement, pages_manage_metadata, read_insights, business_management |
+| `NETWORK_FACEBOOK_MESSAGING_LOGIN_CONFIG_ID=1474728627851844` | Siar Facebook + Messenger | the above + pages_messaging |
+| `NETWORK_INSTAGRAM_LOGIN_CONFIG_ID=1467706591840193` | Siar Instagram | instagram_basic, instagram_content_publish, instagram_manage_comments, instagram_manage_insights, pages_show_list, pages_read_engagement, business_management |
+| `NETWORK_INSTAGRAM_MESSAGING_LOGIN_CONFIG_ID=935573075996610` | Siar Instagram + DMs | the above + instagram_manage_messages, pages_messaging |
+
+When a permission is added to Siar's scope lists, add it to the matching configuration too.
+
+**Dashboard trap:** if an image upload (app icon) fails with "Something went wrong" (error 1357032
+from upload.facebook.com), facebook.com is switched into another profile (a Page) while the
+developer dashboard acts as the admin user. Open any facebook.com page, switch back to the admin
+profile, and upload again.
 
 ## 2c. Deauthorize and data-deletion callbacks (built 2026-10-12)
 

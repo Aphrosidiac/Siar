@@ -324,16 +324,19 @@ export async function facebookLoginTokens(ctx: NetworkContext, clientId: string,
 }
 
 /** The Facebook Login dialog URL. */
-export function facebookDialogUrl(ctx: NetworkContext, clientId: string, scopes: string[], state: string, forceLogin?: boolean) {
+export function facebookDialogUrl(ctx: NetworkContext, clientId: string, scopes: string[], state: string, forceLogin?: boolean, messaging?: boolean) {
   const u = new URL(`${FB_WWW}/${GRAPH_VERSION}/dialog/oauth`);
   u.searchParams.set('client_id', clientId);
   u.searchParams.set('redirect_uri', ctx.redirectUri);
   u.searchParams.set('state', state);
   u.searchParams.set('response_type', 'code');
   u.searchParams.set('scope', scopes.join(','));
-  // Business apps on Facebook Login for Business: a login configuration (NETWORK_<TYPE>_LOGIN_CONFIG_ID)
-  // defines the permissions; Meta then ignores `scope`.
-  const configId = ctx.mode === 'live' ? ctx.credentials.loginConfigId : undefined;
+  // Business apps on Facebook Login for Business: a login configuration (NETWORK_<TYPE>_LOGIN_CONFIG_ID,
+  // or NETWORK_<TYPE>_MESSAGING_LOGIN_CONFIG_ID when messaging was asked for) defines the permissions;
+  // Meta then ignores `scope`.
+  const configId = ctx.mode === 'live'
+    ? (messaging ? ctx.credentials.messagingLoginConfigId : undefined) ?? ctx.credentials.loginConfigId
+    : undefined;
   if (configId) u.searchParams.set('config_id', configId);
   u.searchParams.set('auth_type', forceLogin ? 'reauthenticate' : 'rerequest');
   return u.toString();

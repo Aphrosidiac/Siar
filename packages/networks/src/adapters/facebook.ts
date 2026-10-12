@@ -237,8 +237,9 @@ export const facebook: NetworkAdapter = {
   errorReference: pickErrors('190', '4', '17', '32', '613', '10', '200', '100', '368', '506', '2018278', '551'),
 
   async authorize(ctx, input) {
-    const scopes = [...BASE_SCOPES, ...(input.options?.withMessagingScope ? MESSAGING_SCOPES : [])];
-    return { url: facebookDialogUrl(ctx, String(ctx.credentials.clientId ?? ''), scopes, input.state, input.forceLogin) };
+    const messaging = !!input.options?.withMessagingScope;
+    const scopes = [...BASE_SCOPES, ...(messaging ? MESSAGING_SCOPES : [])];
+    return { url: facebookDialogUrl(ctx, String(ctx.credentials.clientId ?? ''), scopes, input.state, input.forceLogin, messaging) };
   },
 
   async exchange(ctx, input) {
