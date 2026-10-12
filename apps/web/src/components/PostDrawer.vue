@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
-import { ExternalLink, PenSquare, RotateCw, Trash2 } from 'lucide-vue-next';
+import { Eye, ExternalLink, Heart, MessageCircle, PenSquare, RefreshCw, RotateCw, Trash2 } from 'lucide-vue-next';
 import QueryState from './QueryState.vue';
 import StatusBadge from './StatusBadge.vue';
 import NetworkIcon from './NetworkIcon.vue';
@@ -10,13 +10,13 @@ import { api } from '@/lib/api';
 import { useQuery } from '@/lib/query';
 import { inFlight } from '@/lib/inflight';
 import { timezone } from '@/lib/store';
-import { networkName } from '@/lib/networks';
-import { formatDateTime, relative, handle } from '@/lib/format';
+import { ANALYTICS_TYPES, networkName } from '@/lib/networks';
+import { formatDateTime, formatNumber, relative, handle } from '@/lib/format';
 import { confirm } from '@/lib/confirm';
 import { toast } from '@/lib/toast';
-import type { Post } from '@/lib/types';
+import type { NetworkType, Post } from '@/lib/types';
 
-/** Post detail: per-network status, errors verbatim, retry / edit / delete. Used by Posts and Calendar. */
+/** Post detail: per-network status and figures, errors verbatim, retry / edit / delete. Used by Posts and Calendar. */
 const props = defineProps<{ id: string | null }>();
 const emit = defineEmits<{ close: []; changed: [] }>();
 const detail = useQuery(() => api.get<Post>(`/post/${props.id}`), { deps: [() => props.id], enabled: () => !!props.id });
@@ -56,6 +56,28 @@ const errorRows = computed(() => {
   if (!out.length && p.error) out.push({ type: '', message: p.error, verbose: null });
   return out;
 });
+// Each network's latest figures for this post (likes, comments, views), read from the network by the daily sweep
+// or by Refresh. X is left out of Refresh: its reads are billed per request.
+interface PostPoint { likes: number; comments: number; views: number; createdAt: string }
+const figures = ref<Record<string, PostPoint | null>>({});
+const refreshingType = ref<string | null>(null);
+const measurable = (t: { status?: string | null; socialAccount?: { type: string } | null }) => t.status === 'POSTED' && ANALYTICS_TYPES.includes((t.socialAccount?.type ?? '') as NetworkType);
+watch(() => (post.value?.socialAccounts?.some(measurable) ? post.value.id : null), async (id) => {
+  figures.value = {};
+  const p = post.value; if (!id || !p) return;
+  for (const t of (p.socialAccounts ?? []).filter(measurable)) {
+    const type = t.socialAccount!.type;
+    try {
+      const r = await api.get<{ items: PostPoint[] }>('/analytics/post', { postId: id, platformType: type });
+      figures.value = { ...figures.value, [type]: [...r.items].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0] ?? null };
+    } catch { figures.value = { ...figures.value, [type]: null }; }
+  }
+}, { immediate: true });
+async function refreshFigures(p: Post, type: string) {
+  refreshingType.value = type;
+  try { figures.value = { ...figures.value, [type]: await api.post<PostPoint>('/analytics/post/force', { postId: p.id, platformType: type }) }; toast.success(`${networkName(type)} figures refreshed`); }
+  catch (e) { toast.fail(e); } finally { refreshingType.value = null; }
+}
 const textFor = (p: Post, type: string) => (p.data?.[type]?.text as string | undefined) ?? '';
 const mediaOf = (p: Post) => (p.uploads ?? []).map((u) => u.upload).filter(Boolean);
 </script>
@@ -94,6 +116,17 @@ const mediaOf = (p: Post) => (p.uploads ?? []).map((u) => u.upload).filter(Boole
           </div>
           <p v-if="textFor(post, t.socialAccount?.type ?? '')" class="prewrap small mt-8">{{ textFor(post, t.socialAccount?.type ?? '') }}</p>
           <a v-if="t.permalink" :href="t.permalink" target="_blank" rel="noopener" class="small row gap-4 mt-8">View on {{ networkName(t.socialAccount?.type ?? '') }} <ExternalLink :size="12" /></a>
+          <div v-if="measurable(t)" class="figs row wrap mt-8">
+            <template v-if="figures[t.socialAccount!.type]">
+              <span class="small row gap-4" title="Likes"><Heart :size="14" />{{ formatNumber(figures[t.socialAccount!.type]!.likes) }} likes</span>
+              <span class="small row gap-4" title="Comments"><MessageCircle :size="14" />{{ formatNumber(figures[t.socialAccount!.type]!.comments) }} comments</span>
+              <span class="small row gap-4" title="Views"><Eye :size="14" />{{ formatNumber(figures[t.socialAccount!.type]!.views) }} views</span>
+              <span class="tiny muted">as of {{ formatDateTime(figures[t.socialAccount!.type]!.createdAt, timezone) }}</span>
+            </template>
+            <span v-else class="tiny muted">No figures yet</span>
+            <span class="spacer" />
+            <Button v-if="t.socialAccount!.type !== 'TWITTER'" size="sm" variant="ghost" :icon="RefreshCw" :loading="refreshingType === t.socialAccount!.type" @click="refreshFigures(post, t.socialAccount!.type)">Refresh</Button>
+          </div>
         </div>
       </div>
     </div>
@@ -109,4 +142,5 @@ const mediaOf = (p: Post) => (p.uploads ?? []).map((u) => u.upload).filter(Boole
 
 <style scoped>
 .net { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px; }
+.figs { gap: 12px; padding-top: 8px; border-top: 1px solid var(--border); }
 </style>
