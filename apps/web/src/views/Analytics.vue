@@ -6,7 +6,6 @@ import NoTeam from '@/components/NoTeam.vue';
 import QueryState from '@/components/QueryState.vue';
 import NetworkIcon from '@/components/NetworkIcon.vue';
 import LineChart from '@/components/LineChart.vue';
-import BarChart from '@/components/BarChart.vue';
 import Card from '@/components/ui/Card.vue';
 import Select from '@/components/ui/Select.vue';
 import Button from '@/components/ui/Button.vue';
@@ -14,9 +13,9 @@ import Table from '@/components/ui/Table.vue';
 import EmptyState from '@/components/ui/EmptyState.vue';
 import { api } from '@/lib/api';
 import { useQuery } from '@/lib/query';
-import { currentTeam, session } from '@/lib/store';
+import { currentTeam, session, timezone } from '@/lib/store';
 import { ANALYTICS_TYPES, META } from '@/lib/networks';
-import { compactNumber, dayKey, formatNumber } from '@/lib/format';
+import { compactNumber, dayKey, formatDateTime, formatNumber } from '@/lib/format';
 import { toast } from '@/lib/toast';
 import type { NetworkType, Paged, Post } from '@/lib/types';
 
@@ -29,17 +28,23 @@ const days = ref(30);
 watch(available, (a) => { if (!a.some((x) => x.type === type.value)) type.value = a[0]?.type ?? null; }, { immediate: true });
 
 const acct = useQuery(() => api.get<{ items: Point[] }>('/analytics/social-account', { teamId: session.teamId, platformType: type.value }), { deps: [type, () => session.teamId], enabled: () => !!session.teamId && !!type.value });
+// Every refresh stores a snapshot of the network's own totals (a trailing window such as the last 28 days, or
+// lifetime counts), never the change since the last one. So the figures are the latest snapshot, and a chart
+// has one point per day: that day's last snapshot. Adding snapshots up would count the same days twice.
+const day = (p: Point) => dayKey(new Date(p.createdAt), 'UTC');
 const points = computed(() => {
   const since = Date.now() - days.value * 86400_000;
-  return (acct.data.value?.items ?? []).filter((p) => new Date(p.createdAt).getTime() >= since).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  const byDay = new Map<string, Point>();
+  for (const p of [...(acct.data.value?.items ?? [])].sort((a, b) => a.createdAt.localeCompare(b.createdAt))) if (new Date(p.createdAt).getTime() >= since) byDay.set(day(p), p);
+  return [...byDay.values()];
 });
-const day = (p: Point) => p.createdAt.slice(0, 10);
 const first = computed(() => points.value[0]); const last = computed(() => points.value[points.value.length - 1]);
-const sum = (k: 'impressions' | 'views' | 'likes' | 'comments') => points.value.reduce((s, p) => s + (p[k] ?? 0), 0);
 const delta = computed(() => (first.value && last.value ? last.value.followers - first.value.followers : 0));
+const asOf = computed(() => (last.value ? `as of ${formatDateTime(last.value.createdAt, timezone.value)}` : ''));
 const stats = computed(() => [
   { l: 'Followers', v: last.value?.followers ?? 0, sub: `${delta.value >= 0 ? '+' : ''}${formatNumber(delta.value)} in period` },
-  { l: 'Impressions', v: sum('impressions') }, { l: 'Views', v: sum('views') }, { l: 'Likes', v: sum('likes') }, { l: 'Comments', v: sum('comments') },
+  { l: 'Impressions', v: last.value?.impressions ?? 0, sub: asOf.value }, { l: 'Views', v: last.value?.views ?? 0, sub: asOf.value },
+  { l: 'Likes', v: last.value?.likes ?? 0, sub: asOf.value }, { l: 'Comments', v: last.value?.comments ?? 0, sub: asOf.value },
 ]);
 
 // top posts
@@ -62,7 +67,7 @@ const rows = computed(() => (top.data.value ?? []).map((r) => ({ id: r.post.id, 
 
 <template>
   <div class="page wide">
-    <PageHead title="Analytics" subtitle="Account growth and post performance per network.">
+    <PageHead title="Analytics" subtitle="Account growth and post performance per network. Figures are the network's own totals at the latest refresh (Facebook, Instagram and Threads count the last 28 days).">
       <Button v-if="type" :icon="RefreshCw" :loading="refreshing" @click="force">Refresh now</Button>
     </PageHead>
     <NoTeam v-if="!session.teamId" />
@@ -85,7 +90,7 @@ const rows = computed(() => (top.data.value ?? []).map((r) => ({ id: r.post.id, 
             <Card title="Followers"><LineChart :series="[{ name: 'Followers', points: points.map((p) => ({ x: day(p), y: p.followers })) }]" /></Card>
             <Card title="Impressions and views"><LineChart :series="[{ name: 'Impressions', points: points.map((p) => ({ x: day(p), y: p.impressions })) }, { name: 'Views', points: points.map((p) => ({ x: day(p), y: p.views })) }]" /></Card>
           </div>
-          <Card title="Likes per day" class="mt-16"><BarChart :bars="points.map((p) => ({ label: dayKey(new Date(p.createdAt), 'UTC').slice(5), value: p.likes }))" color="var(--chart-2)" /></Card>
+          <Card title="Likes and comments" class="mt-16"><LineChart :series="[{ name: 'Likes', points: points.map((p) => ({ x: day(p), y: p.likes })) }, { name: 'Comments', points: points.map((p) => ({ x: day(p), y: p.comments })) }]" /></Card>
         </template>
       </QueryState>
 
