@@ -448,6 +448,8 @@ export interface MessagingAdapter {
   markSeen(ctx: NetworkContext, account: AccountRuntime, recipientId: string): Promise<void>;
   privateReply(ctx: NetworkContext, account: AccountRuntime, input: { commentExternalId: string; text: string }): Promise<{ externalMessageId: string; recipientId?: string | null }>;
   syncProviderSetting(ctx: NetworkContext, account: AccountRuntime, input: { type: string; config: unknown }): Promise<unknown>;
+  /** Throws a NetworkError (with what to do) when the account is connected but messages cannot flow. */
+  check?(ctx: NetworkContext, account: AccountRuntime): Promise<void>;
   /** The person on the other side of a conversation (webhooks carry only their id). Needs Business Asset User Profile Access. */
   participant?(ctx: NetworkContext, account: AccountRuntime, id: string): Promise<{ displayName?: string | null; username?: string | null; avatarUrl?: string | null }>;
   /** Parse one network webhook delivery into messages/comments for this account. */

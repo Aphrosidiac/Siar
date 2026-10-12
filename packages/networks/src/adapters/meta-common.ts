@@ -148,6 +148,18 @@ export function metaMessaging(network: 'FACEBOOK' | 'INSTAGRAM', target: (ctx: N
   const send = async (ctx: NetworkContext, t: MessagingTarget, body: Record<string, unknown>) =>
     graph<{ recipient_id?: string; message_id?: string }>(ctx, `${t.base}/${t.senderId}/messages`, t.token, { method: 'POST', json: body });
 
+  /** Instagram sends no DMs to any app until the owner turns on Connected tools → Allow access to messages
+   *  (off by default, no API to change it). Meta answers "disabled access" while it is off: say so, with the steps. */
+  const checkAccess = async (ctx: NetworkContext, t: MessagingTarget) => {
+    if (network !== 'INSTAGRAM') return;
+    const probe = t.base === FB_GRAPH ? `${t.base}/${t.senderId}/conversations` : `${t.base}/me/conversations`;
+    await graph(ctx, probe, t.token, { query: { platform: 'instagram', limit: 1 } }).catch((err) => {
+      if (/disabled access to instagram direct messages|access to messages/i.test(String((err as Error).message))) {
+        throw new NetworkError('PERMISSION', 'Instagram is blocking DMs for this account, so none reach Siar. In the Instagram app: Settings and activity → Messages and story replies → Message controls → Connected tools → turn on "Allow access to messages". Then press Check again.');
+      }
+    });
+  };
+
   return {
     // A Facebook Page's subscription is shared: the Facebook account and an Instagram account connected
     // through that Page both subscribe Siar's app on the same Page, and a POST replaces the field list.
@@ -162,17 +174,10 @@ export function metaMessaging(network: 'FACEBOOK' | 'INSTAGRAM', target: (ctx: N
       const have = (cur.data ?? []).filter(x => appIds.includes(String(x.id))).flatMap(x => x.subscribed_fields ?? []);
       const fields = [...new Set([...have, ...t.subscribe.fields])];
       await graph(ctx, url, t.token, { method: 'POST', query: { subscribed_fields: fields.join(',') } });
-      // Instagram sends no DMs to any app until the account owner turns on Connected tools → Allow access to
-      // messages (off by default, no API to change it). Meta answers #200 while it is off: say so, with the steps.
-      if (network === 'INSTAGRAM') {
-        const probe = t.base === FB_GRAPH ? `${t.base}/${t.senderId}/conversations` : `${t.base}/me/conversations`;
-        await graph(ctx, probe, t.token, { query: { platform: 'instagram', limit: 1 } }).catch((err) => {
-          if (/disabled access to instagram direct messages|access to messages/i.test(String((err as Error).message))) {
-            throw new NetworkError('PERMISSION', 'Instagram is blocking message access for this account. In the Instagram app: Settings and activity → Messages and story replies → Message controls → Connected tools → turn on "Allow access to messages", then turn messages on here again.');
-          }
-        });
-      }
+      await checkAccess(ctx, t);
     },
+
+    async check(ctx, a) { await checkAccess(ctx, await target(ctx, a)); },
 
     async disable(ctx, a) {
       const t = await target(ctx, a);

@@ -52,6 +52,29 @@ export async function fillParticipant<T extends Conversation>(conv: T): Promise<
   return { ...conv, ...u };
 }
 
+// ───────────────────────────── messaging health ─────────────────────────────
+
+const lastCheck = new Map<string, number>();
+const CHECK_EVERY_MS = 60_000;
+/**
+ * An account can be "on" while messages cannot flow (Instagram's Allow access to messages switch is off).
+ * The inbox list runs the network's check at most once a minute per account and records the problem as
+ * messagingLastError, which the dashboard shows with what to do; a passing check clears it.
+ */
+async function checkMessagingHealth(teamId: string) {
+  const accounts = await prisma.socialAccount.findMany({ where: { teamId, deletedAt: null, state: 'CONNECTED', messagingStatus: 'ENABLED', type: { in: ['INSTAGRAM', 'FACEBOOK'] } } });
+  await Promise.all(accounts.map(async (a) => {
+    const m = messagingOf(a.type);
+    if (!m.check || Date.now() - (lastCheck.get(a.id) ?? 0) < CHECK_EVERY_MS) return;
+    lastCheck.set(a.id, Date.now());
+    const error = await m.check(networkContext(a.type as NetworkType), await loadAccount(a.id)).then(() => null, (err: Error) => (isNetworkError(err) ? err.message : null));
+    if (error === null && !a.messagingLastError) return;
+    if (error === a.messagingLastError) return;
+    const u = await prisma.socialAccount.update({ where: { id: a.id }, data: { messagingLastError: error } });
+    await publish(await orgIdOfTeam(teamId), [['social-account.updated', S.socialAccount(u)]]);
+  }));
+}
+
 // ───────────────────────────── messaging switch ─────────────────────────────
 
 async function setMessaging(actor: Actor, body: { teamId: string; type: string }, on: boolean) {
@@ -308,6 +331,7 @@ define({
   'conversation.getList': async ({ actor, query }) => {
     await gate(actor);
     await teamIn(actor, query.teamId);
+    await checkMessagingHealth(query.teamId).catch(err => logger.warn({ err }, 'messaging health check failed'));
     const p = pageArgs(query);
     const where: any = { teamId: query.teamId, ...(query.platform ? { platform: query.platform } : { platform: { in: ['INSTAGRAM', 'FACEBOOK'] } }), ...(query.socialAccountId ? { socialAccountId: query.socialAccountId } : {}), ...(query.status ? { status: query.status } : {}) };
     const [rows, total] = await Promise.all([
