@@ -257,7 +257,10 @@ onMounted(async () => {
 .meta { color: var(--text-subtle); display: flex; gap: 6px; align-items: center; }
 .composer { border-top: 1px solid var(--border); padding: 12px 16px; }
 .quote { margin: 0; padding: 8px 12px; border-left: 3px solid var(--border-strong); color: var(--text-muted); background: var(--bg-subtle); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
-.msg-accts { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; }
+.msg-accts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 8px; }
+.msg-acct > .grow { min-width: 0; overflow: hidden; }
+.msg-acct > .grow > * { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.msg-acct > .btn { flex: none; }
 .msg-acct { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-elevated); }
 .danger { color: var(--danger, #b42318); }
 </style>
