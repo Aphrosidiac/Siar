@@ -469,7 +469,14 @@ export async function runCommentImport(importId: string) {
           authorProfileUrl: it.authorProfileUrl ?? null, authorAvatarUrl: it.authorAvatarUrl ?? null, text: it.text ?? null, likesCount: it.likesCount ?? 0, repliesCount: it.repliesCount ?? 0,
           publishedAt: it.publishedAt ?? null, platformData: { origin: 'platform', ...(it.platformData ?? {}) } as object,
         };
-        if (existing) await prisma.fetchedComment.update({ where: { id: existing.id }, data: { ...fields, importId } });
+        // Facebook leaves out `from` for people without a role on the app until the app has Advanced Access: keep
+        // the author a webhook already gave us instead of blanking it, and keep what the webhook noted.
+        if (existing) await prisma.fetchedComment.update({ where: { id: existing.id }, data: {
+          ...fields, importId,
+          authorName: fields.authorName ?? existing.authorName, authorExternalId: fields.authorExternalId ?? existing.authorExternalId,
+          authorProfileUrl: fields.authorProfileUrl ?? existing.authorProfileUrl, authorAvatarUrl: fields.authorAvatarUrl ?? existing.authorAvatarUrl,
+          platformData: { ...((existing.platformData as object) ?? {}), ...(fields.platformData as object) } as object,
+        } });
         else {
           const row = await prisma.fetchedComment.create({ data: { ...fields, teamId: imp.teamId, organizationId: imp.organizationId, postId: imp.postId, importedPostId: imp.importedPostId, socialAccountId: imp.socialAccountId, importId, platform: type, externalId: it.externalId } });
           events.push(...(await emit(prisma, imp.organizationId!, 'comment.received', fetchedComment(row))));
