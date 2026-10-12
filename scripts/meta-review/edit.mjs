@@ -70,16 +70,25 @@ for (const f of freezes) {
   if (f.b >= dur - 0.05) { if (f.b - f.a > 1.3) drops.push({ a: f.a + 1.2, b: f.b }); continue; }
   if (f.b - f.a > 2.6) drops.push({ a: f.a + 1.0, b: f.b - 1.4 });
 }
+// The extension's own pointer flashes for ~4 frames on every hover and click it drives (cursor.js hides it in takes
+// from 2026-10-13 on). flashes.py finds them; each is replaced by holding the frame before it for the same time.
+const flashes = JSON.parse(execFileSync('python3', [`${ROOT}scripts/meta-review/flashes.py`, film]).toString());
 function build() {
-  const at = new Set([0, dur, ...drops.flatMap((d) => [d.a, d.b]), ...fast.flatMap((s) => [s.a, s.b])].map((x) => +x.toFixed(3)));
+  const speed = (t) => (drops.some((d) => t > d.a && t < d.b) ? 0 : fast.find((s) => t > s.a && t < s.b)?.n ?? 1);
+  // a flash that touches a drop is dropped with it
+  const live = flashes.filter((x) => !drops.some((d) => x.hold < d.b && x.b > d.a));
+  const at = new Set([0, dur, ...drops.flatMap((d) => [d.a, d.b]), ...fast.flatMap((s) => [s.a, s.b]), ...live.flatMap((x) => [x.hold, x.a, x.b])].map((x) => +x.toFixed(4)));
   const bounds = [...at].sort((a, b) => a - b);
   const out = [];
   for (let i = 0; i < bounds.length - 1; i++) {
-    const a = bounds[i], b = bounds[i + 1]; if (b - a < 0.01) continue;
+    const a = bounds[i], b = bounds[i + 1]; if (b - a < 0.005) continue;
     const mid = (a + b) / 2;
-    const f = drops.some((d) => mid > d.a && mid < d.b) ? 0 : fast.find((s) => mid > s.a && mid < s.b)?.n ?? 1;
+    const fl = live.find((x) => mid > x.a && mid < x.b), hold = live.find((x) => mid > x.hold && mid < x.a);
+    let f = fl ? 0 : speed(mid);
+    // the held frame plays for the whole flash (at the speed of the surrounding piece)
+    if (hold && f) { out.push({ a, b, f: (b - a) / ((hold.b - hold.hold) / f), hold: true }); continue; }
     const last = out.at(-1);
-    if (last && last.f === f && Math.abs(last.b - a) < 0.001) last.b = b; else out.push({ a, b, f });
+    if (last && !last.hold && last.f === f && Math.abs(last.b - a) < 0.001) last.b = b; else out.push({ a, b, f });
   }
   return out;
 }
@@ -147,7 +156,13 @@ const args = ['-y', '-hide_banner', '-loglevel', 'error', '-i', `${RAW}${film}.m
 for (const s of states) args.push('-loop', '1', '-framerate', String(FPS), '-t', String(mainDur + HOLD + 10), '-i', s.png);
 const g = [];
 g.push(`[0:v]split=${kept.length}${kept.map((_, i) => `[s${i}]`).join('')}`);
-kept.forEach((p, i) => g.push(`[s${i}]trim=start=${p.a.toFixed(3)}:end=${p.b.toFixed(3)},setpts=(PTS-STARTPTS)/${p.f}[p${i}]`));
+// Bounds that are frame times (flashes) are printed rounded and can land a hair after the frame: trim 2 ms early
+// (frames are ≥33 ms apart) so a frame on a bound always falls in the piece that starts there.
+const tr = (t) => Math.max(0, t - 0.002).toFixed(4);
+kept.forEach((p, i) => g.push(p.hold
+  // one frame looped: trim to the first half of its interval so the next frame can't slip in
+  ? `[s${i}]trim=start=${tr(p.a)}:end=${tr((p.a + p.b) / 2)},setpts=PTS-STARTPTS,loop=loop=${Math.max(0, Math.round(((p.b - p.a) / p.f) * FPS) - 1)}:size=1:start=0,setpts=N/${FPS}/TB[p${i}]`
+  : `[s${i}]trim=start=${tr(p.a)}:end=${tr(p.b)},setpts=(PTS-STARTPTS)/${p.f}[p${i}]`));
 g.push(`${kept.map((_, i) => `[p${i}]`).join('')}concat=n=${kept.length}:v=1:a=0,fps=${FPS},scale=${W}:${VH}:flags=lanczos:in_color_matrix=bt709:out_color_matrix=bt709,tpad=stop_mode=clone:stop_duration=${HOLD},pad=${W}:${H}:0:0:color=0x0b0b0a[m0]`);
 states.forEach((s, i) => g.push(`[m${i}][${i + 2}:v]overlay=0:${VH}:shortest=1:enable='between(t,${s.from.toFixed(3)},${(s.to - 0.001).toFixed(3)})'[m${i + 1}]`));
 g.push(`[1:v]fps=${FPS},scale=${W}:${H}:out_color_matrix=bt709,format=yuv420p,setsar=1[t]`);

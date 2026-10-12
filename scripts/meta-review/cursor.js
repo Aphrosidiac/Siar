@@ -1,8 +1,11 @@
 (() => {
-  const hide = () => { for (const id of ['claude-agent-glow-border', 'claude-static-indicator-container']) { const e = document.getElementById(id); if (e && e.style.display !== 'none') e.style.setProperty('display', 'none', 'important'); } };
+  const hide = () => { for (const id of ['claude-agent-glow-border', 'claude-static-indicator-container', 'claude-phantom-cursor']) { const e = document.getElementById(id); if (e && e.style.display !== 'none') e.style.setProperty('display', 'none', 'important'); } };
   hide();
+  // the extension's own orange pointer (#claude-phantom-cursor) flashes for ~4 frames on every hover and click
   // and a stylesheet where the page's CSP allows one (Siar does; the observer below covers the rest)
-  if (!document.getElementById('__rec-hide')) { const st = document.createElement('style'); st.id = '__rec-hide'; st.textContent = '#claude-agent-glow-border,#claude-static-indicator-container{display:none!important}'; (document.head || document.documentElement).appendChild(st); }
+  let st = document.getElementById('__rec-hide');
+  if (!st) { st = document.createElement('style'); st.id = '__rec-hide'; (document.head || document.documentElement).appendChild(st); }
+  st.textContent = '#claude-agent-glow-border,#claude-static-indicator-container,#claude-phantom-cursor{display:none!important}';
   if (window.__recCursor) return 'already';
   window.__recCursor = true;
   const NS = 'http://www.w3.org/2000/svg';

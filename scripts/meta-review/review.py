@@ -44,6 +44,10 @@ light = lambda t: any(c['at'] <= t < c['to'] and 'siaran.my' in (c['url'] or '')
 dark = [round(3.6 + i / 2, 1) for i in range(1, len(edge)) if edge[i] < 70 and edge[i - 1] < 70 and light(3.6 + i / 2)]
 checks.append(f"dark top edge (debugging bar / shifted crop) at: {dark or 'none'}")
 if dark: problems.append('dark top edge')
+# the extension's orange pointer flashing (a frame or more of it), every frame
+fl = json.loads(run('python3', os.path.join(os.path.dirname(__file__), 'flashes.py'), mp4).stdout or '[]')
+checks.append(f"extension pointer flashes at: {[x['a'] for x in fl] or 'none'}")
+if fl: problems.append('extension pointer')
 checks.append(f"PROBLEMS: {problems or 'none'}")
 open(os.path.join(dst, 'checks.txt'), 'w').write('\n'.join(checks) + '\n')
 
