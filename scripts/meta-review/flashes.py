@@ -48,9 +48,10 @@ while True:
                 fr = frames[GAP][max(0, ys.min() - 6):ys.max() + 7, max(0, xs.min() - 6):xs.max() + 7]
                 r, g, b = fr[..., 0], fr[..., 1], fr[..., 2]
                 emoji = ((r > 220) & (g > 170) & (b < 140) & (r - b > 100)).sum() >= 5
-                # a red button fading in or out (a delete dialog) is a large red area; the glow is a small one
-                near = masks[GAP][1][max(0, ys.min() - 20):ys.max() + 21, max(0, xs.min() - 20):xs.max() + 21]
-                if not emoji and near.sum() < 800: hits.append(mid)
+                # a red button fading in or out (a delete dialog) or a red badge (Instagram's) is a red area with a
+                # little new orange at its edge; the glow is mostly orange (2–4 red-or-orange pixels per new one)
+                near = masks[GAP][1][max(0, ys.min() - 20):ys.max() + 21, max(0, xs.min() - 20):xs.max() + 21].sum()
+                if not emoji and near < 800 and near <= 8 * new.sum(): hits.append(mid)
 proc.wait()
 n = min(i, len(pts))
 runs = []

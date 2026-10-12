@@ -51,6 +51,9 @@ for (const x of ev) {
 }
 if (fastFrom !== null) fast.push({ a: fastFrom, b: dur, n: fastN });
 if (captions[0]) captions[0].t = 0; // the opening caption is on from the first frame
+// marks written just after a cut (the new page's address and caption) start with the first frame after it, so the
+// last caption never shows over the new page for a few frames
+for (const c of cuts) for (const x of [...captions, ...urls]) if (x.t > c.b && x.t - c.b <= 0.6) x.t = c.b;
 if (cutFrom !== null) cuts.push({ a: cutFrom, b: dur });
 
 // ── stills ──
@@ -98,12 +101,13 @@ function build() {
 }
 let pieces = build();
 const map = (t) => { let o = 0; for (const p of pieces) { if (t <= p.a) break; if (p.f) o += (Math.min(t, p.b) - p.a) / p.f; } return o; };
-// every caption stays on screen long enough to read (2.8 s): give back dropped time after it where needed
-const MIN_CAPTION = 2.8;
+// every caption stays on screen long enough to read (20 characters a second, at least 2.8 s): give back dropped
+// time after it where needed
+const minCaption = (c) => Math.max(2.8, c.text.length / 20);
 for (const [i, c] of captions.entries()) {
   const end = captions[i + 1]?.t ?? dur;
-  for (let guard = 0; guard < 20 && map(end) - map(c.t) < MIN_CAPTION - 0.01; guard++) {
-    const need = MIN_CAPTION - (map(end) - map(c.t));
+  for (let guard = 0; guard < 20 && map(end) - map(c.t) < minCaption(c) - 0.01; guard++) {
+    const need = minCaption(c) - (map(end) - map(c.t));
     // a drop the caption was marked inside: keep more of its tail; otherwise keep more of the next drop's head
     const inside = drops.find((x) => !x.cut && x.b - x.a > 0.01 && x.a < c.t && x.b > c.t);
     if (inside) { inside.b = Math.max(inside.a, inside.b - need); pieces = build(); continue; }
