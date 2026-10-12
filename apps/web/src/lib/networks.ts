@@ -63,7 +63,11 @@ export function countChars(s: string | null | undefined) {
 }
 
 /** The account still needs a channel before it can publish. */
-export const needsChannel = (a: SocialAccount) => META[a.type]?.channel === 'required' && !a.channelId;
+/** Instagram connected through Facebook publishes to an Instagram account linked to a Page, so it must
+ *  pick one; only Instagram Login's own profile is the Instagram account itself. */
+export const channelMode = (a: Pick<SocialAccount, 'type' | 'instagramConnectionMethod'>) =>
+  a.type === 'INSTAGRAM' && a.instagramConnectionMethod !== 'INSTAGRAM' ? 'required' : META[a.type]?.channel;
+export const needsChannel = (a: SocialAccount) => channelMode(a) === 'required' && !a.channelId;
 
 export const HISTORY_TYPES: NetworkType[] = ['FACEBOOK', 'INSTAGRAM', 'THREADS', 'TIKTOK', 'YOUTUBE', 'LINKEDIN', 'PINTEREST', 'REDDIT', 'MASTODON', 'BLUESKY', 'TWITTER'];
 export const COMMENT_IMPORT_TYPES: NetworkType[] = ['FACEBOOK', 'INSTAGRAM', 'LINKEDIN', 'YOUTUBE', 'TIKTOK', 'REDDIT', 'THREADS', 'MASTODON', 'BLUESKY', 'TWITTER'];

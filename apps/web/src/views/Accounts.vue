@@ -18,7 +18,7 @@ import Checkbox from '@/components/ui/Checkbox.vue';
 import Dropdown from '@/components/ui/Dropdown.vue';
 import { api } from '@/lib/api';
 import { currentTeam, isAdmin, loadPlatforms, platforms, refreshTeam, session } from '@/lib/store';
-import { META, NETWORKS, needsChannel, SET_CHANNEL_TYPES } from '@/lib/networks';
+import { META, NETWORKS, channelMode, needsChannel, SET_CHANNEL_TYPES } from '@/lib/networks';
 import { confirm } from '@/lib/confirm';
 import { toast } from '@/lib/toast';
 import type { NetworkType, SocialAccount } from '@/lib/types';
@@ -104,7 +104,7 @@ function target(a: SocialAccount): Target {
   if (!SET_CHANNEL_TYPES.includes(a.type)) return { tone: 'self', icon: UserRound, name: 'Own profile', sub: 'The account you signed in with' };
   const c = list.find((x) => x.id === a.channelId);
   if (a.channelId) return { tone: 'set', icon: KIND_ICON[m.channelNoun] ?? Flag, name: c?.name ?? c?.username ?? a.channelId, sub: c?.address ?? (list.length > 1 ? `${cap(m.channelNoun)} · ${list.length - 1} more on this login` : cap(m.channelNoun)), action: 'Change' };
-  if (m.channel === 'required') return { tone: 'missing', icon: TriangleAlert, name: `No ${m.channelNoun} chosen`, sub: `Posts can't publish until you pick one`, action: 'Choose' };
+  if (channelMode(a) === 'required') return { tone: 'missing', icon: TriangleAlert, name: `No ${m.channelNoun} chosen`, sub: `Posts can't publish until you pick one`, action: 'Choose' };
   return { tone: 'self', icon: UserRound, name: 'Own profile', sub: list.length ? `Or post as one of ${plural(list.length, m.channelNoun)}` : 'The account you signed in with', action: list.length ? 'Change' : undefined };
 }
 const cap = (w: string) => (w ? w[0]!.toUpperCase() + w.slice(1) : w);
@@ -117,9 +117,9 @@ const IG_METHODS = [
 ];
 const SELF = '__self';
 const pick = ref<string | null>(null);
-const pickerOptional = computed(() => !!channelFor.value && META[channelFor.value.type].channel !== 'required');
+const pickerOptional = computed(() => !!channelFor.value && channelMode(channelFor.value) !== 'required');
 const current = computed(() => channelFor.value?.channelId ?? (pickerOptional.value ? SELF : null));
-function openChannel(a: SocialAccount) { channelFor.value = a; pick.value = a.channelId ?? (META[a.type].channel !== 'required' ? SELF : a.channels?.[0]?.id ?? null); }
+function openChannel(a: SocialAccount) { channelFor.value = a; pick.value = a.channelId ?? (channelMode(a) !== 'required' ? SELF : a.channels?.[0]?.id ?? null); }
 async function saveChannel() {
   const a = channelFor.value; if (!a || !pick.value) return;
   busy.value = 'channel';
