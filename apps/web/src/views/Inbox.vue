@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { Archive, Download, EyeOff, Eye, Heart, Inbox as InboxIcon, MessageCircle, Reply, Send, Trash2, ArchiveRestore } from 'lucide-vue-next';
 import PageHead from '@/components/PageHead.vue';
 import NoTeam from '@/components/NoTeam.vue';
@@ -16,13 +17,13 @@ import Pager from '@/components/ui/Pager.vue';
 import EmptyState from '@/components/ui/EmptyState.vue';
 import { api } from '@/lib/api';
 import { useQuery } from '@/lib/query';
-import { session } from '@/lib/store';
+import { currentTeam, refreshTeam, session } from '@/lib/store';
 import { COMMENT_IMPORT_TYPES, META } from '@/lib/networks';
 import { formatDateTime, relative } from '@/lib/format';
 import { timezone } from '@/lib/store';
 import { confirm } from '@/lib/confirm';
 import { toast } from '@/lib/toast';
-import type { NetworkType, Paged, Post } from '@/lib/types';
+import type { NetworkType, Paged, Post, SocialAccount } from '@/lib/types';
 
 const tab = ref('comments');
 
@@ -84,6 +85,40 @@ async function toggleArchive(c: Conversation) {
   try { await api.post(`/conversations/${c.id}/${c.status === 'OPEN' ? 'archive' : 'open'}`); activeId.value = null; await convs.reload(); toast.success(c.status === 'OPEN' ? 'Archived' : 'Reopened'); } catch (e) { toast.fail(e); }
 }
 watch(() => session.teamId, () => { activeId.value = null; offset.value = 0; });
+
+// ── messaging switch (per Facebook / Instagram account) ──
+// Turning messages on asks Meta for the messaging permissions (a reconnect with withMessagingScope), comes
+// back here and then enables messaging, which subscribes the account to Meta's message webhooks.
+const MSG_TYPES: NetworkType[] = ['FACEBOOK', 'INSTAGRAM'];
+const msgAccounts = computed(() => (currentTeam.value?.socialAccounts ?? []).filter((a) => MSG_TYPES.includes(a.type)));
+const msgState = (a: SocialAccount) => (a.messagingStatus === 'ENABLED' ? 'on' : a.messagingStatus === 'DISABLE_PENDING' ? 'pending' : 'off');
+async function messagesOn(a: SocialAccount) {
+  busy.value = `msg-${a.type}`;
+  try {
+    const body: Record<string, unknown> = { type: a.type, teamId: session.teamId, withMessagingScope: true, redirectUrl: `${location.origin}/inbox?tab=messages&enableMessaging=${a.type}` };
+    if (a.type === 'INSTAGRAM') body.instagramConnectionMethod = a.instagramConnectionMethod ?? 'FACEBOOK';
+    const { url } = await api.post<{ url: string }>('/social-account/connect', body);
+    location.href = url;
+  } catch (e) { toast.fail(e); busy.value = null; }
+}
+async function messagesOff(a: SocialAccount) {
+  if (!(await confirm({ title: `Turn off ${META[a.type].name} messages?`, message: 'New direct messages stop arriving in Siar. Conversations you already have stay here.', confirmLabel: 'Turn off' }))) return;
+  busy.value = `msg-${a.type}`;
+  try { await api.post('/social-account/messaging/disable', { teamId: a.teamId, type: a.type }); await refreshTeam(); toast.success('Messages turned off'); }
+  catch (e) { toast.fail(e); } finally { busy.value = null; }
+}
+const route = useRoute(); const router = useRouter();
+onMounted(async () => {
+  const q = route.query;
+  if (q.tab === 'messages') tab.value = 'messages';
+  const type = typeof q.enableMessaging === 'string' ? (q.enableMessaging as NetworkType) : null;
+  if (!type || !MSG_TYPES.includes(type)) return;
+  void router.replace({ query: { tab: 'messages' } });
+  if (q.success !== 'true') { toast.fail(typeof q.error === 'string' ? q.error : 'Meta did not grant the messaging permissions.'); return; }
+  busy.value = `msg-${type}`;
+  try { await api.post('/social-account/messaging/enable', { teamId: session.teamId, type }); await refreshTeam(); toast.success(`${META[type].name} messages are on`, 'New direct messages arrive here.'); void convs.reload(); }
+  catch (e) { toast.fail(e); await refreshTeam(); } finally { busy.value = null; }
+});
 </script>
 
 <template>
@@ -125,6 +160,17 @@ watch(() => session.teamId, () => { activeId.value = null; offset.value = 0; });
 
       <!-- MESSAGES -->
       <template v-else>
+        <div v-if="msgAccounts.length" class="msg-accts mb-16">
+          <div v-for="a in msgAccounts" :key="a.id" class="msg-acct">
+            <NetworkIcon :type="a.type" :size="28" :title="false" />
+            <span class="grow" style="min-width: 0">
+              <span class="strong d-block truncate">{{ META[a.type].name }}{{ a.username ? ` · @${a.username}` : a.displayName ? ` · ${a.displayName}` : '' }}</span>
+              <span class="tiny d-block" :class="a.messagingLastError ? 'danger' : 'muted'">{{ a.messagingLastError ?? (msgState(a) === 'on' ? 'Messages on. New DMs arrive here.' : msgState(a) === 'pending' ? 'Turning off…' : 'Messages off') }}</span>
+            </span>
+            <Button v-if="msgState(a) === 'on'" size="sm" variant="secondary" :loading="busy === `msg-${a.type}`" @click="messagesOff(a)">Turn off</Button>
+            <Button v-else size="sm" variant="primary" :icon="InboxIcon" :loading="busy === `msg-${a.type}`" :disabled="msgState(a) === 'pending'" @click="messagesOn(a)">Turn on messages</Button>
+          </div>
+        </div>
         <div class="split">
           <section class="list">
             <div class="row between" style="padding: 8px 12px; border-bottom: 1px solid var(--border)">
@@ -207,4 +253,7 @@ watch(() => session.teamId, () => { activeId.value = null; offset.value = 0; });
 .meta { color: var(--text-subtle); display: flex; gap: 6px; align-items: center; }
 .composer { border-top: 1px solid var(--border); padding: 12px 16px; }
 .quote { margin: 0; padding: 8px 12px; border-left: 3px solid var(--border-strong); color: var(--text-muted); background: var(--bg-subtle); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.msg-accts { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; }
+.msg-acct { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-elevated); }
+.danger { color: var(--danger, #b42318); }
 </style>
