@@ -258,25 +258,48 @@ Drafts are in §7.
 ## 9. Recording status (2026-10-13)
 
 Some films were merged, so one video covers the permissions granted on the same consent screen
-(`scripts/meta-review/films.json` is the source of truth):
+(`scripts/meta-review/films.json` is the source of truth). The "other person" in every film is Fakhrul's own
+second accounts, driven from a second Chrome profile on the external monitor (the recording only captures the
+laptop screen): Jon Doe (Facebook) and fakhrlfahmi (Instagram, Threads).
 
 | Film | Permissions | Status |
 |---|---|---|
 | F1 Connect a Facebook Page | pages_show_list, business_management, public_profile | Done |
 | F2 Publish and delete a Page post | pages_manage_posts | Done |
-| F7 Page insights | read_insights | Done |
-| G1 Instagram Login: connect, publish, insights | instagram_business_basic, instagram_business_content_publish, instagram_business_manage_insights | Done |
-| T1 Threads: connect, publish, insights, delete | threads_basic, threads_content_publish, threads_manage_insights, threads_delete | Done |
+| F3 Read Page post engagement | pages_read_engagement | Done: post drawer Refresh reads 1 like, 2 comments |
+| F4 Read comments on Page posts | pages_read_user_content | Done: Import comments reads Jon Doe's comment and its like |
+| F5 Reply to and moderate Page comments | pages_manage_engagement | Done: reply, like, hide, unhide, delete, each shown on facebook.com |
+| F6 Real-time Page updates | pages_manage_metadata | Done: a comment and a DM arrive with no reload |
+| F7 Facebook Page insights | read_insights | Done |
+| F8 Messenger inbox | pages_messaging, Business Asset User Profile Access | **Waiting**: Jon Doe needs a Tester role so the profile picture loads (see below) |
+| G1 Instagram Login: connect, publish, insights | instagram_business_basic, …_content_publish, …_manage_insights | Done |
+| G2 Instagram Login: direct messages | instagram_business_manage_messages | Done |
+| G3 Instagram Login: comments | instagram_business_manage_comments | Done |
 | I1 Instagram through a Page: connect, publish, insights | instagram_basic, instagram_content_publish, instagram_manage_insights | Done |
-| F3, F4, F5, F6, F8 | Page engagement, comments, moderation, webhooks, Messenger | Needs a person commenting and messaging |
-| I3, I5 | instagram_manage_comments, instagram_manage_messages | Needs a person (Instagram is on the Facebook method now) |
-| G3, G2 | instagram_business_manage_comments, instagram_business_manage_messages | Needs a person; reconnect with Instagram Login first |
-| T2 | threads_read_replies, threads_manage_replies | Needs a person replying |
+| I3 Instagram comments | instagram_manage_comments | Done |
+| I5 Instagram direct messages | instagram_manage_messages | Done (with a clean tail take, `films.json` `tail`) |
+| T1 Threads: connect, publish, insights, delete | threads_basic, threads_content_publish, threads_manage_insights, threads_delete | Done |
+| T2 Threads replies | threads_read_replies, threads_manage_replies | Done: import, reply, hide; Threads' "Hidden by you" page |
+
+**F8 blocker.** Facebook only returns a sender's name and profile picture through the User Profile API for
+people with a role on the app until Business Asset User Profile Access has Advanced Access. Without it Siar
+falls back to the conversation's participant name, so the film could not show the profile picture. Adding Jon
+Doe as a Tester (App roles → Add People) is an app-permission change Fakhrul makes himself; then Jon Doe accepts
+the invite and F8 is recorded like F6.
+
+Product fixes made while recording (deployed): comment import keeps the author a webhook delivered (8715655);
+the post drawer shows each network's likes, comments and views with Refresh (c994dad, 3f656a6).
+Found and left as tasks: comments deleted on Facebook stay in Siar's Inbox (no `remove` webhook handling), and
+comment import fails for posts published before an account was reconnected.
 
 Rig lessons from these takes:
 - **Redirects:** Meta's redirects flash a blank white page. Cut them with `@cut` (no caption).
-- **Extension pointer and glow:** the extension's orange pointer and glow linger on a fresh page
-  until the first mouse move. Cut that moment too. `scratchpad orange.py` and the right-edge colour
-  probe find both.
-- **Timeline lag:** timeline marks run about 0.35 s ahead of the video. A cut that must hide
-  exact frames is placed by measuring the raw video, not by the mark time.
+- **Extension pointer and glow:** the extension draws its own pointer (`#claude-phantom-cursor`) on every hover
+  and click, and a glow on a fresh page. cursor.js hides both; inject it before a Meta page is shown on camera
+  (navigate inside a `@cut`, inject, hover, then `@cut off`). Older takes are repaired by `flashes.py` +
+  `edit.mjs` (the frame before each flash is held); a pointer that sits still is cut by hand.
+- **Timeline lag:** timeline marks run about 0.35 s ahead of the video. A cut that must hide exact frames is
+  placed by measuring the raw video, not by the mark time.
+- **Captions:** read at 20 characters a second (the editor holds each long enough); review.py flags any caption
+  cut off by the ellipsis; with a long facebook.com address in the band, keep captions under ~60 characters.
+- **Deletes:** check which row a delete targets on screen before confirming; the list can lag a poll behind.
