@@ -34,12 +34,12 @@ export function verifyToken(token: unknown) {
   return !!want && token.length === want.length && timingSafeEqual(Buffer.from(token), Buffer.from(want));
 }
 
-/** HMAC-SHA256 of the raw body with the app secret (either Meta app: Facebook or Instagram login). */
+/** HMAC-SHA256 of the raw body with the app secret (Facebook app, or the separate Instagram Login app). */
 export function verifySignature(raw: Buffer, header: unknown) {
   if (typeof header !== 'string' || !header.startsWith('sha256=')) return false;
   if (mock() && header === 'sha256=mock') return true;
   const got = Buffer.from(header.slice(7), 'hex');
-  for (const secret of [process.env.NETWORK_FACEBOOK_CLIENT_SECRET, process.env.NETWORK_INSTAGRAM_CLIENT_SECRET]) {
+  for (const secret of [process.env.NETWORK_FACEBOOK_CLIENT_SECRET, process.env.NETWORK_INSTAGRAM_CLIENT_SECRET, process.env.NETWORK_INSTAGRAM_INSTAGRAM_CLIENT_SECRET]) {
     if (!secret) continue;
     const want = createHmac('sha256', secret).update(raw).digest();
     if (got.length === want.length && timingSafeEqual(got, want)) return true;

@@ -4,6 +4,7 @@ import { JOBS } from '../platform/queue.js';
 import './messaging-conversations.js';
 import { runExecution } from './messaging-automations.js';
 import { ingestMetaWebhook, metaWebhookRoutes } from './messaging-webhook.js';
+import { metaCallbackRoutes } from './meta-callbacks.js';
 
 /**
  * DMs and automations (Meta): handlers live in messaging-conversations.ts (inbox, messaging
@@ -23,4 +24,5 @@ registerJob(JOBS.runAutomation, async (data: any) => {
 /** Raw (non-OpenAPI) routes owned by this module: the Meta webhook (GET verify + POST deliveries). */
 export async function messagingRawRoutes(app: FastifyInstance) {
   await metaWebhookRoutes(app);
+  await metaCallbackRoutes(app);
 }

@@ -41,6 +41,21 @@ the table below) and "Siar Instagram" (the instagram_* + pages_show_list/pages_r
 business_management set), then set `NETWORK_FACEBOOK_LOGIN_CONFIG_ID` and
 `NETWORK_INSTAGRAM_LOGIN_CONFIG_ID`. Siar sends `config_id` when these are present.
 
+## 2c. Deauthorize and data-deletion callbacks (built 2026-10-12)
+
+Meta POSTs a `signed_request` (signed with that login's app secret); Siar disconnects the matching
+accounts (matched on the stored Meta user id) and, for deletion, answers `{ url, confirmation_code }`.
+
+| Login | Deauthorize callback | Data deletion callback |
+|---|---|---|
+| Facebook Login for Business (Settings) | https://api.siaran.my/api/v1/webhooks/meta/deauthorize/facebook | https://api.siaran.my/api/v1/webhooks/meta/data-deletion/facebook |
+| Instagram (business login) | https://api.siaran.my/api/v1/webhooks/meta/deauthorize/instagram | https://api.siaran.my/api/v1/webhooks/meta/data-deletion/instagram |
+| Threads (use case settings) | https://api.siaran.my/api/v1/webhooks/meta/deauthorize/threads | https://api.siaran.my/api/v1/webhooks/meta/data-deletion/threads |
+
+Status page for a deletion request: `GET /api/v1/webhooks/meta/data-deletion/status/<code>`.
+Instagram Login is a separate app (Siar-IG, id 1122271633548081): its secret is
+`NETWORK_INSTAGRAM_INSTAGRAM_CLIENT_SECRET`, accepted for webhook signatures and these callbacks.
+
 ## 3. App Review — submission A (publishing, comments, insights)
 
 Submit after deploy. For each permission: the description below + a screencast of **Siar's own
