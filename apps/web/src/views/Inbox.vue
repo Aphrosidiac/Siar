@@ -92,6 +92,11 @@ watch(() => session.teamId, () => { activeId.value = null; offset.value = 0; });
 const MSG_TYPES: NetworkType[] = ['FACEBOOK', 'INSTAGRAM'];
 const msgAccounts = computed(() => (currentTeam.value?.socialAccounts ?? []).filter((a) => MSG_TYPES.includes(a.type)));
 const msgState = (a: SocialAccount) => (a.messagingStatus === 'ENABLED' ? (a.messagingLastError ? 'blocked' : 'on') : a.messagingStatus === 'DISABLE_PENDING' ? 'pending' : 'off');
+// Instagram hides an account's DMs from every app until its owner turns on "Allow access to messages"
+// (off by default). Meta gives no error for it, so until the first Instagram DM arrives, say where it is.
+const IG_ACCESS_HINT = 'Messages on. Instagram only shares DMs once you allow it: Instagram app → Settings and activity → Messages and story replies → Message controls → Connected tools → Allow access to messages.';
+const hasIgConversation = computed(() => (convs.data.value?.items ?? []).some((c) => c.platform === 'INSTAGRAM'));
+const igHint = (a: SocialAccount) => a.type === 'INSTAGRAM' && msgState(a) === 'on' && convs.data.value && !hasIgConversation.value;
 // The conversation list runs a health check on the server (e.g. Instagram blocking message access): pick it up.
 watch(() => convs.data.value, () => { void refreshTeam(); });
 async function messagesCheck(a: SocialAccount) {
@@ -172,7 +177,8 @@ onMounted(async () => {
             <NetworkIcon :type="a.type" :size="28" :title="false" />
             <span class="grow" style="min-width: 0">
               <span class="strong d-block truncate">{{ META[a.type].name }}{{ a.username ? ` · @${a.username}` : a.displayName ? ` · ${a.displayName}` : '' }}</span>
-              <span class="tiny d-block" :class="a.messagingLastError ? 'danger msg-err' : 'muted'"><TriangleAlert v-if="a.messagingLastError" :size="12" class="msg-err-ic" />{{ a.messagingLastError ?? (msgState(a) === 'on' ? 'Messages on. New DMs arrive here.' : msgState(a) === 'pending' ? 'Turning off…' : 'Messages off') }}</span>
+              <span v-if="igHint(a)" class="tiny d-block muted msg-err">{{ IG_ACCESS_HINT }}</span>
+              <span v-else class="tiny d-block" :class="a.messagingLastError ? 'danger msg-err' : 'muted'"><TriangleAlert v-if="a.messagingLastError" :size="12" class="msg-err-ic" />{{ a.messagingLastError ?? (msgState(a) === 'on' ? 'Messages on. New DMs arrive here.' : msgState(a) === 'pending' ? 'Turning off…' : 'Messages off') }}</span>
             </span>
             <Button v-if="msgState(a) === 'blocked'" size="sm" variant="primary" :loading="busy === `msg-${a.type}`" @click="messagesCheck(a)">Check again</Button>
             <Button v-else-if="msgState(a) === 'on'" size="sm" variant="secondary" :loading="busy === `msg-${a.type}`" @click="messagesOff(a)">Turn off</Button>
@@ -269,7 +275,8 @@ onMounted(async () => {
 .msg-acct > .grow { min-width: 0; overflow: hidden; }
 .msg-acct > .grow > * { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .msg-acct > .btn { flex: none; }
-.msg-acct:has(.msg-err) { align-items: flex-start; border-color: color-mix(in srgb, var(--danger, #b42318) 40%, var(--border)); }
+.msg-acct:has(.msg-err) { align-items: flex-start; }
+.msg-acct:has(.danger) { border-color: color-mix(in srgb, var(--danger, #b42318) 40%, var(--border)); }
 .msg-acct > .grow > .msg-err { white-space: normal; overflow: visible; line-height: 1.45; margin-top: 2px; }
 .msg-err-ic { vertical-align: -2px; margin-right: 4px; }
 .msg-acct { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-elevated); }
