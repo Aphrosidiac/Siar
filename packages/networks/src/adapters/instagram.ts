@@ -41,7 +41,8 @@ const IG_SCOPES = ['instagram_business_basic', 'instagram_business_content_publi
 const IG_MESSAGING_SCOPES = ['instagram_business_manage_messages'];
 
 const IG_WEBHOOK_FIELDS = ['messages', 'messaging_postbacks', 'messaging_seen', 'message_reactions', 'messaging_referral', 'comments', 'live_comments'];
-const PAGE_WEBHOOK_FIELDS = ['messages', 'messaging_postbacks', 'messaging_seen', 'message_reactions', 'messaging_referral'];
+/** The Page's own field names (a Page rejects Instagram's messaging_seen / messaging_referral). */
+const PAGE_WEBHOOK_FIELDS = ['messages', 'messaging_postbacks', 'message_reactions', 'message_reads', 'messaging_referrals'];
 
 const CHANNEL_FIELDS = 'id,name,picture{url},instagram_business_account{id,username,name,profile_picture_url}';
 const PROFILE_FIELDS = 'user_id,username,name,account_type,profile_picture_url,biography,followers_count,follows_count,media_count';

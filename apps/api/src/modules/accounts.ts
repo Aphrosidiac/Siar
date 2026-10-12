@@ -132,8 +132,12 @@ async function finishConnect(type: NetworkType, query: Record<string, string>) {
       return { account, events };
     });
     void flushDeliveries(result.events);
-    // Exactly one channel for a network that needs one → select it now (saves a step for most people).
-    if (ad.capabilities.channels === 'required' && channels.length === 1) await selectChannel(prisma, result.account.id, channels[0].id).catch(err => logger.warn({ err }, 'auto channel select failed'));
+    // A reconnect that kept the chosen channel re-selects it: the upsert above wrote the signed-in user's
+    // identity and token over the channel's (name, external id, Page token). Otherwise, exactly one
+    // channel for a network that needs one → select it now (saves a step for most people).
+    const kept = result.account.channelId && channels.some(c => c.id === result.account.channelId) ? result.account.channelId : null;
+    if (kept) await selectChannel(prisma, result.account.id, kept).catch(err => logger.warn({ err }, 'channel reselect failed'));
+    else if (ad.capabilities.channels === 'required' && channels.length === 1) await selectChannel(prisma, result.account.id, channels[0].id).catch(err => logger.warn({ err }, 'auto channel select failed'));
     return { redirect: back({ success: 'true', type, socialAccountId: result.account.id, ...(ad.capabilities.channels === 'required' && channels.length !== 1 ? { needsChannel: 'true' } : {}) }) };
   } catch (err) {
     logger.warn({ err, type }, 'connect failed');

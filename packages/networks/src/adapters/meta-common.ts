@@ -149,15 +149,24 @@ export function metaMessaging(network: 'FACEBOOK' | 'INSTAGRAM', target: (ctx: N
     graph<{ recipient_id?: string; message_id?: string }>(ctx, `${t.base}/${t.senderId}/messages`, t.token, { method: 'POST', json: body });
 
   return {
+    // A Facebook Page's subscription is shared: the Facebook account and an Instagram account connected
+    // through that Page both subscribe Siar's app on the same Page, and a POST replaces the field list.
+    // So enable adds to the fields already there, and disable leaves a Page subscription in place (Siar
+    // stops ingesting for the account via messagingStatus). Instagram Login owns its own subscription.
     async enable(ctx, a) {
       const t = await target(ctx, a);
       if (!t.subscribe) return;
-      await graph(ctx, `${t.base}/${t.subscribe.id}/subscribed_apps`, t.token, { method: 'POST', query: { subscribed_fields: t.subscribe.fields.join(',') } });
+      const url = `${t.base}/${t.subscribe.id}/subscribed_apps`;
+      const appIds = [ctx.credentials.clientId, ctx.credentials.instagramClientId].filter(Boolean).map(String);
+      const cur = await graph<{ data?: { id?: string; subscribed_fields?: string[] }[] }>(ctx, url, t.token).catch(() => ({ data: [] as { id?: string; subscribed_fields?: string[] }[] }));
+      const have = (cur.data ?? []).filter(x => appIds.includes(String(x.id))).flatMap(x => x.subscribed_fields ?? []);
+      const fields = [...new Set([...have, ...t.subscribe.fields])];
+      await graph(ctx, url, t.token, { method: 'POST', query: { subscribed_fields: fields.join(',') } });
     },
 
     async disable(ctx, a) {
       const t = await target(ctx, a);
-      if (!t.subscribe) return;
+      if (!t.subscribe || t.base === FB_GRAPH) return;
       await graph(ctx, `${t.base}/${t.subscribe.id}/subscribed_apps`, t.token, { method: 'DELETE' });
     },
 
