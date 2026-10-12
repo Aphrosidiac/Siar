@@ -68,7 +68,8 @@
     "title": "Instagram direct messages",
     "perms": [
       "instagram_manage_messages"
-    ]
+    ],
+    "tail": "I5tail"
   },
   "G1": {
     "title": "Instagram Login: connect, publish, insights",

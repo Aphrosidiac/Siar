@@ -22,11 +22,14 @@ const ROOT = new URL('../../', import.meta.url).pathname;
 const RAW = `${ROOT}review/raw/`, OUT = `${ROOT}review/out/`, TMP = `${ROOT}review/tmp/`;
 const FONTS = `${ROOT}apps/web/public/fonts/`;
 const film = process.argv[2];
-const meta = JSON.parse(readFileSync(new URL('./films.json', import.meta.url), 'utf8'))[film];
+// `--part`: a take that is appended to another film (its films.json entry names it as `tail`): no title card, no
+// end hold; the parent film runs it and joins the two
+const PART = process.argv[3] === '--part';
+const meta = PART ? { title: '', perms: [] } : JSON.parse(readFileSync(new URL('./films.json', import.meta.url), 'utf8'))[film];
 if (!meta) throw new Error(`unknown film ${film}`);
 const [RW, RH] = execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', `${RAW}${film}.mp4`]).toString().trim().split(',').map(Number);
 // the viewport is 1408 pt wide and 700 or 752 pt tall (with or without Chrome's debugging bar)
-const W = 1920, VH = 2 * Math.round((W * RH) / RW / 2), BAND = 96, H = VH + BAND, FPS = 30, TITLE = 3.5, HOLD = 1.5;
+const W = 1920, VH = 2 * Math.round((W * RH) / RW / 2), BAND = 96, H = VH + BAND, FPS = 30, TITLE = PART ? 0 : 3.5, HOLD = meta.tail || PART ? 0 : 1.5;
 const LATENCY = 0.35; // ffmpeg's first frame lands this long after `rec.sh start` stamps @start
 mkdirSync(OUT, { recursive: true }); mkdirSync(TMP, { recursive: true });
 
@@ -145,7 +148,7 @@ const { chromium } = pw.chromium ? pw : pw.default;
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: W, height: H } });
 async function shot(html, path, h) { await page.setViewportSize({ width: W, height: h }); await page.setContent(`<style>${css}</style>${html}`); await page.evaluate(() => document.fonts.ready); await page.screenshot({ path, omitBackground: false }); }
-await shot(`<div style="width:${W}px;height:${H}px;background:#f3efe4;color:#0b0b0a;padding:120px 140px;display:flex;flex-direction:column">
+if (!PART) await shot(`<div style="width:${W}px;height:${H}px;background:#f3efe4;color:#0b0b0a;padding:120px 140px;display:flex;flex-direction:column">
   <div style="font-family:PlexMono;font-weight:500;font-size:22px;letter-spacing:.12em;color:#5c584f">/ SIAR · META APP REVIEW · ${film}</div>
   <div style="font-weight:600;font-size:76px;line-height:1.08;margin-top:28px;max-width:1500px">${esc(meta.title)}</div>
   <div style="font-size:28px;color:#3d3a34;margin-top:44px">Permissions shown in this recording</div>
@@ -163,7 +166,8 @@ for (const [i, s] of states.entries()) {
 await browser.close();
 
 // ── assemble ──
-const args = ['-y', '-hide_banner', '-loglevel', 'error', '-i', `${RAW}${film}.mp4`, '-loop', '1', '-framerate', String(FPS), '-t', String(TITLE), '-i', `${TMP}${film}-title.png`];
+// input 1 is the title card; a part has none, so a 1-frame blank stands in (unused)
+const args = ['-y', '-hide_banner', '-loglevel', 'error', '-i', `${RAW}${film}.mp4`, '-loop', '1', '-framerate', String(FPS), '-t', String(PART ? 1 / FPS : TITLE), '-i', PART ? `${TMP}${film}-band-0.png` : `${TMP}${film}-title.png`];
 for (const s of states) args.push('-loop', '1', '-framerate', String(FPS), '-t', String(mainDur + HOLD + 10), '-i', s.png);
 const g = [];
 g.push(`[0:v]split=${kept.length}${kept.map((_, i) => `[s${i}]`).join('')}`);
@@ -179,12 +183,30 @@ states.forEach((s, i) => g.push(`[m${i}][${i + 2}:v]overlay=0:${VH}:shortest=1:e
 g.push(`[1:v]fps=${FPS},scale=${W}:${H}:out_color_matrix=bt709,format=yuv420p,setsar=1[t]`);
 g.push(`[m${states.length}]format=yuv420p,setsar=1[mm]`);
 // tag the stream itself: -color_* options alone left primaries/transfer unset
-g.push('[t][mm]concat=n=2:v=1:a=0,setparams=color_primaries=bt709:color_trc=bt709:colorspace=bt709:range=tv[v]');
+if (PART) g.push('[t]nullsink;[mm]setparams=color_primaries=bt709:color_trc=bt709:colorspace=bt709:range=tv[v]');
+else g.push('[t][mm]concat=n=2:v=1:a=0,setparams=color_primaries=bt709:color_trc=bt709:colorspace=bt709:range=tv[v]');
 args.push('-filter_complex', g.join(';'), '-map', '[v]', '-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-pix_fmt', 'yuv420p',
   '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709', '-color_range', 'tv', '-movflags', '+faststart', `${OUT}${film}.mp4`);
 execFileSync('ffmpeg', args, { stdio: 'inherit' });
 
 // edit decision list, for the review notes
 const out = { film, rawDuration: +dur.toFixed(2), duration: +(TITLE + mainDur + HOLD).toFixed(2), pieces, captions: states.map((s) => ({ at: +(TITLE + s.from).toFixed(2), to: +(TITLE + Math.min(s.to, mainDur + HOLD)).toFixed(2), caption: s.caption, url: s.url, ...(s.cut ? { cut: true } : {}) })) };
+// a tail take (films.json `tail`): edit it as a part, append it, and carry its captions over
+if (meta.tail) {
+  const r = spawnSync('node', [new URL(import.meta.url).pathname, meta.tail, '--part'], { encoding: 'utf8' });
+  if (r.status !== 0) throw new Error(`tail ${meta.tail} failed: ${r.stderr}`);
+  process.stdout.write(r.stdout.split('\n').filter((l) => l.startsWith('CAPTION CUT')).map((l) => `${l}\n`).join(''));
+  const tail = JSON.parse(readFileSync(`${OUT}${meta.tail}.edl.json`, 'utf8'));
+  const joined = `${TMP}${film}-joined.mp4`;
+  execFileSync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', '-i', `${OUT}${film}.mp4`, '-i', `${OUT}${meta.tail}.mp4`, '-filter_complex',
+    '[0:v][1:v]concat=n=2:v=1:a=0,tpad=stop_mode=clone:stop_duration=1.5,setparams=color_primaries=bt709:color_trc=bt709:colorspace=bt709:range=tv[v]', '-map', '[v]',
+    '-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-pix_fmt', 'yuv420p', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709', '-color_range', 'tv',
+    '-movflags', '+faststart', joined], { stdio: 'inherit' });
+  execFileSync('mv', [joined, `${OUT}${film}.mp4`]);
+  const at = out.duration;
+  out.captions.push(...tail.captions.map((c, i, all) => ({ ...c, at: +(c.at + at).toFixed(2), to: +(c.to + at + (i === all.length - 1 ? 1.5 : 0)).toFixed(2) })));
+  out.tail = { film: meta.tail, at, pieces: tail.pieces };
+  out.duration = +(at + tail.duration + 1.5).toFixed(2);
+}
 writeFileSync(`${OUT}${film}.edl.json`, JSON.stringify(out, null, 1));
-console.log(`${film}: raw ${out.rawDuration}s → ${out.duration}s, ${kept.length} pieces, ${states.length} captions`);
+console.log(`${film}: raw ${out.rawDuration}s → ${out.duration}s, ${kept.length} pieces, ${states.length} captions${meta.tail ? ` + tail ${meta.tail}` : ''}`);
