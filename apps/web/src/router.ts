@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 import { loadSession, session } from '@/lib/store';
 import { setUnauthenticatedHandler } from '@/lib/api';
+import { isStaleChunk, loadNewBuild } from '@/lib/stale';
 
 const views = import.meta.glob('./views/**/*.vue') as Record<string, () => Promise<any>>;
 const view = (name: string) => views[`./views/${name}.vue`]!;
@@ -69,6 +70,9 @@ router.beforeEach(async (to) => {
   if (me && !me.user.onboardedAt && !welcomeShown && !to.meta.public && to.path !== '/welcome') { welcomeShown = true; return '/welcome'; }
   if (to.path === '/welcome') welcomeShown = true;
 });
+
+// a page chunk from an earlier release is gone: load the new build at the page they asked for
+router.onError((err, to) => { if (isStaleChunk(err)) loadNewBuild(to.fullPath); });
 
 router.afterEach((to) => {
   const t = to.meta.title as string | undefined;
