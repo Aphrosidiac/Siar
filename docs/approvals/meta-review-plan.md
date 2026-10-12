@@ -254,3 +254,29 @@ Drafts are in §7.
    - types the reviewer password;
    - reads the submission;
    - clicks Submit. It can't be edited once sent.
+
+## 9. Recording status (2026-10-13)
+
+Some films were merged, so one video covers the permissions granted on the same consent screen
+(`scripts/meta-review/films.json` is the source of truth):
+
+| Film | Permissions | Status |
+|---|---|---|
+| F1 Connect a Facebook Page | pages_show_list, business_management, public_profile | Done |
+| F2 Publish and delete a Page post | pages_manage_posts | Done |
+| F7 Page insights | read_insights | Done |
+| G1 Instagram Login: connect, publish, insights | instagram_business_basic, instagram_business_content_publish, instagram_business_manage_insights | Done |
+| T1 Threads: connect, publish, insights, delete | threads_basic, threads_content_publish, threads_manage_insights, threads_delete | Done |
+| I1 Instagram through a Page: connect, publish, insights | instagram_basic, instagram_content_publish, instagram_manage_insights | Done |
+| F3, F4, F5, F6, F8 | Page engagement, comments, moderation, webhooks, Messenger | Needs a person commenting and messaging |
+| I3, I5 | instagram_manage_comments, instagram_manage_messages | Needs a person (Instagram is on the Facebook method now) |
+| G3, G2 | instagram_business_manage_comments, instagram_business_manage_messages | Needs a person; reconnect with Instagram Login first |
+| T2 | threads_read_replies, threads_manage_replies | Needs a person replying |
+
+Rig lessons from these takes:
+- **Redirects:** Meta's redirects flash a blank white page. Cut them with `@cut` (no caption).
+- **Extension pointer and glow:** the extension's orange pointer and glow linger on a fresh page
+  until the first mouse move. Cut that moment too. `scratchpad orange.py` and the right-edge colour
+  probe find both.
+- **Timeline lag:** timeline marks run about 0.35 s ahead of the video. A cut that must hide
+  exact frames is placed by measuring the raw video, not by the mark time.
