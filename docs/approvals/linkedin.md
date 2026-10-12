@@ -25,7 +25,7 @@ need the Community Management API, which LinkedIn grants to registered legal ent
    in production. "Siar Pages" can be discarded.
 
 ## Community Management API request (paste)
-- Company: FF DEV STUDIO, Malaysia, SSM 202603234793; business email hello@siaran.my.
+- Company: FF DEV STUDIO, Malaysia, SSM 202603234793; business email siaran@ffdev.studio.
 - Use case: *"Siar is a social media management API and dashboard. Organizations connect the
   LinkedIn Pages they administer to publish and schedule posts (text, images, video, documents,
   articles), reply to and moderate comments, and see page and post analytics. Members can also

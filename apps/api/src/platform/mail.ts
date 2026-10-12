@@ -4,6 +4,9 @@ import type { Db } from './db.js';
 import { prisma } from './db.js';
 import { logger } from './logger.js';
 
+/** Where replies and help requests go. The sender stays MAIL_FROM (the domain the mail provider signs for). */
+const SUPPORT_EMAIL = 'siaran@ffdev.studio';
+
 export interface MailBody {
   to: string;
   subject: string;
@@ -52,7 +55,7 @@ export function renderMail(m: MailBody) {
     : '';
   const footnote = m.footnote ? `<p class="m" style="margin:24px 0 0;font-size:13px;line-height:20px;color:${C.muted}">${esc(m.footnote)}</p>` : '';
   const link = (href: string, label: string) => `<a class="b" href="${esc(href)}" style="color:${C.body};text-decoration:none">${label}</a>`;
-  const help = 'hello@siaran.my';
+  const help = SUPPORT_EMAIL;
 
   const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="x-apple-disable-message-reformatting">
@@ -127,7 +130,7 @@ export async function flushOutbox(limit = 25) {
     const claimed = await prisma.emailOutbox.updateMany({ where: { id: r.id, status: 'QUEUED' }, data: { status: t ? 'SENT' : 'LOGGED', sentAt: new Date() } });
     if (!claimed.count) continue;
     if (!t) { logger.info({ to: r.to, subject: r.subject }, `mail (not sent, no SMTP_URL)\n${r.text}`); continue; }
-    try { await t.sendMail({ from: config.MAIL_FROM, replyTo: 'hello@siaran.my', to: r.to, subject: r.subject, html: r.html, text: r.text }); }
+    try { await t.sendMail({ from: config.MAIL_FROM, replyTo: SUPPORT_EMAIL, to: r.to, subject: r.subject, html: r.html, text: r.text }); }
     catch (err) { logger.error({ err, to: r.to }, 'mail failed'); await prisma.emailOutbox.update({ where: { id: r.id }, data: { status: 'FAILED', error: String((err as Error).message).slice(0, 500) } }); }
   }
   return rows.length;

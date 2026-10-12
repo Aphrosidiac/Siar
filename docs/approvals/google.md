@@ -12,7 +12,7 @@
 | Field | Value |
 |---|---|
 | App name | Siar |
-| Support email | hello@siaran.my |
+| Support email | siaran@ffdev.studio |
 | Logo | 120×120 PNG |
 | Home page / Privacy / Terms | https://siaran.my · /privacy · /terms |
 | Authorized domains | siaran.my |

@@ -12,6 +12,7 @@ Meta Business Suite → Business settings → Business info → **Start verifica
 - Legal business name: `FF DEV STUDIO` (exactly as on the SSM certificate)
 - Registration number: `202603234793`
 - Address + phone: as on SSM; phone must receive a code
+- Email: siaran@ffdev.studio. If Meta offers *email* verification it needs an address on the business website's domain, so either give https://ffdev.studio as the website for that step or verify by the DNS record below
 - Website: `https://siaran.my` (the footer must show "FF DEV STUDIO (202603234793)" — it does)
 - Documents: SSM certificate (PDF) + a utility bill or bank statement in the business name if asked
 - Domain verification: Business settings → Brand safety → Domains → add `siaran.my`, DNS TXT record
