@@ -4,6 +4,7 @@ import { requirePermission, type Actor } from '../platform/auth.js';
 import { prisma } from '../platform/db.js';
 import { AppError, badRequest, conflict, notFound } from '../platform/errors.js';
 import { listOf } from '../platform/http.js';
+import { logger } from '../platform/logger.js';
 import { loadAccount, mediaRef, networkContext } from '../platform/networks.js';
 import { define } from '../platform/routes.js';
 import { limitsFor } from '../domain/plans.js';
@@ -25,6 +26,31 @@ const PRIVATE_REPLY_WINDOW_MS = 7 * 24 * 3600_000;
 
 const preview = (text: string | null | undefined, attachments: unknown[] = []) =>
   text ? text.slice(0, 200) : attachments.length ? '[attachment]' : null;
+
+// ───────────────────────────── participant names ─────────────────────────────
+
+const LOOKUP_RETRY_MS = 24 * 3600_000;
+/**
+ * Meta webhooks carry only the sender's id. Ask the network for their name and picture once (Business
+ * Asset User Profile Access); a failure is remembered for a day so the inbox never re-asks on every load.
+ */
+export async function fillParticipant<T extends Conversation>(conv: T): Promise<T> {
+  if (conv.participantDisplayName || conv.participantUsername || !conv.externalParticipantId) return conv;
+  const pd = (conv.platformData ?? {}) as Record<string, any>;
+  if (pd.participantLookupAt && Date.now() - new Date(pd.participantLookupAt).getTime() < LOOKUP_RETRY_MS) return conv;
+  const m = messagingOf(conv.platform);
+  if (!m.participant) return conv;
+  const who = await m.participant(networkContext(conv.platform as NetworkType), await loadAccount(conv.socialAccountId), conv.externalParticipantId)
+    .catch(err => { logger.warn({ err, conversationId: conv.id }, 'participant lookup failed'); return null; });
+  const found = !!(who && (who.displayName || who.username));
+  const u = await prisma.conversation.update({
+    where: { id: conv.id },
+    data: found
+      ? { participantDisplayName: who!.displayName ?? null, participantUsername: who!.username ?? null, participantAvatarUrl: who!.avatarUrl ?? null }
+      : { platformData: { ...pd, participantLookupAt: new Date().toISOString() } },
+  });
+  return { ...conv, ...u };
+}
 
 // ───────────────────────────── messaging switch ─────────────────────────────
 
@@ -289,7 +315,10 @@ define({
       prisma.conversation.count({ where }),
     ]);
     const more = rows.length > p.take;
-    const items = rows.slice(0, p.take);
+    let items = rows.slice(0, p.take);
+    // Older conversations (or a lookup that failed at the time) get their name here; a few per load.
+    const nameless = new Set(items.filter(c => !c.participantDisplayName && !c.participantUsername).slice(0, 5).map(c => c.id));
+    if (nameless.size) items = await Promise.all(items.map(c => (nameless.has(c.id) ? fillParticipant(c) : c)));
     const last = items[items.length - 1];
     return { ...listOf(items.map(conversation), total), nextCursor: more && last ? encodeCursor(last.lastActivityAt, last.id) : null };
   },
