@@ -43,6 +43,23 @@ edge = _sp.run(['ffmpeg', '-v', 'error', '-ss', '3.6', '-i', mp4, '-vf', 'fps=2,
 light = lambda t: any(c['at'] <= t < c['to'] and 'siaran.my' in (c['url'] or '') for c in edl['captions'])
 dark = [round(3.6 + i / 2, 1) for i in range(1, len(edge)) if edge[i] < 70 and edge[i - 1] < 70 and light(3.6 + i / 2)]
 checks.append(f"dark top edge (debugging bar / shifted crop) at: {dark or 'none'}")
+# the address in the band must match the page: Siar has its ink sidebar beside a cream page; Meta's pages don't
+VHt = s['height'] - 96
+fr = _sp.run(['ffmpeg', '-v', 'error', '-i', mp4, '-vf', f'fps=10,crop=1920:{VHt}:0:0,scale=96:{VHt // 20}', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], capture_output=True).stdout
+import numpy as _np
+fh = VHt // 20; frs = _np.frombuffer(fr, _np.uint8).reshape(-1, fh, 96, 3).astype(int)
+def is_siar(f):
+    # the ink sidebar (333 px of 1920: columns 0–16 of 96), then a light page (dimmed under a modal); Instagram and
+    # Threads are dark beside their narrow rail, Facebook is light from the left edge
+    row = f[fh // 2]
+    return row[3].max() < 40 and row[8].max() < 40 and row[20].mean() > 60
+wrong = []
+for c in edl['captions']:
+    want = 'siaran.my' in (c['url'] or '')
+    bad = [round(c['at'] + i / 10, 1) for i in range(int((c['to'] - c['at']) * 10)) if int((c['at'] + i / 10) * 10) < len(frs) and c['at'] + i / 10 >= 3.6 and is_siar(frs[int((c['at'] + i / 10) * 10)]) != want]
+    if len(bad) >= 3: wrong.append((bad[0], bad[-1], c['url']))
+checks.append(f"address band not matching the page at: {wrong or 'none'}")
+if wrong: problems.append('address band')
 cut = [c['caption'] for c in edl['captions'] if c.get('cut')]
 checks.append(f"captions cut off with an ellipsis: {cut or 'none'}")
 if cut: problems.append('caption too long')
