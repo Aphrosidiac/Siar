@@ -9,6 +9,7 @@
  *   @url <url>       the page address shown in the caption band
  *   @fast <n>        speed up ×n from here (a wait on the network); `@fast 1` ends it
  *   @cut <caption>   drop everything from here to `@cut off` (waiting for a person); the caption runs after
+ *   @cut             the same with no caption (a blank page between sites, the extension's glow)
  * Stills longer than 2.6 s keep their first 1.0 s and last 1.4 s (a caption marked inside one lands just before its action).
  * Output: a 3.5 s title card naming the permissions, then the film at 1920 wide (954 or 1026 tall) with a 96 px caption band,
  * 30 fps H.264, BT.709, last frame held 1.5 s.
@@ -44,6 +45,7 @@ for (const x of ev) {
     if (fastFrom !== null) fast.push({ a: fastFrom, b: x.t, n: fastN });
     fastFrom = n > 1 ? x.t : null; fastN = n;
   } else if (x.text === '@cut off') { if (cutFrom !== null) cuts.push({ a: cutFrom, b: x.t }); cutFrom = null; }
+  else if (x.text === '@cut') cutFrom = x.t; // a cut with no caption of its own (a page flashing white between sites)
   else if (x.text.startsWith('@cut ')) { cutFrom = x.t; captions.push({ t: x.t, text: x.text.slice(5) }); }
   else captions.push({ t: x.t, text: x.text });
 }
@@ -58,7 +60,8 @@ for (const m of fd.matchAll(/freeze_(start|end): ([\d.]+)/g)) { if (m[1] === 'st
 if (fs0 !== null) freezes.push({ a: fs0, b: dur });
 
 // ── raw → output time map: pieces with a speed factor (0 = dropped) ──
-const drops = [...cuts];
+// a cut is never given back to a caption: it hides something that must not be seen
+const drops = cuts.map((c) => ({ ...c, cut: true }));
 for (const f of freezes) {
   if (cuts.some((c) => f.a >= c.a && f.b <= c.b) || fast.some((s) => f.a >= s.a && f.b <= s.b)) continue;
   // Captions are marked a few seconds before their click (driving latency). Keep the first second of a still
@@ -89,9 +92,9 @@ for (const [i, c] of captions.entries()) {
   for (let guard = 0; guard < 20 && map(end) - map(c.t) < MIN_CAPTION - 0.01; guard++) {
     const need = MIN_CAPTION - (map(end) - map(c.t));
     // a drop the caption was marked inside: keep more of its tail; otherwise keep more of the next drop's head
-    const inside = drops.find((x) => x.b - x.a > 0.01 && x.a < c.t && x.b > c.t);
+    const inside = drops.find((x) => !x.cut && x.b - x.a > 0.01 && x.a < c.t && x.b > c.t);
     if (inside) { inside.b = Math.max(inside.a, inside.b - need); pieces = build(); continue; }
-    const d = drops.filter((x) => x.b - x.a > 0.01 && x.a >= c.t - 0.001 && x.a < end).sort((x, y) => x.a - y.a)[0];
+    const d = drops.filter((x) => !x.cut && x.b - x.a > 0.01 && x.a >= c.t - 0.001 && x.a < end).sort((x, y) => x.a - y.a)[0];
     if (!d) break;
     d.a = Math.min(d.b, d.a + need);
     pieces = build();

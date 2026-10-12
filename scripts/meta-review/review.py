@@ -39,7 +39,9 @@ for c in edl['captions']: checks.append(f"  {c['at']:6.2f}–{c['to']:6.2f}  {c[
 import subprocess as _sp
 edge = _sp.run(['ffmpeg', '-v', 'error', '-ss', '3.6', '-i', mp4, '-vf', 'fps=2,crop=1400:6:440:2,scale=1:1', '-f', 'rawvideo', '-pix_fmt', 'gray', '-'], capture_output=True).stdout
 # a page loading can flash dark for a frame; the debugging bar or a shifted crop stays
-dark = [round(3.6 + i / 2, 1) for i in range(1, len(edge)) if edge[i] < 70 and edge[i - 1] < 70]
+# Instagram and Threads pages are dark by design; only Siar's own pages are checked
+light = lambda t: any(c['at'] <= t < c['to'] and 'siaran.my' in (c['url'] or '') for c in edl['captions'])
+dark = [round(3.6 + i / 2, 1) for i in range(1, len(edge)) if edge[i] < 70 and edge[i - 1] < 70 and light(3.6 + i / 2)]
 checks.append(f"dark top edge (debugging bar / shifted crop) at: {dark or 'none'}")
 if dark: problems.append('dark top edge')
 checks.append(f"PROBLEMS: {problems or 'none'}")
