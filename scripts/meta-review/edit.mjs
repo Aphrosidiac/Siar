@@ -13,7 +13,7 @@
  * Output: a 3.5 s title card naming the permissions, then the film at 1920×954 with a 96 px caption band,
  * 30 fps H.264, BT.709, last frame held 1.5 s.
  */
-import { chromium } from 'playwright';
+import { createRequire } from 'node:module';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 
@@ -94,6 +94,8 @@ states.forEach((s, i) => { s.to = i + 1 < states.length ? states[i + 1].from : m
 const font = (w, f = 'sans') => `@font-face{font-family:${f === 'mono' ? 'PlexMono' : 'Plex'};font-weight:${w};src:url(file://${FONTS}plex-${f}-${w}.woff2)}`;
 const css = `${font(400)}${font(500)}${font(600)}${font(400, 'mono')}${font(500, 'mono')}*{margin:0;box-sizing:border-box}body{font-family:Plex;-webkit-font-smoothing:antialiased}`;
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+// Playwright is installed with the site package (apps/site), which also records the site's clips
+const { chromium } = await import(createRequire(new URL('../../apps/site/package.json', import.meta.url)).resolve('playwright'));
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: W, height: H } });
 async function shot(html, path, h) { await page.setViewportSize({ width: W, height: h }); await page.setContent(`<style>${css}</style>${html}`); await page.evaluate(() => document.fonts.ready); await page.screenshot({ path, omitBackground: false }); }

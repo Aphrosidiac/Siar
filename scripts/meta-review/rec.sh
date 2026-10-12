@@ -9,9 +9,12 @@ case "$1" in
   start)
     f="$2"; echo "$f" > "$CUR"; rm -f "$D/$f.mp4" "$D/$f.tl"
     # CROP = the page viewport in screen pixels (2x) as w:h:x:y; default = 1408×700 pt under the debugging bar
-    nohup ffmpeg -hide_banner -loglevel error -f avfoundation -capture_cursor 0 -framerate 30 -pixel_format nv12 -i "3:none" \
+    nohup ffmpeg -hide_banner -loglevel error -f avfoundation -capture_cursor 0 -framerate 30 -pixel_format nv12 -i "Capture screen 0:none" \
       -vf "crop=${CROP:-2816:1400:0:362}" -c:v h264_videotoolbox -b:v 40M -pix_fmt yuv420p "$D/$f.mp4" > "$D/$f.log" 2>&1 &
-    echo $! > "$D/.pid"; echo "$(now)	@start" > "$D/$f.tl"; sleep 1.5; echo "recording $f";;
+    echo $! > "$D/.pid"; echo "$(now)	@start" > "$D/$f.tl"; sleep 2
+    # the screen is chosen by name: device numbers shift when an iPhone camera comes or goes
+    if ! kill -0 "$(cat "$D/.pid")" 2>/dev/null; then echo "RECORDER FAILED:"; cat "$D/$f.log"; exit 1; fi
+    echo "recording $f";;
   stop)
     f=$(cat "$CUR"); echo "$(now)	@stop" >> "$D/$f.tl"; kill -INT "$(cat "$D/.pid")" 2>/dev/null || true
     for i in $(seq 1 40); do kill -0 "$(cat "$D/.pid")" 2>/dev/null || break; sleep 0.25; done
