@@ -182,12 +182,24 @@ export function metaMessaging(network: 'FACEBOOK' | 'INSTAGRAM', target: (ctx: N
 
     async participant(ctx, a, id) {
       const t = await target(ctx, a);
-      if (network === 'FACEBOOK') {
-        const p = await graph<{ name?: string; first_name?: string; last_name?: string; profile_pic?: string }>(ctx, `${t.base}/${id}`, t.token, { query: { fields: 'name,first_name,last_name,profile_pic' } });
-        return { displayName: p.name ?? ([p.first_name, p.last_name].filter(Boolean).join(' ') || null), username: null, avatarUrl: p.profile_pic ?? null };
+      // The profile (name + picture) needs Business Asset User Profile Access at advanced level; until
+      // that is approved, the conversation's participant list still gives the name (pages_messaging).
+      try {
+        if (network === 'FACEBOOK') {
+          const p = await graph<{ name?: string; first_name?: string; last_name?: string; profile_pic?: string }>(ctx, `${t.base}/${id}`, t.token, { query: { fields: 'name,first_name,last_name,profile_pic' } });
+          return { displayName: p.name ?? ([p.first_name, p.last_name].filter(Boolean).join(' ') || null), username: null, avatarUrl: p.profile_pic ?? null };
+        }
+        const p = await graph<{ name?: string; username?: string; profile_pic?: string }>(ctx, `${t.base}/${id}`, t.token, { query: { fields: 'name,username,profile_pic' } });
+        return { displayName: p.name ?? p.username ?? null, username: p.username ?? null, avatarUrl: p.profile_pic ?? null };
+      } catch (err) {
+        const owner = t.base === FB_GRAPH ? t.senderId : 'me';
+        const r = await graph<{ data?: { participants?: { data?: { id?: string; name?: string; username?: string }[] } }[] }>(ctx, `${t.base}/${owner}/conversations`, t.token, {
+          query: { user_id: id, fields: 'participants', ...(network === 'INSTAGRAM' ? { platform: 'instagram' } : {}) },
+        }).catch(() => { throw err; });
+        const who = (r.data ?? []).flatMap(c => c.participants?.data ?? []).find(x => String(x.id) === String(id));
+        if (!who) throw err;
+        return { displayName: who.name ?? who.username ?? null, username: who.username ?? null, avatarUrl: null };
       }
-      const p = await graph<{ name?: string; username?: string; profile_pic?: string }>(ctx, `${t.base}/${id}`, t.token, { query: { fields: 'name,username,profile_pic' } });
-      return { displayName: p.name ?? p.username ?? null, username: p.username ?? null, avatarUrl: p.profile_pic ?? null };
     },
 
     async send(ctx, a, input) {
