@@ -73,6 +73,7 @@ watch(() => (post.value?.socialAccounts?.some(measurable) ? post.value.id : null
     } catch { figures.value = { ...figures.value, [type]: null }; }
   }
 }, { immediate: true });
+const count = (n: number, one: string) => `${formatNumber(n)} ${one}${n === 1 ? '' : 's'}`;
 async function refreshFigures(p: Post, type: string) {
   refreshingType.value = type;
   try { figures.value = { ...figures.value, [type]: await api.post<PostPoint>('/analytics/post/force', { postId: p.id, platformType: type }) }; toast.success(`${networkName(type)} figures refreshed`); }
@@ -118,9 +119,9 @@ const mediaOf = (p: Post) => (p.uploads ?? []).map((u) => u.upload).filter(Boole
           <a v-if="t.permalink" :href="t.permalink" target="_blank" rel="noopener" class="small row gap-4 mt-8">View on {{ networkName(t.socialAccount?.type ?? '') }} <ExternalLink :size="12" /></a>
           <div v-if="measurable(t)" class="figs row wrap mt-8">
             <template v-if="figures[t.socialAccount!.type]">
-              <span class="small row gap-4" title="Likes"><Heart :size="14" />{{ formatNumber(figures[t.socialAccount!.type]!.likes) }} likes</span>
-              <span class="small row gap-4" title="Comments"><MessageCircle :size="14" />{{ formatNumber(figures[t.socialAccount!.type]!.comments) }} comments</span>
-              <span class="small row gap-4" title="Views"><Eye :size="14" />{{ formatNumber(figures[t.socialAccount!.type]!.views) }} views</span>
+              <span class="small row gap-4" title="Likes"><Heart :size="14" />{{ count(figures[t.socialAccount!.type]!.likes, 'like') }}</span>
+              <span class="small row gap-4" title="Comments"><MessageCircle :size="14" />{{ count(figures[t.socialAccount!.type]!.comments, 'comment') }}</span>
+              <span class="small row gap-4" title="Views"><Eye :size="14" />{{ count(figures[t.socialAccount!.type]!.views, 'view') }}</span>
               <span class="tiny muted">as of {{ formatDateTime(figures[t.socialAccount!.type]!.createdAt, timezone) }}</span>
             </template>
             <span v-else class="tiny muted">No figures yet</span>
