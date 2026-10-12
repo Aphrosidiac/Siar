@@ -170,6 +170,16 @@ export function metaMessaging(network: 'FACEBOOK' | 'INSTAGRAM', target: (ctx: N
       await graph(ctx, `${t.base}/${t.subscribe.id}/subscribed_apps`, t.token, { method: 'DELETE' });
     },
 
+    async participant(ctx, a, id) {
+      const t = await target(ctx, a);
+      if (network === 'FACEBOOK') {
+        const p = await graph<{ name?: string; first_name?: string; last_name?: string; profile_pic?: string }>(ctx, `${t.base}/${id}`, t.token, { query: { fields: 'name,first_name,last_name,profile_pic' } });
+        return { displayName: p.name ?? ([p.first_name, p.last_name].filter(Boolean).join(' ') || null), username: null, avatarUrl: p.profile_pic ?? null };
+      }
+      const p = await graph<{ name?: string; username?: string; profile_pic?: string }>(ctx, `${t.base}/${id}`, t.token, { query: { fields: 'name,username,profile_pic' } });
+      return { displayName: p.name ?? p.username ?? null, username: p.username ?? null, avatarUrl: p.profile_pic ?? null };
+    },
+
     async send(ctx, a, input) {
       const t = await target(ctx, a);
       const recipient = { id: input.recipientId };

@@ -6,11 +6,11 @@ import { config } from '../platform/config.js';
 import { prisma } from '../platform/db.js';
 import type { WebhookEvent } from '../platform/events.js';
 import { logger } from '../platform/logger.js';
-import { adapter } from '../platform/networks.js';
+import { adapter, loadAccount, networkContext } from '../platform/networks.js';
 import { enqueue, JOBS } from '../platform/queue.js';
 import { upsertConversation } from './messaging-conversations.js';
 import { dispatchTriggers, kickStaleExecutions, type TriggerEvent } from './messaging-automations.js';
-import { conversation, fetchedComment, message, publish } from './messaging-shared.js';
+import { conversation, fetchedComment, message, messagingOf, publish } from './messaging-shared.js';
 
 /**
  * Meta webhooks (Instagram + Facebook Page): one endpoint for messages, echoes, postbacks and
@@ -152,6 +152,18 @@ async function ingestMessage(a: SocialAccount, orgId: string, m0: InboundMessage
   } catch (err) {
     if ((err as any)?.code === 'P2002') return 'duplicate'; // the same delivery raced in, or our API send stored it first
     throw err;
+  }
+
+  // Webhooks carry only the sender's id: look up their name and picture once, when the conversation has none.
+  if (!conv0.participantDisplayName && !conv0.participantUsername) {
+    const m = messagingOf(a.type);
+    if (m.participant) {
+      const who = await m.participant(networkContext(a.type as NetworkType), await loadAccount(a.id), msg.externalParticipantId)
+        .catch(err => { logger.warn({ err, accountId: a.id }, 'participant lookup failed'); return null; });
+      if (who && (who.displayName || who.username)) {
+        await prisma.conversation.update({ where: { id: conv0.id }, data: { participantDisplayName: who.displayName ?? null, participantUsername: who.username ?? null, participantAvatarUrl: who.avatarUrl ?? null } });
+      }
+    }
   }
 
   // Conversation bookkeeping: only move timestamps forward (deliveries can arrive out of order).
