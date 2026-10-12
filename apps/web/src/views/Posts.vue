@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ExternalLink, PenSquare, Plus, RotateCw, Trash2, Send } from 'lucide-vue-next';
 import PageHead from '@/components/PageHead.vue';
@@ -15,6 +15,7 @@ import Tabs from '@/components/ui/Tabs.vue';
 import Table from '@/components/ui/Table.vue';
 import Pager from '@/components/ui/Pager.vue';
 import PostDrawer from '@/components/PostDrawer.vue';
+import { inFlight } from '@/lib/inflight';
 import EmptyState from '@/components/ui/EmptyState.vue';
 import { api } from '@/lib/api';
 import { useQuery } from '@/lib/query';
@@ -38,6 +39,14 @@ const list = useQuery(() => {
   const [orderBy, ord] = order.value.split(':');
   return api.get<Paged<Post>>('/post/', { teamId: session.teamId, status: status.value === 'ALL' ? undefined : status.value, q: debouncedQ.value, platforms: platform.value ? [platform.value] : undefined, orderBy, order: ord, limit, offset: offset.value });
 }, { deps: [status, debouncedQ, platform, order, offset, () => session.teamId], enabled: () => !!session.teamId });
+
+// rows that are going out right now update in place
+let poll = 0;
+watch(() => list.data.value, (d) => {
+  clearInterval(poll);
+  if (d?.items.some((p) => inFlight(p))) poll = window.setInterval(() => { void list.refresh(); }, 3000);
+});
+onBeforeUnmount(() => clearInterval(poll));
 
 const columns = [
   { key: 'title', label: 'Post' }, { key: 'networks', label: 'Networks', width: '170px', hideSm: true }, { key: 'status', label: 'Status', width: '130px' },

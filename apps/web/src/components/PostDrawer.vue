@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { ExternalLink, PenSquare, RotateCw, Trash2 } from 'lucide-vue-next';
 import QueryState from './QueryState.vue';
 import StatusBadge from './StatusBadge.vue';
@@ -8,6 +8,7 @@ import Button from './ui/Button.vue';
 import Drawer from './ui/Drawer.vue';
 import { api } from '@/lib/api';
 import { useQuery } from '@/lib/query';
+import { inFlight } from '@/lib/inflight';
 import { timezone } from '@/lib/store';
 import { networkName } from '@/lib/networks';
 import { formatDateTime, relative, handle } from '@/lib/format';
@@ -20,6 +21,14 @@ const props = defineProps<{ id: string | null }>();
 const emit = defineEmits<{ close: []; changed: [] }>();
 const detail = useQuery(() => api.get<Post>(`/post/${props.id}`), { deps: [() => props.id], enabled: () => !!props.id });
 const busy = ref(false);
+// While the post is going out, follow it until every network answers, and let the list know when it changes.
+let poll = 0;
+watch(() => detail.data.value, (p, old) => {
+  clearInterval(poll);
+  if (inFlight(p)) poll = window.setInterval(() => { void detail.refresh(); }, 2500);
+  if (p && old && p.id === old.id && p.status !== old.status) emit('changed');
+});
+onBeforeUnmount(() => clearInterval(poll));
 async function retry(p: Post) {
   busy.value = true;
   try { await api.post(`/post/${p.id}/retry`); toast.success('Retry queued'); await detail.reload(); emit('changed'); } catch (e) { toast.fail(e); } finally { busy.value = false; }
