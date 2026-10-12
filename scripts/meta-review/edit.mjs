@@ -75,8 +75,12 @@ for (const f of freezes) {
 const flashes = JSON.parse(execFileSync('python3', [`${ROOT}scripts/meta-review/flashes.py`, film]).toString());
 function build() {
   const speed = (t) => (drops.some((d) => t > d.a && t < d.b) ? 0 : fast.find((s) => t > s.a && t < s.b)?.n ?? 1);
-  // a flash that touches a drop is dropped with it
-  const live = flashes.filter((x) => !drops.some((d) => x.hold < d.b && x.b > d.a));
+  // a flash inside a drop goes with it; one that straddles a drop's edge is held for the part that stays
+  const live = flashes.filter((x) => !drops.some((d) => x.hold >= d.a && x.b <= d.b));
+  const visible = (a, b) => { // the part of a..b no drop covers (drops can overlap: sample it)
+    let v = 0; for (let t = a + 0.0025; t < b; t += 0.005) if (!drops.some((d) => t > d.a && t < d.b)) v += 0.005;
+    return Math.max(1 / FPS, v);
+  };
   const at = new Set([0, dur, ...drops.flatMap((d) => [d.a, d.b]), ...fast.flatMap((s) => [s.a, s.b]), ...live.flatMap((x) => [x.hold, x.a, x.b])].map((x) => +x.toFixed(4)));
   const bounds = [...at].sort((a, b) => a - b);
   const out = [];
@@ -86,7 +90,7 @@ function build() {
     const fl = live.find((x) => mid > x.a && mid < x.b), hold = live.find((x) => mid > x.hold && mid < x.a);
     let f = fl ? 0 : speed(mid);
     // the held frame plays for the whole flash (at the speed of the surrounding piece)
-    if (hold && f) { out.push({ a, b, f: (b - a) / ((hold.b - hold.hold) / f), hold: true }); continue; }
+    if (hold && f) { out.push({ a, b, f: (b - a) / (visible(hold.hold, hold.b) / f), hold: true }); continue; }
     const last = out.at(-1);
     if (last && !last.hold && last.f === f && Math.abs(last.b - a) < 0.001) last.b = b; else out.push({ a, b, f });
   }
@@ -148,6 +152,9 @@ for (const [i, s] of states.entries()) {
   await shot(`<div style="width:${W}px;height:${BAND}px;background:#0b0b0a;color:#f3efe4;display:flex;align-items:center;gap:40px;padding:0 44px">
     <div style="flex:1;font-weight:500;font-size:32px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(s.caption)}</div>
     <div style="font-family:PlexMono;font-size:21px;color:#a29d92;white-space:nowrap">${esc(s.url)}</div></div>`, s.png, BAND);
+  // a caption wider than its column is cut with an ellipsis: flag it for review.py
+  s.cut = await page.evaluate(() => { const d = document.querySelector('div > div'); return d.scrollWidth > d.clientWidth + 1; });
+  if (s.cut) console.log(`CAPTION CUT: ${s.caption}`);
 }
 await browser.close();
 
@@ -174,6 +181,6 @@ args.push('-filter_complex', g.join(';'), '-map', '[v]', '-c:v', 'libx264', '-pr
 execFileSync('ffmpeg', args, { stdio: 'inherit' });
 
 // edit decision list, for the review notes
-const out = { film, rawDuration: +dur.toFixed(2), duration: +(TITLE + mainDur + HOLD).toFixed(2), pieces, captions: states.map((s) => ({ at: +(TITLE + s.from).toFixed(2), to: +(TITLE + Math.min(s.to, mainDur + HOLD)).toFixed(2), caption: s.caption, url: s.url })) };
+const out = { film, rawDuration: +dur.toFixed(2), duration: +(TITLE + mainDur + HOLD).toFixed(2), pieces, captions: states.map((s) => ({ at: +(TITLE + s.from).toFixed(2), to: +(TITLE + Math.min(s.to, mainDur + HOLD)).toFixed(2), caption: s.caption, url: s.url, ...(s.cut ? { cut: true } : {}) })) };
 writeFileSync(`${OUT}${film}.edl.json`, JSON.stringify(out, null, 1));
 console.log(`${film}: raw ${out.rawDuration}s → ${out.duration}s, ${kept.length} pieces, ${states.length} captions`);

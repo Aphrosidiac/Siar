@@ -8,7 +8,7 @@ The extension draws its own pointer (#claude-phantom-cursor, white with an orang
 drives: it glides to the spot and lingers a few frames. cursor.js hides it from 2026-10-13 on; takes before that
 show it. A flash is pointer-sized orange that is new in a frame (absent 12 frames before and after, so static red
 icons and badges don't count), for at most 30 frames; hits up to 4 frames apart are one flash, and each is
-widened by 3 frames on both sides because only the core of the glide passes the test.
+widened by 6 frames on both sides because only the core of the glide passes the test.
 Output: [{"hold": t, "a": t, "b": t}, …] in raw seconds: show the frame at `hold` from `a` until `b`.
 """
 import json, os, subprocess, sys
@@ -17,7 +17,7 @@ import numpy as np
 
 film = sys.argv[1]
 mp4 = film if film.endswith('.mp4') else os.path.join(os.path.dirname(__file__), '..', '..', 'review', 'raw', f'{film}.mp4')
-W, GAP, MAXRUN, PAD, SIZE = 1408, 12, 30, 3, 60  # at 704 wide the glow shrinks to 1–4 px and most of a flash is missed
+W, GAP, MAXRUN, PAD, SIZE = 1408, 12, 30, 6, 60  # at 704 wide the glow shrinks to 1–4 px and most of a flash is missed
 vw, vh = map(int, subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', mp4], capture_output=True, text=True).stdout.strip().split(','))
 H = 2 * round(W * vh / vw / 2)
 # presentation times of every frame (videotoolbox writes no B-frames, but sort anyway)
@@ -25,23 +25,32 @@ pts = sorted(float(x) for x in subprocess.run(['ffprobe', '-v', 'error', '-selec
                                                capture_output=True, text=True).stdout.split() if x and x != 'N/A')
 proc = subprocess.Popen(['ffmpeg', '-v', 'error', '-i', mp4, '-fps_mode', 'passthrough', '-vf', f'scale={W}:{H}', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], stdout=subprocess.PIPE)
 size = W * H * 3
-masks, hits, i = deque(maxlen=2 * GAP + 1), [], 0
-def orange(buf):
-    a = np.frombuffer(buf, np.uint8).reshape(H, W, 3).astype(np.int16)
+masks, frames, hits, i = deque(maxlen=2 * GAP + 1), deque(maxlen=2 * GAP + 1), [], 0
+def orange(a):
     r, g, b = a[..., 0], a[..., 1], a[..., 2]
-    # the glow's orange, also where it lies over a dark page (Instagram, Threads)
-    return (r > 160) & (g > 70) & (g < 170) & (b < 130) & (r - g > 55) & (r - b > 90)
+    # the glow's orange, also where it lies over a dark page (Instagram, Threads); and anything red or orange,
+    # to compare with: a red button fading in passes through orange on its way to red
+    return ((r > 160) & (g > 70) & (g < 170) & (b < 130) & (r - g > 55) & (r - b > 90),
+            (r > 130) & (r - g > 40) & (r - b > 50))
 while True:
     buf = proc.stdout.read(size)
     if len(buf) < size: break
-    masks.append(orange(buf)); i += 1
+    fr = np.frombuffer(buf, np.uint8).reshape(H, W, 3).astype(np.int16)
+    masks.append(orange(fr)); frames.append(fr); i += 1
     if len(masks) == masks.maxlen:
         mid = i - 1 - GAP
-        new = masks[GAP] & ~masks[0] & ~masks[-1]
+        new = masks[GAP][0] & ~masks[0][1] & ~masks[-1][1]
         if new.sum() >= 3:
             # pointer-sized only: a red button or dialog fading in is wider than the pointer and its glow
             ys, xs = np.nonzero(new)
-            if xs.max() - xs.min() <= SIZE and ys.max() - ys.min() <= SIZE: hits.append(mid)
+            if xs.max() - xs.min() <= SIZE and ys.max() - ys.min() <= SIZE:
+                # an emoji sliding in (👋 in a post's text) has yellow in it; the pointer's glow has none
+                fr = frames[GAP][max(0, ys.min() - 6):ys.max() + 7, max(0, xs.min() - 6):xs.max() + 7]
+                r, g, b = fr[..., 0], fr[..., 1], fr[..., 2]
+                emoji = ((r > 220) & (g > 170) & (b < 140) & (r - b > 100)).sum() >= 5
+                # a red button fading in or out (a delete dialog) is a large red area; the glow is a small one
+                near = masks[GAP][1][max(0, ys.min() - 20):ys.max() + 21, max(0, xs.min() - 20):xs.max() + 21]
+                if not emoji and near.sum() < 800: hits.append(mid)
 proc.wait()
 n = min(i, len(pts))
 runs = []

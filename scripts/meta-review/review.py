@@ -43,6 +43,9 @@ edge = _sp.run(['ffmpeg', '-v', 'error', '-ss', '3.6', '-i', mp4, '-vf', 'fps=2,
 light = lambda t: any(c['at'] <= t < c['to'] and 'siaran.my' in (c['url'] or '') for c in edl['captions'])
 dark = [round(3.6 + i / 2, 1) for i in range(1, len(edge)) if edge[i] < 70 and edge[i - 1] < 70 and light(3.6 + i / 2)]
 checks.append(f"dark top edge (debugging bar / shifted crop) at: {dark or 'none'}")
+cut = [c['caption'] for c in edl['captions'] if c.get('cut')]
+checks.append(f"captions cut off with an ellipsis: {cut or 'none'}")
+if cut: problems.append('caption too long')
 if dark: problems.append('dark top edge')
 # the extension's orange pointer flashing (a frame or more of it), every frame
 fl = json.loads(run('python3', os.path.join(os.path.dirname(__file__), 'flashes.py'), mp4).stdout or '[]')
