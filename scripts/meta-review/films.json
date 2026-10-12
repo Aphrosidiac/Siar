@@ -1,0 +1,20 @@
+{
+  "F1": { "title": "Connect a Facebook Page", "perms": ["pages_show_list", "business_management", "public_profile"] },
+  "F2": { "title": "Publish and delete a Page post", "perms": ["pages_manage_posts"] },
+  "F3": { "title": "Read Page post engagement", "perms": ["pages_read_engagement"] },
+  "F4": { "title": "Read comments on Page posts", "perms": ["pages_read_user_content"] },
+  "F5": { "title": "Reply to and moderate Page comments", "perms": ["pages_manage_engagement"] },
+  "F6": { "title": "Real-time Page updates (webhooks)", "perms": ["pages_manage_metadata"] },
+  "F7": { "title": "Facebook Page insights", "perms": ["read_insights"] },
+  "F8": { "title": "Messenger inbox for the Page", "perms": ["pages_messaging", "Business Asset User Profile Access"] },
+  "I1": { "title": "Connect Instagram through a Facebook Page", "perms": ["instagram_basic"] },
+  "I2": { "title": "Publish to Instagram", "perms": ["instagram_content_publish"] },
+  "I3": { "title": "Instagram comments", "perms": ["instagram_manage_comments"] },
+  "I4": { "title": "Instagram insights", "perms": ["instagram_manage_insights"] },
+  "I5": { "title": "Instagram direct messages", "perms": ["instagram_manage_messages"] },
+  "G1": { "title": "Instagram Login: connect, publish, comments, insights", "perms": ["instagram_business_basic", "instagram_business_content_publish", "instagram_business_manage_comments", "instagram_business_manage_insights"] },
+  "G2": { "title": "Instagram Login: direct messages", "perms": ["instagram_business_manage_messages"] },
+  "T1": { "title": "Threads: connect, publish and delete", "perms": ["threads_basic", "threads_content_publish", "threads_delete"] },
+  "T2": { "title": "Threads replies", "perms": ["threads_read_replies", "threads_manage_replies"] },
+  "T3": { "title": "Threads insights", "perms": ["threads_manage_insights"] }
+}
