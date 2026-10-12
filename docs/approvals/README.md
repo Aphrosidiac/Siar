@@ -17,7 +17,7 @@ Values used everywhere (change in one place if the name/domain changes):
 | Privacy policy | https://siaran.my/privacy |
 | Terms of service | https://siaran.my/terms |
 | Data deletion instructions | https://siaran.my/data-deletion |
-| Support email | siaran@ffdev.studio (Workspace alias; also the developer-account login everywhere). hello@siaran.my still forwards to it via Cloudflare Email Routing and is the mail sender |
+| Support email | siaran@ffdev.studio (Workspace alias; also the developer-account login everywhere). hello@siaran.my forwards to it via Cloudflare Email Routing. Mail is sent from siar@ffdev.studio (MAIL_FROM in production) |
 | OAuth callback pattern | `https://api.siaran.my/api/v1/social-account/callback/<NETWORK>` |
 | Meta webhook | `https://api.siaran.my/api/v1/webhooks/meta` |
 | App icon | 1024×1024 PNG from the site's brand kit |
