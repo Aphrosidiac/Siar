@@ -198,7 +198,7 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
           </div>
           <div class="cell">
             <Badge v-if="a.connectionState === 'NEEDS_RECONNECT'" tone="danger" size="sm">Needs reconnect</Badge>
-            <Badge v-else-if="needsChannel(a)" tone="warn" size="sm">Choose a {{ n.channelNoun }}</Badge>
+            <Badge v-else-if="needsChannel(a)" tone="warn" size="sm">Choose {{ /^[aeiou]/.test(n.channelNoun) ? 'an' : 'a' }} {{ n.channelNoun }}</Badge>
             <Badge v-else-if="a.deleteOn" tone="warn" size="sm">Removal pending</Badge>
             <Badge v-else tone="success" size="sm">Connected</Badge>
           </div>
