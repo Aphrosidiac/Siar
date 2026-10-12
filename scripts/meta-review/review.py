@@ -31,11 +31,16 @@ bd = run('ffmpeg', '-hide_banner', '-i', mp4, '-vf', 'blackdetect=d=0.1:pix_th=0
 blacks = re.findall(r'black_start:([\d.]+) black_end:([\d.]+)', bd)
 checks.append(f"black ranges: {blacks or 'none'}")
 if blacks: problems.append('black frames')
-fz = run('ffmpeg', '-hide_banner', '-i', mp4, '-vf', 'scale=640:-1,freezedetect=n=0.002:d=4', '-an', '-f', 'null', '-').stderr
+fz = run('ffmpeg', '-hide_banner', '-i', mp4, '-vf', 'scale=1408:-1,freezedetect=n=0.0004:d=4', '-an', '-f', 'null', '-').stderr
 stills = re.findall(r'freeze_start: ([\d.]+)', fz)
 checks.append(f"stills over 4 s start at: {stills or 'none'} (title card at 0 and end hold are expected)")
 checks.append('captions:')
 for c in edl['captions']: checks.append(f"  {c['at']:6.2f}–{c['to']:6.2f}  {c['caption']}  [{c['url']}]")
+import subprocess as _sp
+edge = _sp.run(['ffmpeg', '-v', 'error', '-ss', '3.6', '-i', mp4, '-vf', 'fps=2,crop=1400:6:440:2,scale=1:1', '-f', 'rawvideo', '-pix_fmt', 'gray', '-'], capture_output=True).stdout
+dark = [round(3.6 + i / 2, 1) for i, v in enumerate(edge) if v < 90]
+checks.append(f"dark top edge (debugging bar / shifted crop) at: {dark or 'none'}")
+if dark: problems.append('dark top edge')
 checks.append(f"PROBLEMS: {problems or 'none'}")
 open(os.path.join(dst, 'checks.txt'), 'w').write('\n'.join(checks) + '\n')
 
