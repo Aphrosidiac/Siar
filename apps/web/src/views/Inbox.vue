@@ -177,7 +177,7 @@ onMounted(async () => {
               <div class="pill-toggle"><button :class="{ on: convStatus === 'OPEN' }" @click="convStatus = 'OPEN'">Open</button><button :class="{ on: convStatus === 'ARCHIVED' }" @click="convStatus = 'ARCHIVED'">Archived</button></div>
             </div>
             <QueryState :loading="convs.loading.value" :error="convs.error.value" :status="convs.status.value" :has-data="!!convs.data.value" feature="Messages" @retry="convs.reload">
-              <EmptyState v-if="!convs.data.value?.items.length" compact title="No conversations" description="Enable messaging on a Facebook or Instagram account to receive DMs here." />
+              <EmptyState v-if="!convs.data.value?.items.length" compact :icon="InboxIcon" title="No conversations" :description="msgAccounts.some((a) => msgState(a) === 'on') ? 'New direct messages show up here as they arrive.' : 'Turn on messages for a Facebook or Instagram account above to receive DMs here.'" />
               <button v-for="c in convs.data.value?.items ?? []" :key="c.id" type="button" class="conv" :class="{ on: c.id === activeId }" @click="openConv(c)">
                 <Avatar :src="c.participantAvatarUrl" :name="c.participantDisplayName ?? c.participantUsername" :size="36" />
                 <span class="grow" style="min-width: 0; text-align: left"><span class="row"><span class="strong truncate grow">{{ c.participantDisplayName ?? c.participantUsername }}</span><span class="tiny muted nowrap">{{ relative(c.lastActivityAt) }}</span></span>
@@ -186,7 +186,7 @@ onMounted(async () => {
             </QueryState>
           </section>
           <section class="thread">
-            <EmptyState v-if="!active" compact title="Select a conversation" description="Pick a conversation on the left to read and reply." />
+            <EmptyState v-if="!active" compact :icon="MessageCircle" title="Select a conversation" description="Pick a conversation on the left to read and reply." class="th-empty" />
             <template v-else>
               <header class="th-head">
                 <Avatar :src="active.participantAvatarUrl" :name="active.participantDisplayName" :size="32" />
@@ -243,6 +243,10 @@ onMounted(async () => {
 .conv.on { background: var(--bg-hover); box-shadow: inset 2px 0 0 var(--text); }
 .unread { background: var(--text); color: var(--bg); border-radius: var(--radius-sm); font-family: var(--mono); font-size: var(--fs-11); line-height: 16px; padding: 0 5px; }
 .thread { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+/* EmptyState is page-level (flush left, top rule); inside these panels it gets panel padding instead */
+.split :deep(.empty) { border-top: 0; padding: 32px 24px; align-items: center; text-align: center; }
+.split :deep(.empty p) { max-width: 260px; }
+.th-empty { flex: 1; justify-content: center; }
 .th-head { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--border); }
 .msgs { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
 .bubble-row { display: flex; } .bubble-row.out { justify-content: flex-end; }
