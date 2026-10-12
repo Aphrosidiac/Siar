@@ -333,7 +333,7 @@ define({
     await teamIn(actor, query.teamId);
     await checkMessagingHealth(query.teamId).catch(err => logger.warn({ err }, 'messaging health check failed'));
     const p = pageArgs(query);
-    const where: any = { teamId: query.teamId, ...(query.platform ? { platform: query.platform } : { platform: { in: ['INSTAGRAM', 'FACEBOOK'] } }), ...(query.socialAccountId ? { socialAccountId: query.socialAccountId } : {}), ...(query.status ? { status: query.status } : {}) };
+    const where: any = { teamId: query.teamId, socialAccount: { deletedAt: null }, ...(query.platform ? { platform: query.platform } : { platform: { in: ['INSTAGRAM', 'FACEBOOK'] } }), ...(query.socialAccountId ? { socialAccountId: query.socialAccountId } : {}), ...(query.status ? { status: query.status } : {}) };
     const [rows, total] = await Promise.all([
       prisma.conversation.findMany({ where: { ...where, ...before('lastActivityAt', p.cursor) }, include: { socialAccount: true }, orderBy: [{ lastActivityAt: 'desc' }, { id: 'desc' }], skip: p.skip, take: p.take + 1 }),
       prisma.conversation.count({ where }),

@@ -115,10 +115,19 @@ async function finishConnect(type: NetworkType, query: Record<string, string>) {
         ...tokenColumns(connected.token),
       };
       let account;
-      if (current && current.providerPageId === p.providerPageId) {
-        // Same identity: a reconnect. Keep the id (posts and analytics stay attached) and the chosen channel if it still exists.
-        const keepChannel = current.channelId && channels.some(c => c.id === current.channelId) ? current.channelId : null;
-        account = await tx.socialAccount.update({ where: { id: current.id }, data: { ...base, channelId: keepChannel ?? current.channelId } });
+      // Same account when the login matches, or when the publishing identity does: Instagram reached through
+      // Instagram Login instead of a Facebook Page (or back) is still the same Instagram account.
+      const sameAccount = current && (current.providerPageId === p.providerPageId || current.externalId === p.externalId || channels.some(c => c.id === current.externalId));
+      if (current && sameAccount) {
+        // A reconnect. Keep the id (posts, analytics and conversations stay attached) and the chosen channel if it still exists.
+        const methodChanged = (current.instagramConnectionMethod ?? null) !== base.instagramConnectionMethod;
+        const keepChannel = current.channelId && channels.some(c => c.id === current.channelId) ? current.channelId
+          : channels.some(c => c.id === current.externalId) ? current.externalId : null;
+        account = await tx.socialAccount.update({ where: { id: current.id }, data: {
+          ...base, channelId: methodChanged ? keepChannel : keepChannel ?? current.channelId,
+          // messaging was switched on through the old login; the new one has to grant it again
+          ...(methodChanged ? { messagingStatus: 'DISABLED' as const, messagingLastError: null, messagingStatusUpdatedAt: new Date() } : {}),
+        } });
         events.push(...(await emit(tx, st.organizationId, 'social-account.updated', S.socialAccount(account))));
       } else {
         if (current) {
