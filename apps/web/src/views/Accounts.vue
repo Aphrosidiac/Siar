@@ -110,6 +110,11 @@ function target(a: SocialAccount): Target {
 const cap = (w: string) => (w ? w[0]!.toUpperCase() + w.slice(1) : w);
 
 // ── channel picker ──
+/** The two ways to connect Instagram, explained where the choice is made. */
+const IG_METHODS = [
+  { value: 'FACEBOOK' as const, label: 'Facebook', help: 'For an Instagram account linked to a Facebook Page. You sign in with Facebook. Adds location tagging and audio search.' },
+  { value: 'INSTAGRAM' as const, label: 'Instagram', help: 'No Facebook Page needed. You sign in with the Instagram business or creator account itself.' },
+];
 const SELF = '__self';
 const pick = ref<string | null>(null);
 const pickerOptional = computed(() => !!channelFor.value && META[channelFor.value.type].channel !== 'required');
@@ -232,7 +237,15 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
       <form v-if="connectFor" class="stack-16" @submit.prevent="go(connectFor!); connectFor = null">
         <Input v-if="connectFor === 'MASTODON'" v-model="opts.serverUrl" label="Server URL" placeholder="https://mastodon.social" type="url" required help="The Mastodon server your account lives on." autofocus />
         <Input v-if="connectFor === 'BLUESKY'" v-model="opts.serverUrl" label="PDS URL (optional)" placeholder="https://bsky.social" type="url" help="Leave empty for bsky.social." autofocus />
-        <Select v-if="connectFor === 'INSTAGRAM'" v-model="opts.instagramConnectionMethod" label="Sign in with" :options="[{ value: 'FACEBOOK', label: 'Facebook (business account linked to a Page)' }, { value: 'INSTAGRAM', label: 'Instagram (professional account)' }]" />
+        <div v-if="connectFor === 'INSTAGRAM'" class="opts" role="radiogroup" aria-label="Sign in with">
+          <div class="label">Sign in with</div>
+          <label v-for="m in IG_METHODS" :key="m.value" class="opt" :class="{ on: opts.instagramConnectionMethod === m.value }">
+            <input v-model="opts.instagramConnectionMethod" type="radio" name="ig-method" :value="m.value" class="sr-only" />
+            <span class="rd" aria-hidden="true" />
+            <NetworkIcon :type="m.value" :size="28" :title="false" />
+            <span class="opt-tx wrap"><span class="strong">{{ m.label }}</span><span class="tiny muted">{{ m.help }}</span></span>
+          </label>
+        </div>
         <div class="row" style="justify-content: flex-end"><Button variant="secondary" @click="connectFor = null">Cancel</Button><Button type="submit" variant="primary" :icon-right="ExternalLink">Continue</Button></div>
       </form>
     </Modal>
@@ -330,4 +343,5 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
 .opt-ic { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--bg-muted); color: var(--text); }
 .opt-tx { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
 .opt-tx > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.opt-tx.wrap > * { white-space: normal; }
 </style>
