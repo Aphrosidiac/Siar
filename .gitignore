@@ -12,3 +12,6 @@ src/generated/
 storage/
 apps/site/.astro/
 apps/site/.shots-tmp/
+
+# Meta App Review recordings (profile, raw frames, films)
+review/
