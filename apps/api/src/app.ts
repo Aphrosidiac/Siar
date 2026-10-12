@@ -52,7 +52,12 @@ export async function buildApp() {
 
   const webRoot = process.env.WEB_DIST ? resolve(process.env.WEB_DIST) : null;
   if (webRoot && existsSync(webRoot)) {
-    await app.register(fastifyStatic, { root: webRoot, wildcard: false, maxAge: '1y', immutable: true, setHeaders: (res, path) => { if (path.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache'); } });
+    // cacheControl: false — @fastify/static's own maxAge header lands after setHeaders and made index.html
+    // immutable for a year, so browsers kept an old dashboard after a release. Hashed assets stay immutable.
+    await app.register(fastifyStatic, {
+      root: webRoot, wildcard: false, cacheControl: false,
+      setHeaders: (res, path) => res.setHeader('Cache-Control', path.endsWith('.html') ? 'no-cache' : 'public, max-age=31536000, immutable'),
+    });
   }
   return app;
 }
