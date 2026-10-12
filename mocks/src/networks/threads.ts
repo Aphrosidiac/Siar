@@ -1,7 +1,7 @@
 import { consent, id, num, type MockRegistry, type MockRequest, type MockResponse } from '../registry.js';
 
 /**
- * Threads — threads.net OAuth and graph.threads.net (v1.0).
+ * Threads — threads.com OAuth and graph.threads.com (v1.0).
  *
  * Containers: a TEXT/IMAGE container is FINISHED at once; a VIDEO container answers IN_PROGRESS on
  * its first status read. A media URL containing "bad" makes the container ERROR. threads_publish on an
@@ -11,7 +11,7 @@ import { consent, id, num, type MockRegistry, type MockRequest, type MockRespons
 export default function threads(m: MockRegistry) {
   m.seedToken('threads', () => USER_ID);
   const s = () => m.ns('threads', () => ({ tokens: {} as Record<string, string>, containers: {} as Record<string, any>, posts: [] as any[] }));
-  const G = 'graph.threads.net';
+  const G = 'graph.threads.com';
   const USER_ID = '26000000000000001';
   const me = { id: USER_ID, username: 'siar.test', name: 'Siar Test', threads_profile_picture_url: 'https://cdn.threads.example/avatar.jpg', threads_biography: 'Testing Siar' };
   const gerr = (status: number, code: number, message: string, sub?: number): MockResponse =>
@@ -23,10 +23,10 @@ export default function threads(m: MockRegistry) {
   const paged = (all: any[], req: MockRequest) => {
     const limit = Number(req.query.limit ?? 25);
     const start = Number(req.query.after ?? 0);
-    return { data: all.slice(start, start + limit), paging: { cursors: { before: String(start), after: String(start + limit) }, ...(start + limit < all.length ? { next: 'https://graph.threads.net/next' } : {}) } };
+    return { data: all.slice(start, start + limit), paging: { cursors: { before: String(start), after: String(start + limit) }, ...(start + limit < all.length ? { next: 'https://graph.threads.com/next' } : {}) } };
   };
 
-  m.on('GET', 'threads.net', '/oauth/authorize', req => consent(req));
+  m.on('GET', 'threads.com', '/oauth/authorize', req => consent(req));
   m.on('POST', G, '/oauth/access_token', req => {
     if (!String(req.body.code ?? '').startsWith('mockcode_')) return { status: 400, json: { error_type: 'OAuthException', code: 400, error_message: 'Invalid authorization code' } };
     return { json: { access_token: issue(), user_id: Number(USER_ID) } };
@@ -79,7 +79,7 @@ export default function threads(m: MockRegistry) {
     const pid = num();
     const post = {
       id: pid, text: c.text ?? null, media_type: c.media_type === 'TEXT' ? 'TEXT_POST' : c.media_type === 'CAROUSEL' ? 'CAROUSEL_ALBUM' : c.media_type, media_product_type: 'THREADS',
-      media_url: c.video_url ?? c.image_url ?? null, permalink: `https://www.threads.net/@siar.test/post/${pid}`, timestamp: new Date().toISOString(), username: me.username,
+      media_url: c.video_url ?? c.image_url ?? null, permalink: `https://www.threads.com/@siar.test/post/${pid}`, timestamp: new Date().toISOString(), username: me.username,
       is_quote_post: false, reply_to: c.reply_to_id ?? null, reply_control: c.reply_control ?? null, topic_tag: c.topic_tag ?? null, containerId: c.id,
     };
     c.published = true;
@@ -91,7 +91,7 @@ export default function threads(m: MockRegistry) {
   const replies = (req: MockRequest) => {
     if (!authed(req)) return badToken();
     const mine = s().posts.filter((p: any) => p.reply_to === req.params.id && !p.deleted).map((p: any) => ({ ...p, replied_to: { id: p.reply_to }, has_replies: false }));
-    const seeded = [{ id: `fan_${req.params.id}`, text: 'Great thread!', username: 'fan_account', timestamp: new Date().toISOString(), permalink: 'https://www.threads.net/@fan_account/post/1', hide_status: 'NOT_HUSHED', has_replies: false, replied_to: { id: req.params.id } }];
+    const seeded = [{ id: `fan_${req.params.id}`, text: 'Great thread!', username: 'fan_account', timestamp: new Date().toISOString(), permalink: 'https://www.threads.com/@fan_account/post/1', hide_status: 'NOT_HUSHED', has_replies: false, replied_to: { id: req.params.id } }];
     return { json: paged([...seeded, ...mine], req) };
   };
   m.on('GET', G, '/:ver/:id/replies', replies);

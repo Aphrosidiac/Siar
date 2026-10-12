@@ -32,6 +32,7 @@ const API = 'https://slack.com/api';
 const SCOPES = ['chat:write', 'chat:write.public', 'chat:write.customize', 'channels:read', 'groups:read', 'channels:history', 'groups:history', 'files:write', 'files:read', 'reactions:write', 'users:read'];
 const TEXT_MAX = 40_000;
 const LIKE_EMOJI = 'heart';
+const REPLIES_PAGE_MAX = 15;
 
 // ───────────────────────────── errors ─────────────────────────────
 
@@ -284,7 +285,9 @@ export const slack: NetworkAdapter = {
 
   async importComments(ctx, a, input) {
     const { channel, ts } = splitId(a, input.externalPostId);
-    const r = await api(ctx, a, 'conversations.replies', { query: { channel, ts, limit: Math.min(input.limit + 1, 200), cursor: input.cursor ?? undefined } });
+    // Apps outside the Slack Marketplace (installed after 2025-05-29) get conversations.replies/history at
+    // 1 request/minute and at most 15 messages per page; 429s are retried by the engine.
+    const r = await api(ctx, a, 'conversations.replies', { query: { channel, ts, limit: Math.min(input.limit + 1, REPLIES_PAGE_MAX), cursor: input.cursor ?? undefined } });
     const names = new Map<string, string | null>();
     const nameOf = async (user?: string) => {
       if (!user) return null;

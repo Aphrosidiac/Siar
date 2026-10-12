@@ -142,5 +142,6 @@ export function mediaRef(u: Upload, altText?: string | null): MediaRef {
     read: () => storage.get(key),
     readRange: (s, e) => storage.getRange(key, s, e),
     stream: async () => Readable.toWeb(await storage.stream(key)) as ReadableStream<Uint8Array>,
+    poster: u.type === 'video' && u.thumbnailPath ? { mime: 'image/jpeg', ext: 'jpg', read: () => storage.get(u.thumbnailPath!) } : null,
   };
 }

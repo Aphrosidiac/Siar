@@ -75,6 +75,8 @@ export default function facebook(m: MockRegistry) {
 
   // ── Objects
   const videoStatus = (v: any) => {
+    // Before finish: only the upload is reported (the file_url fetch completes on the first look).
+    if (!v.state) return { video_status: v.uploaded ? 'upload_complete' : 'uploading', uploading_phase: { status: v.uploaded ? 'complete' : 'in_progress' }, processing_phase: { status: 'not_started' }, publishing_phase: { status: 'not_started' } };
     v.polls++;
     if (v.failed) return { video_status: 'error', processing_phase: { status: 'error', error: { message: 'The video could not be processed (unsupported format).' } } };
     if (v.polls <= 1) return { video_status: 'processing', uploading_phase: { status: 'complete' }, processing_phase: { status: 'in_progress' }, publishing_phase: { status: 'not_started' } };

@@ -19,7 +19,7 @@
  *       https://developers.facebook.com/docs/page-stories-api
  */
 import { NetworkError } from '../lib/errors.js';
-import { request } from '../lib/http.js';
+import { request, sleep } from '../lib/http.js';
 import { charCount, checkMedia, checkText, GB, MB } from '../lib/validate.js';
 import type { AccountRuntime, Channel, FetchedCommentInput, HistoryPost, Issue, MediaRef, NetworkAdapter, NetworkContext, PostMetrics, PublishResult, ReviewInput } from '../types.js';
 import {
@@ -117,11 +117,26 @@ async function setThumbnail(ctx: NetworkContext, token: string, videoId: string,
   await graph(ctx, `${FB_GRAPH}/${videoId}/thumbnails`, token, { method: 'POST', body: form });
 }
 
+/**
+ * A hosted-file (file_url) upload is fetched by Facebook asynchronously; finishing before the bytes
+ * have arrived fails the Reel. Wait (bounded) for uploading_phase = complete, then finish.
+ */
+async function waitForUpload(ctx: NetworkContext, token: string, videoId: string) {
+  for (let i = 0; i < 30; i++) {
+    const st = (await graph<{ status?: any }>(ctx, `${FB_GRAPH}/${videoId}`, token, { query: { fields: 'status' } })).status ?? {};
+    const up = st.uploading_phase?.status;
+    if (st.video_status === 'error' || up === 'error') throw new NetworkError('MEDIA_INVALID', st.uploading_phase?.error?.message ?? st.processing_phase?.error?.message ?? 'Facebook could not fetch the video.', { meta: st });
+    if (up === 'complete' || up === 'completed' || ['upload_complete', 'ready', 'processing'].includes(st.video_status)) return;
+    await sleep(ctx.mode === 'mock' ? 10 : 2000);
+  }
+}
+
 async function publishReel(ctx: NetworkContext, a: AccountRuntime, d: Record<string, any>, v: MediaRef, thumb: MediaRef | null): Promise<PublishResult> {
   const page = pageIdOf(a);
   const tok = await pageToken(ctx, a);
   const start = await graph<{ video_id: string; upload_url?: string }>(ctx, `${FB_GRAPH}/${page}/video_reels`, tok, { method: 'POST', form: { upload_phase: 'start' } });
   await ruploadFromUrl(ctx, tok, start.video_id, start.upload_url, v);
+  await waitForUpload(ctx, tok, start.video_id);
   await setThumbnail(ctx, tok, start.video_id, thumb).catch(err => ctx.log.warn({ err: (err as Error).message }, 'reel thumbnail failed'));
   const sched = scheduleOf(d);
   await graph(ctx, `${FB_GRAPH}/${page}/video_reels`, tok, {
@@ -464,7 +479,12 @@ export const facebook: NetworkAdapter = {
     let ins: Record<string, number> = {};
     let insightsError: string | null = null;
     try {
-      ins = insightValues(await pg(ctx, a, `/${page}/insights`, { query: { metric: 'page_media_view,page_total_media_view_unique,page_post_engagements,page_follows', period: 'days_28' } }));
+      // page_follows is day-only; the rest take days_28. One call per period, or Graph rejects the batch.
+      const [m28, day] = await Promise.all([
+        pg(ctx, a, `/${page}/insights`, { query: { metric: 'page_media_view,page_total_media_view_unique,page_post_engagements', period: 'days_28' } }),
+        pg(ctx, a, `/${page}/insights`, { query: { metric: 'page_follows', period: 'day' } }),
+      ]);
+      ins = { ...insightValues(day), ...insightValues(m28) };
     } catch (e) {
       if (!(e instanceof NetworkError) || !['VALIDATION', 'PERMISSION'].includes(e.code)) throw e;
       insightsError = e.message;

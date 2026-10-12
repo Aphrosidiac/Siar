@@ -109,6 +109,10 @@ export default function instagram(m: MockRegistry) {
   };
   m.on('GET', IG, '/:ver/:id/comments', req => {
     if (!authed(req)) return badToken();
+    // IG Comment has no replies_count (or any field outside this set): Graph rejects the whole call.
+    const COMMENT_FIELDS = new Set(['id', 'text', 'timestamp', 'username', 'like_count', 'hidden', 'from', 'media', 'parent_id', 'replies', 'user', 'legacy_instagram_comment_id']);
+    const bad = String(req.query.fields ?? '').replace(/\{[^}]*\}/g, '').split(',').map(f => f.trim()).filter(f => f && !COMMENT_FIELDS.has(f));
+    if (bad.length) return gerr(400, 100, `(#100) Tried accessing nonexisting field (${bad[0]}) on node type (IGComment)`);
     seed(req.params.id);
     return { json: paged(s().comments.filter((c: any) => c.mediaId === req.params.id && !c.parent_id && !c.deleted), req) };
   });

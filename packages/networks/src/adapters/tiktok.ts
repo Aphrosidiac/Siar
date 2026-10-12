@@ -45,7 +45,7 @@ const CODES: Record<string, ErrorCode> = {
   url_ownership_unverified: 'PERMISSION', reached_active_user_cap: 'PERMISSION', invalid_client: 'NOT_CONFIGURED', unauthorized_client: 'NOT_CONFIGURED',
   rate_limit_exceeded: 'RATE_LIMITED', spam_risk_too_many_posts: 'RATE_LIMITED', spam_risk_too_many_pending_share: 'RATE_LIMITED',
   spam_risk_user_banned_from_posting: 'CONTENT_REJECTED', spam_risk_text: 'CONTENT_REJECTED', spam_risk: 'CONTENT_REJECTED', publish_cancelled: 'CONTENT_REJECTED',
-  privacy_level_option_mismatch: 'VALIDATION', invalid_params: 'VALIDATION', invalid_request: 'VALIDATION', invalid_publish_id: 'NOT_FOUND',
+  privacy_level_option_mismatch: 'VALIDATION', invalid_param: 'VALIDATION', invalid_params: 'VALIDATION', invalid_request: 'VALIDATION', invalid_publish_id: 'NOT_FOUND',
   file_format_check_failed: 'MEDIA_INVALID', duration_check_failed: 'MEDIA_INVALID', frame_rate_check_failed: 'MEDIA_INVALID', picture_size_check_failed: 'MEDIA_INVALID',
   video_pull_failed: 'MEDIA_INVALID', photo_pull_failed: 'MEDIA_INVALID', invalid_file_upload: 'MEDIA_INVALID',
   internal_error: 'NETWORK_UNAVAILABLE', internal: 'NETWORK_UNAVAILABLE',
@@ -273,7 +273,8 @@ export const tiktok: NetworkAdapter = {
       client_key: business ? need(ctx, 'businessClientKey') : need(ctx, 'clientKey'),
       scope: (business ? BUSINESS_SCOPES : SCOPES).join(','),
       response_type: 'code', redirect_uri: ctx.redirectUri, state: input.state,
-      code_challenge: business ? undefined : input.codeChallenge, code_challenge_method: business ? undefined : 'S256',
+      // No PKCE: TikTok's web Login Kit does not use it (code_verifier is for mobile/desktop apps, whose
+      // challenge is hex SHA-256, not base64url — sending ours risks a failed exchange).
       disable_auto_auth: input.forceLogin ? '1' : undefined,
     });
     return { url, extra: { tiktokApi: business ? 'business' : 'content' } };
@@ -289,7 +290,7 @@ export const tiktok: NetworkAdapter = {
       return { token: tokenOf(t, ctx.now(), 'business', { businessId: t.open_id }), profile: bizProfileOf(t.open_id, info) };
     }
     const t = await request(ctx, `${OPEN}/v2/oauth/token/`, {
-      form: { client_key: need(ctx, 'clientKey'), client_secret: need(ctx, 'clientSecret'), code: input.code, grant_type: 'authorization_code', redirect_uri: ctx.redirectUri, code_verifier: input.codeVerifier },
+      form: { client_key: need(ctx, 'clientKey'), client_secret: need(ctx, 'clientSecret'), code: input.code, grant_type: 'authorization_code', redirect_uri: ctx.redirectUri },
       mapError,
     });
     if (t?.error) throw mapError(400, t) ?? new NetworkError('TOKEN_INVALID', t.error_description || t.error, { meta: t });
@@ -371,10 +372,11 @@ export const tiktok: NetworkAdapter = {
 
     if (type === 'IMAGE') {
       const post_info: Record<string, unknown> = {
-        description: d.text ?? '', disable_comment: !!d.disableComments, auto_add_music: !!d.autoAddMusic,
-        brand_content_toggle: !!d.isBrandContent, brand_organic_toggle: !!d.isOrganicBrandContent,
+        description: d.text ?? '', auto_add_music: !!d.autoAddMusic,
       };
       if (!draft) {
+        // disable_comment and the brand toggles are DIRECT_POST-only (the creator sets them in the app for drafts).
+        Object.assign(post_info, { disable_comment: !!d.disableComments, brand_content_toggle: !!d.isBrandContent, brand_organic_toggle: !!d.isOrganicBrandContent });
         const c = await creatorInfo(ctx, tok, d, null);
         post_info.privacy_level = c.privacy;
         post_info.disable_comment = !!d.disableComments || !!c.info.comment_disabled;

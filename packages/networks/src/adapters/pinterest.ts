@@ -4,7 +4,7 @@
  * Docs: https://developers.pinterest.com/docs/api/v5/
  *   OAuth 2.0        www.pinterest.com/oauth/ (scopes comma-separated, no PKCE) →
  *                    api.pinterest.com/v5/oauth/token with HTTP Basic client auth. Access tokens
- *                    last 30 days; the refresh token is long-lived and is NOT rotated on refresh.
+ *                    last 30 days; refresh tokens last 60 days and each refresh returns a new one (stored).
  *   Boards           GET /v5/boards (bookmark pagination). Boards are the account's channels;
  *                    data.boardName is resolved against them by name, case-insensitively.
  *   Pins             POST /v5/pins with media_source: image_url | multiple_image_urls (2–5) | video_id
@@ -13,8 +13,7 @@
  *                    "succeeded" → pin with media_source.video_id and a cover.
  *   Edit / delete    PATCH|DELETE /v5/pins/:id
  *   Analytics        GET /v5/pins/:id/analytics, GET /v5/user_account/analytics (90-day window)
- * Pinterest has no public comments API, and no AI-label field: isAiGenerated is recorded in
- * externalData only.
+ * Pinterest has no public comments API. isAiGenerated → ai_disclosures { values: ['AI_MODIFIED'] } (API 5.28).
  */
 import { NetworkError } from '../lib/errors.js';
 import { request, resetFrom, type RequestOptions } from '../lib/http.js';
@@ -266,6 +265,7 @@ export const pinterest: NetworkAdapter = {
     const body: Record<string, unknown> = {
       board_id: boardId, title: String(d.text || input.title || '').slice(0, TITLE_MAX) || undefined, description: d.description || undefined, link: d.link || undefined,
       alt_text: d.altText || undefined, note: d.note || undefined, dominant_color: d.dominantColor || undefined,
+      ai_disclosures: d.isAiGenerated ? { values: ['AI_MODIFIED'] } : undefined,
     };
     const vid = input.media.find(m => m.type === 'video');
     if (vid) {

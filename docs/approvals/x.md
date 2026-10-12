@@ -12,5 +12,13 @@ Use-case text: *"Siar is a publishing tool: users connect their own X account an
 schedule posts, threads and replies they write, and read the metrics of their own posts. We do
 not analyse other users' content, build profiles, or automate engagement."*
 
+Scopes Siar requests: `tweet.read tweet.write users.read offline.access media.write` (post, thread,
+media, own metrics; offline.access = refresh token) + `like.read like.write` (like/unlike from the
+inbox) + `tweet.moderate.write` (hide replies on the user's own posts).
+
+Limits to know: since Feb 2026, self-serve apps can reply only to posts that mention or quote the
+connected account (threads on our own posts still work), so replying to a stranger's comment can
+fail with 403. Errors are shown verbatim on the post.
+
 Costs are passed through to customers from their prepaid Siar credit at X's rates
 ($0.015 per post, $0.20 per post with a link; reads per resource).

@@ -48,7 +48,7 @@ export default function tiktok(m: MockRegistry) {
     const b = req.body;
     if (b.grant_type === 'authorization_code') {
       if (!String(b.code ?? '').startsWith('mockcode_')) return { status: 400, json: { error: 'invalid_grant', error_description: 'Authorization code is expired.', log_id: logId() } };
-      if (!b.code_verifier) return { status: 400, json: { error: 'invalid_request', error_description: 'Code verifier or code challenge is invalid.', log_id: logId() } };
+      // Web apps send no code_verifier (PKCE is for mobile/desktop apps).
     } else if (b.grant_type === 'refresh_token') {
       // Refresh tokens rotate: the old one is spent.
       if (!s().refresh[b.refresh_token]) return { status: 400, json: { error: 'invalid_grant', error_description: 'Refresh token is invalid or expired.', log_id: logId() } };

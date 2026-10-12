@@ -280,8 +280,10 @@ Each network needs its developer app approved before real accounts can connect. 
 - [ ] DNS for siaran.my, VPS, deploy
 - [ ] Legal review of terms and privacy, final plan prices
 
-Known unverified: Snapchat endpoints, Bluesky atproto OAuth (mock-tested only), the LinkedIn API
-version, Instagram paid-partnership field names.
+Spec audit 2026-10-12: every adapter checked against the networks' current docs (LinkedIn on
+202609, Snapchat rewritten for the Public Profile API, Meta/TikTok/Google/Reddit field and scope
+fixes). Still unproven until each network's app is approved: a live connect + publish per network.
+Bluesky OAuth is a public client (2-week sessions); Snapchat image limits are unconfirmed.
 
 ## Documentation
 

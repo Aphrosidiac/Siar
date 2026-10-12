@@ -13,7 +13,8 @@
  *   Comments         commentThreads.insert (top level) · comments.insert (reply) · comments.update ·
  *                    comments.delete · comments/setModerationStatus (heldForReview | published | rejected)
  *   History          the channel's uploads playlist is "UU" + channelId.slice(2)
- *   Quota            10,000 units/day per project; videos.insert costs 1,600 (see errorReference)
+ *   Quota            10,000 units/day per project for reads/writes; since 2026-06-01 videos.insert is
+ *                    charged to its own bucket (~100 units per upload; 2025-12-04 revision)
  */
 import { NetworkError } from '../lib/errors.js';
 import { httpError, request, resetFrom, type RequestOptions } from '../lib/http.js';
@@ -251,7 +252,7 @@ export const youtube: NetworkAdapter = {
   },
   errorReference: [
     { code: '401 authError', message: 'Invalid Credentials', meaning: 'The access token expired or the user revoked access in their Google account.', fix: 'Siar refreshes automatically; if it still fails, reconnect the YouTube account.' },
-    { code: '403 quotaExceeded', message: 'The request cannot be completed because you have exceeded your quota.', meaning: 'The Google Cloud project spent its daily 10,000 units (one upload costs 1,600).', fix: 'Wait for midnight Pacific time, or request a quota extension for the project.' },
+    { code: '403 quotaExceeded', message: 'The request cannot be completed because you have exceeded your quota.', meaning: 'The Google Cloud project spent its daily quota (uploads have their own videos.insert bucket; other calls share 10,000 units).', fix: 'Wait for midnight Pacific time, or request a quota extension for the project.' },
     { code: '400 uploadLimitExceeded', message: 'The user has exceeded the number of videos they may upload.', meaning: 'The channel hit its daily upload limit.', fix: 'Verify the channel by phone to raise the limit, or try again in 24 hours.' },
     { code: '403 forbidden (thumbnails)', message: "The authenticated user doesn't have permissions to upload and set custom video thumbnails.", meaning: 'Custom thumbnails need a verified channel.', fix: 'Verify the channel at youtube.com/verify. The video itself is still posted.' },
     { code: '401 youtubeSignupRequired', message: 'Unauthorized', meaning: 'The Google account has no YouTube channel.', fix: 'Create a channel at youtube.com and reconnect.' },
@@ -266,7 +267,7 @@ export const youtube: NetworkAdapter = {
   async authorize(ctx, input) {
     const url = authorizeUrl(AUTH_URL, {
       client_id: ctx.credentials.clientId, redirect_uri: ctx.redirectUri, response_type: 'code', scope: SCOPES.join(' '), state: input.state,
-      access_type: 'offline', prompt: 'consent', include_granted_scopes: 'true', code_challenge: input.codeChallenge, code_challenge_method: 'S256',
+      access_type: 'offline', prompt: 'consent', code_challenge: input.codeChallenge, code_challenge_method: 'S256',
     });
     return { url };
   },
@@ -330,7 +331,7 @@ export const youtube: NetworkAdapter = {
     let thumb: MediaRef | null = null;
     if (d.thumbnail) {
       thumb = await input.resolveUpload(d.thumbnail);
-      if (!['image/jpeg', 'image/png'].includes(thumb.mime) || thumb.fileSize > 2 * MB) throw new NetworkError('MEDIA_INVALID', 'A YouTube thumbnail must be a JPEG or PNG of at most 2 MB.');
+      if (!['image/jpeg', 'image/png'].includes(thumb.mime) || thumb.fileSize > 50 * MB) throw new NetworkError('MEDIA_INVALID', 'A YouTube thumbnail must be a JPEG or PNG of at most 50 MB.');
     }
     const title = String(d.text || input.title || '').slice(0, TITLE_MAX);
     let description: string = d.description ?? '';
@@ -354,14 +355,14 @@ export const youtube: NetworkAdapter = {
       }
     }
     return {
-      status: 'PROCESSING', pendingRef: JSON.stringify({ videoId: video.id, startedAt: ctx.now().getTime() }), pollAfterMs: 20_000,
+      status: 'PROCESSING', pendingRef: JSON.stringify({ videoId: video.id, startedAt: ctx.now().getTime(), requestedPrivacy: status.privacyStatus }), pollAfterMs: 20_000,
       externalData: { videoId: video.id, uploadStatus: video.status?.uploadStatus, privacyStatus: video.status?.privacyStatus, requestedPrivacy: status.privacyStatus, thumbnailError },
     };
   },
 
   async poll(ctx, input, pendingRef): Promise<PublishResult> {
     const a = input.account;
-    const ref = JSON.parse(pendingRef) as { videoId: string; startedAt: number };
+    const ref = JSON.parse(pendingRef) as { videoId: string; startedAt: number; requestedPrivacy?: string };
     const v = (await api(ctx, a, '/videos', { query: { part: 'status,processingDetails', id: ref.videoId } })).items?.[0];
     if (!v) throw new NetworkError('NOT_FOUND', 'YouTube no longer lists the uploaded video; it may have been removed in YouTube Studio.', { httpStatus: 404 });
     const st = v.status ?? {};
@@ -376,7 +377,13 @@ export const youtube: NetworkAdapter = {
     }
     return {
       status: 'POSTED', externalPostId: ref.videoId, externalVideoId: ref.videoId, permalink: permalinkFor(ref.videoId, input.data.type ?? 'SHORT'),
-      externalData: { videoId: ref.videoId, privacyStatus: st.privacyStatus, uploadStatus: st.uploadStatus },
+      externalData: {
+        videoId: ref.videoId, privacyStatus: st.privacyStatus, uploadStatus: st.uploadStatus,
+        // Unaudited API projects get every upload locked private (YouTube API Services audit).
+        ...(ref.requestedPrivacy && ref.requestedPrivacy !== 'private' && st.privacyStatus === 'private'
+          ? { lockedPrivate: true, warning: `YouTube set the video to private although ${ref.requestedPrivacy} was requested. Uploads from an API project that has not passed YouTube's compliance audit are locked private.` }
+          : {}),
+      },
     };
   },
 

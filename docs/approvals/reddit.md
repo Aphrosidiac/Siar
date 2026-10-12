@@ -16,6 +16,14 @@ FF Reddit account. Paste:
   (post requirements and flair are checked before submitting) and Reddit's rate limits.
 - **Data use:** no scraping, no model training, no resale, no data on non-users beyond the
   comments on the user's own posts; tokens deleted on disconnect.
+- **Commercial use (state it plainly — Reddit requires separate written approval for it):** Siar is
+  a paid product sold by FF DEV STUDIO. Customers pay for Siar itself; Reddit data is never sold or
+  licensed. Ask for commercial approval in the same request.
+- **OAuth scopes (minimum):** `identity` (who connected), `submit` (post), `edit` (edit/delete own
+  posts), `read` (status, score, comments of own posts), `flair` (pick the flair a subreddit
+  requires), `history` (list the user's own submissions). Permanent (refresh) tokens.
+- **User-Agent:** `web:dev.siar.api:v1.0 (by /u/siar-dev)` — **[F] the account /u/siar-dev must exist**
+  (or change USER_AGENT in reddit.ts to the account that submits this request).
 - **Contact:** hello@siaran.my, FF DEV STUDIO (202603234793).
 Then create a **web app** at reddit.com/prefs/apps with redirect
 https://api.siaran.my/api/v1/social-account/callback/REDDIT.

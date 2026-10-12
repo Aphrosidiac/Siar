@@ -26,7 +26,7 @@ describe('threads', () => {
     const r = await post(acc, { text: 'Hello Threads', replyControl: 'mentioned_only', topicTag: 'siar', linkAttachment: 'https://siaran.my', poll: undefined });
     expect(r.status).toBe('POSTED');
     const id = (r as any).externalPostId;
-    expect((r as any).permalink).toContain('threads.net');
+    expect((r as any).permalink).toContain('threads.com');
     const st = h.state().threads;
     expect(st.containers[st.posts[0].containerId]).toMatchObject({ media_type: 'TEXT', reply_control: 'mentioned_only', topic_tag: 'siar', link_attachment: 'https://siaran.my' });
 

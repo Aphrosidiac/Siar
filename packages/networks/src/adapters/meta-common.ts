@@ -25,8 +25,9 @@ export const IG_GRAPH = `https://graph.instagram.com/${GRAPH_VERSION}`;
 export const IG_GRAPH_ROOT = 'https://graph.instagram.com';
 /** The Threads API is versioned separately (v1.0). */
 export const THREADS_VERSION = 'v1.0';
-export const THREADS_GRAPH = `https://graph.threads.net/${THREADS_VERSION}`;
-export const THREADS_GRAPH_ROOT = 'https://graph.threads.net';
+// Current docs use the .com hosts (threads.net is the pre-rebrand domain).
+export const THREADS_GRAPH = `https://graph.threads.com/${THREADS_VERSION}`;
+export const THREADS_GRAPH_ROOT = 'https://graph.threads.com';
 
 // ───────────────────────────── errors ─────────────────────────────
 
@@ -330,6 +331,10 @@ export function facebookDialogUrl(ctx: NetworkContext, clientId: string, scopes:
   u.searchParams.set('state', state);
   u.searchParams.set('response_type', 'code');
   u.searchParams.set('scope', scopes.join(','));
+  // Business apps on Facebook Login for Business: a login configuration (NETWORK_<TYPE>_LOGIN_CONFIG_ID)
+  // defines the permissions; Meta then ignores `scope`.
+  const configId = ctx.mode === 'live' ? ctx.credentials.loginConfigId : undefined;
+  if (configId) u.searchParams.set('config_id', configId);
   u.searchParams.set('auth_type', forceLogin ? 'reauthenticate' : 'rerequest');
   return u.toString();
 }

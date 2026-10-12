@@ -76,11 +76,11 @@ export default function reddit(m: MockRegistry) {
       if (!s().codes[b.code]) return { json: { error: 'invalid_grant' } };
       delete s().codes[b.code];
       const refresh = id('rdref_'); s().refresh[refresh] = true;
-      return { json: { access_token: issue(), token_type: 'bearer', expires_in: 3600, refresh_token: refresh, scope: 'identity submit edit read flair history mysubreddits' } };
+      return { json: { access_token: issue(), token_type: 'bearer', expires_in: 3600, refresh_token: refresh, scope: 'identity submit edit read flair history' } };
     }
     if (b.grant_type === 'refresh_token') {
       if (!s().refresh[b.refresh_token]) return { json: { error: 'invalid_grant' } };
-      return { json: { access_token: issue(), token_type: 'bearer', expires_in: 3600, scope: 'identity submit edit read flair history mysubreddits' } };
+      return { json: { access_token: issue(), token_type: 'bearer', expires_in: 3600, scope: 'identity submit edit read flair history' } };
     }
     return { status: 400, json: { error: 'unsupported_grant_type' } };
   });
@@ -105,6 +105,7 @@ export default function reddit(m: MockRegistry) {
     if (!['self', 'link', 'image', 'video'].includes(kind)) return rerr(['INVALID_OPTION', 'invalid option', 'kind']);
     if (kind !== 'self' && !b.url) return rerr(['NO_URL', 'a url is required', 'url']);
     if ((kind === 'image' || kind === 'video') && !s().uploads[b.url]) return rerr(['BAD_URL', "that url isn't valid", 'url']);
+    if (kind === 'video' && !s().uploads[b.video_poster_url]) return rerr(['NO_VIDEO_POSTER', 'a video poster image is required', 'video_poster_url']);
     const pid = id('').slice(0, 7);
     const post = { id: pid, sr: String(b.sr), title: b.title, text: kind === 'self' ? b.text ?? '' : undefined, url: kind === 'self' ? undefined : b.url, kind, nsfw: String(b.nsfw) === 'true', flairId: b.flair_id ?? null,
       flairText: sub.flairs.find(f => f.id === b.flair_id)?.text, created: Math.floor(Date.now() / 1000), pending: kind === 'image' || kind === 'video', resubmit: b.resubmit, sendreplies: b.sendreplies };
@@ -142,7 +143,7 @@ export default function reddit(m: MockRegistry) {
     if (req.params.sr.toLowerCase() === 'private') return { status: 403, json: { message: 'Forbidden', reason: 'private', error: 403 } };
     return sub ? { json: sub.flairs } : { status: 404, json: { message: 'Not Found', error: 404 } };
   });
-  m.on('GET', API, '/r/:sr/api/post_requirements', req => {
+  m.on('GET', API, '/api/v1/:sr/post_requirements', req => {
     const bad = authorize(req); if (bad) return bad;
     const sub = SUBS[req.params.sr.toLowerCase()];
     if (!sub) return { status: 404, json: { message: 'Not Found', error: 404 } };

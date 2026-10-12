@@ -47,7 +47,8 @@ const LOCATION_READ_MASK = 'name,title,storefrontAddress,websiteUri,metadata';
 const LOCATION_FIELDS = ['name', 'languageCode', 'storeCode', 'title', 'phoneNumbers', 'categories', 'storefrontAddress', 'websiteUri', 'regularHours', 'specialHours', 'serviceArea', 'labels', 'latlng', 'openInfo', 'metadata', 'profile', 'moreHours', 'serviceItems'];
 const LOCATION_WRITABLE = ['profile', 'websiteUri', 'phoneNumbers', 'categories', 'storefrontAddress', 'regularHours', 'specialHours', 'moreHours', 'openInfo', 'serviceArea', 'latlng'];
 const IMPRESSION_METRICS = ['BUSINESS_IMPRESSIONS_DESKTOP_MAPS', 'BUSINESS_IMPRESSIONS_DESKTOP_SEARCH', 'BUSINESS_IMPRESSIONS_MOBILE_MAPS', 'BUSINESS_IMPRESSIONS_MOBILE_SEARCH'];
-const ACTION_METRICS = ['WEBSITE_CLICKS', 'CALL_CLICKS', 'BUSINESS_DIRECTION_REQUESTS', 'BUSINESS_CONVERSATIONS', 'BUSINESS_BOOKINGS', 'BUSINESS_FOOD_ORDERS'];
+// BUSINESS_CONVERSATIONS and BUSINESS_FOOD_ORDERS are deprecated in DailyMetric; asking for them risks a 400.
+const ACTION_METRICS = ['WEBSITE_CLICKS', 'CALL_CLICKS', 'BUSINESS_DIRECTION_REQUESTS', 'BUSINESS_BOOKINGS'];
 const STARS: Record<string, number> = { ONE: 1, TWO: 2, THREE: 3, FOUR: 4, FIVE: 5 };
 
 // ───────────────────────────── errors ─────────────────────────────
@@ -394,7 +395,7 @@ export const googleBusiness: NetworkAdapter = {
     return {
       url: authorizeUrl(AUTH_URL, {
         client_id: String(ctx.credentials.clientId ?? ''), redirect_uri: ctx.redirectUri, response_type: 'code', scope: SCOPES.join(' '), state: input.state,
-        access_type: 'offline', prompt: 'consent', include_granted_scopes: 'true', code_challenge: input.codeChallenge, code_challenge_method: 'S256',
+        access_type: 'offline', prompt: 'consent', code_challenge: input.codeChallenge, code_challenge_method: 'S256',
       }),
     };
   },

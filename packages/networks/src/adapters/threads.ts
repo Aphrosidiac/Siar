@@ -1,7 +1,7 @@
 /**
- * Threads — graph.threads.net.
+ * Threads — graph.threads.com.
  *
- * Connect: threads.net/oauth/authorize → code → graph.threads.net/oauth/access_token (short-lived) →
+ * Connect: threads.com/oauth/authorize → code → graph.threads.com/oauth/access_token (short-lived) →
  * /access_token?grant_type=th_exchange_token (long-lived, ≈60 days) → /refresh_access_token
  * (th_refresh_token; the token must be at least 24 hours old and not expired). The account is the
  * identity; there are no channels.
@@ -22,7 +22,7 @@ import { checkMedia, checkText, GB, MB } from '../lib/validate.js';
 import type { AccountRuntime, FetchedCommentInput, HistoryPost, Issue, MediaRef, NetworkAdapter, NetworkContext, PostMetrics, PublishResult } from '../types.js';
 import { graph, metaMapError, nextAfter, parseRef, pickErrors, THREADS_GRAPH, THREADS_GRAPH_ROOT, threadsLength, unix } from './meta-common.js';
 
-const THREADS_WWW = 'https://threads.net';
+const THREADS_WWW = 'https://threads.com';
 const SCOPES = ['threads_basic', 'threads_content_publish', 'threads_manage_replies', 'threads_read_replies', 'threads_manage_insights', 'threads_delete'];
 const REPLY_CONTROLS = ['everyone', 'accounts_you_follow', 'mentioned_only', 'parent_post_author_only', 'followers_only'];
 const PROFILE_FIELDS = 'id,username,name,threads_profile_picture_url,threads_biography';
@@ -81,7 +81,7 @@ const linksIn = (s: string) => new Set(s.match(/https?:\/\/[^\s]+/g) ?? []);
 const toComment = (r: any, postId: string): FetchedCommentInput => ({
   externalId: String(r.id), externalPostId: postId,
   externalParentId: r.replied_to?.id && String(r.replied_to.id) !== postId ? String(r.replied_to.id) : null,
-  authorName: r.username ?? null, authorProfileUrl: r.username ? `https://www.threads.net/@${r.username}` : null,
+  authorName: r.username ?? null, authorProfileUrl: r.username ? `https://www.threads.com/@${r.username}` : null,
   text: r.text ?? '', publishedAt: r.timestamp ? new Date(r.timestamp) : null,
   platformData: { permalink: r.permalink ?? null, hideStatus: r.hide_status ?? null, hasReplies: r.has_replies ?? null },
 });

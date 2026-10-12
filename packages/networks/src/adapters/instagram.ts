@@ -135,8 +135,9 @@ function topLevel(d: Record<string, any>, extra: Record<string, any> = {}) {
   const out: Record<string, any> = {
     caption: d.text || undefined, collaborators: json(d.collaborators), location_id: d.locationId || undefined, ...extra,
   };
-  if (d.isPaidPartnership) { out.is_paid_partnership = true; out.branded_content_sponsors = json(d.brandedContentSponsors); }
-  if (d.isAiGenerated) out.ai_generated = true;
+  // branded_content_sponsor_ids: up to 2 sponsor Instagram user ids (Facebook Login only).
+  if (d.isPaidPartnership) { out.is_paid_partnership = true; out.branded_content_sponsor_ids = json(d.brandedContentSponsors); }
+  if (d.isAiGenerated) out.is_ai_generated = true;
   return out;
 }
 
@@ -155,6 +156,7 @@ async function buildContainer(ctx: NetworkContext, input: { account: AccountRunt
 
   const reelOf = async (v: MediaRef) => {
     const thumb = d.thumbnail ? await input.resolveUpload(d.thumbnail).catch(() => null) : null;
+    // Instagram Audio API (Facebook Login only): audio_configuration = JSON { audio_id, audio_volume, video_volume }.
     const music = d.musicSoundInfo?.musicSoundId
       ? JSON.stringify({ audio_id: d.musicSoundInfo.musicSoundId, audio_volume: d.musicSoundInfo.musicSoundVolume ?? undefined, video_volume: d.musicSoundInfo.videoOriginalSoundVolume ?? undefined })
       : undefined;
@@ -375,6 +377,7 @@ export const instagram: NetworkAdapter = {
     } else if (type === 'STORY') {
       if (media.length !== 1) issues.push({ code: 'media', message: 'An Instagram Story needs exactly one image or video.', path: ['uploadIds'] });
       media.forEach((v, i) => { if (v.type === 'video' && v.duration != null && v.duration > 60) issues.push({ code: 'too_long', message: `Story videos are limited to 60 seconds; this one is ${Math.round(v.duration)}s.`, path: ['uploadIds', i] }); });
+      media.forEach((v, i) => { if (v.type === 'video' && v.fileSize > 100 * MB) issues.push({ code: 'too_large', message: 'Story videos are limited to 100 MB.', path: ['uploadIds', i] }); });
     } else if (media.length > 1) {
       media.forEach((v, i) => { if (v.type === 'video' && v.duration != null && v.duration > 180) issues.push({ code: 'too_long', message: `Carousel videos are limited to 3 minutes; this one is ${Math.round(v.duration)}s.`, path: ['uploadIds', i] }); });
     }
@@ -396,6 +399,7 @@ export const instagram: NetworkAdapter = {
     if (data.thumbnailOffset != null && (typeof data.thumbnailOffset !== 'number' || data.thumbnailOffset < 0)) issues.push({ code: 'invalid', message: 'thumbnailOffset must be 0 or more (milliseconds).', path: ['thumbnailOffset'] });
     if (Array.isArray(data.carouselItems) && data.carouselItems.length > 10) issues.push({ code: 'too_many', message: 'At most 10 carousel items.', path: ['carouselItems'] });
     if (data.brandedContentSponsors?.length && !data.isPaidPartnership) issues.push({ code: 'invalid', message: 'brandedContentSponsors needs isPaidPartnership.', path: ['brandedContentSponsors'] });
+    (data.brandedContentSponsors ?? []).forEach((v: unknown, i: number) => { if (!/^\d+$/.test(String(v))) issues.push({ code: 'invalid', message: 'brandedContentSponsors takes the sponsor\'s Instagram user id (numeric), not a username.', path: ['brandedContentSponsors', i] }); });
     if (data.altText && charCount(String(data.altText)) > 1000) issues.push({ code: 'too_long', message: 'Alt text is limited to 1000 characters.', path: ['altText'] });
     return issues;
   },
@@ -446,9 +450,10 @@ export const instagram: NetworkAdapter = {
   },
 
   async importComments(ctx, a, input) {
+    // IG Comment fields (there is no replies_count; the count comes from replies{…}).
     const sub = 'id,text,timestamp,username,like_count,hidden,from';
     const res = await ig(ctx, a, `/${input.externalPostId}/comments`, {
-      query: { fields: `${sub},replies_count,replies{${sub}}`, limit: Math.min(50, input.limit), after: input.cursor ?? undefined },
+      query: { fields: `${sub},replies{${sub}}`, limit: Math.min(50, input.limit), after: input.cursor ?? undefined },
     });
     const items: FetchedCommentInput[] = [];
     for (const c of res.data ?? []) {

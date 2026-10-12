@@ -31,7 +31,7 @@ export default function linkedin(m: MockRegistry) {
     if (req.path.startsWith('/rest/')) {
       const v = req.headers['linkedin-version'];
       if (!v || !/^\d{6}$/.test(v)) return err(400, 'A fully qualified version string must be provided in the Linkedin-Version header (YYYYMM).', 'VERSION_MISSING');
-      if (v < '202409') return err(426, `Requested version ${v} is not active`, 'NONEXISTENT_VERSION');
+      if (v < '202511') return err(426, `Requested version ${v} is not active`, 'NONEXISTENT_VERSION');
       if (req.headers['x-restli-protocol-version'] !== '2.0.0') return err(400, 'X-Restli-Protocol-Version must be 2.0.0.');
     }
     if (s().rateLimited) return { status: 429, json: { status: 429, code: 'TOO_MANY_REQUESTS', message: 'Resource level throttle APPLICATION DAY limit for calls to this resource is reached.' } };
@@ -68,12 +68,17 @@ export default function linkedin(m: MockRegistry) {
     return { json: { sub: SUB, email_verified: true, name: 'Siar Test', locale: { country: 'US', language: 'en' }, given_name: 'Siar', family_name: 'Test', email: 'siar@example.test', picture: 'https://media.licdn.example/me.jpg' } };
   });
 
+  m.on('GET', API, '/v2/me', req => {
+    const e = gate(req); if (e) return e;
+    return { json: { id: SUB, localizedFirstName: 'Siar', localizedLastName: 'Test', profilePicture: { 'displayImage~': { elements: [{ identifiers: [{ identifier: 'https://media.licdn.example/me.jpg' }] }] } } } };
+  });
+
   // ── organizations ──
   const org = { id: Number(ORG), localizedName: 'Siar Labs', vanityName: 'siar-labs', logoV2: { 'original~': { elements: [{ identifiers: [{ identifier: 'https://media.licdn.example/siar-logo.png' }] }] } } };
   m.on('GET', API, '/rest/organizationAcls', req => {
     const e = gate(req); if (e) return e;
     if (s().noOrgScope) return err(403, 'Not enough permissions to access: organizationAcls.FINDER-roleAssignee.' + req.headers['linkedin-version'], 'ACCESS_DENIED');
-    return { json: { paging: { start: 0, count: 50, links: [], total: 1 }, elements: [{ role: 'ADMINISTRATOR', organization: ORG_URN, roleAssignee: ME, state: 'APPROVED' }] } };
+    return { json: { paging: { start: 0, count: 50, links: [], total: 1 }, elements: [{ role: 'ADMINISTRATOR', organizationTarget: ORG_URN, roleAssignee: ME, state: 'APPROVED' }] } };
   });
   m.on('GET', API, '/rest/organizations/:id', req => {
     const e = gate(req); if (e) return e;

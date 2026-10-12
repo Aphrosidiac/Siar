@@ -31,6 +31,15 @@ Meta Business Suite → Business settings → Business info → **Start verifica
 | Valid OAuth redirect URIs | https://api.siaran.my/api/v1/social-account/callback/FACEBOOK, …/INSTAGRAM, …/THREADS |
 | Webhooks | Callback https://api.siaran.my/api/v1/webhooks/meta, verify token = NETWORK_META_WEBHOOK_VERIFY_TOKEN; fields: Page `feed`, `messages`, `messaging_postbacks`, `message_reactions`, `message_echoes`; Instagram `comments`, `messages`, `messaging_postbacks`, `message_reactions` |
 
+## 2b. Facebook Login for Business — check before recording
+
+Business-type apps may only offer Facebook Login for Business. Open the connect flow in Development
+mode with a tester first. If Meta shows "Invalid Scopes" or ignores permissions: Facebook Login for
+Business → Configurations → create "Siar Pages" (user access token, the Facebook permissions in
+the table below) and "Siar Instagram" (the instagram_* + pages_show_list/pages_read_engagement/
+business_management set), then set `NETWORK_FACEBOOK_LOGIN_CONFIG_ID` and
+`NETWORK_INSTAGRAM_LOGIN_CONFIG_ID`. Siar sends `config_id` when these are present.
+
 ## 3. App Review — submission A (publishing, comments, insights)
 
 Submit after deploy. For each permission: the description below + a screencast of **Siar's own
@@ -50,6 +59,7 @@ UI** doing exactly that (never Meta's UI), recorded at 1280×800, English captio
 | `pages_manage_posts` | Publishes, schedules, edits and deletes posts on the selected Page when the user creates them in Siar or through the Siar API. | Composer → Publish now → post visible on the Page; then delete from Siar |
 | `pages_read_user_content` | Reads comments and recommendations on the Page so the user can moderate them in Siar's inbox. | Inbox listing comments of a published post |
 | `pages_manage_engagement` | Replies to, hides and deletes comments on the Page from Siar's inbox, and posts the first comment the user scheduled. | Reply to a comment in Siar → reply visible on Facebook; hide a comment |
+| `pages_manage_metadata` | Subscribes Siar to the Page's webhooks (new comments, messages) so the inbox updates in real time instead of polling. | Comment on the Page from another account → it appears in Siar's inbox without refresh |
 | `read_insights` | Shows Page and post insights (reach, impressions, engagement) in Siar's analytics. | Analytics screen for the Page |
 | `business_management` | Required to list Pages and Instagram accounts that belong to the user's business portfolio. | Page picker including portfolio Pages |
 | `instagram_basic` | Reads the connected Instagram professional account's profile and media list. | Connected Instagram account card with username and avatar |
@@ -57,7 +67,7 @@ UI** doing exactly that (never Meta's UI), recorded at 1280×800, English captio
 | `instagram_manage_comments` | Reads, replies to, hides and deletes comments on the user's Instagram media from Siar's inbox, and posts the scheduled first comment. | Reply + hide in Siar's inbox, visible on Instagram |
 | `instagram_manage_insights` | Shows media and account insights in Siar's analytics. | Analytics screen for the Instagram account |
 | `instagram_business_basic`, `instagram_business_content_publish`, `instagram_business_manage_comments`, `instagram_business_manage_insights` (Instagram Login) | Same uses as above, for users who connect Instagram directly without a Facebook Page. | Connect Instagram → "Continue with Instagram" flow, then publish |
-| `threads_basic`, `threads_content_publish`, `threads_manage_replies`, `threads_read_replies`, `threads_manage_insights` | Publishes text, image, video and carousel posts to the user's Threads profile, manages replies, and shows insights. | Connect Threads → publish a Threads post → reply from Siar |
+| `threads_basic`, `threads_content_publish`, `threads_manage_replies`, `threads_read_replies`, `threads_manage_insights`, `threads_delete` | Publishes text, image, video and carousel posts to the user's Threads profile, manages replies, shows insights, and deletes a post when the user deletes it in Siar. | Connect Threads → publish a Threads post → reply from Siar → delete the post from Siar |
 
 ## 4. App Review — submission B (messaging), only after A passes
 

@@ -5,7 +5,10 @@
  *   OAuth 2.0        www.linkedin.com/oauth/v2/authorization → /oauth/v2/accessToken (client_id and
  *                    client_secret in the form). Access tokens last 60 days; refresh tokens exist
  *                    only for approved partner apps — otherwise the member reconnects.
- *   Identity         GET /v2/userinfo (openid profile email): `sub` is the person id → urn:li:person:<sub>
+ *   Identity         GET /v2/userinfo (openid profile email): `sub` is the person id → urn:li:person:<sub>.
+ *                    A Community-Management-only app (no openid) uses GET /v2/me (r_basicprofile).
+ *   Scopes           Member scopes by default; organization scopes only with
+ *                    NETWORK_LINKEDIN_COMMUNITY_MANAGEMENT=true (or NETWORK_LINKEDIN_SCOPES verbatim).
  *   Organizations    GET /rest/organizationAcls?q=roleAssignee (ADMINISTRATOR, APPROVED) → optional
  *                    channels; posting as one sets the author to urn:li:organization:<id>
  *   Posts            POST /rest/posts → 201, the new URN is in the x-restli-id header, body empty.
@@ -21,7 +24,7 @@
 import { NetworkError } from '../lib/errors.js';
 import { httpError, request, resetFrom, type RequestOptions } from '../lib/http.js';
 import { authorizeUrl, expiresIn } from '../lib/oauth.js';
-import { checkMedia, checkText, GB, MB } from '../lib/validate.js';
+import { checkMedia, checkText, MB } from '../lib/validate.js';
 import type {
   AccountMetrics, AccountProfile, AccountRuntime, Channel, FetchedCommentInput, HistoryPost, Issue, MediaRef, MiscHandler, NetworkAdapter, NetworkContext,
   PostMetrics, PublishInput, PublishResult, TokenSet,
@@ -32,8 +35,22 @@ const REST = `${API}/rest`;
 const AUTH_URL = 'https://www.linkedin.com/oauth/v2/authorization';
 const TOKEN_URL = 'https://www.linkedin.com/oauth/v2/accessToken';
 /** The LinkedIn-Version header (YYYYMM). LinkedIn sunsets versions after about a year: bump with a retest. */
-export const LINKEDIN_VERSION = '202510';
-const SCOPES = ['openid', 'profile', 'email', 'w_member_social', 'r_member_postAnalytics', 'r_organization_social', 'w_organization_social', 'rw_organization_admin'];
+export const LINKEDIN_VERSION = '202609';
+/** Sign In with LinkedIn (OIDC) + Share on LinkedIn: self-serve products, granted without review. */
+const MEMBER_SCOPES = ['openid', 'profile', 'email', 'w_member_social'];
+/** Community Management API (vetted). Requested only once the app is approved for it. */
+const ORG_SCOPES = ['r_member_postAnalytics', 'r_organization_social', 'w_organization_social', 'rw_organization_admin'];
+const SCOPES = [...MEMBER_SCOPES, ...ORG_SCOPES];
+const truthy = (v: string | undefined) => !!v && /^(1|true|yes|on)$/i.test(v);
+/**
+ * What we ask for at consent. One scope the app is not approved for fails the whole authorization,
+ * so the organization scopes are added only when NETWORK_LINKEDIN_COMMUNITY_MANAGEMENT=true.
+ * NETWORK_LINKEDIN_SCOPES (space/comma list) overrides both for whatever LinkedIn actually granted.
+ */
+const scopesFor = (ctx: NetworkContext) =>
+  ctx.mode === 'mock' ? SCOPES // the mock models an approved app (and fills every credential key)
+    : ctx.credentials.scopes ? ctx.credentials.scopes.split(/[\s,]+/).filter(Boolean)
+    : truthy(ctx.credentials.communityManagement) ? SCOPES : MEMBER_SCOPES;
 const TEXT_MAX = 3000;
 const COMMENT_MAX = 1250;
 const MAX_IMAGES = 20;
@@ -158,9 +175,10 @@ async function adminOrgs(ctx: NetworkContext, token: string): Promise<Channel[]>
     const acls = await api(ctx, token, `${REST}/organizationAcls`, { headers, query: { q: 'roleAssignee', role: 'ADMINISTRATOR', state: 'APPROVED', count: 50 } });
     const out: Channel[] = [];
     for (const e of acls.elements ?? []) {
-      const id = String(e.organization ?? '').split(':').pop();
+      // Older versions answer `organization`, current ones `organizationTarget`.
+      const id = String(e.organizationTarget ?? e.organization ?? '').split(':').pop();
       if (!id) continue;
-      const o = await api(ctx, token, `${REST}/organizations/${id}`, { headers }).catch(() => ({ id, localizedName: null }));
+      const o = await api(ctx, token, `${REST}/organizations/${id}`, { headers, query: { projection: '(id,localizedName,vanityName,logoV2(original~:playableStreams,cropped~:playableStreams))' } }).catch(() => ({ id, localizedName: null }));
       out.push(toChannel(o, e.role));
     }
     return out;
@@ -168,6 +186,18 @@ async function adminOrgs(ctx: NetworkContext, token: string): Promise<Channel[]>
     if (e instanceof NetworkError && e.code === 'TOKEN_INVALID') throw e;
     return [];
   }
+}
+
+/**
+ * Who the token belongs to. Apps with Sign In with LinkedIn (openid) use /v2/userinfo; a
+ * Community-Management-only app has no openid and reads /v2/me (r_basicprofile) instead.
+ * Both are normalised to the userinfo shape ({ sub, name, picture, email }).
+ */
+async function whoami(ctx: NetworkContext, token: string, scopes: string[] | undefined) {
+  if (!scopes?.length || scopes.includes('openid')) return api(ctx, token, `${API}/v2/userinfo`);
+  const me = await api(ctx, token, `${API}/v2/me`, { query: { projection: '(id,localizedFirstName,localizedLastName,profilePicture(displayImage~:playableStreams))' } });
+  const pic = me.profilePicture?.['displayImage~']?.elements?.at(-1)?.identifiers?.[0]?.identifier ?? null;
+  return { sub: me.id, name: [me.localizedFirstName, me.localizedLastName].filter(Boolean).join(' ') || null, picture: pic, email: null };
 }
 
 const profileOf = (u: any, channels: Channel[] = []): AccountProfile => ({
@@ -180,7 +210,7 @@ async function tokenRequest(ctx: NetworkContext, form: Record<string, string>, p
   return {
     accessToken: tok.access_token, refreshToken: tok.refresh_token ?? prev?.refreshToken ?? null, expiresAt: expiresIn(tok.expires_in, ctx.now()),
     refreshTokenExpiresAt: tok.refresh_token_expires_in ? expiresIn(tok.refresh_token_expires_in, ctx.now()) : prev?.refreshTokenExpiresAt ?? null,
-    scopes: String(tok.scope ?? SCOPES.join(',')).split(/[\s,]+/).filter(Boolean), secrets: { ...(prev?.secrets ?? {}) },
+    scopes: String(tok.scope ?? scopesFor(ctx).join(',')).split(/[\s,]+/).filter(Boolean), secrets: { ...(prev?.secrets ?? {}) },
   };
 }
 
@@ -318,7 +348,7 @@ export const linkedin: NetworkAdapter = {
     media: {
       maxItems: MAX_IMAGES,
       image: { mimes: ['image/jpeg', 'image/png', 'image/gif'], maxBytes: 20 * MB },
-      video: { mimes: ['video/mp4'], maxBytes: 5 * GB, minSeconds: 3, maxSeconds: 30 * 60 },
+      video: { mimes: ['video/mp4'], maxBytes: 500 * MB, minSeconds: 3, maxSeconds: 30 * 60 },
       document: { mimes: DOC_MIMES, maxBytes: 100 * MB },
     },
   },
@@ -337,14 +367,14 @@ export const linkedin: NetworkAdapter = {
 
   async authorize(ctx, input) {
     const url = authorizeUrl(AUTH_URL, {
-      response_type: 'code', client_id: ctx.credentials.clientId, redirect_uri: ctx.redirectUri, state: input.state, scope: SCOPES.join(' '),
+      response_type: 'code', client_id: ctx.credentials.clientId, redirect_uri: ctx.redirectUri, state: input.state, scope: scopesFor(ctx).join(' '),
     });
     return { url };
   },
 
   async exchange(ctx, input) {
     const token = await tokenRequest(ctx, { grant_type: 'authorization_code', code: input.code, redirect_uri: ctx.redirectUri });
-    const u = await api(ctx, token.accessToken, `${API}/v2/userinfo`);
+    const u = await whoami(ctx, token.accessToken, token.scopes);
     return { token, profile: profileOf(u, await adminOrgs(ctx, token.accessToken)) };
   },
 
@@ -354,7 +384,7 @@ export const linkedin: NetworkAdapter = {
   },
 
   async refreshProfile(ctx, a) {
-    const u = await api(ctx, a.token.accessToken, `${API}/v2/userinfo`);
+    const u = await whoami(ctx, a.token.accessToken, a.token.scopes);
     return profileOf(u, await adminOrgs(ctx, a.token.accessToken));
   },
 
@@ -367,7 +397,7 @@ export const linkedin: NetworkAdapter = {
   },
 
   async checkConnection(ctx, a) {
-    try { await api(ctx, a.token.accessToken, `${API}/v2/userinfo`); return true; } catch (e) {
+    try { await whoami(ctx, a.token.accessToken, a.token.scopes); return true; } catch (e) {
       if (e instanceof NetworkError && e.code === 'TOKEN_INVALID') return false;
       throw e;
     }
@@ -444,7 +474,7 @@ export const linkedin: NetworkAdapter = {
 
   async editComment(ctx, a, urn, text) {
     const { objectUrn, commentId } = parseComment(urn);
-    await rest(ctx, a, `/socialActions/${enc(objectUrn)}/comments/${commentId}?actor=${enc(authorUrn(a))}`, { json: { patch: { message: { $set: { text: escapeCommentary(text) } } } } });
+    await rest(ctx, a, `/socialActions/${enc(objectUrn)}/comments/${commentId}?actor=${enc(authorUrn(a))}`, { json: { patch: { message: { $set: { text: escapeCommentary(text) } } } }, headers: { 'x-restli-method': 'PARTIAL_UPDATE' } });
   },
 
   async deleteComment(ctx, a, urn) {
@@ -487,7 +517,7 @@ export const linkedin: NetworkAdapter = {
   async postAnalytics(ctx, a, urn): Promise<PostMetrics> {
     const org = orgId(a);
     if (org) {
-      const r = await restJson(ctx, a, `/organizationalEntityShareStatistics?q=organizationalEntity&organizationalEntity=${enc(`urn:li:organization:${org}`)}&shares=List(${enc(urn)})`);
+      const r = await restJson(ctx, a, `/organizationalEntityShareStatistics?q=organizationalEntity&organizationalEntity=${enc(`urn:li:organization:${org}`)}&${urn.startsWith('urn:li:ugcPost:') ? 'ugcPosts' : 'shares'}=List(${enc(urn)})`);
       const s = r.elements?.[0]?.totalShareStatistics;
       if (!s) throw new NetworkError('NOT_FOUND', `LinkedIn has no statistics for ${urn}.`, { httpStatus: 404 });
       return metricsOf(s);

@@ -123,7 +123,8 @@ async function uploadMedia(ctx: NetworkContext, a: AccountRuntime, m: MediaRef):
     const fin = await api(ctx, a, `/media/upload/${id}/finalize`, { method: 'POST' });
     info = fin.data?.processing_info;
   }
-  if (m.altText) await api(ctx, a, '/media/metadata', { method: 'POST', json: { id, metadata: { alt_text: { text: m.altText.slice(0, 1000) } } } });
+  // Alt text applies to images and GIFs, not videos.
+  if (m.altText && m.type === 'image') await api(ctx, a, '/media/metadata', { method: 'POST', json: { id, metadata: { alt_text: { text: m.altText.slice(0, 1000) } } } });
   if (info?.state === 'failed') throw new NetworkError('MEDIA_INVALID', info.error?.message ?? 'X could not process the media.', { meta: info });
   return { id, pending: !!info && info.state !== 'succeeded' };
 }

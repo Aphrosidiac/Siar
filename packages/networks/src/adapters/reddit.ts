@@ -25,7 +25,7 @@ import type { AccountProfile, AccountRuntime, FetchedCommentInput, HistoryPost, 
 const API = 'https://oauth.reddit.com';
 const WWW = 'https://www.reddit.com';
 const USER_AGENT = 'web:dev.siar.api:v1.0 (by /u/siar-dev)';
-const SCOPES = ['identity', 'submit', 'edit', 'read', 'flair', 'history', 'mysubreddits'];
+const SCOPES = ['identity', 'submit', 'edit', 'read', 'flair', 'history'];
 const TITLE_MAX = 300;
 const TEXT_MAX = 40_000;
 const COMMENT_MAX = 10_000;
@@ -150,7 +150,7 @@ async function tokenRequest(ctx: NetworkContext, form: Record<string, string>, p
 }
 
 /** Lease an S3 upload, send the file, and return the hosted URL Reddit accepts as kind=image|video. */
-async function uploadAsset(ctx: NetworkContext, a: AccountRuntime, m: MediaRef): Promise<string> {
+async function uploadAsset(ctx: NetworkContext, a: AccountRuntime, m: Pick<MediaRef, 'mime' | 'ext' | 'read'>): Promise<string> {
   const lease = await api(ctx, a, '/api/media/asset.json', { method: 'POST', form: { filepath: `upload.${m.ext}`, mimetype: m.mime } });
   const args = lease?.args;
   if (!args?.action || !Array.isArray(args.fields)) throw new NetworkError('MEDIA_INVALID', 'Reddit did not return an upload lease for this media.', { meta: lease });
@@ -163,8 +163,9 @@ async function uploadAsset(ctx: NetworkContext, a: AccountRuntime, m: MediaRef):
     mapError: (status, body) => new NetworkError('MEDIA_INVALID', `Reddit's media storage rejected the upload (HTTP ${status}).`, { httpStatus: status, meta: typeof body === 'string' ? body.slice(0, 500) : body }),
   });
   const key = (args.fields as { name: string; value: string }[]).find(f => f.name === 'key')?.value;
+  // `<action>/<key>` is what Reddit's own clients submit (PRAW); the S3 <Location> is URL-encoded (%2F).
   const loc = typeof res === 'string' ? res.match(/<Location>([^<]+)<\/Location>/)?.[1] : null;
-  const url = loc ? loc.replace(/&amp;/g, '&') : key ? `${action}/${key}` : null;
+  const url = key ? `${action}/${key}` : loc ? decodeURIComponent(loc.replace(/&amp;/g, '&')) : null;
   if (!url) throw new NetworkError('MEDIA_INVALID', 'Reddit accepted the upload but returned no media URL.');
   return url;
 }
@@ -331,6 +332,11 @@ export const reddit: NetworkAdapter = {
     if (m) {
       form.kind = m.type === 'video' ? 'video' : 'image';
       form.url = await uploadAsset(ctx, a, m);
+      // Video posts need a poster image, uploaded the same way (video_poster_url).
+      if (m.type === 'video') {
+        if (!m.poster) throw new NetworkError('MEDIA_INVALID', 'Reddit video posts need a poster frame; re-upload the video so Siar can generate one.');
+        form.video_poster_url = await uploadAsset(ctx, a, m.poster);
+      }
     } else if (d.link) {
       form.kind = 'link';
       form.url = d.link;
@@ -435,7 +441,7 @@ export const reddit: NetworkAdapter = {
     'misc.reddit.getPostRequirements': async (ctx, a, { query }) => {
       const sr = normSr(String(query.subreddit ?? ''));
       if (!sr) throw new NetworkError('VALIDATION', 'subreddit is required.');
-      const req = await api(ctx, a, `/r/${encodeURIComponent(sr)}/api/post_requirements`);
+      const req = await api(ctx, a, `/api/v1/${encodeURIComponent(sr)}/post_requirements`);
       const list = await flairs(ctx, a, sr).catch(e => {
         // A subreddit without flair, or where the account may not read it, simply has none.
         if (e instanceof NetworkError && ['NOT_FOUND', 'PERMISSION'].includes(e.code)) return [];

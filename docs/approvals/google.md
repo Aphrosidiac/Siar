@@ -16,12 +16,12 @@
 | Logo | 120×120 PNG |
 | Home page / Privacy / Terms | https://siaran.my · /privacy · /terms |
 | Authorized domains | siaran.my |
-| Scopes | youtube.upload, youtube, youtube.force-ssl, yt-analytics.readonly, business.manage, openid, email, profile |
+| Scopes | youtube.upload, youtube.force-ssl, yt-analytics.readonly, business.manage (exactly what Siar requests — add no others) |
 | Redirect URIs | https://api.siaran.my/api/v1/social-account/callback/YOUTUBE · …/GOOGLE_BUSINESS |
 
 **Scope justifications (paste):**
 - `youtube.upload` — Upload videos and Shorts the user schedules in Siar to the channel they connected.
-- `youtube` / `youtube.force-ssl` — Set thumbnails, edit video metadata, manage playlists, and read, reply to and moderate comments on the user's own videos from Siar.
+- `youtube.force-ssl` — Set thumbnails, edit video metadata, manage playlists, and read, reply to and moderate comments on the user's own videos from Siar.
 - `yt-analytics.readonly` — Show views and watch time of the user's videos in Siar's analytics.
 - `business.manage` — Publish posts, update the business profile, reply to reviews and read performance for the Google Business Profile locations the user manages.
 
@@ -30,10 +30,13 @@ visible, then each scope used in Siar (upload a Short, set a thumbnail, reply to
 analytics; publish a GBP post, reply to a review).
 
 ## YouTube API Services — audit and quota extension (after OAuth verification)
-Form: support.google.com/youtube/contact/yt_api_form. Default quota is 10,000 units/day (an
-upload costs ~1,600), so the audit is needed for real volume.
+Form: support.google.com/youtube/contact/yt_api_form. Default quota is 10,000 units/day for
+reads/writes; since 1 Jun 2026 `videos.insert` has its own quota bucket (an upload costs ~100
+units since Dec 2025). The audit is needed anyway: until it passes, every API upload is locked
+**private** (Siar flags this on the post).
 - Use case: multi-tenant publishing tool; each user acts only on their own channel.
-- Requested quota: 1,000,000 units/day (justify: ~500 uploads/day at launch + reads).
+- Requested quota: `videos.insert` bucket for ~500 uploads/day at launch; 100,000 units/day for
+  the shared bucket (thumbnails, comments, status polls and analytics for those uploads).
 - Compliance: no API data shown to users other than the channel owner; analytics stored ≤30 days
   for refresh only; tokens deletable via disconnect and https://siaran.my/data-deletion; links to
   YouTube ToS and Google privacy policy on the connect screen (built in).

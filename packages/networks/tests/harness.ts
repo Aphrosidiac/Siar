@@ -36,6 +36,7 @@ export function media(opts: Partial<MediaRef> & { bytes?: Buffer } = {}): MediaR
     read: async () => bytes,
     readRange: async (s, e) => bytes.subarray(s, e),
     stream: async () => new Blob([new Uint8Array(bytes)]).stream() as ReadableStream<Uint8Array>,
+    poster: (opts.type ?? 'image') === 'video' ? { mime: 'image/png', ext: 'png', read: async () => PNG } : null,
   };
 }
 export const video = (seconds = 12, size = 2 * 1024 * 1024) => media({ type: 'video', mime: 'video/mp4', ext: 'mp4', duration: seconds, width: 1080, height: 1920, bytes: Buffer.alloc(size, 1), url: 'https://media.siar.test/clip.mp4' });

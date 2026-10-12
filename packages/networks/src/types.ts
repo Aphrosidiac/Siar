@@ -123,6 +123,8 @@ export interface MediaRef {
   stream(): Promise<ReadableStream<Uint8Array>>;
   /** Read a byte range (chunked uploads: TikTok, YouTube resumable, X, LinkedIn). */
   readRange(start: number, endExclusive: number): Promise<Buffer>;
+  /** A still frame of a video, generated on upload — for networks that require a poster image (Reddit). */
+  poster?: { mime: string; ext: string; read(): Promise<Buffer> } | null;
 }
 
 // ───────────────────────────── publishing ─────────────────────────────
