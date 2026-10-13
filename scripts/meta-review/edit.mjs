@@ -149,11 +149,11 @@ const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: W, height: H } });
 async function shot(html, path, h) { await page.setViewportSize({ width: W, height: h }); await page.setContent(`<style>${css}</style>${html}`); await page.evaluate(() => document.fonts.ready); await page.screenshot({ path, omitBackground: false }); }
 if (!PART) await shot(`<div style="width:${W}px;height:${H}px;background:#f3efe4;color:#0b0b0a;padding:120px 140px;display:flex;flex-direction:column">
-  <div style="font-family:PlexMono;font-weight:500;font-size:22px;letter-spacing:.12em;color:#5c584f">/ SIAR · META APP REVIEW · ${film}</div>
+  <div style="font-family:PlexMono;font-weight:500;font-size:22px;letter-spacing:.12em;color:#5c584f">/ SIAR · ${esc(meta.review ?? 'META APP REVIEW')} · ${film}</div>
   <div style="font-weight:600;font-size:76px;line-height:1.08;margin-top:28px;max-width:1500px">${esc(meta.title)}</div>
-  <div style="font-size:28px;color:#3d3a34;margin-top:44px">Permissions shown in this recording</div>
+  <div style="font-size:28px;color:#3d3a34;margin-top:44px">${esc(meta.label ?? 'Permissions shown in this recording')}</div>
   <div style="display:flex;flex-wrap:wrap;gap:14px;margin-top:20px">${meta.perms.map((p) => `<span style="font-family:PlexMono;font-weight:500;font-size:30px;padding:12px 24px;border:2px solid #0b0b0a;border-radius:999px">${esc(p)}</span>`).join('')}</div>
-  <div style="margin-top:auto;font-size:24px;line-height:1.5;color:#5c584f">Recorded in Siar (app.siaran.my) on 13 October 2026, using FF Dev Studio's own Facebook Page, Instagram and Threads accounts.<br>Captions describe each step. Waits on the network are shortened and labelled.</div></div>`, `${TMP}${film}-title.png`, H);
+  <div style="margin-top:auto;font-size:24px;line-height:1.5;color:#5c584f">${esc(meta.footer ?? "Recorded in Siar (app.siaran.my) on 13 October 2026, using FF Dev Studio's own Facebook Page, Instagram and Threads accounts.")}<br>Captions describe each step. Waits on the network are shortened and labelled.</div></div>`, `${TMP}${film}-title.png`, H);
 for (const [i, s] of states.entries()) {
   s.png = `${TMP}${film}-band-${i}.png`;
   await shot(`<div style="width:${W}px;height:${BAND}px;background:#0b0b0a;color:#f3efe4;display:flex;align-items:center;gap:40px;padding:0 44px">

@@ -6,6 +6,7 @@ import NoTeam from '@/components/NoTeam.vue';
 import QueryState from '@/components/QueryState.vue';
 import NetworkIcon from '@/components/NetworkIcon.vue';
 import LineChart from '@/components/LineChart.vue';
+import PastPosts from '@/components/PastPosts.vue';
 import Card from '@/components/ui/Card.vue';
 import Select from '@/components/ui/Select.vue';
 import Button from '@/components/ui/Button.vue';
@@ -104,6 +105,8 @@ const rows = computed(() => (top.data.value ?? []).map((r) => ({ id: r.post.id, 
           <template #empty><EmptyState compact title="No published posts yet" description="Post analytics show up here after a post goes live." /></template>
         </Table>
       </QueryState>
+
+      <PastPosts v-if="type" :type="type" />
     </template>
   </div>
 </template>

@@ -106,5 +106,20 @@
     "perms": [
       "instagram_business_manage_comments"
     ]
+  },
+  "K1": {
+    "title": "TikTok: Login Kit + Content Posting API (Direct Post)",
+    "perms": [
+      "Login Kit",
+      "user.info.basic",
+      "user.info.profile",
+      "user.info.stats",
+      "video.publish",
+      "video.upload",
+      "video.list"
+    ],
+    "review": "TIKTOK APP REVIEW",
+    "label": "Products and scopes shown in this recording",
+    "footer": "Recorded in Siar (app.siaran.my) on 13 October 2026 with the Siar sandbox and FF Dev Studio's own TikTok account (private, as TikTok requires before the audit)."
   }
 }
