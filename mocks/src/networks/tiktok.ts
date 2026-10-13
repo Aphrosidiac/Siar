@@ -14,7 +14,7 @@ export default function tiktok(m: MockRegistry) {
   m.seedToken('tiktok', () => OPEN_ID);
   const s = () => m.ns('tiktok', () => ({
     tokens: {} as Record<string, string>, refresh: {} as Record<string, string>, bizTokens: {} as Record<string, string>, bizRefresh: {} as Record<string, string>,
-    publishes: {} as Record<string, any>, videos: [] as any[], comments: [] as any[], unaudited: false,
+    publishes: {} as Record<string, any>, videos: [] as any[], comments: [] as any[], unaudited: false, creatorError: null as string | null,
     verifiedPrefixes: ['https://media.siar.test/'],
     creator: { creator_avatar_url: 'https://p16.tiktokcdn.example/avatar.jpeg', creator_username: 'siartest', creator_nickname: 'Siar Test', privacy_level_options: ['PUBLIC_TO_EVERYONE', 'MUTUAL_FOLLOW_FRIENDS', 'FOLLOWER_OF_CREATOR', 'SELF_ONLY'], comment_disabled: false, duet_disabled: false, stitch_disabled: true, max_video_post_duration_sec: 600 } as Record<string, any>,
   }));
@@ -66,7 +66,8 @@ export default function tiktok(m: MockRegistry) {
   });
 
   // ── Content Posting ──
-  m.on('POST', OPEN, '/v2/post/publish/creator_info/query', req => authed(req) ? ok(s().creator) : invalidToken());
+  // creatorError: an error.code creator_info answers with (e.g. spam_risk_too_many_posts once the daily cap is hit).
+  m.on('POST', OPEN, '/v2/post/publish/creator_info/query', req => !authed(req) ? invalidToken() : s().creatorError ? err(403, s().creatorError!, 'The creator cannot post right now.') : ok(s().creator));
 
   const startPublish = (req: MockRequest, kind: 'video' | 'inbox' | 'photo'): MockResponse => {
     if (!authed(req)) return invalidToken();

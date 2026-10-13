@@ -64,7 +64,19 @@ const PlanOffer = obj({
 }, ['tier', 'name', 'currency', 'price']);
 const PlanList = obj({ country: S.str, detectedCountry: S.strN, currency: Currency, teamsInUse: S.int, trialDays: S.int, methods: obj({ card: S.bool, bank: S.bool }), plans: arr(PlanOffer) }, ['country', 'currency', 'plans']);
 
+// TikTok creator_info, read when the composer opens so the post form follows the creator's own settings.
+const strArr = arr(S.str);
+const TikTokCreatorInfo = obj({
+  canPost: S.bool, reason: S.strN, business: S.bool,
+  creatorNickname: S.strN, creatorUsername: S.strN, creatorAvatarUrl: S.strN,
+  privacyLevelOptions: strArr, commentDisabled: S.bool, duetDisabled: S.bool, stitchDisabled: S.bool,
+  maxVideoPostDurationSec: { type: 'integer', nullable: true },
+}, ['canPost', 'privacyLevelOptions']);
+
 export const extraPaths = {
+  // ── TikTok (Content Posting API UX) ───────────────────────────────────
+  '/api/v1/misc/tiktok/creator-info': { get: op('misc.tiktok.getCreatorInfo', 'misc', 'TikTok creator info for the post form', { params: [q('teamId', S.str, true)], res: TikTokCreatorInfo, description: 'Who will post, the privacy levels the creator allows, which interactions they switched off, their longest allowed video, and whether they can post right now. Read it before showing a TikTok post form.' }) },
+
   // ── auth (dashboard; cookie session) ──────────────────────────────────
   '/api/v1/auth/signup': { post: op('auth.signup', 'auth', 'Create an account', { body: obj({ email: { type: 'string', format: 'email' }, password: { type: 'string', minLength: 10 }, firstName: S.str, lastName: S.strN, organizationName: S.strN }, ['email', 'password', 'firstName']), res: Session, code: '201', security: PUBLIC }) },
   '/api/v1/auth/login': { post: op('auth.login', 'auth', 'Sign in', { body: obj({ email: S.str, password: S.str }, ['email', 'password']), res: Session, security: PUBLIC }) },

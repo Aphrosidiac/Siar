@@ -136848,6 +136848,85 @@
     }
    }
   },
+  "/api/v1/misc/tiktok/creator-info": {
+   "get": {
+    "operationId": "misc.tiktok.getCreatorInfo",
+    "tags": [
+     "misc"
+    ],
+    "summary": "TikTok creator info for the post form",
+    "parameters": [
+     {
+      "name": "teamId",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "canPost": {
+           "type": "boolean"
+          },
+          "reason": {
+           "type": "string",
+           "nullable": true
+          },
+          "business": {
+           "type": "boolean"
+          },
+          "creatorNickname": {
+           "type": "string",
+           "nullable": true
+          },
+          "creatorUsername": {
+           "type": "string",
+           "nullable": true
+          },
+          "creatorAvatarUrl": {
+           "type": "string",
+           "nullable": true
+          },
+          "privacyLevelOptions": {
+           "type": "array",
+           "items": {
+            "type": "string"
+           }
+          },
+          "commentDisabled": {
+           "type": "boolean"
+          },
+          "duetDisabled": {
+           "type": "boolean"
+          },
+          "stitchDisabled": {
+           "type": "boolean"
+          },
+          "maxVideoPostDurationSec": {
+           "type": "integer",
+           "nullable": true
+          }
+         },
+         "required": [
+          "canPost",
+          "privacyLevelOptions"
+         ]
+        }
+       }
+      }
+     }
+    },
+    "description": "Who will post, the privacy levels the creator allows, which interactions they switched off, their longest allowed video, and whether they can post right now. Read it before showing a TikTok post form."
+   }
+  },
   "/api/v1/auth/signup": {
    "post": {
     "operationId": "auth.signup",

@@ -39,3 +39,24 @@ can be raised later.
 8. Publish → status "processing" → "Posted" with the link; open it on TikTok.
 
 Rejections usually cite one of 2/4/5/6/7. Each is built into the composer.
+
+## Status (2026-10-13)
+- Developer account hello@ffdev.studio; org **FF DEV STUDIO** 7696076379615659029; app **Siar** 7696085856649693236.
+- **Production draft is NOT saved**: TikTok refuses to save it until a demo video is uploaded. Everything was
+  entered once (icon, Business, description, terms/privacy, Web https://siaran.my, Login Kit + redirect,
+  Content Posting + Direct Post, 6 scopes, the scope explanation) — re-create it with **Import → from Sandbox**
+  and paste the explanation below, then upload the demo video.
+- **Sandbox "Siar review"** 7696050807262955540 saved with the same config. Domain siaran.my verified for
+  Production and Sandbox (two TXT records on the siaran.my zone, one per environment; keep both).
+- Sandbox keys go in Siar/.env.networks as NETWORK_TIKTOK_CLIENT_KEY / NETWORK_TIKTOK_CLIENT_SECRET
+  (pasted by Fakhrul). Target user: the FF TikTok account (Sandbox settings → Add account).
+- Description (≤120): "Publish and schedule videos and photo posts to your own TikTok account from one dashboard and API."
+
+Scope explanation (pasted, 904 chars):
+> Siar (siaran.my) is a social media publishing dashboard and API. Creators connect their own TikTok account and post to it.
+> Login Kit + user.info.basic: the creator signs in with TikTok; we show their avatar and display name on the connected account and in the composer.
+> user.info.profile: profile link and verified badge on the account card.
+> user.info.stats: follower, likes and video counts in Siar analytics.
+> video.publish (Direct Post): the composer reads creator_info, shows the creator's nickname, a privacy dropdown with no default, Comment/Duet/Stitch toggles, commercial content disclosure and the Music Usage Confirmation, then publishes the video or photo post and shows its status.
+> video.upload: alternatively sends the video to the creator's TikTok inbox as a draft to finish in the app.
+> video.list: lists the creator's posts so Siar can show the link and view counts of what they published.

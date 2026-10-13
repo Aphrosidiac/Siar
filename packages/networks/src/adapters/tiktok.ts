@@ -502,6 +502,28 @@ export const tiktok: NetworkAdapter = {
   },
 
   misc: {
+    /**
+     * creator_info for the post form (TikTok's Content Posting UX guidelines): the composer shows this creator,
+     * offers only their privacy levels, greys out interactions they switched off, checks their max duration and
+     * stops when they cannot post right now. The Business API has no creator_info: those accounts get every option.
+     */
+    'misc.tiktok.getCreatorInfo': async (ctx, a) => {
+      if (isBiz(a)) return { canPost: true, reason: null, business: true, creatorNickname: null, creatorUsername: null, creatorAvatarUrl: null, privacyLevelOptions: [...PRIVACY], commentDisabled: false, duetDisabled: false, stitchDisabled: false, maxVideoPostDurationSec: null };
+      try {
+        const i = await open<any>(ctx, a.token.accessToken, '/v2/post/publish/creator_info/query/', { method: 'POST', json: {} });
+        return {
+          canPost: true, reason: null, business: false,
+          creatorNickname: i.creator_nickname ?? null, creatorUsername: i.creator_username ?? null, creatorAvatarUrl: i.creator_avatar_url ?? null,
+          privacyLevelOptions: i.privacy_level_options ?? [], commentDisabled: !!i.comment_disabled, duetDisabled: !!i.duet_disabled, stitchDisabled: !!i.stitch_disabled,
+          maxVideoPostDurationSec: i.max_video_post_duration_sec ?? null,
+        };
+      } catch (e) {
+        const code = ((e as NetworkError)?.meta as any)?.error?.code as string | undefined;
+        const reason = code && POSTING_BLOCKED[code];
+        if (!reason) throw e;
+        return { canPost: false, reason, business: false, creatorNickname: null, creatorUsername: null, creatorAvatarUrl: null, privacyLevelOptions: [], commentDisabled: false, duetDisabled: false, stitchDisabled: false, maxVideoPostDurationSec: null };
+      }
+    },
     'misc.tiktok.getCommercialMusicTrendingList': async (ctx, a, { query }) => {
       requireBiz(a, 'The Commercial Music Library');
       const r = await biz(ctx, a.token.accessToken, '/business/cml/trending_list/', {
@@ -523,6 +545,14 @@ export const tiktok: NetworkAdapter = {
 };
 
 // ───────────────────────────── publishing internals ─────────────────────────────
+
+/** creator_info errors that mean "not right now" rather than a broken connection, worded for the creator. */
+const POSTING_BLOCKED: Record<string, string> = {
+  spam_risk_too_many_posts: 'This TikTok account has reached its daily posting limit. Try again later.',
+  spam_risk_user_banned_from_posting: 'TikTok has blocked this account from posting.',
+  reached_active_user_cap: 'TikTok has paused new posts from Siar for today. Try again tomorrow.',
+};
+
 
 /**
  * TikTok requires querying creator_info before every direct post: the privacy level must be one

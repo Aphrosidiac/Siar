@@ -2521,6 +2521,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/misc/tiktok/creator-info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * TikTok creator info for the post form
+         * @description Who will post, the privacy levels the creator allows, which interactions they switched off, their longest allowed video, and whether they can post right now. Read it before showing a TikTok post form.
+         */
+        get: operations["misc.tiktok.getCreatorInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/signup": {
         parameters: {
             query?: never;
@@ -46213,6 +46233,40 @@ export interface operations {
                     "application/json": {
                         statusCode?: number | null;
                         message: string;
+                    };
+                };
+            };
+        };
+    };
+    "misc.tiktok.getCreatorInfo": {
+        parameters: {
+            query: {
+                teamId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        canPost: boolean;
+                        reason?: string | null;
+                        business?: boolean;
+                        creatorNickname?: string | null;
+                        creatorUsername?: string | null;
+                        creatorAvatarUrl?: string | null;
+                        privacyLevelOptions: string[];
+                        commentDisabled?: boolean;
+                        duetDisabled?: boolean;
+                        stitchDisabled?: boolean;
+                        maxVideoPostDurationSec?: number | null;
                     };
                 };
             };

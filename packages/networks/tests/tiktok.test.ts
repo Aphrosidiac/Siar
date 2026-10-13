@@ -81,6 +81,17 @@ describe('tiktok (Content Posting API)', () => {
     await expect(tiktok.importComments!(ctx(), acc, { externalPostId: '1', limit: 10 })).rejects.toMatchObject({ code: 'NOT_SUPPORTED' });
   });
 
+  it('reads creator_info for the post form and reports a posting cap as canPost false', async () => {
+    const acc = await h.connect(tiktok);
+    const get = tiktok.misc!['misc.tiktok.getCreatorInfo']!;
+    const args = { query: {}, body: {}, params: {}, lookup: {} as any };
+    expect(await get(ctx(), acc, args)).toMatchObject({ canPost: true, business: false, creatorNickname: 'Siar Test', creatorUsername: 'siartest', stitchDisabled: true, commentDisabled: false, maxVideoPostDurationSec: 600, privacyLevelOptions: expect.arrayContaining(['SELF_ONLY']) });
+    h.state().tiktok.creatorError = 'spam_risk_too_many_posts';
+    expect(await get(ctx(), acc, args)).toMatchObject({ canPost: false, reason: expect.stringContaining('daily posting limit'), privacyLevelOptions: [] });
+    h.state().tiktok.creatorError = null;
+    await expect(get(ctx(), { ...acc, token: { ...acc.token, accessToken: 'nope' } }, args)).rejects.toMatchObject({ code: 'TOKEN_INVALID' });
+  });
+
   it('validates data', () => {
     const v = (data: any, m: any[]) => tiktok.validate(data, m).map(i => i.code);
     expect(v({ text: 'x' }, [video()])).toContain('required'); // no privacy

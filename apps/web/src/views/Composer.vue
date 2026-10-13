@@ -110,6 +110,8 @@ const moreHasIssue = (t: string) => moreFields(t).some((k) => netIssues(t)[k]);
 const mediaIds = computed(() => form.media.map((u) => u.id));
 const hasImages = computed(() => form.media.some((u) => u.type === 'image'));
 const hasVideo = computed(() => form.media.some((u) => u.type === 'video'));
+/** Set by TikTokPanel from creator_info: the creator cannot post right now, or the video is over their limit. */
+const tiktokBlock = ref<string | null>(null);
 function setMedia(items: Upload[]) { form.media = items; picker.value = false; }
 const needMedia = computed(() => form.types.filter((t) => META[t].media === 'required').map((t) => META[t].name));
 
@@ -144,6 +146,7 @@ async function submit() {
   issues.value = [];
   if (!session.teamId) return;
   if (!form.types.length) { toast.error('Pick at least one network'); return; }
+  if (form.when !== 'draft' && form.types.includes('TIKTOK') && tiktokBlock.value) { tab.value = 'TIKTOK'; toast.error('TikTok can’t take this post', tiktokBlock.value); return; }
   if (form.when === 'now' && !(await confirm({ title: `Publish now to ${form.types.length} network${form.types.length === 1 ? '' : 's'}?`, message: form.types.map((t) => META[t].name).join(', ') + '. This goes live immediately.', confirmLabel: 'Publish now' }))) return;
   saving.value = true;
   try {
@@ -252,7 +255,7 @@ onBeforeUnmount(() => window.clearInterval(tick));
                   <div v-if="form.ownText[t] !== undefined" class="row small"><span class="muted">This network has its own text.</span><button type="button" class="link-btn" @click="resetNetText(t)">Use main text</button></div>
                 </div>
 
-                <TikTokPanel v-if="t === 'TIKTOK'" :account="accountOf('TIKTOK')" :values="form.net.TIKTOK ?? {}" :issues="netIssues('TIKTOK')" :has-images="hasImages" :has-video="hasVideo" @set="(k, v) => (form.net.TIKTOK![k] = v)" />
+                <TikTokPanel v-if="t === 'TIKTOK'" :account="accountOf('TIKTOK')" :values="form.net.TIKTOK ?? {}" :issues="netIssues('TIKTOK')" :has-images="hasImages" :has-video="hasVideo" :video-length="form.media.find((u) => u.type === 'video')?.videoLength ?? null" @set="(k, v) => (form.net.TIKTOK![k] = v)" @block="tiktokBlock = $event" />
                 <template v-else>
                   <SchemaFields :schema="netSchema(t)" :keys="keyFields(t)" :values="form.net[t] ?? {}" :issues="netIssues(t)" :required="netRequired(t)" :labels="LABELS[t]" :multiline="MULTILINE" @set="(k, v) => (form.net[t]![k] = v)">
                     <template v-if="(t === 'DISCORD' || t === 'SLACK') && accountOf(t)?.channels?.length" #field-channelId>
