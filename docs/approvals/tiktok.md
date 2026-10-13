@@ -40,23 +40,24 @@ can be raised later.
 
 Rejections usually cite one of 2/4/5/6/7. Each is built into the composer.
 
-## Status (2026-10-13)
+## Status (2026-10-13) — ready to submit
 - Developer account hello@ffdev.studio; org **FF DEV STUDIO** 7696076379615659029; app **Siar** 7696085856649693236.
-- **Production draft is NOT saved**: TikTok refuses to save it until a demo video is uploaded. Everything was
-  entered once (icon, Business, description, terms/privacy, Web https://siaran.my, Login Kit + redirect,
-  Content Posting + Direct Post, 6 scopes, the scope explanation) — re-create it with **Import → from Sandbox**
-  and paste the explanation below, then upload the demo video.
-- **Sandbox "Siar review"** 7696050807262955540 saved with the same config. Domain siaran.my verified for
-  Production and Sandbox (two TXT records on the siaran.my zone, one per environment; keep both).
-- Sandbox keys go in Siar/.env.networks as NETWORK_TIKTOK_CLIENT_KEY / NETWORK_TIKTOK_CLIENT_SECRET
-  (pasted by Fakhrul). Target user: the FF TikTok account (Sandbox settings → Add account).
-- Description (≤120): "Publish and schedule videos and photo posts to your own TikTok account from one dashboard and API."
+- **Sandbox "Siar review"** 7696050807262955540: full config; its keys are on production (`NETWORK_TIKTOK_CLIENT_KEY/SECRET`,
+  server env backup .env.bak-20261013-191607). Target user: ffdev.studio. siaran.my verified for both environments
+  (two TXT records on the zone, keep both).
+- **Production draft saved**: imported from the sandbox + scope explanation + demo film `review/out/K1.mp4` (3:36,
+  recorded with `scripts/meta-review/rec.sh`, edited by `edit.mjs K1`, tail take K1b). Only Submit is left (Fakhrul).
+- Unaudited apps can only post to a **private** TikTok account: @ffdev.studio was switched to private for the film.
+  Switch it back to public when done; until the audit passes, Siar's TikTok posts fail on public accounts.
+- After approval: put the **production** client key/secret in .env.networks and on the server (replace the sandbox
+  keys), restart siar-api, and re-run a public test post.
+- Rehearsal left two private "No templates" videos and one draft in @ffdev.studio's inbox — delete them in the TikTok app.
 
-Scope explanation (pasted, 904 chars):
-> Siar (siaran.my) is a social media publishing dashboard and API. Creators connect their own TikTok account and post to it.
-> Login Kit + user.info.basic: the creator signs in with TikTok; we show their avatar and display name on the connected account and in the composer.
-> user.info.profile: profile link and verified badge on the account card.
-> user.info.stats: follower, likes and video counts in Siar analytics.
-> video.publish (Direct Post): the composer reads creator_info, shows the creator's nickname, a privacy dropdown with no default, Comment/Duet/Stitch toggles, commercial content disclosure and the Music Usage Confirmation, then publishes the video or photo post and shows its status.
-> video.upload: alternatively sends the video to the creator's TikTok inbox as a draft to finish in the app.
-> video.list: lists the creator's posts so Siar can show the link and view counts of what they published.
+Scope explanation (submitted text, 864 chars):
+> Siar (siaran.my) is a social media publishing dashboard and API. Creators connect their own TikTok account and post to it. Demo: Siar sandbox, FF Dev Studio's account (private, as required before audit).
+> Login Kit + user.info.basic: sign-in; avatar and nickname shown in the composer.
+> user.info.profile: the @username on the connected account.
+> user.info.stats: followers and likes in Analytics.
+> video.publish: the composer reads creator_info, shows the creator, offers only their privacy levels with no default, greys out interactions they turned off, checks max duration, handles commercial disclosure and labels, shows the Music Usage Confirmation, then direct-posts and shows the status.
+> video.upload: "Send to TikTok drafts" uploads to the creator's inbox to finish in TikTok.
+> video.list: Analytics → Past posts lists the creator's videos with views and likes.
