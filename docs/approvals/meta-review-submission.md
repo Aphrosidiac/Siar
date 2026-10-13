@@ -85,8 +85,10 @@ https://siaran.my/ (the instructions give the sign-in URL).
 
 ## Before Submit
 
-1. Fakhrul creates the Siar account `siaran+meta-review@ffdev.studio` at https://app.siaran.my/signup, with
-   its own organization. Then Claude puts that organization on the top plan with messaging on.
+1. ~~Reviewer account~~ (done 2026-10-13): Fakhrul signed up `siaran+meta-review@ffdev.studio`. Its password is
+   `META_REVIEWER_PASSWORD` in the git-ignored `.env.networks`. The organization "Meta Review" (team "Team Meta")
+   was set to tier PRO with messaging enabled directly in the prod DB. It has no Subscription row, so billing never
+   downgrades it.
 2. Fakhrul types the password after `Password:` in Reviewer instructions → test credentials.
 3. ~~Data handling declarations and the 27 usage agreements~~ (done 2026-10-13).
 4. The Testing page shows the required API calls (see above).
