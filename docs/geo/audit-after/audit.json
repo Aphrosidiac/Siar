@@ -1,0 +1,2896 @@
+{
+ "site": {
+  "start": "https://siaran.my",
+  "home_status": 200,
+  "home_final": "https://siaran.my",
+  "home_chain": [],
+  "origin": "https://siaran.my",
+  "http_redirect": {
+   "status_chain": [
+    301
+   ],
+   "final": "https://siaran.my/"
+  },
+  "alt_host": {
+   "host": "www.siaran.my",
+   "status": 200,
+   "final": "https://siaran.my/",
+   "error": ""
+  },
+  "robots_status": 200,
+  "robots_sitemaps": [
+   "https://siaran.my/sitemap-index.xml"
+  ],
+  "robots_errors": [],
+  "content_signals": [],
+  "access_matrix": {
+   "Googlebot": {
+    "allowed": true,
+    "rule": "Allow: /",
+    "named": false,
+    "purpose": "search"
+   },
+   "Google-Extended": {
+    "allowed": true,
+    "rule": "Allow: /",
+    "named": false,
+    "purpose": "control"
+   },
+   "Bingbot": {
+    "allowed": true,
+    "rule": "Allow: /",
+    "named": false,
+    "purpose": "search"
+   },
+   "OAI-SearchBot": {
+    "allowed": true,
+    "rule": "Allow: /",
+    "named": false,
+    "purpose": "search"
+   },
+   "ChatGPT-User": {
+    "allowed": true,
+    "rule": "Allow: /",
+    "named": false,
+    "purpose": "user"
+   },
+   "GPTBot": {
+    "allowed": true,
+    "rule": "Allow: /",
+    "named": false,
+    "purpose": "training"
+   },
+   "Claude-SearchBot": {
+    "allowed": true,
+    "rule": "Allow: /",
+    "named": false,
+    "purpose": "search"
+   },
+   "Claude-User": {
+    "allowed": true,
+    "rule": "Allow: /",
+    "named": false,
+    "purpose": "user"
+   },
+   "ClaudeBot": {
+    "allowed": true,
+    "rule": "Allow: /",
+    "named": false,
+    "purpose": "training"
+   },
+   "PerplexityBot": {
+    "allowed": true,
+    "rule": "Allow: /",
+    "named": false,
+    "purpose": "search"
+   },
+   "Perplexity-User": {
+    "allowed": true,
+    "rule": "Allow: /",
+    "named": false,
+    "purpose": "user"
+   },
+   "Applebot": {
+    "allowed": true,
+    "rule": "Allow: /",
+    "named": false,
+    "purpose": "search"
+   },
+   "Applebot-Extended": {
+    "allowed": true,
+    "rule": "Allow: /",
+    "named": false,
+    "purpose": "control"
+   },
+   "meta-webindexer": {
+    "allowed": true,
+    "rule": "Allow: /",
+    "named": false,
+    "purpose": "search"
+   }
+  },
+  "llms.txt": {
+   "status": 200,
+   "content_type": "text/plain",
+   "bytes": 9949,
+   "h1": true,
+   "links": 68
+  },
+  "llms-full.txt": {
+   "status": 404,
+   "content_type": "text/html",
+   "bytes": 16795
+  },
+  "soft404_status": 404,
+  "markdown_negotiation": false,
+  "sitemaps": [
+   {
+    "url": "https://siaran.my/sitemap-index.xml",
+    "status": 200,
+    "urls": 0,
+    "index": true
+   },
+   {
+    "url": "https://siaran.my/sitemap-0.xml",
+    "status": 200,
+    "urls": 87
+   }
+  ],
+  "sitemap_url_count": 87,
+  "duplicate_clusters": [],
+  "schema_types_seen": [
+   "BreadcrumbList",
+   "FAQPage",
+   "Organization",
+   "SoftwareApplication",
+   "TechArticle",
+   "WebSite"
+  ]
+ },
+ "pages": [
+  {
+   "url": "https://siaran.my/",
+   "final_url": "https://siaran.my/",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 398,
+   "bytes": 147028,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "SoftwareApplication could add: aggregateRating, review",
+     "url": "https://siaran.my/",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "home",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my"
+   ],
+   "canonical_abs": "https://siaran.my",
+   "title": "Siar | Write it once. Siar it everywhere.",
+   "description": "Siar is one REST API to publish, schedule, comment on and measure social media across 15 networks. Unlimited connected accounts on paid plans, billed per organization, never per account.",
+   "h1": [
+    "Write it once. Siar it everywhere."
+   ],
+   "words": 1478,
+   "root_shell": false,
+   "schema_types": [
+    "FAQPage",
+    "Organization",
+    "SoftwareApplication",
+    "WebSite"
+   ],
+   "microdata_types": [],
+   "sections": 24,
+   "question_headings": 6,
+   "subheadings": 24,
+   "numbers_per_500w": 7.8,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": true,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 37,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/docs/api/user",
+   "final_url": "https://siaran.my/docs/api/user",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 266,
+   "bytes": 70916,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "content",
+     "message": "Heading levels skip (e.g. h2 -> h4); extraction uses the outline",
+     "url": "https://siaran.my/docs/api/user",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/docs/api/user",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/docs/api/user",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "content",
+     "message": "No question-phrased headings; answer engines match sub-queries to headings",
+     "url": "https://siaran.my/docs/api/user",
+     "fix": "Phrase key H2/H3s as the questions buyers ask",
+     "evidence": ""
+    }
+   ],
+   "type": "article",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/docs/api/user"
+   ],
+   "canonical_abs": "https://siaran.my/docs/api/user",
+   "title": "Users API | Siar docs",
+   "description": "Your profile, organization members and invitations.",
+   "h1": [
+    "Users API"
+   ],
+   "words": 935,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "Organization",
+    "TechArticle"
+   ],
+   "microdata_types": [],
+   "sections": 42,
+   "question_headings": 0,
+   "subheadings": 11,
+   "numbers_per_500w": 1.1,
+   "outbound_citations": 6,
+   "dates": {
+    "schema": {
+     "datePublished": "2026-10-13",
+     "dateModified": "2026-10-13"
+    },
+    "visible": true,
+    "meta_modified": ""
+   },
+   "author": true,
+   "age_days": 0,
+   "internal_links": 61,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/use-cases/social-media-scheduling-api",
+   "final_url": "https://siaran.my/use-cases/social-media-scheduling-api",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 286,
+   "bytes": 48036,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/use-cases/social-media-scheduling-api",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/use-cases/social-media-scheduling-api",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/use-cases/social-media-scheduling-api"
+   ],
+   "canonical_abs": "https://siaran.my/use-cases/social-media-scheduling-api",
+   "title": "Social media scheduling API | Siar",
+   "description": "Schedule posts to 15 social networks with a UTC timestamp. Siar publishes on time, never twice, retries failures and tells you through a webhook.",
+   "h1": [
+    "Schedule posts from your own code"
+   ],
+   "words": 493,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "FAQPage",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 10,
+   "question_headings": 3,
+   "subheadings": 10,
+   "numbers_per_500w": 7.1,
+   "outbound_citations": 8,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 38,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/bluesky-api/errors",
+   "final_url": "https://siaran.my/bluesky-api/errors",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 350,
+   "bytes": 26017,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/bluesky-api/errors",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/bluesky-api/errors",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/bluesky-api/errors"
+   ],
+   "canonical_abs": "https://siaran.my/bluesky-api/errors",
+   "title": "Bluesky API errors and how to fix them | Siar",
+   "description": "10 Bluesky API errors: what each rejection means and the fix, as relayed by Siar.",
+   "h1": [
+    "Bluesky API errors and how to fix them."
+   ],
+   "words": 551,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 12,
+   "question_headings": 1,
+   "subheadings": 12,
+   "numbers_per_500w": 10.9,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 36,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/discord-api",
+   "final_url": "https://siaran.my/discord-api",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 306,
+   "bytes": 36966,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/discord-api",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/discord-api",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/discord-api"
+   ],
+   "canonical_abs": "https://siaran.my/discord-api",
+   "title": "Discord API: post, schedule and analyze | Siar",
+   "description": "Publish and schedule Discord posts through one REST API. 1 post type, limits, scopes, daily caps and a full error reference.",
+   "h1": [
+    "Discord API through Siar."
+   ],
+   "words": 627,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "FAQPage",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 18,
+   "question_headings": 7,
+   "subheadings": 18,
+   "numbers_per_500w": 7.2,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 39,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/facebook-api",
+   "final_url": "https://siaran.my/facebook-api",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 276,
+   "bytes": 43618,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/facebook-api",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/facebook-api",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/facebook-api"
+   ],
+   "canonical_abs": "https://siaran.my/facebook-api",
+   "title": "Facebook API: post, schedule and analyze | Siar",
+   "description": "Publish and schedule Facebook posts through one REST API. 3 post types, limits, scopes, daily caps and a full error reference.",
+   "h1": [
+    "Facebook API through Siar."
+   ],
+   "words": 812,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "FAQPage",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 18,
+   "question_headings": 7,
+   "subheadings": 18,
+   "numbers_per_500w": 5.5,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 39,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/google-business-profile-api",
+   "final_url": "https://siaran.my/google-business-profile-api",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 306,
+   "bytes": 48818,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/google-business-profile-api",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/google-business-profile-api",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/google-business-profile-api"
+   ],
+   "canonical_abs": "https://siaran.my/google-business-profile-api",
+   "title": "Google Business Profile API: post, schedule and analyze | Siar",
+   "description": "Publish and schedule Google Business Profile posts through one REST API. 4 post types, limits, scopes, daily caps and a full error reference.",
+   "h1": [
+    "Google Business Profile API through Siar."
+   ],
+   "words": 1032,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "FAQPage",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 18,
+   "question_headings": 7,
+   "subheadings": 18,
+   "numbers_per_500w": 3.9,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 39,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/instagram-api",
+   "final_url": "https://siaran.my/instagram-api",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 313,
+   "bytes": 46133,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/instagram-api",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/instagram-api",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/instagram-api"
+   ],
+   "canonical_abs": "https://siaran.my/instagram-api",
+   "title": "Instagram API: post, schedule and analyze | Siar",
+   "description": "Publish and schedule Instagram posts through one REST API. 3 post types, limits, scopes, daily caps and a full error reference.",
+   "h1": [
+    "Instagram API through Siar."
+   ],
+   "words": 826,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "FAQPage",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 18,
+   "question_headings": 7,
+   "subheadings": 18,
+   "numbers_per_500w": 5.4,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 39,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/linkedin-api/errors",
+   "final_url": "https://siaran.my/linkedin-api/errors",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 305,
+   "bytes": 25996,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/linkedin-api/errors",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/linkedin-api/errors",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/linkedin-api/errors"
+   ],
+   "canonical_abs": "https://siaran.my/linkedin-api/errors",
+   "title": "LinkedIn API errors and how to fix them | Siar",
+   "description": "10 LinkedIn API errors: what each rejection means and the fix, as relayed by Siar.",
+   "h1": [
+    "LinkedIn API errors and how to fix them."
+   ],
+   "words": 546,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 12,
+   "question_headings": 1,
+   "subheadings": 12,
+   "numbers_per_500w": 4.6,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 36,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/mastodon-api",
+   "final_url": "https://siaran.my/mastodon-api",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 296,
+   "bytes": 38510,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/mastodon-api",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/mastodon-api",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/mastodon-api"
+   ],
+   "canonical_abs": "https://siaran.my/mastodon-api",
+   "title": "Mastodon API: post, schedule and analyze | Siar",
+   "description": "Publish and schedule Mastodon posts through one REST API. 1 post type, limits, scopes, daily caps and a full error reference.",
+   "h1": [
+    "Mastodon API through Siar."
+   ],
+   "words": 664,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "FAQPage",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 18,
+   "question_headings": 7,
+   "subheadings": 18,
+   "numbers_per_500w": 5.3,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 39,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/pinterest-api",
+   "final_url": "https://siaran.my/pinterest-api",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 301,
+   "bytes": 38110,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/pinterest-api",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/pinterest-api",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/pinterest-api"
+   ],
+   "canonical_abs": "https://siaran.my/pinterest-api",
+   "title": "Pinterest API: post, schedule and analyze | Siar",
+   "description": "Publish and schedule Pinterest posts through one REST API. 1 post type, limits, scopes, daily caps and a full error reference.",
+   "h1": [
+    "Pinterest API through Siar."
+   ],
+   "words": 675,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "FAQPage",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 18,
+   "question_headings": 7,
+   "subheadings": 18,
+   "numbers_per_500w": 5.9,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 39,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/reddit-api",
+   "final_url": "https://siaran.my/reddit-api",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 288,
+   "bytes": 39436,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/reddit-api",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/reddit-api",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/reddit-api"
+   ],
+   "canonical_abs": "https://siaran.my/reddit-api",
+   "title": "Reddit API: post, schedule and analyze | Siar",
+   "description": "Publish and schedule Reddit posts through one REST API. 4 post types, limits, scopes, daily caps and a full error reference.",
+   "h1": [
+    "Reddit API through Siar."
+   ],
+   "words": 705,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "FAQPage",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 18,
+   "question_headings": 7,
+   "subheadings": 18,
+   "numbers_per_500w": 6.4,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 39,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/slack-api",
+   "final_url": "https://siaran.my/slack-api",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 304,
+   "bytes": 37801,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/slack-api",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/slack-api",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/slack-api"
+   ],
+   "canonical_abs": "https://siaran.my/slack-api",
+   "title": "Slack API: post, schedule and analyze | Siar",
+   "description": "Publish and schedule Slack posts through one REST API. 1 post type, limits, scopes, daily caps and a full error reference.",
+   "h1": [
+    "Slack API through Siar."
+   ],
+   "words": 665,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "FAQPage",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 18,
+   "question_headings": 7,
+   "subheadings": 18,
+   "numbers_per_500w": 6.8,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 39,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/snapchat-api/errors",
+   "final_url": "https://siaran.my/snapchat-api/errors",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 294,
+   "bytes": 25273,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/snapchat-api/errors",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/snapchat-api/errors",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/snapchat-api/errors"
+   ],
+   "canonical_abs": "https://siaran.my/snapchat-api/errors",
+   "title": "Snapchat API errors and how to fix them | Siar",
+   "description": "9 Snapchat API errors: what each rejection means and the fix, as relayed by Siar.",
+   "h1": [
+    "Snapchat API errors and how to fix them."
+   ],
+   "words": 484,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 11,
+   "question_headings": 1,
+   "subheadings": 11,
+   "numbers_per_500w": 12.4,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 36,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/threads-api/errors",
+   "final_url": "https://siaran.my/threads-api/errors",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 280,
+   "bytes": 24620,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/threads-api/errors",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/threads-api/errors",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/threads-api/errors"
+   ],
+   "canonical_abs": "https://siaran.my/threads-api/errors",
+   "title": "Threads API errors and how to fix them | Siar",
+   "description": "8 Threads API errors: what each rejection means and the fix, as relayed by Siar.",
+   "h1": [
+    "Threads API errors and how to fix them."
+   ],
+   "words": 463,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 10,
+   "question_headings": 1,
+   "subheadings": 10,
+   "numbers_per_500w": 7.6,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 36,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/tiktok-api/errors",
+   "final_url": "https://siaran.my/tiktok-api/errors",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 292,
+   "bytes": 29078,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/tiktok-api/errors",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/tiktok-api/errors",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/tiktok-api/errors"
+   ],
+   "canonical_abs": "https://siaran.my/tiktok-api/errors",
+   "title": "TikTok API errors and how to fix them | Siar",
+   "description": "15 TikTok API errors: what each rejection means and the fix, as relayed by Siar.",
+   "h1": [
+    "TikTok API errors and how to fix them."
+   ],
+   "words": 660,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 17,
+   "question_headings": 1,
+   "subheadings": 17,
+   "numbers_per_500w": 6.8,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 36,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/x-api",
+   "final_url": "https://siaran.my/x-api",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 283,
+   "bytes": 43333,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/x-api",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/x-api",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/x-api"
+   ],
+   "canonical_abs": "https://siaran.my/x-api",
+   "title": "X (Twitter) API: post, schedule and analyze | Siar",
+   "description": "Publish and schedule X (Twitter) posts through one REST API. 2 post types, limits, scopes, daily caps and a full error reference.",
+   "h1": [
+    "X (Twitter) API through Siar."
+   ],
+   "words": 911,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "FAQPage",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 19,
+   "question_headings": 7,
+   "subheadings": 19,
+   "numbers_per_500w": 4.9,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 39,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/youtube-api/errors",
+   "final_url": "https://siaran.my/youtube-api/errors",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 278,
+   "bytes": 26806,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/youtube-api/errors",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/youtube-api/errors",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/youtube-api/errors"
+   ],
+   "canonical_abs": "https://siaran.my/youtube-api/errors",
+   "title": "YouTube API errors and how to fix them | Siar",
+   "description": "11 YouTube API errors: what each rejection means and the fix, as relayed by Siar.",
+   "h1": [
+    "YouTube API errors and how to fix them."
+   ],
+   "words": 582,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 13,
+   "question_headings": 1,
+   "subheadings": 13,
+   "numbers_per_500w": 7.7,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 36,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/about",
+   "final_url": "https://siaran.my/about",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 264,
+   "bytes": 17755,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/about",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "No BreadcrumbList",
+     "url": "https://siaran.my/about",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/about",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "about",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/about"
+   ],
+   "canonical_abs": "https://siaran.my/about",
+   "title": "About Siar, the unified social media API",
+   "description": "Siar is a unified social media API built by FF Dev Studio, a software studio in Malaysia.",
+   "h1": [
+    "About Siar"
+   ],
+   "words": 249,
+   "root_shell": false,
+   "schema_types": [
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 3,
+   "question_headings": 2,
+   "subheadings": 3,
+   "numbers_per_500w": 4.0,
+   "outbound_citations": 6,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 37,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/changelog",
+   "final_url": "https://siaran.my/changelog",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 295,
+   "bytes": 17366,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/changelog",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "No BreadcrumbList",
+     "url": "https://siaran.my/changelog",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/changelog",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/changelog"
+   ],
+   "canonical_abs": "https://siaran.my/changelog",
+   "title": "Changelog | Siar",
+   "description": "What changed in the Siar API and SDKs, newest first. Version 1.0 is the first release.",
+   "h1": [
+    "Changelog"
+   ],
+   "words": 190,
+   "root_shell": false,
+   "schema_types": [
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 1,
+   "question_headings": 0,
+   "subheadings": 1,
+   "numbers_per_500w": 2.6,
+   "outbound_citations": 6,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 36,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/contact",
+   "final_url": "https://siaran.my/contact",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 303,
+   "bytes": 17373,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/contact",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "No BreadcrumbList",
+     "url": "https://siaran.my/contact",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/contact",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "contact",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/contact"
+   ],
+   "canonical_abs": "https://siaran.my/contact",
+   "title": "Contact Siar for support, sales and security",
+   "description": "How to reach the Siar team for support, sales, security and data requests.",
+   "h1": [
+    "Contact"
+   ],
+   "words": 152,
+   "root_shell": false,
+   "schema_types": [
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 0,
+   "question_headings": 0,
+   "subheadings": 0,
+   "numbers_per_500w": 3.3,
+   "outbound_citations": 6,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 38,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/data-deletion",
+   "final_url": "https://siaran.my/data-deletion",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 265,
+   "bytes": 19475,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/data-deletion",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "No BreadcrumbList",
+     "url": "https://siaran.my/data-deletion",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/data-deletion",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/data-deletion"
+   ],
+   "canonical_abs": "https://siaran.my/data-deletion",
+   "title": "Data deletion | Siar",
+   "description": "How to delete the data Siar holds about a connected social account or your organization: revoke access, disconnect, or ask us.",
+   "h1": [
+    "Data deletion"
+   ],
+   "words": 466,
+   "root_shell": false,
+   "schema_types": [
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 6,
+   "question_headings": 1,
+   "subheadings": 6,
+   "numbers_per_500w": 7.5,
+   "outbound_citations": 6,
+   "dates": {
+    "schema": {},
+    "visible": true,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 36,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/features",
+   "final_url": "https://siaran.my/features",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 285,
+   "bytes": 35681,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/features",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/features",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "service",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/features"
+   ],
+   "canonical_abs": "https://siaran.my/features",
+   "title": "Product tour | Siar",
+   "description": "A tour of Siar: composer, calendar, inbox, analytics, hosted connect, link in bio, API keys and webhooks, across 15 social networks.",
+   "h1": [
+    "One dashboard. 15 networks. No tab juggling."
+   ],
+   "words": 657,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 15,
+   "question_headings": 1,
+   "subheadings": 15,
+   "numbers_per_500w": 9.1,
+   "outbound_citations": 8,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 39,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/platforms",
+   "final_url": "https://siaran.my/platforms",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 309,
+   "bytes": 47655,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "content",
+     "message": "Heading levels skip (e.g. h2 -> h4); extraction uses the outline",
+     "url": "https://siaran.my/platforms",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/platforms",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/platforms",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "content",
+     "message": "No question-phrased headings; answer engines match sub-queries to headings",
+     "url": "https://siaran.my/platforms",
+     "fix": "Phrase key H2/H3s as the questions buyers ask",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/platforms"
+   ],
+   "canonical_abs": "https://siaran.my/platforms",
+   "title": "Supported platforms | Siar",
+   "description": "The 15 social networks the Siar API publishes to: post types, connection method and what each supports.",
+   "h1": [
+    "15 networks. One integration."
+   ],
+   "words": 648,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 17,
+   "question_headings": 0,
+   "subheadings": 17,
+   "numbers_per_500w": 3.1,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 36,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/pricing",
+   "final_url": "https://siaran.my/pricing",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 272,
+   "bytes": 44806,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "content",
+     "message": "Heading levels skip (e.g. h2 -> h4); extraction uses the outline",
+     "url": "https://siaran.my/pricing",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/pricing",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "SoftwareApplication could add: aggregateRating, review",
+     "url": "https://siaran.my/pricing",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/pricing",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "service",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/pricing"
+   ],
+   "canonical_abs": "https://siaran.my/pricing",
+   "title": "Pricing: per organization, unlimited accounts | Siar",
+   "description": "Siar pricing: Free with 20 posts a month, paid plans from $90 a month billed yearly. Priced per organization with unlimited connected accounts. X usage passed through at cost.",
+   "h1": [
+    "Pay for what you publish. Not for each account."
+   ],
+   "words": 1346,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "FAQPage",
+    "Organization",
+    "SoftwareApplication"
+   ],
+   "microdata_types": [],
+   "sections": 24,
+   "question_headings": 8,
+   "subheadings": 24,
+   "numbers_per_500w": 3.3,
+   "outbound_citations": 10,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 38,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/privacy",
+   "final_url": "https://siaran.my/privacy",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 282,
+   "bytes": 21321,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/privacy",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "No BreadcrumbList",
+     "url": "https://siaran.my/privacy",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/privacy",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "utility",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/privacy"
+   ],
+   "canonical_abs": "https://siaran.my/privacy",
+   "title": "Privacy policy | Siar",
+   "description": "What data Siar collects, why, how long it is kept, who processes it and how to exercise your rights.",
+   "h1": [
+    "Privacy policy"
+   ],
+   "words": 737,
+   "root_shell": false,
+   "schema_types": [
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 10,
+   "question_headings": 5,
+   "subheadings": 10,
+   "numbers_per_500w": 4.1,
+   "outbound_citations": 6,
+   "dates": {
+    "schema": {},
+    "visible": true,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 36,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/terms",
+   "final_url": "https://siaran.my/terms",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 278,
+   "bytes": 21826,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/terms",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "No BreadcrumbList",
+     "url": "https://siaran.my/terms",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/terms",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "utility",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/terms"
+   ],
+   "canonical_abs": "https://siaran.my/terms",
+   "title": "Terms of service | Siar",
+   "description": "The terms that apply to your use of the Siar API, dashboard and website.",
+   "h1": [
+    "Terms of service"
+   ],
+   "words": 877,
+   "root_shell": false,
+   "schema_types": [
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 11,
+   "question_headings": 0,
+   "subheadings": 11,
+   "numbers_per_500w": 2.9,
+   "outbound_citations": 6,
+   "dates": {
+    "schema": {},
+    "visible": true,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 37,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/openapi.json",
+   "final_url": "https://siaran.my/openapi.json",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 266,
+   "bytes": 1421512,
+   "content_type": "application/json",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": []
+  },
+  {
+   "url": "https://siaran.my/docs/api/api-key",
+   "final_url": "https://siaran.my/docs/api/api-key",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 242,
+   "bytes": 40090,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "content",
+     "message": "Heading levels skip (e.g. h2 -> h4); extraction uses the outline",
+     "url": "https://siaran.my/docs/api/api-key",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/docs/api/api-key",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/docs/api/api-key",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "article",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/docs/api/api-key"
+   ],
+   "canonical_abs": "https://siaran.my/docs/api/api-key",
+   "title": "API keys API | Siar docs",
+   "description": "Create, roll and delete organization API keys. A new key is shown once.",
+   "h1": [
+    "API keys API"
+   ],
+   "words": 309,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "Organization",
+    "TechArticle"
+   ],
+   "microdata_types": [],
+   "sections": 16,
+   "question_headings": 0,
+   "subheadings": 4,
+   "numbers_per_500w": 3.2,
+   "outbound_citations": 6,
+   "dates": {
+    "schema": {
+     "datePublished": "2026-10-13",
+     "dateModified": "2026-10-13"
+    },
+    "visible": true,
+    "meta_modified": ""
+   },
+   "author": true,
+   "age_days": 0,
+   "internal_links": 61,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/use-cases/social-media-webhooks",
+   "final_url": "https://siaran.my/use-cases/social-media-webhooks",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 289,
+   "bytes": 45275,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/use-cases/social-media-webhooks",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/use-cases/social-media-webhooks",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/use-cases/social-media-webhooks"
+   ],
+   "canonical_abs": "https://siaran.my/use-cases/social-media-webhooks",
+   "title": "Social media webhooks | Siar",
+   "description": "Subscribe to 16 signed event types: posts, comments, accounts, X credit and conversations. HMAC-SHA256 signatures, retries with backoff, a delivery log and resend.",
+   "h1": [
+    "Signed webhooks for everything that changes"
+   ],
+   "words": 416,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "FAQPage",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 10,
+   "question_headings": 3,
+   "subheadings": 10,
+   "numbers_per_500w": 15.6,
+   "outbound_citations": 8,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 37,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/bluesky-api",
+   "final_url": "https://siaran.my/bluesky-api",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 329,
+   "bytes": 38101,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/bluesky-api",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/bluesky-api",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/bluesky-api"
+   ],
+   "canonical_abs": "https://siaran.my/bluesky-api",
+   "title": "Bluesky API: post, schedule and analyze | Siar",
+   "description": "Publish and schedule Bluesky posts through one REST API. 1 post type, limits, scopes, daily caps and a full error reference.",
+   "h1": [
+    "Bluesky API through Siar."
+   ],
+   "words": 650,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "FAQPage",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 18,
+   "question_headings": 7,
+   "subheadings": 18,
+   "numbers_per_500w": 6.9,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 39,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/discord-api/errors",
+   "final_url": "https://siaran.my/discord-api/errors",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 273,
+   "bytes": 24929,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/discord-api/errors",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/discord-api/errors",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/discord-api/errors"
+   ],
+   "canonical_abs": "https://siaran.my/discord-api/errors",
+   "title": "Discord API errors and how to fix them | Siar",
+   "description": "9 Discord API errors: what each rejection means and the fix, as relayed by Siar.",
+   "h1": [
+    "Discord API errors and how to fix them."
+   ],
+   "words": 456,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 11,
+   "question_headings": 1,
+   "subheadings": 11,
+   "numbers_per_500w": 11.0,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 36,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/facebook-api/errors",
+   "final_url": "https://siaran.my/facebook-api/errors",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 310,
+   "bytes": 27054,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/facebook-api/errors",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/facebook-api/errors",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/facebook-api/errors"
+   ],
+   "canonical_abs": "https://siaran.my/facebook-api/errors",
+   "title": "Facebook API errors and how to fix them | Siar",
+   "description": "12 Facebook API errors: what each rejection means and the fix, as relayed by Siar.",
+   "h1": [
+    "Facebook API errors and how to fix them."
+   ],
+   "words": 611,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 14,
+   "question_headings": 1,
+   "subheadings": 14,
+   "numbers_per_500w": 10.6,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 36,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/google-business-profile-api/errors",
+   "final_url": "https://siaran.my/google-business-profile-api/errors",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 306,
+   "bytes": 26801,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/google-business-profile-api/errors",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/google-business-profile-api/errors",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/google-business-profile-api/errors"
+   ],
+   "canonical_abs": "https://siaran.my/google-business-profile-api/errors",
+   "title": "Google Business Profile API errors and how to fix them | Siar",
+   "description": "10 Google Business Profile API errors: what each rejection means and the fix, as relayed by Siar.",
+   "h1": [
+    "Google Business Profile API errors and how to fix them."
+   ],
+   "words": 615,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 12,
+   "question_headings": 1,
+   "subheadings": 12,
+   "numbers_per_500w": 10.6,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 36,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/instagram-api/errors",
+   "final_url": "https://siaran.my/instagram-api/errors",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 305,
+   "bytes": 25843,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/instagram-api/errors",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/instagram-api/errors",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/instagram-api/errors"
+   ],
+   "canonical_abs": "https://siaran.my/instagram-api/errors",
+   "title": "Instagram API errors and how to fix them | Siar",
+   "description": "10 Instagram API errors: what each rejection means and the fix, as relayed by Siar.",
+   "h1": [
+    "Instagram API errors and how to fix them."
+   ],
+   "words": 545,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 12,
+   "question_headings": 1,
+   "subheadings": 12,
+   "numbers_per_500w": 12.8,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 36,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/linkedin-api",
+   "final_url": "https://siaran.my/linkedin-api",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 292,
+   "bytes": 39753,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/linkedin-api",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/linkedin-api",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/linkedin-api"
+   ],
+   "canonical_abs": "https://siaran.my/linkedin-api",
+   "title": "LinkedIn API: post, schedule and analyze | Siar",
+   "description": "Publish and schedule LinkedIn posts through one REST API. 1 post type, limits, scopes, daily caps and a full error reference.",
+   "h1": [
+    "LinkedIn API through Siar."
+   ],
+   "words": 732,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "FAQPage",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 18,
+   "question_headings": 7,
+   "subheadings": 18,
+   "numbers_per_500w": 6.1,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 39,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/mastodon-api/errors",
+   "final_url": "https://siaran.my/mastodon-api/errors",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 285,
+   "bytes": 19822,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/mastodon-api/errors",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/mastodon-api/errors",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/mastodon-api/errors"
+   ],
+   "canonical_abs": "https://siaran.my/mastodon-api/errors",
+   "title": "Mastodon API errors and how to fix them | Siar",
+   "description": "How Mastodon errors are reported: what each rejection means and the fix, as relayed by Siar.",
+   "h1": [
+    "Mastodon API errors and how to fix them."
+   ],
+   "words": 191,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 2,
+   "question_headings": 1,
+   "subheadings": 2,
+   "numbers_per_500w": 7.9,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 37,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/pinterest-api/errors",
+   "final_url": "https://siaran.my/pinterest-api/errors",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 295,
+   "bytes": 25868,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/pinterest-api/errors",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/pinterest-api/errors",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/pinterest-api/errors"
+   ],
+   "canonical_abs": "https://siaran.my/pinterest-api/errors",
+   "title": "Pinterest API errors and how to fix them | Siar",
+   "description": "10 Pinterest API errors: what each rejection means and the fix, as relayed by Siar.",
+   "h1": [
+    "Pinterest API errors and how to fix them."
+   ],
+   "words": 541,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 12,
+   "question_headings": 1,
+   "subheadings": 12,
+   "numbers_per_500w": 7.4,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 36,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/reddit-api/errors",
+   "final_url": "https://siaran.my/reddit-api/errors",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 253,
+   "bytes": 25850,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/reddit-api/errors",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/reddit-api/errors",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/reddit-api/errors"
+   ],
+   "canonical_abs": "https://siaran.my/reddit-api/errors",
+   "title": "Reddit API errors and how to fix them | Siar",
+   "description": "10 Reddit API errors: what each rejection means and the fix, as relayed by Siar.",
+   "h1": [
+    "Reddit API errors and how to fix them."
+   ],
+   "words": 513,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 12,
+   "question_headings": 1,
+   "subheadings": 12,
+   "numbers_per_500w": 7.8,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 36,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  },
+  {
+   "url": "https://siaran.my/slack-api/errors",
+   "final_url": "https://siaran.my/slack-api/errors",
+   "status": 200,
+   "error": "",
+   "hops": [],
+   "ttfb_ms": 274,
+   "bytes": 25496,
+   "content_type": "text/html",
+   "x_robots": "",
+   "last_modified_header": "Tue, 13 Oct 2026 05:58:32 GMT",
+   "findings": [
+    {
+     "severity": "low",
+     "category": "schema",
+     "message": "Organization could add: sameAs, legalName",
+     "url": "https://siaran.my/slack-api/errors",
+     "fix": "",
+     "evidence": ""
+    },
+    {
+     "severity": "low",
+     "category": "trust",
+     "message": "Email address hidden from crawlers by Cloudflare Email Obfuscation \u2014 live AI fetchers can't read the contact email",
+     "url": "https://siaran.my/slack-api/errors",
+     "fix": "Turn off Email Obfuscation (Scrape Shield) or also show the address as plain text on the Contact/About page",
+     "evidence": ""
+    }
+   ],
+   "type": "page",
+   "robots_meta": "",
+   "canonical": [
+    "https://siaran.my/slack-api/errors"
+   ],
+   "canonical_abs": "https://siaran.my/slack-api/errors",
+   "title": "Slack API errors and how to fix them | Siar",
+   "description": "10 Slack API errors: what each rejection means and the fix, as relayed by Siar.",
+   "h1": [
+    "Slack API errors and how to fix them."
+   ],
+   "words": 455,
+   "root_shell": false,
+   "schema_types": [
+    "BreadcrumbList",
+    "Organization"
+   ],
+   "microdata_types": [],
+   "sections": 12,
+   "question_headings": 1,
+   "subheadings": 12,
+   "numbers_per_500w": 5.5,
+   "outbound_citations": 7,
+   "dates": {
+    "schema": {},
+    "visible": false,
+    "meta_modified": ""
+   },
+   "author": false,
+   "internal_links": 36,
+   "alternates": [
+    [
+     "text/plain",
+     "/llms.txt"
+    ]
+   ]
+  }
+ ],
+ "site_findings": [
+  {
+   "severity": "low",
+   "category": "trust",
+   "message": "No HSTS header",
+   "url": "https://siaran.my",
+   "fix": "Strict-Transport-Security: max-age=31536000; includeSubDomains",
+   "evidence": ""
+  }
+ ],
+ "scores": {
+  "access": 100,
+  "render": 100,
+  "index": 100,
+  "schema": 98,
+  "content": 100,
+  "trust": 96,
+  "perf": 100,
+  "agent": 100,
+  "intl": 100
+ },
+ "overall": 99,
+ "generated": "2026-10-13T13:59:25",
+ "seconds": 6.8
+}

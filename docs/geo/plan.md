@@ -13,7 +13,7 @@ Owner decisions open: Cloudflare Email Obfuscation, HSTS, Search Console + Bing 
 The site was already in good shape (honest robots.txt, per-page canonicals, OG, an llms.txt generated from code, a
 markdown pricing page, network and error pages generated from the enforcing code). The work was surgical.
 
-## Done in this pass (local, not deployed)
+## Done in this pass (deployed 2026-10-13, release 14da916; live audit 99/100)
 
 | Tier | What | Why | Verify |
 |---|---|---|---|
@@ -76,3 +76,4 @@ Expected lag: Bing/Perplexity days to weeks, Google AI surfaces 2–8 weeks, mod
 |---|---|---|
 | 2026-10-13 | Plumbing: schema graph, error FAQ removal, home offer, sitemap lastmod, docs dates, page weight, titles, IndexNow | see git log `geo:` |
 | 2026-10-13 | Content: home lead + 2 FAQ edits, FAQ question headings | see git log `geo:` |
+| 2026-10-13 | Deployed 14da916; IndexNow 202 for 87 URLs | deploy/deploy-shared.sh |

@@ -3,7 +3,7 @@
 Things only Fakhrul can decide or do. Ordered by what unblocks the most.
 
 ## Decisions
-- [ ] **Deploy** the 2026-10-13 GEO commits (`deploy/deploy-shared.sh`), then run `node apps/site/scripts/indexnow.mjs` once.
+- [x] **Deploy** the 2026-10-13 GEO commits: done (14da916), IndexNow sent 87 URLs (202). Re-run indexnow.mjs after future site deploys.
 - [ ] **Cloudflare Email Obfuscation** (Scrape Shield) on siaran.my: turn it off, so live AI fetchers and visitors without JS see
       `siaran@ffdev.studio` instead of `[email protected]`. Alternative: I wrap each address in `<!--email_off-->` and leave the setting on.
 - [ ] **HSTS** on the siaran.my nginx block: `Strict-Transport-Security: max-age=31536000; includeSubDomains`. Preload only if

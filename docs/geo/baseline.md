@@ -13,7 +13,11 @@ Each line says how it is known: **measured** (tool, date), **sourced** (skill re
 | Content extractability | 99 | lows only |
 | **Findings** | 0 critical · 16 high · 2 medium | 0 high · 0 medium apart from localhost artefacts (plain http, live sitemap host) |
 
-Full report: `audit/audit.md`. Re-run on the live site after deploy for the real "after" score.
+Full report: `audit/audit.md`.
+
+**After deploy (measured: audit.py on the live site, same 59 URLs, 2026-10-13, release 14da916):** 99/100, 0 critical,
+0 high, 0 medium. Lows left: Cloudflare email obfuscation, HSTS, no sameAs profiles, no review schema (no reviews),
+heading skips on 4 pages, no breadcrumbs on 6 top-level pages. Report: `audit-after/audit.md`.
 
 ## Access matrix (measured: bot_access.py on /, /pricing, /docs)
 
