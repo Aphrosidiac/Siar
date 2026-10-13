@@ -163,7 +163,8 @@ model Organization {
   /// ISO 3166-1 alpha-2. Decides the price list: MY pays in ringgit, everyone else in USD. Null = not chosen yet.
   billingCountry        String?
   stripeCustomerId      String?   @unique
-  chipClientId          String?   @unique
+  /// CHIP keeps one client per email per brand, so organizations with the same billing email share it.
+  chipClientId          String?
   /// Hosted connect portal branding.
   portalBrandName       String?
   portalLogoUrl         String?

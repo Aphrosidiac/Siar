@@ -17,7 +17,7 @@ import {
   billingEmail, failPayment, hadPaidPlan, hooks, invoiceDocument, invoiceView, listPrice, LIVE_STATUSES, money, planLabel, RANK, renewalCharger, runRenewals, settlePayment,
   subscriptionView, usdToMyr, type Interval, type Requested, type Tier,
 } from './billing-core.js';
-import { cardCountryOf, chip, chipAccepts, chipConfigured, chipPublicKeys, PAID, verifySignature, type ChipPurchase } from './billing-chip.js';
+import { cardCountryOf, chip, paymentMethodOf, chipAccepts, chipConfigured, chipPublicKeys, PAID, verifySignature, type ChipPurchase } from './billing-chip.js';
 import { mockCheckoutPage } from './billing-mock.js';
 import * as stripeP from './billing-stripe.js';
 
@@ -94,7 +94,7 @@ renewalCharger.charge = async (sub, payment) => {
   });
   await prisma.billingPayment.update({ where: { id: payment.id }, data: { providerRef: purchase.id } });
   const r = await chip.charge(purchase.id, sub.providerPaymentToken);
-  if (r.status === 'paid') return { status: 'paid', charged: { amount: r.purchase.payment?.amount ?? r.purchase.purchase.total, currency: 'myr' } };
+  if (r.status === 'paid') return { status: 'paid', charged: { amount: r.purchase.payment?.amount ?? r.purchase.purchase.total, currency: 'myr' }, paymentMethod: paymentMethodOf(r.purchase) };
   if (r.status === 'pending') return { status: 'pending' };
   return { status: 'failed', reason: r.reason, tokenInvalid: r.tokenInvalid };
 };
@@ -409,7 +409,7 @@ async function applyChipPurchase(p: ChipPurchase) {
   const payment = byRef ?? (p.purchase.metadata?.siar_payment ? await prisma.billingPayment.findUnique({ where: { id: p.purchase.metadata.siar_payment } }) : null);
   if (!payment || payment.provider !== 'CHIP') return 'unknown';
   if (PAID.has(p.status) || p.status === 'preauthorized') {
-    return settlePayment(payment.id, { charged: { amount: p.payment?.amount ?? (p.status === 'preauthorized' ? 0 : p.purchase.total), currency: 'myr' }, token: p.is_recurring_token ? p.id : null, cardCountry: cardCountryOf(p), via: 'chip-callback' });
+    return settlePayment(payment.id, { charged: { amount: p.payment?.amount ?? (p.status === 'preauthorized' ? 0 : p.purchase.total), currency: 'myr' }, token: p.is_recurring_token ? p.id : null, cardCountry: cardCountryOf(p), paymentMethod: paymentMethodOf(p), via: 'chip-callback' });
   }
   if (['error', 'cancelled', 'expired', 'blocked'].includes(p.status)) { await failPayment(payment.id, p.status, 'chip-callback'); return 'failed'; }
   return 'ignored';

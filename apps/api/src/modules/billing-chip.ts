@@ -62,6 +62,23 @@ export function cardCountryOf(p: ChipPurchase): string | null {
   return null;
 }
 
+const METHOD_NAMES: Record<string, string> = {
+  fpx: 'FPX', fpx_b2b1: 'FPX (business)', duitnow_qr: 'DuitNow QR', dnqr: 'DuitNow QR', visa: 'Visa', mastercard: 'Mastercard', maestro: 'Maestro',
+  mpgs_apple_pay: 'Apple Pay', mpgs_google_pay: 'Google Pay', razer_grabpay: 'GrabPay', razer_shopeepay: 'ShopeePay', razer_tng: "Touch 'n Go eWallet",
+  razer_maybankqr: 'Maybank QR', razer_atome: 'Atome',
+};
+/** How the purchase was paid, as printed on the invoice: "FPX (Maybank2u)", "Visa •••• 1111". */
+export function paymentMethodOf(p: ChipPurchase): string | null {
+  const m = p.transaction_data?.payment_method;
+  if (!m) return null;
+  const extra = p.transaction_data?.extra ?? {};
+  const name = METHOD_NAMES[m] ?? m;
+  const pan = String(extra.masked_pan ?? extra.card_number ?? '').replace(/\D/g, '');
+  if (pan.length >= 4 && CARD_METHODS.has(m)) return `${name} •••• ${pan.slice(-4)}`;
+  const bank = extra.fpx_buyer_bank_name ?? extra.bank_name ?? extra.buyer_bank_name;
+  return typeof bank === 'string' && bank ? `${name} (${bank})` : name;
+}
+
 export function failureOf(p: ChipPurchase): { code: string; message: string } {
   const a = [...(p.transaction_data?.attempts ?? [])].find(x => !x.successful && x.error);
   return { code: a?.error?.code ?? 'unknown', message: a?.error?.message ?? 'The payment was declined.' };
@@ -176,7 +193,17 @@ export const chip = {
   ensureClient: (c: { name: string; email: string | null; chipClientId: string | null }) => wrap(async () => {
     if (c.chipClientId) return c.chipClientId;
     if (!c.email) return null;
-    return (await api<{ id: string }>('POST', '/clients/', { email: c.email, full_name: c.name.slice(0, 1000) })).id;
+    try {
+      return (await api<{ id: string }>('POST', '/clients/', { email: c.email, full_name: c.name.slice(0, 1000) })).id;
+    } catch (err) {
+      // CHIP keeps one client per email per brand: a second organization (or a re-created one) with the
+      // same billing email reuses it rather than failing the checkout.
+      if (!(err instanceof ChipApiError) || !/already have a client/i.test(err.message)) throw err;
+      const found = await api<{ results: { id: string; email: string }[] }>('GET', `/clients/?q=${encodeURIComponent(c.email)}`);
+      const hit = found.results?.find(x => x.email?.toLowerCase() === c.email!.toLowerCase());
+      if (!hit) throw err;
+      return hit.id;
+    }
   }),
   createPurchase: (o: PurchaseIn) => wrap(async () => {
     const total = o.products.reduce((t, p) => t + p.price * (p.quantity ?? 1), 0);

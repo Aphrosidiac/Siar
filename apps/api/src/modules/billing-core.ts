@@ -195,6 +195,8 @@ export interface Settlement {
   via: string;
   /** Issuing country of the card that paid (ISO alpha-2), when the provider reports one. */
   cardCountry?: string | null;
+  /** How it was paid, as the invoice prints it ("FPX (Maybank2u)", "Visa •••• 4242"). */
+  paymentMethod?: string | null;
 }
 
 /** Retire a saved card at the provider. Set by billing.ts (CHIP live deletes the token; mock has nothing to do). */
@@ -225,7 +227,7 @@ export async function settlePayment(paymentId: string, s: Settlement): Promise<'
     if (p.purpose === 'CREDIT_TOPUP') {
       const usd = p.creditCents ?? p.amountCents;
       await credit(tx, p.organizationId, BigInt(usd) * 10_000n, 'TOPUP', { type: `${p.provider.toLowerCase()}_payment`, id: ref }, `Top-up ${money(usd, 'usd')}`);
-      await recordInvoice(tx, { organizationId: p.organizationId, provider: p.provider, providerInvoiceId: ref, description: `X credit top-up (${money(usd, 'usd')})`, amountCents: amount, currency, status: 'paid', paidAt: new Date() });
+      await recordInvoice(tx, { organizationId: p.organizationId, provider: p.provider, providerInvoiceId: ref, description: `X credit top-up (${money(usd, 'usd')})`, amountCents: amount, currency, status: 'paid', paidAt: new Date(), paymentMethod: s.paymentMethod ?? null });
       await audit(tx, actor, 'credit.topUp', 'CreditAccount', p.organizationId, `Added ${money(usd, 'usd')} of X credit${currency === 'myr' ? ` for ${money(amount, currency)}` : ''}`, { paymentId: p.id, via: s.via });
       return 'settled' as const;
     }
@@ -275,7 +277,7 @@ export async function settlePayment(paymentId: string, s: Settlement): Promise<'
       : await tx.subscription.create({ data: { ...data, organizationId: p.organizationId, providerSubscriptionId: `siar_sub_${randomUUID().replace(/-/g, '')}` } });
     await tx.organization.update({ where: { id: p.organizationId }, data: { tier, ...(trial ? { trialEndsAt: end } : {}) } });
     await recordInvoice(tx, {
-      organizationId: p.organizationId, provider: p.provider, providerInvoiceId: ref, amountCents: amount, currency, status: 'paid', paidAt: now,
+      organizationId: p.organizationId, provider: p.provider, providerInvoiceId: ref, amountCents: amount, currency, status: 'paid', paidAt: now, paymentMethod: s.paymentMethod ?? null,
       description: trial ? `${planLabel(tier, interval)}: ${config.TRIAL_DAYS}-day trial` : `${planLabel(tier, interval)}${renewal ? ' renewal' : ''}`,
       periodStart: trial ? now : start, periodEnd: end,
     });
@@ -301,7 +303,7 @@ export async function failPayment(paymentId: string, reason: string, via: string
 
 // ───────────────────────── renewals (CHIP + mock) ─────────────────────────
 
-export type ChargeOutcome = { status: 'paid'; charged?: { amount: number; currency: string } } | { status: 'pending' } | { status: 'failed'; reason: string; tokenInvalid: boolean };
+export type ChargeOutcome = { status: 'paid'; charged?: { amount: number; currency: string }; paymentMethod?: string | null } | { status: 'pending' } | { status: 'failed'; reason: string; tokenInvalid: boolean };
 /** Charges a saved card for a renewal payment. Set by billing.ts per provider. Must set payment.providerRef before charging. */
 export const renewalCharger: { charge: (sub: any, payment: any) => Promise<ChargeOutcome> } = { charge: async () => ({ status: 'failed', reason: 'No charger configured.', tokenInvalid: false }) };
 
@@ -395,7 +397,7 @@ export async function renewOne(subId: string): Promise<'skipped' | 'ended' | 'pa
   } catch (err) {
     r = { status: 'failed', reason: (err as Error).message || 'The payment provider could not be reached.', tokenInvalid: false };
   }
-  if (r.status === 'paid') { await settlePayment(payment.id, { charged: r.charged, via: 'renewal' }); return 'paid'; }
+  if (r.status === 'paid') { await settlePayment(payment.id, { charged: r.charged, paymentMethod: r.paymentMethod, via: 'renewal' }); return 'paid'; }
   if (r.status === 'pending') { await prisma.subscription.update({ where: { id: sub.id }, data: { nextRetryAt: addDays(now, 1) } }); return 'pending'; }
   return chargeFailed(sub.id, payment.id, r.reason, r.tokenInvalid);
 }

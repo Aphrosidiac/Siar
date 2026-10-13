@@ -667,7 +667,6 @@ export type OrganizationOrderByWithRelationInput = {
 export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   stripeCustomerId?: string
-  chipClientId?: string
   AND?: Prisma.OrganizationWhereInput | Prisma.OrganizationWhereInput[]
   OR?: Prisma.OrganizationWhereInput[]
   NOT?: Prisma.OrganizationWhereInput | Prisma.OrganizationWhereInput[]
@@ -707,6 +706,7 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   billingAddress?: Prisma.StringNullableFilter<"Organization"> | string | null
   billingTaxId?: Prisma.StringNullableFilter<"Organization"> | string | null
   billingCountry?: Prisma.StringNullableFilter<"Organization"> | string | null
+  chipClientId?: Prisma.StringNullableFilter<"Organization"> | string | null
   portalBrandName?: Prisma.StringNullableFilter<"Organization"> | string | null
   portalLogoUrl?: Prisma.StringNullableFilter<"Organization"> | string | null
   portalAccentColor?: Prisma.StringNullableFilter<"Organization"> | string | null
@@ -730,7 +730,7 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   auditLogs?: Prisma.AuditLogListRelationFilter
   csvImports?: Prisma.CsvImportListRelationFilter
   portalLinks?: Prisma.PortalLinkListRelationFilter
-}, "id" | "stripeCustomerId" | "chipClientId">
+}, "id" | "stripeCustomerId">
 
 export type OrganizationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -6894,6 +6894,9 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
      */
     billingCountry: string | null
     stripeCustomerId: string | null
+    /**
+     * CHIP keeps one client per email per brand, so organizations with the same billing email share it.
+     */
     chipClientId: string | null
     /**
      * Hosted connect portal branding.
