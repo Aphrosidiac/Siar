@@ -1,0 +1,51 @@
+id,text,stratum,persona,locale,weight
+p001,what is a unified social media API,discovery,developer,global,2
+p002,how do I post to multiple social networks from one API,discovery,developer,global,3
+p003,best API to schedule posts on Instagram TikTok and LinkedIn,best-for,developer,global,3
+p004,best social media API for SaaS products,best-for,founder,global,3
+p005,social media posting API for agencies with many client accounts,best-for,agency,global,2
+p006,social media API priced per organization not per account,best-for,budget-constrained,global,2
+p007,cheapest social media API with unlimited connected accounts,best-for,budget-constrained,global,2
+p008,social media API with an MCP server for AI agents,best-for,ai-builder,global,3
+p009,how can an AI agent post to social media,discovery,ai-builder,global,2
+p010,API to publish to Bluesky Mastodon and Threads at once,best-for,developer,global,1
+p011,API to post to Google Business Profile programmatically,how-to,developer,global,1
+p012,how to post to Instagram via API without building a Meta app,how-to,developer,global,2
+p013,how to post to TikTok via API,how-to,developer,global,2
+p014,how to post to LinkedIn company page via API,how-to,developer,global,1
+p015,how to schedule a YouTube Short via API,how-to,developer,global,1
+p016,how to let my customers connect their own social accounts with OAuth,how-to,founder,global,2
+p017,white label social media connect link for SaaS,best-for,founder,global,1
+p018,social media API with webhooks when a post is published,best-for,developer,global,1
+p019,API to read and reply to comments on Instagram and Facebook,best-for,developer,global,2
+p020,social media analytics API for multiple networks,best-for,developer,global,1
+p021,Ayrshare alternatives,comparison,switcher,global,3
+p022,bundle.social alternatives,comparison,switcher,global,2
+p023,Ayrshare vs bundle.social,comparison,evaluator,global,1
+p024,alternatives to building every social network integration yourself,comparison,founder,global,1
+p025,Late API vs Ayrshare,comparison,evaluator,global,1
+p026,open source vs hosted social media posting API,comparison,evaluator,global,1
+p027,how much does a social media API cost,pricing,budget-constrained,global,2
+p028,Ayrshare pricing per profile,pricing,budget-constrained,global,1
+p029,X Twitter API cost per post 2026,pricing,developer,global,1
+p030,is there a free social media posting API,pricing,budget-constrained,global,2
+p031,what is Siar social media API,branded-fact,evaluator,global,3
+p032,Siar siaran.my pricing,branded-fact,evaluator,global,2
+p033,which networks does Siar support,branded-fact,evaluator,global,2
+p034,is Siar legit,branded-fact,evaluator,global,1
+p035,who makes Siar API,branded-fact,evaluator,global,1
+p036,Siar vs Ayrshare,comparison,evaluator,global,2
+p037,does Siar have an MCP server,branded-fact,ai-builder,global,1
+p038,Instagram API error 2207042 what does it mean,troubleshooting,developer,global,1
+p039,TikTok API spam_risk_too_many_posts error,troubleshooting,developer,global,1
+p040,Bluesky API ExpiredToken error fix,troubleshooting,developer,global,1
+p041,LinkedIn API 422 duplicate post error,troubleshooting,developer,global,1
+p042,X API 403 duplicate content error,troubleshooting,developer,global,1
+p043,Instagram reel aspect ratio and duration limits for API publishing,how-to,developer,global,1
+p044,TikTok video upload limits API,how-to,developer,global,1
+p045,how to avoid double posting when retrying a social media API,how-to,developer,global,1
+p046,social media API Malaysia,local,founder,MY,2
+p047,API untuk post ke Instagram dan TikTok serentak,local,founder,MY,1
+p048,social media scheduling tool for Malaysian agencies with API,local,agency,MY,1
+p049,post release notes to Slack Discord LinkedIn and X from CI,how-to,developer,global,1
+p050,multi-tenant social media API one key many customers,best-for,founder,global,1

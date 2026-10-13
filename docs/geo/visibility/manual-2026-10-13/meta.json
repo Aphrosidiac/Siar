@@ -1,0 +1,477 @@
+{
+ "brand": {
+  "name": "Siar",
+  "aliases": [
+   "Siar"
+  ],
+  "domain": "siaran.my"
+ },
+ "competitors": [
+  {
+   "name": "bundle.social",
+   "aliases": [
+    "bundle.social"
+   ],
+   "domain": ""
+  },
+  {
+   "name": "Ayrshare",
+   "aliases": [
+    "Ayrshare"
+   ],
+   "domain": ""
+  },
+  {
+   "name": "Late",
+   "aliases": [
+    "Late"
+   ],
+   "domain": ""
+  },
+  {
+   "name": "Upload-Post",
+   "aliases": [
+    "Upload-Post"
+   ],
+   "domain": ""
+  },
+  {
+   "name": "Postiz",
+   "aliases": [
+    "Postiz"
+   ],
+   "domain": ""
+  },
+  {
+   "name": "Mixpost",
+   "aliases": [
+    "Mixpost"
+   ],
+   "domain": ""
+  },
+  {
+   "name": "Publer",
+   "aliases": [
+    "Publer"
+   ],
+   "domain": ""
+  }
+ ],
+ "engines": [
+  "chatgpt-ui",
+  "perplexity-ui",
+  "gemini-ui",
+  "aimode-ui"
+ ],
+ "runs": 1,
+ "prompts": "docs/geo/prompts_v1.csv",
+ "models": {
+  "chatgpt-ui": "manual-ui",
+  "perplexity-ui": "manual-ui",
+  "gemini-ui": "manual-ui",
+  "aimode-ui": "manual-ui"
+ },
+ "started": "2026-10-13T13:48:24",
+ "prompt_rows": [
+  {
+   "id": "p001",
+   "text": "what is a unified social media API",
+   "stratum": "discovery",
+   "persona": "developer",
+   "locale": "GLOBAL",
+   "weight": "2"
+  },
+  {
+   "id": "p002",
+   "text": "how do I post to multiple social networks from one API",
+   "stratum": "discovery",
+   "persona": "developer",
+   "locale": "GLOBAL",
+   "weight": "3"
+  },
+  {
+   "id": "p003",
+   "text": "best API to schedule posts on Instagram TikTok and LinkedIn",
+   "stratum": "best-for",
+   "persona": "developer",
+   "locale": "GLOBAL",
+   "weight": "3"
+  },
+  {
+   "id": "p004",
+   "text": "best social media API for SaaS products",
+   "stratum": "best-for",
+   "persona": "founder",
+   "locale": "GLOBAL",
+   "weight": "3"
+  },
+  {
+   "id": "p005",
+   "text": "social media posting API for agencies with many client accounts",
+   "stratum": "best-for",
+   "persona": "agency",
+   "locale": "GLOBAL",
+   "weight": "2"
+  },
+  {
+   "id": "p006",
+   "text": "social media API priced per organization not per account",
+   "stratum": "best-for",
+   "persona": "budget-constrained",
+   "locale": "GLOBAL",
+   "weight": "2"
+  },
+  {
+   "id": "p007",
+   "text": "cheapest social media API with unlimited connected accounts",
+   "stratum": "best-for",
+   "persona": "budget-constrained",
+   "locale": "GLOBAL",
+   "weight": "2"
+  },
+  {
+   "id": "p008",
+   "text": "social media API with an MCP server for AI agents",
+   "stratum": "best-for",
+   "persona": "ai-builder",
+   "locale": "GLOBAL",
+   "weight": "3"
+  },
+  {
+   "id": "p009",
+   "text": "how can an AI agent post to social media",
+   "stratum": "discovery",
+   "persona": "ai-builder",
+   "locale": "GLOBAL",
+   "weight": "2"
+  },
+  {
+   "id": "p010",
+   "text": "API to publish to Bluesky Mastodon and Threads at once",
+   "stratum": "best-for",
+   "persona": "developer",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p011",
+   "text": "API to post to Google Business Profile programmatically",
+   "stratum": "how-to",
+   "persona": "developer",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p012",
+   "text": "how to post to Instagram via API without building a Meta app",
+   "stratum": "how-to",
+   "persona": "developer",
+   "locale": "GLOBAL",
+   "weight": "2"
+  },
+  {
+   "id": "p013",
+   "text": "how to post to TikTok via API",
+   "stratum": "how-to",
+   "persona": "developer",
+   "locale": "GLOBAL",
+   "weight": "2"
+  },
+  {
+   "id": "p014",
+   "text": "how to post to LinkedIn company page via API",
+   "stratum": "how-to",
+   "persona": "developer",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p015",
+   "text": "how to schedule a YouTube Short via API",
+   "stratum": "how-to",
+   "persona": "developer",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p016",
+   "text": "how to let my customers connect their own social accounts with OAuth",
+   "stratum": "how-to",
+   "persona": "founder",
+   "locale": "GLOBAL",
+   "weight": "2"
+  },
+  {
+   "id": "p017",
+   "text": "white label social media connect link for SaaS",
+   "stratum": "best-for",
+   "persona": "founder",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p018",
+   "text": "social media API with webhooks when a post is published",
+   "stratum": "best-for",
+   "persona": "developer",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p019",
+   "text": "API to read and reply to comments on Instagram and Facebook",
+   "stratum": "best-for",
+   "persona": "developer",
+   "locale": "GLOBAL",
+   "weight": "2"
+  },
+  {
+   "id": "p020",
+   "text": "social media analytics API for multiple networks",
+   "stratum": "best-for",
+   "persona": "developer",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p021",
+   "text": "Ayrshare alternatives",
+   "stratum": "comparison",
+   "persona": "switcher",
+   "locale": "GLOBAL",
+   "weight": "3"
+  },
+  {
+   "id": "p022",
+   "text": "bundle.social alternatives",
+   "stratum": "comparison",
+   "persona": "switcher",
+   "locale": "GLOBAL",
+   "weight": "2"
+  },
+  {
+   "id": "p023",
+   "text": "Ayrshare vs bundle.social",
+   "stratum": "comparison",
+   "persona": "evaluator",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p024",
+   "text": "alternatives to building every social network integration yourself",
+   "stratum": "comparison",
+   "persona": "founder",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p025",
+   "text": "Late API vs Ayrshare",
+   "stratum": "comparison",
+   "persona": "evaluator",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p026",
+   "text": "open source vs hosted social media posting API",
+   "stratum": "comparison",
+   "persona": "evaluator",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p027",
+   "text": "how much does a social media API cost",
+   "stratum": "pricing",
+   "persona": "budget-constrained",
+   "locale": "GLOBAL",
+   "weight": "2"
+  },
+  {
+   "id": "p028",
+   "text": "Ayrshare pricing per profile",
+   "stratum": "pricing",
+   "persona": "budget-constrained",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p029",
+   "text": "X Twitter API cost per post 2026",
+   "stratum": "pricing",
+   "persona": "developer",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p030",
+   "text": "is there a free social media posting API",
+   "stratum": "pricing",
+   "persona": "budget-constrained",
+   "locale": "GLOBAL",
+   "weight": "2"
+  },
+  {
+   "id": "p031",
+   "text": "what is Siar social media API",
+   "stratum": "branded-fact",
+   "persona": "evaluator",
+   "locale": "GLOBAL",
+   "weight": "3"
+  },
+  {
+   "id": "p032",
+   "text": "Siar siaran.my pricing",
+   "stratum": "branded-fact",
+   "persona": "evaluator",
+   "locale": "GLOBAL",
+   "weight": "2"
+  },
+  {
+   "id": "p033",
+   "text": "which networks does Siar support",
+   "stratum": "branded-fact",
+   "persona": "evaluator",
+   "locale": "GLOBAL",
+   "weight": "2"
+  },
+  {
+   "id": "p034",
+   "text": "is Siar legit",
+   "stratum": "branded-fact",
+   "persona": "evaluator",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p035",
+   "text": "who makes Siar API",
+   "stratum": "branded-fact",
+   "persona": "evaluator",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p036",
+   "text": "Siar vs Ayrshare",
+   "stratum": "comparison",
+   "persona": "evaluator",
+   "locale": "GLOBAL",
+   "weight": "2"
+  },
+  {
+   "id": "p037",
+   "text": "does Siar have an MCP server",
+   "stratum": "branded-fact",
+   "persona": "ai-builder",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p038",
+   "text": "Instagram API error 2207042 what does it mean",
+   "stratum": "troubleshooting",
+   "persona": "developer",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p039",
+   "text": "TikTok API spam_risk_too_many_posts error",
+   "stratum": "troubleshooting",
+   "persona": "developer",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p040",
+   "text": "Bluesky API ExpiredToken error fix",
+   "stratum": "troubleshooting",
+   "persona": "developer",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p041",
+   "text": "LinkedIn API 422 duplicate post error",
+   "stratum": "troubleshooting",
+   "persona": "developer",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p042",
+   "text": "X API 403 duplicate content error",
+   "stratum": "troubleshooting",
+   "persona": "developer",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p043",
+   "text": "Instagram reel aspect ratio and duration limits for API publishing",
+   "stratum": "how-to",
+   "persona": "developer",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p044",
+   "text": "TikTok video upload limits API",
+   "stratum": "how-to",
+   "persona": "developer",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p045",
+   "text": "how to avoid double posting when retrying a social media API",
+   "stratum": "how-to",
+   "persona": "developer",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p046",
+   "text": "social media API Malaysia",
+   "stratum": "local",
+   "persona": "founder",
+   "locale": "MY",
+   "weight": "2"
+  },
+  {
+   "id": "p047",
+   "text": "API untuk post ke Instagram dan TikTok serentak",
+   "stratum": "local",
+   "persona": "founder",
+   "locale": "MY",
+   "weight": "1"
+  },
+  {
+   "id": "p048",
+   "text": "social media scheduling tool for Malaysian agencies with API",
+   "stratum": "local",
+   "persona": "agency",
+   "locale": "MY",
+   "weight": "1"
+  },
+  {
+   "id": "p049",
+   "text": "post release notes to Slack Discord LinkedIn and X from CI",
+   "stratum": "how-to",
+   "persona": "developer",
+   "locale": "GLOBAL",
+   "weight": "1"
+  },
+  {
+   "id": "p050",
+   "text": "multi-tenant social media API one key many customers",
+   "stratum": "best-for",
+   "persona": "founder",
+   "locale": "GLOBAL",
+   "weight": "1"
+  }
+ ]
+}
