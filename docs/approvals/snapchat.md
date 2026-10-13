@@ -1,5 +1,8 @@
 # Snapchat — Public Profile API (allowlist)
 
+> **PARKED 2026-10-14** (Fakhrul). Allowlisting needs a Snap contact, which FF does not have; the only known route
+> is Snap's business sales contact. Siar shows Snapchat as "Opening soon" until keys exist. Nothing was created.
+
 No application form: the API is allowlist-only, and an emailed client ID is the approval.
 The adapter follows the current docs (developers.snap.com → Public Profile API: Get Started,
 Profiles, Profile Asset Management) and is tested against a mock only. It has not touched the

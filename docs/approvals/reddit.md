@@ -1,5 +1,7 @@
 # Reddit — Responsible Builder API access
 
+> **PARKED 2026-10-14** (Fakhrul). Siar shows Reddit as "Opening soon" until keys exist. Nothing was submitted.
+
 Self-serve OAuth tokens for new apps ended in Nov 2025; every new app is reviewed by hand and may
 be refused. Siar's Reddit adapter is built and tested; it turns on only if access is granted.
 

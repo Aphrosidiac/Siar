@@ -34,8 +34,8 @@ Values used everywhere (change in one place if the name/domain changes):
 | 5 | LinkedIn | Community Management API (org pages), on a separate CM-only app — **Development tier submitted 2026-10-14** on "Siar Pages", in review | dev tier: no; standard: yes | Main app (OIDC + Share) + "Siar Pages" CM app, verify company page, Submit | [linkedin.md](linkedin.md) |
 | 6 | X | none — pay-per-use credits | no | Developer account, create app, buy credits | [x.md](x.md) |
 | 7 | Pinterest | Standard access | yes | Business account, create app, Submit | [pinterest.md](pinterest.md) |
-| 8 | Reddit | Responsible Builder API access request | no | Submit request, create "web app" | [reddit.md](reddit.md) |
-| 9 | Snapchat | Public Profile API allowlist (via a Snap partner contact) | yes | Snap Business account, OAuth app in Ads Manager → Business Details, email the client ID to Snap | [snapchat.md](snapchat.md) |
+| 8 | Reddit | Responsible Builder API access request — **parked 2026-10-14** ("Opening soon") | no | Submit request, create "web app" | [reddit.md](reddit.md) |
+| 9 | Snapchat | Public Profile API allowlist (via a Snap partner contact) — **parked 2026-10-14**: no Snap contact ("Opening soon") | yes | Snap Business account, OAuth app in Ads Manager → Business Details, email the client ID to Snap | [snapchat.md](snapchat.md) |
 | 10 | Discord | none (<100 servers) | no | Create application + bot | [discord-slack-bluesky-mastodon.md](discord-slack-bluesky-mastodon.md) |
 | 11 | Slack | none (Marketplace optional) | no | Create app, activate public distribution | same |
 | 12 | Bluesky | none | no | nothing | same |
