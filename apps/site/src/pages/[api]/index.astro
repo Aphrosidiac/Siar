@@ -87,8 +87,17 @@ const capRows: [string, boolean][] = n.capabilityList.map((c) => [c.label, c.val
       {n.adapter.scopes.length > 0 && (
         <>
           <h3>Permissions requested</h3>
-          <p class="small">Siar requests only these scopes at connect time:</p>
-          <ul class="scopes">{n.adapter.scopes.map((s) => <li><code>{s}</code></li>)}</ul>
+          {n.adapter.scopeGroups?.length ? n.adapter.scopeGroups.map((g) => (
+            <>
+              <p class="small">{g.label}: Siar requests only these scopes.</p>
+              <ul class="scopes">{g.scopes.map((s) => <li><code>{s}</code></li>)}</ul>
+            </>
+          )) : (
+            <>
+              <p class="small">Siar requests only these scopes at connect time:</p>
+              <ul class="scopes">{n.adapter.scopes.map((s) => <li><code>{s}</code></li>)}</ul>
+            </>
+          )}
         </>
       )}
 

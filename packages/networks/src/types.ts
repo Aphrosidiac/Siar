@@ -334,6 +334,8 @@ export interface NetworkAdapter {
   limits: NetworkLimits;
   /** Scopes requested at connect. */
   scopes: string[];
+  /** Optional split of `scopes` by connection type, for docs (e.g. TikTok Login Kit vs TikTok API for Business). */
+  scopeGroups?: { label: string; scopes: string[] }[];
   /**
    * Real rejection cases this network returns, for the public error reference
    * (site: /<network>-api/errors). `code` is the network's own code or HTTP status.

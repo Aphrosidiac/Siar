@@ -233,6 +233,10 @@ export const tiktok: NetworkAdapter = {
   credentialKeys: ['clientKey', 'clientSecret'],
   // Login Kit scopes + TikTok API for Business account scopes (deduplicated): both go to app review.
   scopes: [...new Set([...SCOPES, ...BUSINESS_SCOPES])],
+  scopeGroups: [
+    { label: 'Personal and creator accounts (TikTok Login Kit, the default)', scopes: SCOPES },
+    { label: 'Business accounts (TikTok API for Business, connected with withBusinessScope)', scopes: BUSINESS_SCOPES },
+  ],
   capabilities: {
     connect: 'oauth2', channels: 'none', postTypes: ['VIDEO', 'IMAGE'],
     // Comments exist only through the Business API: business-connected accounts. Others get NOT_SUPPORTED.
