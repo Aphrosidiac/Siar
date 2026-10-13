@@ -66,7 +66,7 @@ const cols = [{ key: 'title', label: 'Post' }, { key: 'when', label: 'Published'
     <Table :columns="cols" :rows="rows">
       <template #cell-title="{ row }">
         <div class="post">
-          <img v-if="row.thumb" :src="row.thumb" alt="" class="thumb" loading="lazy" />
+          <img v-if="row.thumb" :src="row.thumb" alt="" class="thumb" loading="lazy" @error="($event.target as HTMLImageElement).style.visibility = 'hidden'" />
           <span class="truncate">{{ row.title }}</span>
           <a v-if="row.link" :href="row.link" target="_blank" rel="noopener" class="faint" :aria-label="`Open on ${META[type].name}`" @click.stop><ExternalLink :size="14" /></a>
         </div>
@@ -82,6 +82,7 @@ const cols = [{ key: 'title', label: 'Post' }, { key: 'when', label: 'Published'
 
 <style scoped>
 .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
-.post { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.post { display: flex; align-items: center; gap: 12px; min-width: 0; max-width: min(560px, 48vw); }
+.post .truncate { flex: 1; min-width: 0; }
 .thumb { width: 32px; height: 42px; object-fit: cover; border-radius: 4px; flex: none; background: var(--bg-subtle); }
 </style>

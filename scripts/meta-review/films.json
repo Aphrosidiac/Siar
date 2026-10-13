@@ -120,6 +120,7 @@
     ],
     "review": "TIKTOK APP REVIEW",
     "label": "Products and scopes shown in this recording",
-    "footer": "Recorded in Siar (app.siaran.my) on 13 October 2026 with the Siar sandbox and FF Dev Studio's own TikTok account (private, as TikTok requires before the audit)."
+    "footer": "Recorded in Siar (app.siaran.my) on 13 October 2026 with the Siar sandbox and FF Dev Studio's own TikTok account (private, as TikTok requires before the audit).",
+    "tail": "K1b"
   }
 }
