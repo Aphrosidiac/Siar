@@ -157,7 +157,7 @@ async function cardMethods(kind: 'card' | 'preauth', amount: number) {
   let hit = methodCache.get(key);
   if (!hit || Date.now() - hit.at > 30 * 60_000) {
     const r = await api<{ available_payment_methods: string[] }>('GET', `/payment_methods/?${key}`);
-    hit = { at: Date.now(), list: (r.available_payment_methods ?? []).filter(m => CARD_METHODS.has(m) || kind === 'preauth') };
+    hit = { at: Date.now(), list: (r.available_payment_methods ?? []).filter(m => (CARD_METHODS.has(m) || kind === 'preauth') && !EXCLUDED(m)) };
     methodCache.set(key, hit);
   }
   if (!hit.list.length) throw upstream('Card payments that can be saved are not enabled on this CHIP brand. Ask CHIP to enable recurring card payments.');
@@ -180,11 +180,28 @@ export async function chipAccepts(kind: 'card' | 'bank'): Promise<boolean> {
     let hit = methodCache.get(key);
     if (!hit || Date.now() - hit.at > 30 * 60_000) {
       const r = await api<{ available_payment_methods: string[] }>('GET', `/payment_methods/?${key}`);
-      hit = { at: Date.now(), list: r.available_payment_methods ?? [] };
+      hit = { at: Date.now(), list: (r.available_payment_methods ?? []).filter(m => !EXCLUDED(m)) };
       methodCache.set(key, hit);
     }
     return hit.list.some(m => !CARD_METHODS.has(m));
   } catch { return false; }
+}
+
+/** Methods Siar never offers, even when CHIP opens them for the brand (Fakhrul 2026-10-13: no crypto). */
+const EXCLUDED = (m: string) => /crypto/i.test(m);
+
+/** One-off payment methods open on this brand for an amount (pay-once plans, top-ups), crypto excluded. */
+async function onceMethods(amount: number) {
+  const q = new URLSearchParams({ brand_id: config.CHIP_BRAND_ID, currency: 'MYR', amount: String(Math.max(amount, 100)) });
+  const key = q.toString();
+  let hit = methodCache.get(key);
+  if (!hit || Date.now() - hit.at > 30 * 60_000) {
+    const r = await api<{ available_payment_methods: string[] }>('GET', `/payment_methods/?${key}`);
+    hit = { at: Date.now(), list: (r.available_payment_methods ?? []).filter(m => !EXCLUDED(m)) };
+    methodCache.set(key, hit);
+  }
+  if (!hit.list.length) throw upstream('No payment methods are open on this CHIP brand yet.');
+  return hit.list;
 }
 
 export const callbackUrl = () => apiUrl('/api/v1/billing/chip/callback');
@@ -207,7 +224,7 @@ export const chip = {
   }),
   createPurchase: (o: PurchaseIn) => wrap(async () => {
     const total = o.products.reduce((t, p) => t + p.price * (p.quantity ?? 1), 0);
-    const whitelist = o.preauthorise ? await cardMethods('preauth', 1000) : o.saveCard ? await cardMethods('card', total) : undefined;
+    const whitelist = o.preauthorise ? await cardMethods('preauth', 1000) : o.saveCard ? await cardMethods('card', total) : await onceMethods(total);
     return api<ChipPurchase>('POST', '/purchases/', {
       brand_id: config.CHIP_BRAND_ID,
       ...(o.clientId ? { client_id: o.clientId } : { client: { email: o.client!.email, ...(o.client!.full_name ? { full_name: o.client!.full_name } : {}) } }),
