@@ -190,6 +190,14 @@ export async function pollTarget(postId: string, socialAccountId: string) {
     await settle(postId, socialAccountId, t.attemptId, r, input.orgId);
     return r.status;
   } catch (err) {
+    // A transient error while checking status (TikTok answers internal_error now and then) is not a failed publish:
+    // the network already holds the post, and failing here would publish it again. Check again later.
+    if (isNetworkError(err) && err.isTransient && t.pollCount + 1 < MAX_POLLS) {
+      const wait = Math.min(120_000, 15_000 * 2 ** Math.min(3, t.pollCount));
+      await prisma.postSocialAccount.updateMany({ where: { postId, socialAccountId, attemptId: t.attemptId }, data: { nextPollAt: new Date(Date.now() + wait) } });
+      logger.warn({ postId, socialAccountId, code: err.code, err: err.message }, 'poll: transient error, polling again');
+      return 'repoll';
+    }
     await fail(postId, socialAccountId, t.attemptId, err, AUTO_ATTEMPTS);
     return 'error';
   }
