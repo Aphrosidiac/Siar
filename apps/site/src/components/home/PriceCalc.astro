@@ -1,7 +1,8 @@
 ---
 /** "Per organization, not per account", made tangible: grow the accounts, watch the bill not move. */
-import { PLANS } from '../../lib/plans';
-const plans = (['FREE', 'PRO', 'BUSINESS', 'ENTERPRISE'] as const).map((t) => ({ tier: t, name: PLANS[t].name, posts: PLANS[t].posts, teams: PLANS[t].teams, cents: PLANS[t].priceYearlyMonthlyCents }));
+import { PLANS, TIERS, PAID_TIERS, paidList, priceOf } from '../../lib/plans';
+/** Free is a one-time allowance, so the calculator only ever picks among the plans billed monthly, cheapest first. */
+const plans = TIERS.filter((t) => PAID_TIERS.includes(t) || PLANS[t].prices === null).map((t) => ({ tier: t, name: PLANS[t].name, posts: PLANS[t].posts, teams: PLANS[t].teams, myr: priceOf(t, 'MONTHLY', 'myr') }));
 const POSTS = [20, 200, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000];
 ---
 <div class="calc" data-calc data-plans={JSON.stringify(plans)} data-posts={JSON.stringify(POSTS)}>
@@ -19,12 +20,13 @@ const POSTS = [20, 200, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000];
   </div>
   <div class="out">
     <div class="cell"><span class="lab">Connected accounts</span><span class="big" data-o="accounts">240</span></div>
-    <div class="cell"><span class="lab">Your plan, billed yearly</span><span class="big"><span data-o="price">$90</span><small data-o="per">/mo</small></span><span class="sub" data-o="plan">Pro</span></div>
-    <div class="cell"><span class="lab">Per account</span><span class="big" data-o="each">$0.38</span><span class="sub">and falling as you grow</span></div>
+    <div class="cell"><span class="lab">Your plan, billed monthly</span><span class="big"><span data-o="price">RM99</span><small data-o="per">/mo</small></span><span class="sub" data-o="plan">Pro</span></div>
+    <div class="cell"><span class="lab">Per account</span><span class="big" data-o="each">RM0.41</span><span class="sub">and falling as you grow</span></div>
   </div>
+  <p class="note">Prices in ringgit for Malaysia; {paidList('usd')} elsewhere.</p>
 </div>
 <script>
-  type Plan = { tier: string; name: string; posts: number; teams: number | null; cents: number | null };
+  type Plan = { tier: string; name: string; posts: number; teams: number | null; myr: number | null };
   document.querySelectorAll<HTMLElement>('[data-calc]').forEach((root) => {
     const plans: Plan[] = JSON.parse(root.dataset.plans!);
     const POSTS: number[] = JSON.parse(root.dataset.posts!);
@@ -37,10 +39,11 @@ const POSTS = [20, 200, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000];
       const plan = plans.find((p) => posts <= p.posts && (p.teams === null || brands <= p.teams)) ?? plans[plans.length - 1];
       o('brands').textContent = n(brands); o('nets').textContent = String(nets); o('posts').textContent = n(posts) + (posts === POSTS[POSTS.length - 1] ? '+' : '');
       o('accounts').textContent = n(accounts);
-      o('plan').textContent = plan.cents === null ? `${plan.name}: quoted for your volume` : `${plan.name}: up to ${n(plan.posts)} posts`;
-      o('price').textContent = plan.cents === null ? 'Custom' : `$${n(plan.cents / 100)}`;
-      o('per').textContent = plan.cents === null ? '' : '/mo';
-      o('each').textContent = plan.cents === null ? '—' : plan.cents === 0 ? '$0' : `$${(plan.cents / 100 / accounts).toFixed(accounts > 999 ? 3 : 2)}`;
+      const brandsNote = plan.teams === null ? 'unlimited brands' : plan.teams === 1 ? '1 brand' : `${plan.teams} brands`;
+      o('plan').textContent = plan.myr === null ? `${plan.name}: quoted for your volume` : `${plan.name}: ${brandsNote}, up to ${n(plan.posts)} posts a month`;
+      o('price').textContent = plan.myr === null ? 'Custom' : `RM${n(plan.myr / 100)}`;
+      o('per').textContent = plan.myr === null ? '' : '/mo';
+      o('each').textContent = plan.myr === null ? '—' : `RM${(plan.myr / 100 / accounts).toFixed(accounts > 999 ? 3 : 2)}`;
       root.querySelectorAll<HTMLInputElement>('input').forEach((r) => r.style.setProperty('--p', `${((+r.value - +r.min) / (+r.max - +r.min)) * 100}%`));
     };
     root.addEventListener('input', update);
@@ -65,6 +68,7 @@ const POSTS = [20, 200, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000];
   .cell + .cell { padding-left: 16px; border-left: 1px solid var(--border); }
   .big { font-size: clamp(28px, 3vw, 40px); line-height: 1; font-weight: 600; letter-spacing: -0.04em; color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .big small { font-size: var(--fs-15); letter-spacing: 0; font-weight: 500; color: var(--text-subtle); margin-left: 2px; }
+  .note { margin: 20px 0 0; font-size: var(--fs-13); line-height: 18px; color: var(--text-subtle); }
   .sub { font-size: var(--fs-13); line-height: 18px; color: var(--text-subtle); }
   @media (max-width: 560px) { .out { grid-template-columns: minmax(0, 1fr); } .cell + .cell { padding-left: 0; border-left: 0; border-top: 1px solid var(--border); padding-bottom: 4px; margin-top: 16px; } }
 </style>

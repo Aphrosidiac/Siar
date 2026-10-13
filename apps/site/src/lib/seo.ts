@@ -1,5 +1,5 @@
 import { SITE_URL, SITE_NAME, DESCRIPTION, LEGAL_NAME, LEGAL_REG, COMPANY_URL, CONTACT_EMAIL } from '../config';
-import { PLANS, TIERS } from './plans';
+import { PLANS, TIERS, priceOf } from './plans';
 
 const strip = (s: string) => s.replace(/<[^>]+>/g, '');
 
@@ -53,6 +53,30 @@ export const breadcrumbLd = (crumbs: { name: string; href: string }[]) => ({
   itemListElement: crumbs.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c.name, item: `${SITE_URL}${c.href}` })),
 });
 
+/** One Offer per price a visitor can see on /pricing: Free once, then per paid plan a ringgit offer for Malaysia and a USD offer for everywhere else (monthly prices). */
+const offerList = (offers: 'all' | 'free') => {
+  const out: Record<string, unknown>[] = [];
+  const price = (minor: number) => String(minor / 100);
+  for (const t of TIERS) {
+    const p = PLANS[t];
+    if (!p.prices) continue; // Enterprise is quoted, so it has no price to state
+    if (p.prices.myr.monthly === 0) {
+      out.push({ '@type': 'Offer', name: p.name, description: `${p.posts} posts to try`, price: '0', priceCurrency: 'USD', url: `${SITE_URL}/pricing` });
+      continue;
+    }
+    if (offers === 'free') continue;
+    out.push({
+      '@type': 'Offer', name: `${p.name} (Malaysia)`, description: `${p.name} plan, billed monthly in ringgit for organizations billed in Malaysia`,
+      price: price(priceOf(t, 'MONTHLY', 'myr')!), priceCurrency: 'MYR', eligibleRegion: { '@type': 'Country', name: 'MY' }, url: `${SITE_URL}/pricing`,
+    });
+    out.push({
+      '@type': 'Offer', name: `${p.name} (outside Malaysia)`, description: `${p.name} plan, billed monthly in US dollars outside Malaysia`,
+      price: price(priceOf(t, 'MONTHLY', 'usd')!), priceCurrency: 'USD', ineligibleRegion: { '@type': 'Country', name: 'MY' }, url: `${SITE_URL}/pricing`,
+    });
+  }
+  return out;
+};
+
 /** `offers: 'free'` where a page shows only the Free plan, so the markup never states a price the reader can't see. */
 export const softwareLd = ({ offers = 'all' }: { offers?: 'all' | 'free' } = {}) => ({
   '@context': 'https://schema.org',
@@ -64,13 +88,7 @@ export const softwareLd = ({ offers = 'all' }: { offers?: 'all' | 'free' } = {})
   url: SITE_URL,
   description: DESCRIPTION,
   publisher: { '@id': ORG_ID },
-  offers: TIERS.filter((t) => PLANS[t].priceMonthlyCents !== null && (offers === 'all' || PLANS[t].priceMonthlyCents === 0)).map((t) => ({
-    '@type': 'Offer',
-    name: PLANS[t].name,
-    price: ((PLANS[t].priceMonthlyCents ?? 0) / 100).toFixed(2),
-    priceCurrency: 'USD',
-    url: `${SITE_URL}/pricing`,
-  })),
+  offers: offerList(offers),
 });
 
 export const articleLd = (a: { title: string; description: string; date: string; path: string }) => ({

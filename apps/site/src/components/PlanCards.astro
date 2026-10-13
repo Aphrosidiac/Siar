@@ -1,23 +1,21 @@
 ---
-import { PLANS, TIERS, fmtCents, fmtQuota } from '../lib/plans';
+import { PLANS, TIERS, TRIAL_DAYS, money, isFree, isCustom, monthsFree, fmtQuota, brandsLabel } from '../lib/plans';
 import { SIGNUP_URL } from '../config';
 interface Props { compact?: boolean }
 const { compact = false } = Astro.props;
-const yearlySaving = (() => {
-  const p = PLANS.PRO;
-  if (!p.priceMonthlyCents || !p.priceYearlyMonthlyCents) return null;
-  return Math.round((1 - p.priceYearlyMonthlyCents / p.priceMonthlyCents) * 100);
-})();
+const free = monthsFree('PRO');
 ---
-<div class="pc" data-billing="yearly">
+<div class="pc" data-billing="monthly">
   <div class="toggle" role="group" aria-label="Billing period">
-    <button type="button" data-set="monthly" aria-pressed="false">Monthly</button>
-    <button type="button" data-set="yearly" aria-pressed="true">Yearly{yearlySaving ? <span class="badge accent">save {yearlySaving}%</span> : null}</button>
+    <button type="button" data-set="monthly" aria-pressed="true">Monthly</button>
+    <button type="button" data-set="yearly" aria-pressed="false">Yearly{free ? <span class="badge accent">{free} months free</span> : null}</button>
   </div>
   <div class="cards">
     {TIERS.map((t) => {
       const p = PLANS[t];
-      const custom = p.priceMonthlyCents === null;
+      const custom = isCustom(t);
+      const zero = isFree(t);
+      const paid = !custom && !zero;
       return (
         <div class:list={['plan', { featured: t === 'PRO' }]}>
           <div class="head">
@@ -25,24 +23,26 @@ const yearlySaving = (() => {
             <p class="tag">{p.tagline}</p>
           </div>
           <div class="price">
-            {custom ? <span class="amt">Custom</span> : (
+            {custom ? <span class="amt">Custom</span> : zero ? <span class="amt">Free</span> : (
               <>
-                <span class="amt m">{fmtCents(p.priceMonthlyCents)}</span>
-                <span class="amt y">{fmtCents(p.priceYearlyMonthlyCents)}</span>
-                <span class="per">/ month</span>
+                <span class="amt m">{money(t, 'MONTHLY', 'myr')}</span>
+                <span class="amt y">{money(t, 'YEARLY', 'myr')}</span>
+                <span class="per"><span class="m">a month</span><span class="y">a year</span></span>
               </>
             )}
           </div>
-          <p class="billed">{custom ? 'Quoted per organization' : p.priceMonthlyCents === 0 ? 'No card needed' : <><span class="m">Billed monthly</span><span class="y">Billed yearly</span></>}</p>
-          <a class:list={['btn', t === 'PRO' ? 'primary' : '']} href={custom ? '/contact' : SIGNUP_URL}>{custom ? 'Talk to us' : p.priceMonthlyCents === 0 ? 'Start free' : `Choose ${p.name}`}</a>
+          <p class="usd">{paid ? <><span class="m">{money(t, 'MONTHLY', 'usd')} outside Malaysia</span><span class="y">{money(t, 'YEARLY', 'usd')} outside Malaysia</span></> : custom ? 'Quoted per organization' : `${p.posts} posts to try`}</p>
+          <p class="billed">{custom ? 'Priced for your volume' : zero ? 'No card, no time limit' : <><span class="m">{p.trial ? `${TRIAL_DAYS}-day free trial` : 'Billed monthly'}</span><span class="y">{monthsFree(t)} months free, billed yearly</span></>}</p>
+          <a class:list={['btn', t === 'PRO' ? 'primary' : '']} href={custom ? '/contact' : SIGNUP_URL}>{custom ? 'Talk to us' : zero ? 'Start free' : p.trial ? `Start ${TRIAL_DAYS}-day trial` : `Choose ${p.name}`}</a>
           {!compact && (
             <ul>
-              <li><strong>{fmtQuota(p.posts)}</strong> posts / month</li>
-              <li><strong>{fmtQuota(p.comments)}</strong> comments / month</li>
-              <li><strong>{fmtQuota(p.uploads)}</strong> uploads / month</li>
-              <li><strong>{p.teams === null ? 'Unlimited' : p.teams}</strong> teams{p.teams === null ? ', so unlimited accounts' : ''}</li>
+              <li><strong>{fmtQuota(p.posts)}</strong> posts {p.oneTime ? 'to try, one-time' : 'a month'}</li>
+              <li><strong>{fmtQuota(p.comments)}</strong> comments {p.oneTime ? 'one-time' : 'a month'}</li>
+              <li><strong>{fmtQuota(p.uploads)}</strong> uploads {p.oneTime ? 'one-time' : 'a month'}</li>
+              <li><strong>{brandsLabel(p.teams)}</strong></li>
+              <li><strong>Unlimited</strong> social accounts</li>
               <li>{p.analytics ? 'Analytics included' : 'No analytics'}</li>
-              <li>{t === 'ENTERPRISE' ? 'Raisable quotas, caps and rate limits' : 'Full API, webhooks, SDK, CLI, MCP'}</li>
+              <li>{t === 'ENTERPRISE' ? 'Raisable quotas, caps and rate limits' : 'All networks, API, SDK, CLI, MCP, webhooks'}</li>
             </ul>
           )}
         </div>
@@ -67,18 +67,19 @@ const yearlySaving = (() => {
   .toggle button[aria-pressed='true'] { background: var(--bg-elevated); color: var(--text); box-shadow: var(--shadow-sm); }
   .toggle .badge { background: var(--bg-muted); }
   /* one surface; hairlines between plans (the 1px gap shows the border colour) */
-  .cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; text-align: left; }
-  @media (max-width: 1000px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 560px) { .cards { grid-template-columns: minmax(0, 1fr); } }
-  .plan { padding: 24px; background: var(--bg-elevated); display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; text-align: left; }
+  @media (max-width: 1180px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } .plan:last-child { grid-column: 1 / -1; } }
+  @media (max-width: 560px) { .cards { grid-template-columns: minmax(0, 1fr); } .plan:last-child { grid-column: auto; } }
+  .plan { padding: 24px 20px; background: var(--bg-elevated); display: flex; flex-direction: column; gap: 12px; min-width: 0; }
   .plan.featured { box-shadow: inset 0 2px 0 var(--text); }
   .hrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .hrow h3 { margin: 0; font-size: var(--fs-18); }
   .pop { margin: 0; color: var(--text); white-space: nowrap; }
   .tag { margin: 4px 0 0; font-size: var(--fs-14); line-height: 20px; color: var(--text-subtle); }
-  .price { display: flex; align-items: baseline; gap: 6px; }
-  .amt { font-size: var(--fs-38); line-height: 44px; font-weight: 600; letter-spacing: -0.03em; color: var(--text); font-variant-numeric: tabular-nums; }
+  .price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 6px; }
+  .amt { font-size: var(--fs-30); line-height: 38px; font-weight: 600; letter-spacing: -0.03em; color: var(--text); font-variant-numeric: tabular-nums; }
   .per { color: var(--text-subtle); font-size: var(--fs-14); }
+  .usd { margin: -4px 0 0; font-size: var(--fs-14); line-height: 20px; color: var(--text-muted); min-height: 20px; }
   .billed { margin: 0; font-size: var(--fs-13); line-height: 20px; color: var(--text-subtle); min-height: 20px; }
   .pc[data-billing='yearly'] .m, .pc[data-billing='monthly'] .y { display: none; }
   ul { list-style: none; padding: 0; margin: 8px 0 0; border-top: 1px solid var(--border); padding-top: 16px; }

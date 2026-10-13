@@ -11,7 +11,7 @@ import EventLog from '../components/home/EventLog.astro';
 import { NETWORKS } from '../lib/networks';
 import { operations } from '../lib/openapi';
 import { WEBHOOK_EVENTS } from '../lib/events';
-import { PLANS, fmtInt, paidFrom } from '../lib/plans';
+import { PLANS, fmtInt, paidFrom, PRICE_LOCK } from '../lib/plans';
 import { postTabs, mcpClaudeCode } from '../lib/snippets';
 import { softwareLd, faqLd } from '../lib/seo';
 import { SIGNUP_URL, DESCRIPTION } from '../config';
@@ -19,7 +19,7 @@ import { SIGNUP_URL, DESCRIPTION } from '../config';
 const N = NETWORKS.length;
 const faq = [
   { q: 'Is Siar an API or an app?', a: `Both. Everything is built on one REST API, and the dashboard is a client of that same API. Developers wire Siar into their product; social teams use the dashboard to write, schedule, reply and report across ${N} networks.` },
-  { q: 'How is Siar priced?', a: `Per organization, never per connected account. The Free plan includes ${PLANS.FREE.posts} posts a month. Paid plans start at $${paidFrom()} a month on yearly billing and allow unlimited teams and accounts. X (Twitter) usage is passed through at X's own price from a prepaid credit balance.` },
+  { q: 'How is Siar priced?', a: `Per organization, never per connected account. The Free plan includes ${PLANS.FREE.posts} posts to try, with no card and no time limit. Paid plans start at ${paidFrom('myr')} a month for organizations billed in Malaysia and ${paidFrom('usd')} elsewhere, with unlimited social accounts on every plan. ${PRICE_LOCK} <a href="/pricing">See every plan</a>.` },
   { q: 'Which social networks does Siar support?', a: `${N} networks: ${NETWORKS.map((n) => n.name).join(', ')}. Each one has its own page with the post types, media rules and limits Siar enforces. See <a href="/platforms">all platforms</a>.` },
   { q: 'Can my customers connect their own accounts?', a: 'Yes. Create a team per customer and send them a hosted connect link with your logo and name. They authorize in their own browser and land back in your app; you never handle their passwords or tokens.' },
   { q: 'Do I need developer apps on every network?', a: 'No. Accounts connect through the network apps Siar operates. What each network needs from the account itself (a business profile, a Page, a channel) is listed on its network page.' },
@@ -59,7 +59,7 @@ const audiences = [
         <p class="m-lead" data-reveal style="--d:3">Siar is one API and one dashboard to publish, schedule, reply and measure on {N} social networks. Connect as many accounts as you like. Pay one price per organization.</p>
         <div class="hero-cta" data-reveal style="--d:4">
           <div class="m-actions"><a class="pill ink" href={SIGNUP_URL}>Start free <span class="arr" aria-hidden="true">→</span></a><a class="pill" href="/docs/quickstart">Read the quickstart</a></div>
-          <p class="m-note">Free plan · {PLANS.FREE.posts} posts a month · no card</p>
+          <p class="m-note">Free plan · {PLANS.FREE.posts} posts to try · no card</p>
         </div>
       </div>
       </div>
@@ -124,7 +124,7 @@ const audiences = [
       <div>
         <p class="m-kicker" data-reveal><span class="n">Pricing</span><span class="rule"></span>per organization</p>
         <h2 class="m-h2" data-lines><span class="ln"><span>Unlimited accounts.</span></span><span class="ln"><span style="--d:1">One price.</span></span></h2>
-        <p class="m-lead" data-reveal>Connect five accounts or five thousand. Your bill follows what you publish, never how many brands you look after. Drag the first slider and watch the price stay put.</p>
+        <p class="m-lead" data-reveal>Connect five accounts or five thousand. You pay for the brands you run and the posts you make, never for each channel. Drag the networks slider and watch the price stay put.</p>
         <p class="price-link" data-reveal><a class="pill" href="/pricing">See every plan <span class="arr" aria-hidden="true">→</span></a></p>
       </div>
       <div data-reveal style="--d:2"><PriceCalc /></div>

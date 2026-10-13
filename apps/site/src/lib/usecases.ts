@@ -1,6 +1,6 @@
 import { NETWORKS } from './networks';
 import { WEBHOOK_EVENTS } from './events';
-import { RESOURCE_LIMITS, PLANS, fmtInt } from './plans';
+import { RESOURCE_LIMITS, PLANS, fmtInt, brandsLabel, money, PRICE_LOCK } from './plans';
 import { API_BASE } from '../config';
 import { createPostCurl, connectCurl, portalCurl, teamCurl, analyticsCurl, commentCurl, webhookCreateCurl, importCurl, mcpConfig, cliSample, uploadCurl, POST_BODY } from './snippets';
 
@@ -68,7 +68,7 @@ export const USE_CASES: UseCase[] = [
     ],
     faq: [
       { q: 'Which time zone does postDate use?', a: 'UTC, as an ISO 8601 timestamp. Convert the user\'s local time before you send it.' },
-      { q: 'How far ahead can I schedule?', a: 'As far as your monthly quota allows. The quota counts when you create the post, not when it publishes.' },
+      { q: 'How far ahead can I schedule?', a: 'As far as your quota allows. The quota counts when you create the post, not when it publishes.' },
       { q: 'How do I know a scheduled post went out?', a: 'Subscribe to the <code>post.published</code> webhook, which fires once when the post reaches a final state, or read the post and check its status.' },
     ],
     related: [['/use-cases/social-media-webhooks', 'Webhooks'], ['/docs/posting', 'Posting guide'], ['/pricing', 'Pricing and quotas']],
@@ -82,14 +82,14 @@ export const USE_CASES: UseCase[] = [
     lead: 'If your product posts to social media on behalf of its users, you need isolation, an easy way for each user to connect their accounts, and a bill that does not grow with every account. Siar is built around that.',
     points: [
       'A team per customer, brand or location, with at most one account per network.',
-      `Unlimited teams (and so accounts) on paid plans; ${PLANS.FREE.teams} teams on Free.`,
+      `Unlimited social accounts on every plan. Brands (teams): ${PLANS.FREE.teams} on Free and Starter, ${PLANS.PRO.teams} on Pro, unlimited on Business.`,
       'Hosted connect pages for your users, with your logo and name.',
       'Every query is scoped to your organization; ids from elsewhere return 404.',
     ],
     sections: [
       { h: 'Teams are your tenants', p: ['Create a team when a customer signs up and store its id against your own user record. Every upload, post, comment and connected account lives under a team, so listing a customer\'s posts is one query with their <code>teamId</code>.'], code: { lang: 'bash', code: teamCurl } },
       { h: 'Customers connect their own accounts', p: ['Send each customer a hosted connect link, or call the connect endpoint from your own settings page. They sign in with the network, and the account appears in their team. Siar notices when a network revokes access and fires a <code>social-account.updated</code> webhook so you can prompt a reconnect.'] },
-      { h: 'Pricing that follows usage', p: ['Quotas count what your organization creates each month. Adding a customer, or a customer adding an Instagram account, costs nothing until they actually publish. Daily caps per account protect each customer\'s accounts from being throttled by the networks.'] },
+      { h: 'Pricing that follows usage', p: [`Connected accounts are never charged: a customer adding an Instagram account costs nothing. You pay for the brands you run (${PLANS.PRO.name} runs ${brandsLabel(PLANS.PRO.teams).toLowerCase()} from ${money('PRO', 'MONTHLY', 'myr')} a month in Malaysia or ${money('PRO', 'MONTHLY', 'usd')} elsewhere, ${PLANS.BUSINESS.name} has no limit on brands), and quotas count the posts, comments and uploads your organization creates. ${PRICE_LOCK} Daily caps per account protect each customer\'s accounts from being throttled by the networks.`] },
     ],
     faq: [
       { q: 'Can one team connect two Instagram accounts?', a: 'No. A team holds at most one account per network. Create a second team for the second account.' },
@@ -144,7 +144,7 @@ export const USE_CASES: UseCase[] = [
     faq: [
       { q: 'Do all networks support comments?', a: 'No. Some networks do not expose comments through their API. The platform pages show which do.' },
       { q: 'Can I post a first comment with the post?', a: 'Yes, <code>firstComment</code> on the post takes one text per network, within that network\'s comment length.' },
-      { q: 'Do comments count toward a quota?', a: 'Yes. Comments have a monthly quota and daily caps; see pricing.' },
+      { q: 'Do comments count toward a quota?', a: 'Yes. Comments have a quota and daily caps; see pricing.' },
     ],
     related: [['/docs/api/comment', 'Comments reference'], ['/use-cases/social-media-webhooks', 'Webhooks'], ['/pricing', 'Pricing']],
   },

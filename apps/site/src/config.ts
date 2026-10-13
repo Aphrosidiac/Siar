@@ -15,5 +15,5 @@ export const LEGAL_REG = '202603234793';
 export const COMPANY_URL = 'https://ffdev.studio';
 export const TAGLINE = 'One unified social media API';
 export const DESCRIPTION =
-  'Siar is one REST API to publish, schedule, comment on and measure social media across 15 networks. Unlimited connected accounts on paid plans, billed per organization, never per account.';
+  'Siar is one REST API to publish, schedule, comment on and measure social media across 15 networks. Unlimited connected accounts on every plan, billed per organization, never per account.';
 export const LAST_UPDATED = '2026-10-12';

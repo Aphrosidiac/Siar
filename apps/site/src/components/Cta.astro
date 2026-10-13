@@ -3,7 +3,7 @@ import { SIGNUP_URL } from '../config';
 import { PLANS } from '../lib/plans';
 interface Props { title?: string; dim?: string; text?: string }
 const free = PLANS.FREE;
-const { title = 'Your first post is', dim = 'one request away.', text = `The Free plan includes ${free.posts} posts and ${free.uploads} uploads a month across ${free.teams} teams. No card needed.` } = Astro.props;
+const { title = 'Your first post is', dim = 'one request away.', text = `The Free plan gives you ${free.posts} posts and ${free.uploads} uploads to try. No card and no time limit.` } = Astro.props;
 ---
 <section class="m-sec cta">
   <div class="m-wide">

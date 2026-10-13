@@ -5,7 +5,7 @@ description: "The terms that apply to your use of the Siar API, dashboard and we
 eyebrow: Legal
 ---
 import { LEGAL_NAME, LEGAL_REG, CONTACT_EMAIL, SITE_NAME } from '../config';
-import { RESOURCE_LIMITS } from '../lib/plans';
+import { RESOURCE_LIMITS, LINK_GRACE_DAYS } from '../../../api/src/domain/plans.ts';
 
 These terms are an agreement between you and **{LEGAL_NAME}** (company number {LEGAL_REG}, Malaysia), which operates {SITE_NAME}. By creating an account or using the API you accept them. If you use Siar for an organization, you confirm you are allowed to bind it.
 
@@ -35,9 +35,17 @@ We may refuse or remove content, suspend or terminate access where these rules a
 
 ## 5. Plans, quotas and billing
 
-Plans, prices and limits are described on the [pricing page](/pricing) and enforced by the API. Paid plans are billed per organization in US dollars in advance, monthly or yearly, and renew until cancelled. Quotas count what your organization creates in a UTC calendar month and do not roll over. X (Twitter) usage is billed separately from a prepaid credit balance at the price X charges us, with no markup; credit that has been spent on X API calls cannot be refunded. Taxes may be added where required. If a payment fails we may restrict the organization to the Free plan until it is resolved.
+Plans, prices and limits are described on the [pricing page](/pricing) and enforced by the API. Paid plans are billed per organization in advance, monthly or yearly. The price list depends on the organization's billing country: organizations billed in Malaysia pay in Malaysian ringgit, all others in US dollars. Ringgit prices are for organizations based in Malaysia; we record the country of the card that pays and may move an organization that is not based in Malaysia to US dollar pricing from its next renewal, with notice.
 
-You can cancel a paid plan from the dashboard; it stays active to the end of the period and the organization then moves to Free. Except where the law requires otherwise, fees already paid are not refunded.
+**Price lock.** The price of a paid plan does not go up for as long as it stays subscribed. A new price applies only if you change plan or billing interval, or start a new subscription after one has ended.
+
+**Renewal.** A plan paid by card renews automatically at the end of each period until cancelled. A yearly plan paid once (for example by FPX or GrabPay) does not renew by itself: we send a renewal link before the period ends, the plan stays active for {LINK_GRACE_DAYS} days after the end date while it is unpaid, and the organization then moves to Free.
+
+**Free plan.** The Free plan includes a one-time allowance (posts, comments and uploads) that does not reset. Free posts are also counted against each connected social account, so connecting the same account to another organization does not renew the allowance.
+
+**Quotas.** On paid plans, quotas count what your organization creates in a UTC calendar month and do not roll over. X (Twitter) usage is billed separately from a prepaid credit balance in US dollars at the price X charges us, with no markup; organizations billed in Malaysia buy that credit in ringgit at the exchange rate shown before payment. Credit that has been spent on X API calls cannot be refunded. {LEGAL_NAME} is not registered for sales and service tax (SST), so no tax is added to our prices; if that changes, we will tell you before it applies. If a payment fails we may restrict the organization to the Free plan until it is resolved.
+
+You can cancel a paid plan from the dashboard; it stays active to the end of the period and the organization then moves to Free. Nothing is deleted when an organization moves to a smaller plan: teams over the new plan's limit stay, but new ones cannot be added. Except where the law requires otherwise, fees already paid are not refunded.
 
 ## 6. Your content and data
 

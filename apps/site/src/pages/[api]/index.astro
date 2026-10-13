@@ -9,7 +9,7 @@ import Faq from '../../components/Faq.astro';
 import Cta from '../../components/Cta.astro';
 import { NETWORKS, type NetworkInfo } from '../../lib/networks';
 import { toFields, example, tagMeta, opLink } from '../../lib/openapi';
-import { PLANS, CAP_TIERS, fmtInt, fmtMicro, X_PRICES, X_PRICE_LABELS } from '../../lib/plans';
+import { CAP_COLUMNS, fmtInt, fmtMicro, X_PRICES, X_PRICE_LABELS, X_CREDIT_NOTE } from '../../lib/plans';
 import { API_BASE } from '../../config';
 import { faqLd, breadcrumbLd } from '../../lib/seo';
 
@@ -39,7 +39,7 @@ const connectNote = {
 const comments = caps.comments ? `Siar can create comments and replies up to ${fmtInt(n.adapter.limits.commentMax ?? 0)} characters${caps.commentImport ? ', and import the comments people leave on your posts' : ''}.` : `${n.name} does not expose comments through its API, so comment features are not available for ${n.name} accounts.`;
 const faq = [
   { q: `What can I post to ${n.name} through the API?`, a: `${n.postTypes.map((t) => t.toLowerCase().replace(/_/g, ' ')).join(', ')}. ${n.about}` },
-  { q: `How many ${n.name} posts can I publish per day?`, a: `Per connected account and UTC day: ${CAP_TIERS.map((t) => `${fmtInt(n.dailyPosts[CAP_TIERS.indexOf(t)])} on ${PLANS[t].name}`).join(', ')}. The caps keep the account within what ${n.name} tolerates.` },
+  { q: `How many ${n.name} posts can I publish per day?`, a: `Per connected account and UTC day: ${CAP_COLUMNS.map((c, i) => `${fmtInt(n.dailyPosts[i])} on ${c.label}`).join(', ')}. The caps keep the account within what ${n.name} tolerates.` },
   { q: `Can I schedule ${n.name} posts?`, a: `Yes. Set <code>postDate</code> in the future and a status of <code>SCHEDULED</code>. Siar publishes at that time and sends a <code>post.published</code> webhook when the post reaches a final state.` },
   { q: `How do I connect a ${n.name} account?`, a: `${n.account} ${connectNote}` },
   { q: `What do I do when ${n.name} rejects a post?`, a: `The post carries ${n.name}'s own code and message. The <a href="/${n.apiSlug}/errors">${n.name} error reference</a> explains ${n.errors.length ? `${n.errors.length} common rejections` : 'how errors are reported'} and how to fix them.` },
@@ -74,7 +74,7 @@ const capRows: [string, boolean][] = n.capabilityList.map((c) => [c.label, c.val
 
       <h2 id="limits">Daily caps</h2>
       <div class="table-wrap"><table>
-        <thead><tr><th>Per connected account, per UTC day</th>{CAP_TIERS.map((t) => <th class="num">{PLANS[t].name}</th>)}</tr></thead>
+        <thead><tr><th>Per connected account, per UTC day</th>{CAP_COLUMNS.map((c) => <th class="num">{c.label}</th>)}</tr></thead>
         <tbody>
           <tr><td>Posts</td>{n.dailyPosts.map((v) => <td class="num">{fmtInt(v)}</td>)}</tr>
           <tr><td>Comments</td>{n.dailyComments.map((v) => <td class="num">{fmtInt(v)}</td>)}</tr>
@@ -95,7 +95,7 @@ const capRows: [string, boolean][] = n.capabilityList.map((c) => [c.label, c.val
       {n.type === 'TWITTER' && (
         <>
           <h2 id="x-credit">X pricing</h2>
-          <p>X bills each API call, so these actions are paid from a prepaid credit balance at X's price with no markup. Everything not listed is free.</p>
+          <p>X bills each API call, so these actions are paid from a prepaid credit balance at X's price in USD with no markup. {X_CREDIT_NOTE} Everything not listed is free.</p>
           <div class="table-wrap"><table>
             <thead><tr><th>Action</th><th>Billed</th><th class="num">USD</th></tr></thead>
             <tbody>{(Object.keys(X_PRICES) as (keyof typeof X_PRICES)[]).map((k) => <tr><td>{X_PRICE_LABELS[k].label}</td><td>{X_PRICE_LABELS[k].unit}</td><td class="num">{fmtMicro(X_PRICES[k])}</td></tr>)}</tbody>

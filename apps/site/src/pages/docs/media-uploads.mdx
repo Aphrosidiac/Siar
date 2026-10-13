@@ -10,7 +10,7 @@ import { RESOURCE_LIMITS, PLANS } from '../../lib/plans';
 
 An upload is a stored file with an `id`. Posts refer to it by id (`uploadIds`, `mediaItems` or `carouselItems`, depending on the network), so one upload can be used in many posts and many networks. Siar probes the file, makes a thumbnail, and converts video that a network cannot take as-is.
 
-Uploads count against a monthly quota ({PLANS.FREE.uploads} on Free; see [pricing](/pricing)).
+Uploads count against a quota: {PLANS.FREE.uploads} on Free, one-time, and a monthly quota on paid plans; see [pricing](/pricing).
 
 ## Small files and URLs
 
