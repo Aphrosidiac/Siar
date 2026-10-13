@@ -230,14 +230,19 @@ const legend = [{ t: 'sched', l: 'Scheduled' }, { t: 'ok', l: 'Published' }, { t
 .add { opacity: 0; border: 0; background: none; color: var(--text-subtle); cursor: pointer; border-radius: 50%; width: 24px; height: 24px; display: grid; place-items: center; transition: opacity 160ms, background 160ms; }
 .cell:hover .add, .cell.sel .add, .add:focus-visible { opacity: 1; }
 .add:hover { background: var(--bg-muted); color: var(--text); }
-.chip { display: flex; gap: 5px; align-items: center; width: 100%; padding: 2px 6px; border: 0; border-left: 3px solid var(--text); border-radius: var(--radius-sm); font-size: var(--fs-12); line-height: 18px; color: var(--text); background: var(--bg-muted); text-align: left; cursor: pointer; min-width: 0; transition: filter 160ms, opacity 160ms; }
+.chip { display: flex; gap: 5px; align-items: center; width: 100%; padding: 2px 6px; border: 0; border-radius: var(--radius-sm); font-size: var(--fs-12); line-height: 18px; color: var(--text); background: var(--bg-muted); text-align: left; cursor: pointer; min-width: 0; transition: filter 160ms, opacity 160ms; }
 .chip:hover { filter: brightness(.96); }
 .chip.drag { cursor: grab; }
 .chip.lifting { opacity: .4; }
-.chip.ok { border-left-color: var(--success); background: var(--success-soft); }
-.chip.bad { border-left-color: var(--danger); background: var(--danger-soft); }
-.chip.draft { border-left-color: var(--text-faint); background: transparent; box-shadow: inset 0 0 0 1px var(--border); }
-.chip.wait { border-left-color: var(--warn); background: var(--warn-soft); }
+.chip::before { content: ''; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--text); }
+.chip.ok { background: var(--success-soft); }
+.chip.ok::before { background: var(--success); }
+.chip.bad { background: var(--danger-soft); }
+.chip.bad::before { background: var(--danger); }
+.chip.draft { background: transparent; box-shadow: inset 0 0 0 1px var(--border); }
+.chip.draft::before { background: var(--text-faint); }
+.chip.wait { background: var(--warn-soft); }
+.chip.wait::before { background: var(--warn); }
 .tm { color: var(--text-subtle); flex: none; font-variant-numeric: tabular-nums; }
 .ti { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .more { border: 0; background: none; text-align: left; font-size: var(--fs-12); line-height: 16px; color: var(--text-subtle); cursor: pointer; padding: 0 6px; }

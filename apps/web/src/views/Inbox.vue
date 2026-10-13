@@ -287,7 +287,7 @@ onMounted(async () => {
 .bubble.failed { outline: 1px solid var(--danger); }
 .meta { color: var(--text-subtle); display: flex; gap: 6px; align-items: center; }
 .composer { border-top: 1px solid var(--border); padding: 12px 16px; }
-.quote { margin: 0; padding: 8px 12px; border-left: 3px solid var(--border-strong); color: var(--text-muted); background: var(--bg-subtle); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.quote { margin: 0; padding: 8px 12px; border: 1px solid var(--border-soft); color: var(--text-muted); background: var(--bg-subtle); border-radius: var(--radius); }
 .msg-accts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 8px; }
 .msg-acct > .grow { min-width: 0; overflow: hidden; }
 .msg-acct > .grow > * { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

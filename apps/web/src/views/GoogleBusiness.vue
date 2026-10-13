@@ -100,5 +100,5 @@ async function removeReply(r: Review) {
 <style scoped>
 .stars { display: inline-flex; gap: 1px; color: var(--border-strong); }
 .stars .on { color: var(--warn); }
-.reply { margin-top: 12px; padding: 8px 12px; border-left: 3px solid var(--accent); background: var(--bg-subtle); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.reply { margin-top: 12px; padding: 8px 12px; border: 1px solid var(--border-soft); background: var(--bg-subtle); border-radius: var(--radius); }
 </style>

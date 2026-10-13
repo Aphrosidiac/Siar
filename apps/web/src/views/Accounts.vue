@@ -339,7 +339,6 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
 .cell { min-width: 0; }
 .net { font-weight: 500; line-height: 20px; }
 .alert { grid-column: 2 / -1; margin-top: 8px; }
-.alert .callout { align-items: center; }
 .rc { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-elevated); }
 .rc-ic { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--danger-soft); color: var(--danger); }
 .rc-tx { min-width: 0; display: flex; flex-direction: column; gap: 2px; padding-top: 4px; }

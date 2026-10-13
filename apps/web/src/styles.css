@@ -239,14 +239,18 @@ button, input, select, textarea { font: inherit; color: inherit; letter-spacing:
   input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]), select, textarea { font-size: var(--fs-16) !important; }
 }
 
-/* callouts: a tinted rule on the left, never a coloured box */
-.callout { border-left: 2px solid var(--border-strong); padding: 10px 14px; background: var(--bg-subtle); border-radius: 0 var(--radius) var(--radius) 0; display: flex; gap: 12px; align-items: flex-start; color: var(--text-muted); }
-.callout.info { border-left-color: var(--info); background: var(--info-soft); color: var(--info-soft-text); }
-.callout.warn { border-left-color: var(--warn); background: var(--warn-soft); color: var(--warn-soft-text); }
-.callout.danger { border-left-color: var(--danger); background: var(--danger-soft); color: var(--danger-soft-text); }
-.callout.success { border-left-color: var(--success); background: var(--success-soft); color: var(--success-soft-text); }
-.callout.accent { border-left-color: var(--text); }
-.callout svg { flex: none; margin-top: 2px; }
+/* callouts: a hairline card like the network tiles, ink text; the tone lives only in a round icon chip */
+.callout { --c: var(--text-muted); --c-soft: var(--bg-muted); --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 11v7'/%3E%3Cpath d='M12 6.5h.01'/%3E%3C/svg%3E");
+  position: relative; display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-elevated); color: var(--text); line-height: 22px; }
+.callout::before { content: ''; flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--c-soft); }
+.callout::after { content: ''; position: absolute; left: 18px; top: 16px; width: 14px; height: 14px; background: var(--c); -webkit-mask: var(--ic) center / contain no-repeat; mask: var(--ic) center / contain no-repeat; }
+.callout > * { min-width: 0; }
+.callout.info { --c: var(--info); --c-soft: var(--info-soft); }
+.callout.warn { --c: var(--warn); --c-soft: var(--warn-soft); --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 6v8'/%3E%3Cpath d='M12 18.5h.01'/%3E%3C/svg%3E"); }
+.callout.danger { --c: var(--danger); --c-soft: var(--danger-soft); --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 6v8'/%3E%3Cpath d='M12 18.5h.01'/%3E%3C/svg%3E"); }
+.callout.success { --c: var(--success); --c-soft: var(--success-soft); --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 7 9.5 16.5 5 12'/%3E%3C/svg%3E"); }
+.callout.accent { --c: var(--text); }
+.callout svg { flex: none; margin-top: 3px; }
 
 .divider { border-top: 1px solid var(--border); }
 .list-plain { list-style: none; margin: 0; padding: 0; }

@@ -187,7 +187,10 @@ a.card:hover .more::after { margin-left: 3px; color: var(--text); }
 .yes { color: var(--text); font-weight: 500; }
 .no { color: var(--text-faint); }
 
-.callout { border-left: 2px solid var(--border-strong); background: var(--bg-subtle); border-radius: 0 var(--radius) var(--radius) 0; padding: 12px 16px; margin: 0 0 20px; font-size: var(--fs-15); color: var(--text-muted); }
+/* a hairline card like the dashboard's; the note's tone sits in a round icon chip */
+.callout { position: relative; border: 1px solid var(--border); background: var(--bg-elevated); border-radius: var(--radius-lg); padding: 12px 16px 12px 50px; margin: 0 0 20px; font-size: var(--fs-15); color: var(--text-muted); }
+.callout::before { content: ''; position: absolute; left: 14px; top: 13px; width: 22px; height: 22px; border-radius: 50%; background: var(--bg-muted); }
+.callout::after { content: ''; position: absolute; left: 18px; top: 17px; width: 14px; height: 14px; background: var(--text-muted); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 11v7'/%3E%3Cpath d='M12 6.5h.01'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 11v7'/%3E%3Cpath d='M12 6.5h.01'/%3E%3C/svg%3E") center / contain no-repeat; }
 .callout p:last-child { margin: 0; }
 
 details > summary { cursor: pointer; }

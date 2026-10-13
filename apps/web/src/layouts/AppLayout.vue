@@ -77,7 +77,8 @@ const trial = computed(() => { const t = session.org?.trialEndsAt; if (!t) retur
 .hamb { display: none; }
 .bc { position: absolute; top: 3px; right: 1px; min-width: 18px; height: 17px; padding: 0 5px; border-radius: 99px; display: grid; place-items: center; background: var(--text); color: var(--bg); font-family: var(--mono); font-size: var(--fs-11); box-shadow: 0 0 0 2px var(--bg); }
 .banner { display: flex; gap: 12px; align-items: center; justify-content: center; padding: 8px 16px; font-size: var(--fs-13); line-height: 18px; flex-wrap: wrap; border-bottom: 1px solid var(--border-soft); color: var(--text-muted); }
-.banner.warn { background: var(--warn-soft); color: var(--warn-soft-text); }
+.banner.warn { color: var(--text); }
+.banner.warn::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--warn); flex: none; }
 .banner a, .banner .link-btn { color: inherit; }
 .scrim { position: fixed; inset: 0; z-index: var(--z-scrim); background: var(--overlay); }
 .foot { padding: 16px 40px; font-size: var(--fs-12); line-height: 16px; color: var(--text-subtle); border-top: 1px solid var(--border-soft); }

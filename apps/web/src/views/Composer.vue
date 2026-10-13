@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ImagePlus, Send, Save, CalendarClock, X, TriangleAlert, Film, FileText } from 'lucide-vue-next';
+import { ImagePlus, Send, Save, CalendarClock, X, Film, FileText } from 'lucide-vue-next';
 import postSchema from 'virtual:post-schema';
 import PageHead from '@/components/PageHead.vue';
 import NoTeam from '@/components/NoTeam.vue';
@@ -205,11 +205,11 @@ onBeforeUnmount(() => window.clearInterval(tick));
     <PageHead :title="editId ? 'Edit post' : 'Composer'" :subtitle="currentTeam ? `Writing for ${currentTeam.name}` : ''" />
     <NoTeam v-if="!currentTeam" />
     <QueryState v-else :loading="loaded.loading.value" :error="loaded.error.value" :status="loaded.status.value" :has-data="!editId || !!loaded.data.value" skeleton="block" @retry="loaded.reload">
-      <div v-if="locked" class="callout warn mb-16"><TriangleAlert :size="16" />This post is already {{ loaded.data.value?.status.toLowerCase() }} and can no longer be edited.</div>
+      <div v-if="locked" class="callout warn mb-16">This post is already {{ loaded.data.value?.status.toLowerCase() }} and can no longer be edited.</div>
       <div class="cmp">
         <div class="stack-16" style="min-width: 0">
           <Card title="Networks" :subtitle="accounts.length ? 'Tap an account to include it.' : ''">
-            <div v-if="!accounts.length" class="callout info">No accounts are connected to this team yet. <router-link to="/social-accounts">Connect an account</router-link> to start posting.</div>
+            <div v-if="!accounts.length" class="callout info"><div>No accounts are connected to this team yet. <router-link to="/social-accounts">Connect an account</router-link> to start posting.</div></div>
             <div v-else class="chips">
               <button v-for="a in accounts" :key="a.id" type="button" class="chip" :class="{ on: form.types.includes(a.type) }" :disabled="!!blocked(a) && !form.types.includes(a.type)" :aria-pressed="form.types.includes(a.type)" :title="blocked(a) ?? undefined" @click="toggleType(a)">
                 <NetworkIcon :type="a.type" :size="24" :title="false" />
