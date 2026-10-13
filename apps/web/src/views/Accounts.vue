@@ -114,6 +114,19 @@ function target(a: SocialAccount): Target {
 }
 const cap = (w: string) => (w ? w[0]!.toUpperCase() + w.slice(1) : w);
 
+/** A reconnect notice in plain words; the network's own message stays one click away. */
+function reconnectNotice(a: SocialAccount) {
+  const name = META[a.type].name; const t = target(a);
+  const where = t.tone === 'set' ? t.name : signedIn(a);
+  const raw = a.connectionStateReason?.trim() || '';
+  const why = /permission|must be granted|scope|not authori[sz]ed|access to this/i.test(raw)
+    ? `${name} no longer gives Siar the permissions it needs. Reconnect and leave every permission switched on when ${name} asks.`
+    : /expired|session|revoked|invalid.*token|token.*invalid|logged out|password/i.test(raw)
+      ? `The sign-in expired or was revoked in ${name}. Reconnect to sign in again.`
+      : `${name} stopped accepting Siar's access. Reconnect to sign in again.`;
+  return { title: `Posts to ${where} will fail until you reconnect`, why, raw, name };
+}
+
 // ── channel picker ──
 /** The two ways to connect Instagram, explained where the choice is made. */
 const IG_METHODS = [
@@ -217,9 +230,16 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
             <button v-if="isAdmin" type="button" class="menu-item danger" data-close @click="disconnect(a)"><Unplug :size="14" />Disconnect</button>
           </Dropdown>
           <div v-if="a.connectionState === 'NEEDS_RECONNECT' || a.deleteOn" class="alert">
-            <div v-if="a.connectionState === 'NEEDS_RECONNECT'" class="callout danger small">
-              <TriangleAlert :size="16" /><div class="grow">{{ a.connectionStateReason || 'The network rejected our access. Posts to this account will fail until you reconnect.' }}</div>
+            <div v-if="a.connectionState === 'NEEDS_RECONNECT'" class="callout danger small rc" role="alert">
+              <template v-for="r in [reconnectNotice(a)]" :key="r.title">
+              <TriangleAlert :size="16" />
+              <div class="grow rc-tx">
+                <div class="strong">{{ r.title }}</div>
+                <div class="rc-why">{{ r.why }}</div>
+                <details v-if="r.raw" class="rc-raw"><summary>What {{ r.name }} said</summary><div class="prewrap">{{ r.raw }}</div></details>
+              </div>
               <Button variant="primary" size="sm" :loading="busy === n.type" @click="startConnect(n.type)">Reconnect</Button>
+              </template>
             </div>
             <div v-else class="callout warn small"><div>Scheduled for removal on {{ new Date(a.deleteOn!).toLocaleDateString('en-GB') }} unless reconnected.</div></div>
           </div>
@@ -318,6 +338,18 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
 .net { font-weight: 500; line-height: 20px; }
 .alert { grid-column: 2 / -1; margin-top: 8px; }
 .alert .callout { align-items: center; }
+.rc { align-items: flex-start !important; }
+.rc-tx { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.rc-why { color: var(--text-muted); }
+.rc-raw { margin-top: 4px; color: var(--text-muted); }
+.rc-raw summary { cursor: pointer; font-size: var(--fs-12); color: var(--text-subtle); width: fit-content; }
+.rc-raw summary:hover { color: var(--text); }
+.rc-raw > div { margin-top: 6px; font-size: var(--fs-12); overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  .rc { flex-wrap: wrap; }
+  .rc-tx { flex-basis: calc(100% - 28px); }
+  .rc > :last-child { margin-left: 28px; }
+}
 .avail { margin-top: 14px; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; }
 .av-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-elevated); min-width: 0; text-align: left; color: var(--text); cursor: pointer; transition: border-color 200ms, transform 300ms var(--ease-out), box-shadow 300ms var(--ease-out); }
 .av-row:hover:not(:disabled) { border-color: var(--text); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
