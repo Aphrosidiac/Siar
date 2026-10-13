@@ -16,7 +16,8 @@ import Button from '@/components/ui/Button.vue';
 import Modal from '@/components/ui/Modal.vue';
 import { api, errorMessage, isApiError, issuesByPath } from '@/lib/api';
 import { currentTeam, loadOrg, loadSession, loadTeams, platforms, loadPlatforms, refreshTeam, selectTeam, session } from '@/lib/store';
-import { NETWORKS, META, needsChannel } from '@/lib/networks';
+import { NETWORKS, META, mastodonServer, needsChannel } from '@/lib/networks';
+import MastodonField from '@/components/MastodonField.vue';
 import { TIMEZONES, browserTz } from '@/lib/format';
 import { toast } from '@/lib/toast';
 import type { AuthMe, NetworkType } from '@/lib/types';
@@ -75,18 +76,23 @@ const unpicked = computed(() => (currentTeam.value?.socialAccounts ?? []).filter
 const ready = (t: NetworkType) => platforms.value?.[t]?.available !== false;
 const open = computed(() => NETWORKS.filter((n) => ready(n.type)));
 const soon = computed(() => NETWORKS.filter((n) => !ready(n.type)));
-const connectFor = ref<NetworkType | null>(null); const serverUrl = ref('');
+const connectFor = ref<NetworkType | null>(null); const mastodon = ref(''); const mastodonError = ref<string | null>(null);
+// Bluesky goes straight to Bluesky's sign-in; only Mastodon asks which server first.
 function startConnect(type: NetworkType) {
   if (connectedTypes.value.has(type)) return;
-  if (type === 'MASTODON' || type === 'BLUESKY') { serverUrl.value = ''; connectFor.value = type; return; }
+  if (type === 'MASTODON') { mastodon.value = ''; mastodonError.value = null; connectFor.value = type; return; }
   void connect(type);
+}
+function submitMastodon() {
+  if (!mastodonServer(mastodon.value)) { mastodonError.value = 'Enter your address like @you@mastodon.social, or a server name.'; return; }
+  void connect('MASTODON'); connectFor.value = null;
 }
 async function connect(type: NetworkType) {
   if (!session.teamId) return;
   busy.value = type;
   try {
     const body: Record<string, unknown> = { type, teamId: session.teamId, redirectUrl: `${location.origin}/welcome?step=2` };
-    if (serverUrl.value.trim()) body.serverUrl = serverUrl.value.trim();
+    if (type === 'MASTODON') body.serverUrl = mastodonServer(mastodon.value);
     const { url } = await api.post<{ url: string }>('/social-account/connect', body);
     location.href = url;
   } catch (e) { toast.fail(e); busy.value = null; }
@@ -217,9 +223,8 @@ watch(step, (n) => { if (n === 1) fill(); });
   </AuthShell>
 
   <Modal :open="!!connectFor" :title="`Connect ${connectFor ? META[connectFor].name : ''}`" size="sm" @close="connectFor = null">
-    <form v-if="connectFor" class="stack-16" @submit.prevent="connect(connectFor!); connectFor = null">
-      <Input v-if="connectFor === 'MASTODON'" v-model="serverUrl" label="Server URL" placeholder="https://mastodon.social" type="url" required help="The Mastodon server your account lives on." autofocus />
-      <Input v-else v-model="serverUrl" label="PDS URL (optional)" placeholder="https://bsky.social" type="url" help="Leave empty for bsky.social." autofocus />
+    <form v-if="connectFor" class="stack-16" novalidate @submit.prevent="submitMastodon">
+      <MastodonField v-model="mastodon" :error="mastodonError" @update:model-value="mastodonError = null" />
       <div class="row" style="justify-content: flex-end"><Button variant="secondary" @click="connectFor = null">Cancel</Button><Button type="submit" variant="primary" :icon-right="ExternalLink">Continue</Button></div>
     </form>
   </Modal>

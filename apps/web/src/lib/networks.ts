@@ -39,7 +39,7 @@ export const NETWORKS: NetworkMeta[] = [
   n({ type: 'MASTODON', name: 'Mastodon', mark: 'M', color: '#6364ff', ink: '#ffffff', textMax: 500, textLabel: 'Text', channel: 'none', channelNoun: '', connect: 'server', media: 'optional', history: true, analytics: true, blurb: 'Any Mastodon server' }),
   n({ type: 'DISCORD', name: 'Discord', mark: 'D', color: '#5865f2', ink: '#ffffff', textMax: 2000, textLabel: 'Message', channel: 'optional', channelNoun: 'channel', connect: 'bot', media: 'optional', history: false, analytics: false, blurb: 'Messages to server channels' }),
   n({ type: 'SLACK', name: 'Slack', mark: 'S', color: '#4a154b', ink: '#ffffff', textMax: 40000, textLabel: 'Message', channel: 'optional', channelNoun: 'channel', connect: 'bot', media: 'optional', history: false, analytics: false, blurb: 'Messages to workspace channels' }),
-  n({ type: 'BLUESKY', name: 'Bluesky', mark: 'B', color: '#1185fe', ink: '#ffffff', textMax: 300, textLabel: 'Text', channel: 'none', channelNoun: '', connect: 'server', media: 'optional', history: true, analytics: true, blurb: 'Posts with an app password' }),
+  n({ type: 'BLUESKY', name: 'Bluesky', mark: 'B', color: '#1185fe', ink: '#ffffff', textMax: 300, textLabel: 'Text', channel: 'none', channelNoun: '', connect: 'server', media: 'optional', history: true, analytics: true, blurb: 'Sign in with Bluesky' }),
   n({ type: 'GOOGLE_BUSINESS', name: 'Google Business', mark: 'G', color: '#4285f4', ink: '#ffffff', textMax: 1500, textLabel: 'Text', channel: 'required', channelNoun: 'location', connect: 'oauth', media: 'optional', history: false, analytics: true, blurb: 'Updates, offers and events' }),
   n({ type: 'SNAPCHAT', name: 'Snapchat', mark: 'Sc', color: '#fffc00', ink: '#111111', textMax: 160, textLabel: 'Caption', channel: 'none', channelNoun: '', connect: 'oauth', media: 'required', history: false, analytics: true, blurb: 'Stories and Spotlight' }),
 ];
@@ -73,3 +73,24 @@ export const HISTORY_TYPES: NetworkType[] = ['FACEBOOK', 'INSTAGRAM', 'THREADS',
 export const COMMENT_IMPORT_TYPES: NetworkType[] = ['FACEBOOK', 'INSTAGRAM', 'LINKEDIN', 'YOUTUBE', 'TIKTOK', 'REDDIT', 'THREADS', 'MASTODON', 'BLUESKY', 'TWITTER'];
 export const ANALYTICS_TYPES: NetworkType[] = ['TIKTOK', 'YOUTUBE', 'INSTAGRAM', 'FACEBOOK', 'THREADS', 'REDDIT', 'PINTEREST', 'MASTODON', 'LINKEDIN', 'BLUESKY', 'GOOGLE_BUSINESS', 'SNAPCHAT', 'TWITTER'];
 export const SET_CHANNEL_TYPES: NetworkType[] = ['FACEBOOK', 'INSTAGRAM', 'LINKEDIN', 'YOUTUBE', 'GOOGLE_BUSINESS'];
+
+/** Well-known Mastodon servers offered as one-tap picks in the connect dialog. */
+export const MASTODON_SERVERS = ['mastodon.social', 'mastodon.online', 'mstdn.social', 'fosstodon.org'];
+
+/**
+ * The server URL from whatever a person types for their Mastodon account: a full address
+ * (@you@mastodon.social or you@mastodon.social), a server name (mastodon.social) or a URL
+ * (https://mastodon.social/@you). Null when no server can be read from it.
+ */
+export function mastodonServer(input: string): string | null {
+  let s = input.trim();
+  if (!s) return null;
+  if (!/^https?:\/\//i.test(s)) {
+    const at = s.replace(/^@/, '').split('@');
+    s = `https://${at[at.length - 1]}`;
+  }
+  try {
+    const u = new URL(s);
+    return /^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(u.hostname) ? `https://${u.host.toLowerCase()}` : null;
+  } catch { return null; }
+}

@@ -6,11 +6,11 @@ import { Check, TriangleAlert } from 'lucide-vue-next';
 import NetworkIcon from '@/components/NetworkIcon.vue';
 import Avatar from '@/components/ui/Avatar.vue';
 import Button from '@/components/ui/Button.vue';
-import Input from '@/components/ui/Input.vue';
 import Modal from '@/components/ui/Modal.vue';
 import Spinner from '@/components/ui/Spinner.vue';
 import { api, errorMessage } from '@/lib/api';
-import { META } from '@/lib/networks';
+import { META, mastodonServer } from '@/lib/networks';
+import MastodonField from '@/components/MastodonField.vue';
 import { confirm } from '@/lib/confirm';
 import { toast } from '@/lib/toast';
 import type { NetworkType } from '@/lib/types';
@@ -43,11 +43,15 @@ const accent = computed(() => (/^#[0-9a-f]{6}$/i.test(info.value?.accentColor ??
 const brand = computed(() => info.value?.brandName || info.value?.organizationName || 'Siar');
 const connectedOf = (t: string) => info.value?.connected?.find((c) => c.type === t) ?? null;
 
-const server = ref<NetworkType | null>(null); const serverUrl = ref('');
-function start(t: string) { if (t === 'MASTODON') { serverUrl.value = ''; server.value = t; } else void go(t); }
+const server = ref<NetworkType | null>(null); const mastodon = ref(''); const mastodonError = ref<string | null>(null);
+function start(t: string) { if (t === 'MASTODON') { mastodon.value = ''; mastodonError.value = null; server.value = t; } else void go(t); }
+function submitMastodon() {
+  if (!mastodonServer(mastodon.value)) { mastodonError.value = 'Enter your address like @you@mastodon.social, or a server name.'; return; }
+  void go('MASTODON'); server.value = null;
+}
 async function go(t: string) {
   busy.value = t;
-  try { const r = await api.post<{ url: string }>(`/portal/${encodeURIComponent(token)}/connect`, { type: t, ...(t === 'MASTODON' ? { serverUrl: serverUrl.value.trim() } : {}) }, { noAuthRedirect: true }); location.href = r.url; }
+  try { const r = await api.post<{ url: string }>(`/portal/${encodeURIComponent(token)}/connect`, { type: t, ...(t === 'MASTODON' ? { serverUrl: mastodonServer(mastodon.value) } : {}) }, { noAuthRedirect: true }); location.href = r.url; }
   catch (e) { toast.fail(e); busy.value = null; }
 }
 async function disconnect(t: string) {
@@ -91,8 +95,8 @@ async function disconnect(t: string) {
       </template>
     </div>
     <Modal :open="!!server" title="Connect Mastodon" size="sm" @close="server = null">
-      <form class="stack-16" @submit.prevent="go('MASTODON'); server = null">
-        <Input v-model="serverUrl" type="url" label="Your server" placeholder="https://mastodon.social" required autofocus />
+      <form class="stack-16" novalidate @submit.prevent="submitMastodon">
+        <MastodonField v-model="mastodon" :error="mastodonError" @update:model-value="mastodonError = null" />
         <div class="row" style="justify-content: flex-end"><Button variant="secondary" @click="server = null">Cancel</Button><Button type="submit" variant="primary">Continue</Button></div>
       </form>
     </Modal>

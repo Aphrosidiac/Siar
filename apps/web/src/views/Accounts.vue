@@ -12,13 +12,13 @@ import Avatar from '@/components/ui/Avatar.vue';
 import Button from '@/components/ui/Button.vue';
 import Badge from '@/components/ui/Badge.vue';
 import Modal from '@/components/ui/Modal.vue';
-import Input from '@/components/ui/Input.vue';
 import Select from '@/components/ui/Select.vue';
 import Checkbox from '@/components/ui/Checkbox.vue';
 import Dropdown from '@/components/ui/Dropdown.vue';
 import { api } from '@/lib/api';
 import { currentTeam, isAdmin, loadPlatforms, platforms, refreshTeam, session } from '@/lib/store';
-import { META, NETWORKS, channelMode, needsChannel, SET_CHANNEL_TYPES } from '@/lib/networks';
+import { META, NETWORKS, channelMode, mastodonServer, needsChannel, SET_CHANNEL_TYPES } from '@/lib/networks';
+import MastodonField from '@/components/MastodonField.vue';
 import { confirm } from '@/lib/confirm';
 import { toast } from '@/lib/toast';
 import type { NetworkType, SocialAccount } from '@/lib/types';
@@ -34,17 +34,22 @@ const busy = ref<string | null>(null);
 
 // ── connect ──
 const connectFor = ref<NetworkType | null>(null);
-const opts = reactive({ serverUrl: '', instagramConnectionMethod: 'FACEBOOK' as 'FACEBOOK' | 'INSTAGRAM' });
+const opts = reactive({ mastodon: '', mastodonError: null as string | null, instagramConnectionMethod: 'FACEBOOK' as 'FACEBOOK' | 'INSTAGRAM' });
+// Bluesky goes straight to Bluesky's sign-in; only Mastodon (which server?) and Instagram (which login?) ask first.
 function startConnect(type: NetworkType) {
-  if (type === 'MASTODON' || type === 'BLUESKY' || type === 'INSTAGRAM') { opts.serverUrl = ''; connectFor.value = type; return; }
+  if (type === 'MASTODON' || type === 'INSTAGRAM') { opts.mastodon = ''; opts.mastodonError = null; connectFor.value = type; return; }
   void go(type);
+}
+function submitConnect() {
+  if (connectFor.value === 'MASTODON' && !mastodonServer(opts.mastodon)) { opts.mastodonError = 'Enter your address like @you@mastodon.social, or a server name.'; return; }
+  void go(connectFor.value!); connectFor.value = null;
 }
 async function go(type: NetworkType) {
   if (!session.teamId) return;
   busy.value = type;
   try {
     const body: Record<string, unknown> = { type, teamId: session.teamId, redirectUrl: `${location.origin}/social-accounts` };
-    if (opts.serverUrl.trim() && (type === 'MASTODON' || type === 'BLUESKY')) body.serverUrl = opts.serverUrl.trim();
+    if (type === 'MASTODON') body.serverUrl = mastodonServer(opts.mastodon);
     if (type === 'INSTAGRAM') body.instagramConnectionMethod = opts.instagramConnectionMethod;
     const { url } = await api.post<{ url: string }>('/social-account/connect', body);
     location.href = url;
@@ -234,9 +239,8 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
 
     <!-- connect options -->
     <Modal :open="!!connectFor" :title="`Connect ${connectFor ? META[connectFor].name : ''}`" size="sm" @close="connectFor = null">
-      <form v-if="connectFor" class="stack-16" @submit.prevent="go(connectFor!); connectFor = null">
-        <Input v-if="connectFor === 'MASTODON'" v-model="opts.serverUrl" label="Server URL" placeholder="https://mastodon.social" type="url" required help="The Mastodon server your account lives on." autofocus />
-        <Input v-if="connectFor === 'BLUESKY'" v-model="opts.serverUrl" label="PDS URL (optional)" placeholder="https://bsky.social" type="url" help="Leave empty for bsky.social." autofocus />
+      <form v-if="connectFor" class="stack-16" novalidate @submit.prevent="submitConnect">
+        <MastodonField v-if="connectFor === 'MASTODON'" v-model="opts.mastodon" :error="opts.mastodonError" @update:model-value="opts.mastodonError = null" />
         <div v-if="connectFor === 'INSTAGRAM'" class="opts" role="radiogroup" aria-label="Sign in with">
           <div class="label">Sign in with</div>
           <label v-for="m in IG_METHODS" :key="m.value" class="opt" :class="{ on: opts.instagramConnectionMethod === m.value }">
