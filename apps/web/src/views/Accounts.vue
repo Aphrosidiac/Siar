@@ -118,13 +118,15 @@ const cap = (w: string) => (w ? w[0]!.toUpperCase() + w.slice(1) : w);
 function reconnectNotice(a: SocialAccount) {
   const name = META[a.type].name; const t = target(a);
   const where = t.tone === 'set' ? t.name : signedIn(a);
-  const raw = a.connectionStateReason?.trim() || '';
+  // the API's own placeholder when the network gave no reason is not worth showing as "what it said"
+  const raw = a.connectionStateReason?.trim() === 'The network no longer accepts this connection.' ? '' : a.connectionStateReason?.trim() || '';
+  const removal = a.deleteOn ? ` Siar removes it on ${new Date(a.deleteOn).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} if it stays disconnected.` : '';
   const why = /permission|must be granted|scope|not authori[sz]ed|access to this/i.test(raw)
     ? `${name} no longer gives Siar the permissions it needs. Reconnect and leave every permission switched on when ${name} asks.`
     : /expired|session|revoked|invalid.*token|token.*invalid|logged out|password/i.test(raw)
       ? `The sign-in expired or was revoked in ${name}. Reconnect to sign in again.`
       : `${name} stopped accepting Siar's access. Reconnect to sign in again.`;
-  return { title: `Posts to ${where} will fail until you reconnect`, why, raw, name };
+  return { title: `Posts to ${where} will fail until you reconnect`, why: why + removal, raw, name };
 }
 
 // ── channel picker ──
@@ -230,9 +232,9 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
             <button v-if="isAdmin" type="button" class="menu-item danger" data-close @click="disconnect(a)"><Unplug :size="14" />Disconnect</button>
           </Dropdown>
           <div v-if="a.connectionState === 'NEEDS_RECONNECT' || a.deleteOn" class="alert">
-            <div v-if="a.connectionState === 'NEEDS_RECONNECT'" class="callout danger small rc" role="alert">
+            <div v-if="a.connectionState === 'NEEDS_RECONNECT'" class="rc small" role="alert">
               <template v-for="r in [reconnectNotice(a)]" :key="r.title">
-              <TriangleAlert :size="16" />
+              <span class="rc-ic"><Unplug :size="14" /></span>
               <div class="grow rc-tx">
                 <div class="strong">{{ r.title }}</div>
                 <div class="rc-why">{{ r.why }}</div>
@@ -338,17 +340,20 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
 .net { font-weight: 500; line-height: 20px; }
 .alert { grid-column: 2 / -1; margin-top: 8px; }
 .alert .callout { align-items: center; }
-.rc { align-items: flex-start !important; }
-.rc-tx { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.rc { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-elevated); }
+.rc-ic { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--danger-soft); color: var(--danger); }
+.rc-tx { min-width: 0; display: flex; flex-direction: column; gap: 2px; padding-top: 4px; }
+.rc-tx .strong { color: var(--text); }
 .rc-why { color: var(--text-muted); }
 .rc-raw { margin-top: 4px; color: var(--text-muted); }
 .rc-raw summary { cursor: pointer; font-size: var(--fs-12); color: var(--text-subtle); width: fit-content; }
 .rc-raw summary:hover { color: var(--text); }
 .rc-raw > div { margin-top: 6px; font-size: var(--fs-12); overflow-wrap: anywhere; }
+.rc > :last-child { flex: none; align-self: center; }
 @media (max-width: 640px) {
   .rc { flex-wrap: wrap; }
-  .rc-tx { flex-basis: calc(100% - 28px); }
-  .rc > :last-child { margin-left: 28px; }
+  .rc-tx { flex-basis: calc(100% - 40px); }
+  .rc > :last-child { margin-left: 40px; align-self: flex-start; }
 }
 .avail { margin-top: 14px; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; }
 .av-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-elevated); min-width: 0; text-align: left; color: var(--text); cursor: pointer; transition: border-color 200ms, transform 300ms var(--ease-out), box-shadow 300ms var(--ease-out); }

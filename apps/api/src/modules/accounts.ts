@@ -324,16 +324,19 @@ async function portalLink(token: string) {
   return l;
 }
 
+/** Shown when the network refuses the grant without saying why (the dashboard hides it as a non-detail). */
+const GENERIC_REASON = 'The network no longer accepts this connection.';
+
 /** Ask the network whether the grant still works; mark NEEDS_RECONNECT and schedule deletion if not. */
 export async function checkOne(accountId: string): Promise<boolean> {
   const a = await prisma.socialAccount.findUniqueOrThrow({ where: { id: accountId }, include: { mastodonServer: true, team: { include: { organization: true } } } });
   const ad = adapter(a.type as NetworkType);
-  let ok: boolean;
+  let ok: boolean; let reason: string | null = null;
   try {
     const rt = await loadAccount(a.id);
     ok = await ad.checkConnection(networkContext(a.type as NetworkType), rt);
   } catch (err) {
-    if (isNetworkError(err) && (err.code === 'TOKEN_INVALID' || err.code === 'PERMISSION')) ok = false;
+    if (isNetworkError(err) && (err.code === 'TOKEN_INVALID' || err.code === 'PERMISSION')) { ok = false; reason = err.message?.slice(0, 1000) || null; }
     else { logger.warn({ err, accountId }, 'connection check inconclusive'); return a.state === 'CONNECTED'; }
   }
   const org = a.team.organization;
@@ -343,7 +346,7 @@ export async function checkOne(accountId: string): Promise<boolean> {
     return true;
   }
   const deleteOn = new Date(Date.now() + org.deleteAccountAfter * 3600_000);
-  const updated = await prisma.socialAccount.update({ where: { id: a.id }, data: { state: 'NEEDS_RECONNECT', stateReason: a.stateReason ?? 'The network no longer accepts this connection.', disconnectedCheckTryAt: new Date(), lastCheckedAt: new Date(), deleteOn: a.deleteOn ?? deleteOn } });
+  const updated = await prisma.socialAccount.update({ where: { id: a.id }, data: { state: 'NEEDS_RECONNECT', stateReason: reason ?? a.stateReason ?? GENERIC_REASON, disconnectedCheckTryAt: new Date(), lastCheckedAt: new Date(), deleteOn: a.deleteOn ?? deleteOn } });
   if (a.state === 'CONNECTED') {
     const ids = await emit(prisma, org.id, 'social-account.updated', S.socialAccount(updated));
     void flushDeliveries(ids);
