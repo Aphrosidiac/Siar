@@ -142,7 +142,9 @@ define({
   'postImport.getImportedPosts': async ({ actor, query }) => {
     const a = await accountOf(actor, query.teamId, query.socialAccountType);
     const limit = Math.min(100, Math.max(1, Number(query.limit ?? 50))); const offset = Math.max(0, Number(query.offset ?? 0));
-    const where = { socialAccountId: a.id, internal: false, deletedAt: null };
+    // Posts Siar published itself are internal rows; an import that reads them back sets importedAt, and they belong
+    // in the account's history too.
+    const where = { socialAccountId: a.id, deletedAt: null, OR: [{ internal: false }, { importedAt: { not: null } }] };
     const [rows, total, cap] = await Promise.all([
       prisma.profilePost.findMany({ where, include: { analytics: { where: { deletedAt: null }, orderBy: { createdAt: 'asc' } } }, orderBy: [{ publishedAt: { sort: 'desc', nulls: 'last' } }, { id: 'desc' }], skip: offset, take: limit }),
       prisma.profilePost.count({ where }),

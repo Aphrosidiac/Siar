@@ -15,9 +15,13 @@ case "$1" in
     if [ -n "${3:-}" ]; then CROP="2816:$(( $3 * 2 )):0:$(( 1762 - $3 * 2 ))"; fi
     pgrep -qf "caffeinate -dimu" || { echo "start caffeinate -dimu first: an idle Mac shows its screen saver mid-take"; exit 1; }
     park; f="$2"; echo "$f" > "$CUR"; rm -f "$D/$f.mp4" "$D/$f.tl"
+    VF="crop=${CROP:-2816:1400:0:362}"
+    # TOOLBAR=<y>:<h> (screen pixels, 2x) also records Chrome's address bar strip and stacks it over the viewport,
+    # for reviews that must see the real URL (Google OAuth verification: client_id on the consent screen)
+    if [ -n "${TOOLBAR:-}" ]; then VF="split[a][b];[a]crop=2816:${TOOLBAR#*:}:0:${TOOLBAR%%:*}[t];[b]crop=${CROP:-2816:1400:0:362}[v];[t][v]vstack"; fi
     # CROP = the page viewport in screen pixels (2x) as w:h:x:y; default = 1408×700 pt under the debugging bar
     nohup ffmpeg -hide_banner -loglevel error -f avfoundation -capture_cursor 0 -framerate 30 -pixel_format nv12 -i "Capture screen 0:none" \
-      -vf "crop=${CROP:-2816:1400:0:362}" -c:v h264_videotoolbox -b:v 40M -pix_fmt yuv420p "$D/$f.mp4" > "$D/$f.log" 2>&1 &
+      -vf "$VF" -c:v h264_videotoolbox -b:v 40M -pix_fmt yuv420p "$D/$f.mp4" > "$D/$f.log" 2>&1 &
     echo $! > "$D/.pid"; echo "$(now)	@start" > "$D/$f.tl"; sleep 2
     # the screen is chosen by name: device numbers shift when an iPhone camera comes or goes
     if ! kill -0 "$(cat "$D/.pid")" 2>/dev/null; then echo "RECORDER FAILED:"; cat "$D/$f.log"; exit 1; fi
