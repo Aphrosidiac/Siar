@@ -64,6 +64,17 @@ export function formatBytes(n: number | null | undefined) {
 export const formatNumber = (n: number | null | undefined) => (n === null || n === undefined ? '—' : new Intl.NumberFormat('en').format(n));
 export const compactNumber = (n: number) => new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(n);
 export const usd = (cents: number, currency = 'usd') => new Intl.NumberFormat('en', { style: 'currency', currency: currency.toUpperCase() }).format(cents / 100);
+/** Minor units in the row's own currency: "RM 99.00", "$49.00". Ringgit is never shown as "MYR". */
+export const money = (minor: number, currency: string | null | undefined = 'usd') => {
+  const cur = (currency ?? 'usd').toLowerCase();
+  if (cur !== 'myr') return usd(minor, cur);
+  return `${minor < 0 ? '-' : ''}RM ${new Intl.NumberFormat('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(minor) / 100)}`;
+};
+/** List prices: whole units when the amount is whole ("RM39", "$19"), two decimals otherwise ("RM32.50"). */
+export const planMoney = (minor: number, currency: string | null | undefined = 'usd') => {
+  const v = new Intl.NumberFormat('en', { minimumFractionDigits: minor % 100 ? 2 : 0, maximumFractionDigits: minor % 100 ? 2 : 0 }).format(minor / 100);
+  return (currency ?? 'usd').toLowerCase() === 'myr' ? `RM${v}` : `$${v}`;
+};
 /** micro-USD → "$0.015" (keeps sub-cent precision). */
 export const usdMicros = (m: number) => {
   const v = m / 1_000_000;

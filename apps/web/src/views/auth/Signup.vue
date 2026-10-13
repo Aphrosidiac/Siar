@@ -26,7 +26,7 @@ async function submit() {
 }
 </script>
 <template>
-  <AuthShell title="Start publishing everywhere." subtitle="Create your free account. 20 posts a month on the free plan, no card needed.">
+  <AuthShell title="Start publishing everywhere." subtitle="Create your free account. 20 free posts to try, no card needed.">
     <template #switch>Have an account? <router-link to="/login">Sign in</router-link></template>
     <form class="stack-16" novalidate @submit.prevent="submit">
       <div v-if="error && !Object.keys(fields).length" class="callout danger" role="alert">{{ error }}</div>

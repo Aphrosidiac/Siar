@@ -9,13 +9,13 @@ import Button from '@/components/ui/Button.vue';
 import { api } from '@/lib/api';
 import { useQuery } from '@/lib/query';
 import { timezone } from '@/lib/store';
-import { formatDate, usd } from '@/lib/format';
+import { formatDate, money as fmtMoney } from '@/lib/format';
 import type { InvoiceDocument } from '@/lib/types';
 
 const route = useRoute();
 const inv = useQuery(() => api.get<InvoiceDocument>(`/billing/invoices/${route.params.id}`));
 const d = computed(() => inv.data.value);
-const money = (c: number) => usd(c, d.value?.currency ?? 'usd');
+const money = (c: number) => fmtMoney(c, d.value?.currency ?? 'usd');
 const period = (a?: string | null, b?: string | null) => (a && b ? `${formatDate(a, timezone.value)} – ${formatDate(b, timezone.value)}` : '');
 const kind = computed(() => (d.value?.status === 'paid' ? 'Receipt' : 'Invoice'));
 function print() {

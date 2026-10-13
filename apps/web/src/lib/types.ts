@@ -13,8 +13,9 @@ export type NetworkType = 'TIKTOK' | 'YOUTUBE' | 'INSTAGRAM' | 'FACEBOOK' | 'TWI
 export type Role = 'OWNER' | 'ADMIN' | 'MEMBER';
 
 type MeBase = Resp<'auth.me'>;
-export type AuthMe = Omit<MeBase, 'user' | 'memberships'> & { user: MeBase['user'] & { isStaff?: boolean }; memberships: (MeBase['memberships'][number] & { tier?: string })[] };
-export type Organization = Resp<'organization.getOrganization'> & { tier?: 'FREE' | 'PRO' | 'BUSINESS' | 'ENTERPRISE'; trialEndsAt?: string | null; portalBrandName?: string | null; portalLogoUrl?: string | null; portalAccentColor?: string | null };
+export type AuthMe = Omit<MeBase, 'user' | 'memberships'> & { user: MeBase['user'] & { isStaff?: boolean }; memberships: (MeBase['memberships'][number] & { tier?: Tier })[] };
+export type Tier = 'FREE' | 'STARTER' | 'PRO' | 'BUSINESS' | 'ENTERPRISE';
+export type Organization = Resp<'organization.getOrganization'> & { tier?: Tier; trialEndsAt?: string | null; portalBrandName?: string | null; portalLogoUrl?: string | null; portalAccentColor?: string | null };
 
 export interface Channel { id: string; name?: string | null; username?: string | null; address?: string | null; avatarUrl?: string | null; webhook?: string | null; metadata?: unknown }
 
@@ -61,5 +62,5 @@ export interface Paged<T> { items: T[]; total: number }
 
 export interface Invoice { id: string; number: string; description: string; amountCents: number; currency: string; status: string; provider: string; pdfUrl?: string | null; hostedUrl?: string | null; periodStart?: string | null; periodEnd?: string | null; paidAt?: string | null; paymentMethod?: string | null; createdAt: string }
 export interface InvoiceLine { description: string; quantity: number; unitAmountCents: number; amountCents: number; periodStart?: string | null; periodEnd?: string | null }
-export interface BillingDetails { name: string | null; email: string | null; address: string | null; taxId: string | null }
+export interface BillingDetails { name: string | null; email: string | null; address: string | null; taxId: string | null; country?: string | null; detectedCountry?: string | null }
 export interface InvoiceDocument extends Invoice { lines: InvoiceLine[]; subtotalCents: number; totalCents: number; amountPaidCents: number; amountDueCents: number; billTo: BillingDetails | null; issuer: { name: string; registration: string; product: string; country: string; email: string; website: string } }

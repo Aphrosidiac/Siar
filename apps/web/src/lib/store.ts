@@ -1,7 +1,7 @@
 import { computed, reactive, ref } from 'vue';
 import { api, setOrganizationId, isApiError } from './api';
 import { browserTz } from './format';
-import type { AuthMe, NetworkType, Organization, Team } from './types';
+import type { AuthMe, NetworkType, Organization, Team, Tier } from './types';
 
 /** Session-wide state: who is signed in, which organization and team they are working in. */
 export const session = reactive({
@@ -24,7 +24,7 @@ export const role = computed(() => currentMembership.value?.role ?? 'MEMBER');
 export const isAdmin = computed(() => role.value === 'OWNER' || role.value === 'ADMIN' || !!session.me?.user.isStaff);
 export const isOwner = computed(() => role.value === 'OWNER' || !!session.me?.user.isStaff);
 export const timezone = computed(() => session.me?.user.timezone || browserTz());
-export const tier = computed(() => session.org?.tier ?? (currentMembership.value as any)?.tier ?? 'FREE');
+export const tier = computed<Tier>(() => session.org?.tier ?? currentMembership.value?.tier ?? 'FREE');
 
 export async function loadSession(force = false) {
   if (session.ready && !force) return session.me;
