@@ -29,7 +29,7 @@ Values used everywhere (change in one place if the name/domain changes):
 |---|---|---|---|---|---|
 | 1 | Meta (Facebook, Instagram, Threads, Messenger/IG DMs) | Business verification → App Review (Advanced Access) | Review: yes | Business portfolio, upload SSM + proof of address, create app, Submit | [meta.md](meta.md) |
 | 2 | TikTok | Content Posting API audit — **submitted 2026-10-13, in review** (sandbox keys live meanwhile) | yes | Developer account, create app, verify domain, Submit audit — done | [tiktok.md](tiktok.md) |
-| 3 | Google — YouTube | OAuth verification (sensitive scopes) + YouTube API quota audit | yes | Cloud project, Search Console domain verify, Submit both | [google.md](google.md) |
+| 3 | Google — YouTube | OAuth verification (sensitive scopes) — **submitted 2026-10-14, in review**; YouTube API quota audit after | yes | Cloud project, Search Console domain verify, Submit both | [google.md](google.md) |
 | 4 | Google — Business Profile | API access request | no (website must describe it) | Submit the access form from the GBP-owning account | [google.md](google.md) |
 | 5 | LinkedIn | Community Management API (org pages), on a separate CM-only app | dev tier: no; standard: yes | Main app (OIDC + Share) + "Siar Pages" CM app, verify company page, Submit | [linkedin.md](linkedin.md) |
 | 6 | X | none — pay-per-use credits | no | Developer account, create app, buy credits | [x.md](x.md) |

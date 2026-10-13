@@ -1,11 +1,19 @@
 # Google — YouTube Data API + Business Profile APIs
 
-**Status (2026-10-13, 23:10):** app **In production** (unverified), keys live on api.siaran.my, FF's channel
-connected, branding verified by Google's automated check (not yet published), demo film `review/out/Y0.mp4` rendered.
-Demo uploaded unlisted on FF's channel: **https://youtu.be/vYfVcrmfVLA**. Fix `ef19fae` (Past posts) deployed in release
-f0e6b6e.
-Next (Fakhrul, the auto-mode guard refuses these clicks): Branding → **Publish branding** → Verification Center →
-Prepare for verification → paste the justifications below + the demo link → submit.
+**Status: OAuth verification SUBMITTED 2026-10-14 ~00:05 MYT** (Verification Center, sensitive scopes
+youtube.upload + youtube.force-ssl). Google answers by email to hello@ffdev.studio, usually within days, often with
+questions first. Meanwhile the app is **In production, unverified**: users see the unverified-app screen (≤100 users);
+API uploads stay **private** until the YouTube API audit passes.
+- Branding verified + published (Siar name and logo on the consent screen).
+- Demo: **https://youtu.be/vYfVcrmfVLA** (unlisted, FF's channel) = `review/out/Y0.mp4`.
+- Questionnaire: personal use No, internal No, dev/testing No, Gmail SMTP plugin No; both acknowledgements ticked by
+  Fakhrul. Additional info: recorded with a Workspace account of the owning org (so no unverified screen in the film),
+  uploads private pending the YouTube audit, business.manage not sensitive.
+- Keys live on api.siaran.my since release f0e6b6e (also carries the Past posts fix `ef19fae`).
+
+**Next:** (1) answer Google's email if it asks (likely: show the unverified-app screen → re-film sign-in with a
+non-org account, e.g. Fakhrul's gmail); (2) after verification, the YouTube API Services audit form (text below);
+(3) Business Profile API access form — needs FF's own verified Business Profile ≥60 days old (open question).
 
 ## Identifiers
 
