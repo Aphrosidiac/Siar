@@ -303,3 +303,23 @@ Rig lessons from these takes:
 - **Captions:** read at 20 characters a second (the editor holds each long enough); review.py flags any caption
   cut off by the ellipsis; with a long facebook.com address in the band, keep captions under ~60 characters.
 - **Deletes:** check which row a delete targets on screen before confirming; the list can lag a poll behind.
+
+## 10. Submission status (2026-10-13)
+
+The form is filled in except for Submit. [meta-review-submission.md](meta-review-submission.md) records each field.
+
+| Step | State |
+|---|---|
+| Verification, App settings | done (green) |
+| Allowed usage | all 27 permissions have a description, a film and the usage agreement (ticked by Fakhrul). Only "required API test calls" is open |
+| Data handling | answered: Tencent Cloud (Singapore), Cloudflare (Singapore, US), zero national-security requests, no authority-request policies |
+| Reviewer instructions | instructions + reviewer login `siaran+meta-review@ffdev.studio`; Fakhrul pasted the password (`META_REVIEWER_PASSWORD` in `.env.networks`). Org "Meta Review" is on PRO with messaging |
+| Test content cleanup | done on all networks and in Siar (DMs stay; they can't be deleted for the other side) |
+
+**Blocking Submit:** Meta's Testing page shows 0 API calls for every permission. Siar has used them all on
+production since 2026-10-12. Recheck on 2026-10-14. If it still shows 0, make the calls from Graph API
+Explorer with the Siar app. Then Fakhrul reads the submission and presses Submit, by 2026-11-10.
+
+**Optional:** an Instagram comment auto-reply for the instagram_business_manage_comments reviewer. Fakhrul
+approved it. It is not created, because Claude's permission classifier blocked the API call from the browser.
+If it is created, add the post link and the keyword "Siar review" to that permission's description.

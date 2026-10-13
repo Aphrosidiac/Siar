@@ -4,6 +4,9 @@ Submission draft: App Review → submissions, `submission_id=28644479528540223` 
 descriptions and the film uploaded for each are in [meta-review-submission.json](meta-review-submission.json);
 films come from `review/out/<film>.mp4` (`scripts/meta-review/films.json` maps film → permissions).
 
+**Status (2026-10-13, end of day):** everything is entered. Submit waits only on Meta's Testing page counting the
+API test calls (0 so far); see [meta-review-plan.md §10](meta-review-plan.md#10-submission-status-2026-10-13).
+
 ## Allowed usage (27 permissions)
 
 | State | Permissions |
@@ -89,7 +92,7 @@ https://siaran.my/ (the instructions give the sign-in URL).
    `META_REVIEWER_PASSWORD` in the git-ignored `.env.networks`. The organization "Meta Review" (team "Team Meta")
    was set to tier PRO with messaging enabled directly in the prod DB. It has no Subscription row, so billing never
    downgrades it.
-2. Fakhrul types the password after `Password:` in Reviewer instructions → test credentials.
+2. ~~Reviewer password in test credentials~~ (pasted by Fakhrul 2026-10-13, auto-saved, 20 characters).
 3. ~~Data handling declarations and the 27 usage agreements~~ (done 2026-10-13).
 4. The Testing page shows the required API calls (see above).
 5. Fakhrul reads the submission and presses Submit, by 2026-11-10.
