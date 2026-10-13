@@ -13,7 +13,7 @@ API uploads stay **private** until the YouTube API audit passes.
 
 **Next:** (1) answer Google's email if it asks (likely: show the unverified-app screen → re-film sign-in with a
 non-org account, e.g. Fakhrul's gmail); (2) after verification, the YouTube API Services audit form (text below);
-(3) Business Profile API access form — needs FF's own verified Business Profile ≥60 days old (open question).
+(3) Business Profile: **PARKED 2026-10-14** (see below).
 
 ## Identifiers
 
@@ -79,7 +79,16 @@ units since Dec 2025). The audit is needed anyway: until it passes, every API up
   for refresh only; tokens deletable via disconnect and https://siaran.my/data-deletion; links to
   YouTube ToS and Google privacy policy on the connect screen (built in).
 
-## Business Profile API access [F]
+## Business Profile API access [F] — PARKED 2026-10-14
+
+FF has no Business Profile (hello@ffdev.studio: 0 businesses) and can't make an honest one: Google only lists
+businesses that meet customers in person (storefront or service area); online-only studios are not eligible. The
+access form needs an account managing a verified profile ≥60 days old, so the only route is a client's verified
+profile with hello@ffdev.studio added as Manager. Not planned. Meanwhile the GOOGLE_BUSINESS keys are commented out
+on the server and in `.env.networks` (marked "parked 2026-10-14"), so the network reports `available: false` and shows
+"Opening soon". To re-enable: uncomment both lines on /srv/siar/shared/.env, `pm2 restart siar-api --update-env`.
+`business.manage` stays on the consent screen (not sensitive); the client and redirect URI stay configured.
+
 Form: "Business Profile API contact form" → "Application for Basic API Access". Submit from the
 Google account that manages a verified Business Profile (FF's own) that is 60+ days old, with the
 project number of siar-prod. Use case text: *"Siar lets businesses publish posts, update
