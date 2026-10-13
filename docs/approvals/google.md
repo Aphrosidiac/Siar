@@ -1,5 +1,31 @@
 # Google — YouTube Data API + Business Profile APIs
 
+**Status (2026-10-13):** project, APIs, consent screen, scopes, OAuth client and Search Console done.
+Next: publish to Production → keys on the server → connect FF's channel → film → submit verification.
+
+## Identifiers
+
+| | |
+|---|---|
+| Account | hello@ffdev.studio (Workspace org **ffdev.studio**) |
+| Project | **Siar** — id `siar-prod`, org ffdev.studio. ("FF 1" / `ff-1-511514` was auto-created on first sign-in; unused.) |
+| APIs on | YouTube Data API v3, YouTube Analytics, My Business Account Management, My Business Business Information, Business Profile Performance, My Business Place Actions |
+| APIs gated | `mybusiness.googleapis.com` (Google My Business API v4: local posts, reviews) refuses to enable until Business Profile API access is approved |
+| Consent screen | External; name Siar; support + developer contact hello@ffdev.studio (siaran@ isn't a Google Group, so Google doesn't offer it); logo `docs/approvals/assets/siar-icon-120.png`; home/privacy/terms siaran.my; authorized domain siaran.my |
+| Scopes (4) | non-sensitive: `business.manage`, `yt-analytics.readonly` · sensitive: `youtube.upload`, `youtube.force-ssl` · restricted: none |
+| OAuth client | "Siar web" (Web application), client id `764055308499-3ti99mkg4ja6tb5uefo8cguj0uvdsbbr.apps.googleusercontent.com`; redirect URIs …/callback/YOUTUBE and …/callback/GOOGLE_BUSINESS. One client serves both networks. |
+| Keys | `Siar/.env.networks` → `NETWORK_YOUTUBE_CLIENT_ID/SECRET` and `NETWORK_GOOGLE_BUSINESS_CLIENT_ID/SECRET` (same values). Checked: token endpoint answers `invalid_grant` (client accepted). |
+| Search Console | Domain property siaran.my, verified by DNS TXT `google-site-verification=iVAu…` (Cloudflare, added via API). Keep the record. |
+
+## Traps
+
+- The enable-APIs flow fails the whole batch when one API is gated (v4 mybusiness): enable the rest without it.
+- The client secret is shown once in the "OAuth client created" dialog; Download JSON there. (A new secret can be added
+  to the client later if lost.)
+- Search Console's Cloudflare option asks to authorize Google into Cloudflare; choose "Any DNS provider" and add the
+  TXT through the Cloudflare API instead.
+- Testing status: only test users, refresh tokens expire after 7 days. Verification needs "In production".
+
 ## [F] Day 1
 1. console.cloud.google.com → new project **siar-prod** (organization: none is fine).
 2. search.google.com/search-console → add `siaran.my` (DNS) — Google requires the homepage
