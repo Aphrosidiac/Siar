@@ -30,15 +30,16 @@ export interface MailBody {
 
 const esc = (s: string) => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
 
-// Colours chosen to survive mail apps that force a dark mode by inverting: a near-white page and white
-// card invert to neutral darks, the ink button and band stay ink, and the logo is a self-contained ink tile.
-const C = { page: '#F3EFE4', card: '#FFFFFF', panel: '#F8F6F0', line: '#E7E2D6', ink: '#0B0B0A', paper: '#F3EFE4', text: '#0B0B0A', body: '#3B3A37', muted: '#6F6C64', faint: '#9A968C', alert: '#D8452E' };
+// One solid white page, neutral greys only. Mail apps that force dark mode by inverting (Gmail on iOS)
+// turn warm tints into muddy browns; pure neutrals invert to the app's own dark grey. The ink button and
+// band stay ink, and the logo is a self-contained ink tile.
+const C = { page: '#FFFFFF', card: '#FFFFFF', panel: '#F4F4F5', line: '#E4E4E7', ink: '#0B0B0A', paper: '#FFFFFF', text: '#0B0B0A', body: '#3F3F46', muted: '#71717A', faint: '#A1A1AA', alert: '#D8452E' };
 const FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Helvetica,Arial,sans-serif";
 const MONO = "'SF Mono',Menlo,Consolas,'Liberation Mono',monospace";
 
 /**
  * Siar transactional email: the product's cream-and-ink language, table layout, inline styles.
- * A card on cream: the broadcast art (or, for an alert, a compact ink bar) on top, a pill eyebrow, a
+ * One solid page: the broadcast art (or, for an alert, a compact ink bar) on top, a pill eyebrow, a
  * display heading, the copy, a full-width ink button, ruled details in a soft panel, then a centred
  * sign-off. Art lives at siaran.my/email/ (scripts/email/hero.ts renders it).
  */
@@ -73,16 +74,16 @@ export function renderMail(m: MailBody) {
 <meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark"><title>${esc(m.subject)}</title>
 <style>
 @media (prefers-color-scheme: dark) {
-  .bg { background:#0E0E0D !important; } .card { background:#171715 !important; } .panel { background:#1F1F1C !important; }
-  .t { color:#F3EFE4 !important; } .b { color:#CFCBC0 !important; } .m { color:#A19D92 !important; }
-  .ln { border-color:#2A2A27 !important; } .pill { border-color:#34332F !important; }
-  .btn { background:#F3EFE4 !important; } .btnt { color:#0B0B0A !important; } .num { background:#F3EFE4 !important; color:#0B0B0A !important; }
+  .bg, .card { background:#111113 !important; } .panel { background:#1C1C1F !important; }
+  .t { color:#FAFAFA !important; } .b { color:#D4D4D8 !important; } .m { color:#A1A1AA !important; }
+  .ln { border-color:#27272A !important; } .pill { border-color:#3F3F46 !important; }
+  .btn { background:#FAFAFA !important; } .btnt { color:#0B0B0A !important; } .num { background:#FAFAFA !important; color:#0B0B0A !important; }
 }
 @media (max-width: 600px) { .pad { padding:30px 24px 30px !important; } .h1 { font-size:28px !important; line-height:32px !important; } }
 </style></head>
 <body class="bg" style="margin:0;padding:0;background:${C.page};-webkit-text-size-adjust:100%">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">${esc(pre)}&#8199;&#65279;&#847;&#8199;&#65279;&#847;&#8199;&#65279;&#847;&#8199;&#65279;&#847;&#8199;&#65279;&#847;</div>
-<table role="presentation" class="bg" width="100%" cellpadding="0" cellspacing="0" style="background:${C.page};font-family:${FONT}"><tr><td align="center" style="padding:32px 12px 40px">
+<table role="presentation" class="bg" width="100%" cellpadding="0" cellspacing="0" style="background:${C.page};font-family:${FONT}"><tr><td align="center" style="padding:24px 12px 40px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px">
 
 <tr><td><table role="presentation" class="card" width="100%" cellpadding="0" cellspacing="0" style="background:${C.card};border-radius:20px">
@@ -95,7 +96,7 @@ ${cta}${details}${steps}${footnote}
 </td></tr>
 </table></td></tr>
 
-<tr><td align="center" style="padding:32px 16px 0">
+<tr><td class="ln" align="center" style="padding:32px 16px 0;border-top:1px solid ${C.line}">
 <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="vertical-align:middle"><a href="${esc(siteUrl())}" style="text-decoration:none"><img src="${esc(siteUrl('/email/mark.png'))}" width="24" height="24" alt="Siar" style="display:block;border:0;border-radius:6px"></a></td><td class="t" style="vertical-align:middle;padding-left:8px;font-size:16px;line-height:18px;font-weight:700;letter-spacing:-.03em;color:${C.text}">siar</td></tr></table>
 <p class="t" style="margin:12px 0 0;font-size:14px;line-height:20px;font-weight:600;letter-spacing:-.01em;color:${C.text}">Write it once. Siar it everywhere.</p>
 <p class="m" style="margin:14px 0 0;font-size:12px;line-height:20px;color:${C.muted}">${link(appUrl(), 'Dashboard')} &nbsp;&middot;&nbsp; ${link(siteUrl('/docs'), 'Docs')} &nbsp;&middot;&nbsp; ${link(siteUrl('/pricing'), 'Pricing')} &nbsp;&middot;&nbsp; ${link(`mailto:${help}`, 'Help')}</p>
