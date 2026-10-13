@@ -41,7 +41,7 @@ packages/sdk|cli|mcp  TypeScript SDK, JSON-first CLI, MCP server.
 - **Tokens are encrypted** (`platform/crypto.ts`); never log or return them.
 - **Adapters** use the network's real URLs through `ctx.fetch`; mock mode rewrites them. Follow
   `src/adapters/mastodon.ts` (the reference adapter) for shape and style.
-- Money: integer cents (subscriptions) / micro-USD (X credit). Time: UTC, timestamptz.
+- Money: integer minor units in the payment's currency (sen for MYR, cents for USD; plans are priced in both, see `docs/pricing.md`) / micro-USD (X credit). Time: UTC, timestamptz.
 
 ## Look
 

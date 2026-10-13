@@ -10,7 +10,7 @@ Things only Fakhrul can decide or do. Ordered by what unblocks the most.
       every subdomain will always be HTTPS (hard to undo).
 - [ ] **Training crawlers** (GPTBot, ClaudeBot, CCBot, Google-Extended): allowed today. Keeping them allowed puts Siar into future
       model knowledge, which matters for a brand-new name; blocking them changes nothing for live search answers. Recommendation: keep.
-- [ ] **Comparison pages** (`/compare/ayrshare` …): go or no-go. They need final prices and the parked bundle.social naming call.
+- [ ] **Comparison pages** (`/compare/ayrshare` …): go or no-go. Final prices are set (2026-10-13); still needs the parked bundle.social naming call.
 
 ## Access to set up
 - [ ] Google Search Console: verify `siaran.my` (DNS TXT in Cloudflare), submit `sitemap-index.xml`, request indexing for /, /pricing, /platforms.
@@ -26,7 +26,7 @@ Things only Fakhrul can decide or do. Ordered by what unblocks the most.
       (or ask AP to drive it in Chrome).
 
 ## Needs a source before it can go on the site
-- [ ] Final plan prices (the site and JSON-LD show the placeholders from `domain/plans.ts`).
+- [x] Final plan prices: set 2026-10-13 (`docs/pricing.md`); site, JSON-LD, pricing.md and llms.txt generate from `domain/plans.ts`.
 - [ ] Any customer, usage or reliability figure ("X posts published", uptime). None exists yet; nothing is invented meanwhile.
 
 ## Off-site

@@ -39,10 +39,10 @@ markdown pricing page, network and error pages generated from the enforcing code
 ### P3: coverage gaps (agent, after owner sign-off)
 The fan-out for "best social media API" and "<competitor> alternatives" is answered by comparison pages, and Siar has none.
 - `/compare/ayrshare` and similar: a sourced, dated feature/pricing table with methodology, honest about where the
-  competitor wins. Every competitor fact links to the competitor's own pricing/docs page. **Blocked on:** final Siar
-  prices (placeholders today) and the parked bundle.social naming decision.
+  competitor wins. Every competitor fact links to the competitor's own pricing/docs page. Final Siar prices are set
+  (2026-10-13, `docs/pricing.md`); **blocked on** the parked bundle.social naming decision.
 - A "how much does a social media API cost" explainer: per-account vs per-organization pricing, X pass-through costs.
-  Uses X's published price list and Siar's own plans.
+  Uses X's published price list and Siar's own plans (ringgit and USD).
 - Per-network "How to post to <network> via API" sections exist on the network pages. Check they open with a 40–60
   word answer once wave-0 fan-out queries are in.
 
@@ -77,3 +77,4 @@ Expected lag: Bing/Perplexity days to weeks, Google AI surfaces 2–8 weeks, mod
 | 2026-10-13 | Plumbing: schema graph, error FAQ removal, home offer, sitemap lastmod, docs dates, page weight, titles, IndexNow | see git log `geo:` |
 | 2026-10-13 | Content: home lead + 2 FAQ edits, FAQ question headings | see git log `geo:` |
 | 2026-10-13 | Deployed 14da916; IndexNow 202 for 87 URLs | deploy/deploy-shared.sh |
+| 2026-10-13 | Localized pricing: ringgit + USD lists, Starter tier, Free one-time, pricing page rewritten, MYR/USD offers in JSON-LD | see git log `pricing` |

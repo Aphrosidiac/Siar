@@ -9,8 +9,10 @@ when the code changes, this file changes with it.
 | Networks | 15: TikTok, YouTube, Instagram, Facebook, X (Twitter), Threads, LinkedIn, Pinterest, Reddit, Mastodon, Bluesky, Discord, Slack, Google Business Profile, Snapchat | `lib/networks.ts` |
 | API size | 263 operations in one OpenAPI document (`/openapi.json`) | `lib/openapi.ts` |
 | Webhooks | 16 signed (HMAC) event types, retried with backoff for a day | `lib/events.ts` |
-| Pricing model | Per organization, never per connected account. Unlimited accounts on paid plans | `domain/plans.ts` |
-| Plans (USD) | Free $0 (20 posts/mo, 3 teams) · Pro $100/mo or $90/mo yearly · Business $400/mo or $360/mo yearly · Enterprise custom | `apps/api/src/domain/plans.ts`. **Placeholder prices until Fakhrul sets final ones** |
+| Pricing model | Per organization, never per connected account. Unlimited social accounts on every plan, Free included; plans are fenced by brands (teams) and volume | `domain/plans.ts` |
+| Plans | Free: 20 posts to try, one-time, 1 brand, no card · Starter RM39/mo ($19 elsewhere), 1 brand · Pro RM99/mo ($49), 10 brands, 14-day trial · Business RM399/mo ($149), unlimited brands · Enterprise custom. Yearly = 10× monthly. Ringgit for organizations billed in Malaysia, USD elsewhere | `apps/api/src/domain/plans.ts`, `docs/pricing.md` (final, 2026-10-13) |
+| Price lock | A subscription renews at the price it started at | `billing-core.ts` |
+| Payment | Card (monthly or yearly); Malaysia yearly can be paid once by FPX or GrabPay and renewed by link | `billing.ts` |
 | X (Twitter) usage | Passed through at X's own price from a prepaid credit balance | `domain/credits.ts` |
 | Tooling | TypeScript SDK, JSON-first CLI, MCP server | `packages/sdk`, `cli`, `mcp` |
 | Auth | Organization API key in the `x-api-key` header | docs/authentication |
@@ -20,5 +22,5 @@ when the code changes, this file changes with it.
 | Live since | 2026-10-12 (siaran.my, app., api., media.) | project state |
 | Domain history | siaran.my served a ~1.4 KB placeholder in 2017 and a 403 by Nov 2018 (Wayback). No earlier brand on it | Wayback CDX, 2026-10-13 |
 
-Wrong answers to watch for: "priced per account", "Siar is bundle.social", the wrong network count, or treating
+Wrong answers to watch for: "priced per account", "Free is 20 posts a month", USD-only prices for Malaysia, "Siar is bundle.social", the wrong network count, or treating
 Siar as a scheduling *app* only, with no API.

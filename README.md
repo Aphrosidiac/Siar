@@ -138,16 +138,24 @@ See [`packages/cli`](packages/cli/README.md) and [`packages/mcp`](packages/mcp/R
 
 ## Plans
 
-Billed per organization, never per connected account. Prices live in
-[`apps/api/src/domain/plans.ts`](apps/api/src/domain/plans.ts) and are placeholders until final.
+Billed per organization, never per connected account: every plan connects unlimited social accounts.
+Prices are set in ringgit for organizations billed in Malaysia and in US dollars everywhere else
+(the billing country decides). Yearly is 10× monthly. Prices, quotas and caps live in
+[`apps/api/src/domain/plans.ts`](apps/api/src/domain/plans.ts); the reasoning is in [`docs/pricing.md`](docs/pricing.md).
 
-| | Free | Pro | Business | Enterprise |
-| --- | ---: | ---: | ---: | ---: |
-| Price / month | $0 | $100 ($90 yearly) | $400 ($360 yearly) | Talk to us |
-| Posts / month | 20 | 10,000 | 100,000 | 1,000,000 |
-| Teams | 3 | Unlimited | Unlimited | Unlimited |
-| Analytics | | ✓ | ✓ | ✓ |
-| Connected accounts | Unlimited | Unlimited | Unlimited | Unlimited |
+| | Free | Starter | Pro | Business | Enterprise |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Malaysia / month | RM0 | RM39 | RM99 | RM399 | Talk to us |
+| Elsewhere / month | $0 | $19 | $49 | $149 | Talk to us |
+| Posts | 20, one-time | 300 / month | 10,000 / month | 100,000 / month | 1,000,000 / month |
+| Brands (teams) | 1 | 1 | 10 | Unlimited | Unlimited |
+| Analytics | | ✓ | ✓ | ✓ | ✓ |
+| Free trial | | | 14 days | | |
+| Connected accounts | Unlimited | Unlimited | Unlimited | Unlimited | Unlimited |
+
+A subscription renews at the price it started at (price lock). Malaysian yearly plans can be paid
+once by FPX or GrabPay and are renewed from a link. Free is a one-time allowance, also counted per
+social account so a new organization does not reset it.
 
 ## Repository layout
 
@@ -278,7 +286,8 @@ Each network needs its developer app approved before real accounts can connect. 
 - [x] SDK, CLI, MCP server
 - [ ] Network app approvals (Track B, [`docs/approvals`](docs/approvals/README.md))
 - [ ] DNS for siaran.my, VPS, deploy
-- [ ] Legal review of terms and privacy, final plan prices
+- [ ] Legal review of terms and privacy
+- [x] Final plan prices (localized, 2026-10-13: docs/pricing.md)
 
 Spec audit 2026-10-12: every adapter checked against the networks' current docs (LinkedIn on
 202609, Snapchat rewritten for the Public Profile API, Meta/TikTok/Google/Reddit field and scope
