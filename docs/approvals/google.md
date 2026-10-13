@@ -2,7 +2,10 @@
 
 **Status (2026-10-13, 23:10):** app **In production** (unverified), keys live on api.siaran.my, FF's channel
 connected, branding verified by Google's automated check (not yet published), demo film `review/out/Y0.mp4` rendered.
-Next (Fakhrul): Publish branding → upload Y0 to YouTube as unlisted → Verification Center → submit with the text below.
+Demo uploaded unlisted on FF's channel: **https://youtu.be/vYfVcrmfVLA**. Fix `ef19fae` (Past posts) deployed in release
+f0e6b6e.
+Next (Fakhrul, the auto-mode guard refuses these clicks): Branding → **Publish branding** → Verification Center →
+Prepare for verification → paste the justifications below + the demo link → submit.
 
 ## Identifiers
 
