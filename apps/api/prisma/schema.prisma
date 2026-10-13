@@ -107,6 +107,7 @@ model AuthToken {
 
 enum PlanTier {
   FREE
+  STARTER
   PRO
   BUSINESS
   ENTERPRISE
@@ -159,6 +160,8 @@ model Organization {
   billingName           String?
   billingAddress        String?
   billingTaxId          String?
+  /// ISO 3166-1 alpha-2. Decides the price list: MY pays in ringgit, everyone else in USD. Null = not chosen yet.
+  billingCountry        String?
   stripeCustomerId      String?   @unique
   chipClientId          String?   @unique
   /// Hosted connect portal branding.
@@ -244,6 +247,13 @@ enum BillingInterval {
   YEARLY
 }
 
+/// AUTO: a saved card renews it (Stripe, or CHIP from the cron). LINK: paid once (FPX, DuitNow,
+/// GrabPay); before the period ends we email a link to pay for the next one.
+enum RenewalMode {
+  AUTO
+  LINK
+}
+
 model Subscription {
   id                     String          @id @default(uuid(7))
   organizationId         String          @unique
@@ -257,6 +267,8 @@ model Subscription {
   status                 String
   tier                   PlanTier
   billingInterval        BillingInterval
+  renewal                RenewalMode     @default(AUTO)
+  /// The price this subscription renews at (price lock): set when it starts or changes plan, never by a list-price change.
   currency               String          @default("usd")
   unitAmountCents        Int
   couponId               String?
@@ -316,11 +328,19 @@ model BillingPayment {
   provider          BillingProvider
   purpose           PaymentPurpose
   providerRef       String?         @unique
+  /// What is charged, in `currency` minor units.
   amountCents       Int
   currency          String          @default("usd")
+  /// X credit bought by a top-up, in USD cents (the credit balance is USD whatever the charge currency).
+  creditCents       Int?
   status            String          @default("PENDING")
   tier              PlanTier?
   billingInterval   BillingInterval?
+  renewal           RenewalMode     @default(AUTO)
+  /// Pays for the next period of the running subscription (link renewal paid early).
+  isRenewal         Boolean         @default(false)
+  /// Issuing country of the card that paid, when the provider reports one.
+  cardCountry       String?
   settledAt         DateTime?
   createdAt         DateTime        @default(now())
 }

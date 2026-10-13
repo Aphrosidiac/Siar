@@ -1029,6 +1029,7 @@
             "tier": {
              "type": "string",
              "enum": [
+              "STARTER",
               "PRO",
               "BUSINESS"
              ]
@@ -1117,6 +1118,7 @@
             "pendingTier": {
              "type": "string",
              "enum": [
+              "STARTER",
               "PRO",
               "BUSINESS"
              ],
@@ -141233,6 +141235,7 @@
            "type": "string",
            "enum": [
             "FREE",
+            "STARTER",
             "PRO",
             "BUSINESS",
             "ENTERPRISE"
@@ -141284,6 +141287,31 @@
           },
           "currency": {
            "type": "string"
+          },
+          "amountCents": {
+           "type": "integer"
+          },
+          "renewal": {
+           "type": "string",
+           "enum": [
+            "AUTO",
+            "LINK"
+           ],
+           "nullable": true
+          },
+          "priceLocked": {
+           "type": "boolean"
+          },
+          "pendingPlan": {
+           "type": "string",
+           "enum": [
+            "FREE",
+            "STARTER",
+            "PRO",
+            "BUSINESS",
+            "ENTERPRISE"
+           ],
+           "nullable": true
           }
          },
          "required": [
@@ -141294,6 +141322,155 @@
       }
      }
     }
+   }
+  },
+  "/api/v1/billing/plans": {
+   "get": {
+    "operationId": "billing.plans",
+    "tags": [
+     "billing"
+    ],
+    "summary": "Plans and prices for this organization",
+    "parameters": [],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "country": {
+           "type": "string"
+          },
+          "detectedCountry": {
+           "type": "string",
+           "nullable": true
+          },
+          "currency": {
+           "type": "string",
+           "enum": [
+            "myr",
+            "usd"
+           ]
+          },
+          "teamsInUse": {
+           "type": "integer"
+          },
+          "trialDays": {
+           "type": "integer"
+          },
+          "methods": {
+           "type": "object",
+           "properties": {
+            "card": {
+             "type": "boolean"
+            },
+            "bank": {
+             "type": "boolean"
+            }
+           },
+           "required": []
+          },
+          "plans": {
+           "type": "array",
+           "items": {
+            "type": "object",
+            "properties": {
+             "tier": {
+              "type": "string",
+              "enum": [
+               "FREE",
+               "STARTER",
+               "PRO",
+               "BUSINESS",
+               "ENTERPRISE"
+              ]
+             },
+             "name": {
+              "type": "string"
+             },
+             "tagline": {
+              "type": "string"
+             },
+             "currency": {
+              "type": "string",
+              "enum": [
+               "myr",
+               "usd"
+              ]
+             },
+             "price": {
+              "type": "object",
+              "properties": {
+               "monthly": {
+                "type": "integer"
+               },
+               "yearly": {
+                "type": "integer"
+               }
+              },
+              "required": [
+               "monthly",
+               "yearly"
+              ],
+              "nullable": true
+             },
+             "oneTime": {
+              "type": "boolean"
+             },
+             "trial": {
+              "type": "boolean"
+             },
+             "posts": {
+              "type": "integer"
+             },
+             "comments": {
+              "type": "integer"
+             },
+             "uploads": {
+              "type": "integer"
+             },
+             "teams": {
+              "type": "integer",
+              "nullable": true
+             },
+             "analytics": {
+              "type": "boolean"
+             },
+             "dmsPerAccount": {
+              "type": "integer"
+             },
+             "automationRunsPerAccount": {
+              "type": "integer"
+             },
+             "importPostsPerAccount": {
+              "type": "integer"
+             },
+             "reviewImportPerAccount": {
+              "type": "integer"
+             }
+            },
+            "required": [
+             "tier",
+             "name",
+             "currency",
+             "price"
+            ]
+           }
+          }
+         },
+         "required": [
+          "country",
+          "currency",
+          "plans"
+         ]
+        }
+       }
+      }
+     }
+    },
+    "description": "Prices depend on the billing country: organizations billed in Malaysia pay in ringgit (myr), everyone else in USD. Amounts are minor units; yearly is the whole year."
    }
   },
   "/api/v1/billing/checkout": {
@@ -141317,6 +141494,19 @@
           },
           "provider": {
            "type": "string"
+          },
+          "currency": {
+           "type": "string",
+           "enum": [
+            "myr",
+            "usd"
+           ]
+          },
+          "amountCents": {
+           "type": "integer"
+          },
+          "trialDays": {
+           "type": "integer"
           }
          },
          "required": [
@@ -141338,6 +141528,7 @@
           "type": "string",
           "enum": [
            "FREE",
+           "STARTER",
            "PRO",
            "BUSINESS",
            "ENTERPRISE"
@@ -141349,6 +141540,16 @@
            "MONTHLY",
            "YEARLY"
           ]
+         },
+         "method": {
+          "type": "string",
+          "enum": [
+           "card",
+           "bank"
+          ]
+         },
+         "renew": {
+          "type": "boolean"
          },
          "provider": {
           "type": "string",
@@ -141369,7 +141570,8 @@
        }
       }
      }
-    }
+    },
+    "description": "method card: a saved card renews the plan. method bank (yearly, ringgit only): paid once (FPX or GrabPay) and renewed from a link before it ends; renew: true pays that next period."
    }
   },
   "/api/v1/billing/portal": {
@@ -141393,6 +141595,19 @@
           },
           "provider": {
            "type": "string"
+          },
+          "currency": {
+           "type": "string",
+           "enum": [
+            "myr",
+            "usd"
+           ]
+          },
+          "amountCents": {
+           "type": "integer"
+          },
+          "trialDays": {
+           "type": "integer"
           }
          },
          "required": [
@@ -141425,6 +141640,7 @@
            "type": "string",
            "enum": [
             "FREE",
+            "STARTER",
             "PRO",
             "BUSINESS",
             "ENTERPRISE"
@@ -141476,6 +141692,31 @@
           },
           "currency": {
            "type": "string"
+          },
+          "amountCents": {
+           "type": "integer"
+          },
+          "renewal": {
+           "type": "string",
+           "enum": [
+            "AUTO",
+            "LINK"
+           ],
+           "nullable": true
+          },
+          "priceLocked": {
+           "type": "boolean"
+          },
+          "pendingPlan": {
+           "type": "string",
+           "enum": [
+            "FREE",
+            "STARTER",
+            "PRO",
+            "BUSINESS",
+            "ENTERPRISE"
+           ],
+           "nullable": true
           }
          },
          "required": [
@@ -141508,6 +141749,7 @@
            "type": "string",
            "enum": [
             "FREE",
+            "STARTER",
             "PRO",
             "BUSINESS",
             "ENTERPRISE"
@@ -141559,6 +141801,31 @@
           },
           "currency": {
            "type": "string"
+          },
+          "amountCents": {
+           "type": "integer"
+          },
+          "renewal": {
+           "type": "string",
+           "enum": [
+            "AUTO",
+            "LINK"
+           ],
+           "nullable": true
+          },
+          "priceLocked": {
+           "type": "boolean"
+          },
+          "pendingPlan": {
+           "type": "string",
+           "enum": [
+            "FREE",
+            "STARTER",
+            "PRO",
+            "BUSINESS",
+            "ENTERPRISE"
+           ],
+           "nullable": true
           }
          },
          "required": [
@@ -141828,6 +142095,14 @@
             "taxId": {
              "type": "string",
              "nullable": true
+            },
+            "country": {
+             "type": "string",
+             "nullable": true
+            },
+            "detectedCountry": {
+             "type": "string",
+             "nullable": true
             }
            },
            "required": [],
@@ -141881,6 +142156,14 @@
           "taxId": {
            "type": "string",
            "nullable": true
+          },
+          "country": {
+           "type": "string",
+           "nullable": true
+          },
+          "detectedCountry": {
+           "type": "string",
+           "nullable": true
           }
          },
          "required": []
@@ -141920,6 +142203,14 @@
           "taxId": {
            "type": "string",
            "nullable": true
+          },
+          "country": {
+           "type": "string",
+           "nullable": true
+          },
+          "detectedCountry": {
+           "type": "string",
+           "nullable": true
           }
          },
          "required": []
@@ -141955,6 +142246,11 @@
           "type": "string",
           "maxLength": 60,
           "nullable": true
+         },
+         "country": {
+          "type": "string",
+          "pattern": "^[A-Za-z]{2}$",
+          "nullable": true
          }
         },
         "required": []
@@ -141985,6 +142281,19 @@
           },
           "provider": {
            "type": "string"
+          },
+          "currency": {
+           "type": "string",
+           "enum": [
+            "myr",
+            "usd"
+           ]
+          },
+          "amountCents": {
+           "type": "integer"
+          },
+          "trialDays": {
+           "type": "integer"
           }
          },
          "required": [

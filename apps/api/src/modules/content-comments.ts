@@ -145,7 +145,7 @@ async function plan(actor: Actor, b: Body) {
 async function consumeFor(tx: Db, organizationId: string, targets: Targets, accounts: { id: string; type: string; providerPageId: string | null }[], postDate: Date, monthAlready: boolean) {
   const org = await tx.organization.findUniqueOrThrow({ where: { id: organizationId } });
   const l = limitsFor(org);
-  if (!monthAlready) await consumeOrg(tx, org.id, 'comments', 1, l.comments);
+  if (!monthAlready) await consumeOrg(tx, org, 'comments', 1, l.comments);
   for (const [type, t] of Object.entries(targets)) {
     const a = accounts.find(x => x.id === t!.socialAccountId)!;
     await consumeDaily(tx, accountKey(a.type, a.providerPageId, a.id), 'comments', 1, l.dailyComments[type as NetworkType], postDate, adapter(type as NetworkType).displayName + ' comment');

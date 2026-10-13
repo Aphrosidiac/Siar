@@ -34,7 +34,7 @@ async function capacity(organizationId: string, a: { id: string; type: string; p
   const org = await prisma.organization.findUniqueOrThrow({ where: { id: organizationId } });
   const limit = limitsFor(org).importPostsPerAccount;
   const key = accountKey(a.type, a.providerPageId, a.id);
-  return { limit, key, remaining: Math.max(0, limit - (await accountMonthUsage(prisma, key, 'imports'))) };
+  return { limit, key, tier: org.tier, remaining: Math.max(0, limit - (await accountMonthUsage(prisma, key, 'imports', org.tier))) };
 }
 
 export async function runHistoryImport(importId: string) {
@@ -58,11 +58,11 @@ export async function runHistoryImport(importId: string) {
       let items = r.items.slice(0, want);
       if (items.length) {
         // Count what is actually imported; stop cleanly when the monthly allowance runs out.
-        try { await consumeAccountMonth(prisma, cap.key, 'imports', items.length, cap.limit, `${ad.displayName} post import`); }
+        try { await consumeAccountMonth(prisma, cap.key, 'imports', items.length, cap.limit, `${ad.displayName} post import`, cap.tier); }
         catch {
-          const left = Math.max(0, cap.limit - (await accountMonthUsage(prisma, cap.key, 'imports')));
+          const left = Math.max(0, cap.limit - (await accountMonthUsage(prisma, cap.key, 'imports', cap.tier)));
           items = items.slice(0, left);
-          if (left) await consumeAccountMonth(prisma, cap.key, 'imports', left, cap.limit, `${ad.displayName} post import`).catch(() => { items = []; });
+          if (left) await consumeAccountMonth(prisma, cap.key, 'imports', left, cap.limit, `${ad.displayName} post import`, cap.tier).catch(() => { items = []; });
           stopNote = `Stopped at the monthly import limit (${cap.limit} posts per account on your plan).`;
         }
       }

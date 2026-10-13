@@ -40,7 +40,7 @@ define({
       const l = limitsFor(org);
       if (l.teams !== null) {
         const n = await tx.team.count({ where: { organizationId: org.id, deletedAt: null } });
-        if (n >= l.teams) throw forbidden(`Social sets limit reached. Limit is ${l.teams} sets.`);
+        if (n >= l.teams) throw forbidden(`Social sets limit reached. Limit is ${l.teams} ${l.teams === 1 ? 'set' : 'sets'}. Your ${l.plan.name} plan includes ${l.teams} ${l.teams === 1 ? 'brand' : 'brands'}; upgrade in Billing to add more.`);
       }
       const t = await tx.team.create({ data: { name: body.name.trim(), avatarUrl: body.avatarUrl ?? null, organizationId: org.id, createdById: actor.userId ?? org.createdById }, include });
       await audit(tx, actor, 'team.create', 'Team', t.id, `Created team ${t.name}`);
@@ -131,7 +131,7 @@ define({
     const where = { deletedAt: null, team: { organizationId: actor.organizationId, deletedAt: null }, ...(query.teamId ? { teamId: query.teamId } : {}), ...(query.socialAccountType ? { type: query.socialAccountType } : {}), ...(query.socialAccountId ? { id: query.socialAccountId } : {}) };
     const [rows, total] = await Promise.all([prisma.socialAccount.findMany({ where, orderBy: { createdAt: 'asc' }, skip: (page - 1) * pageSize, take: pageSize }), prisma.socialAccount.count({ where })]);
     const socialAccounts = await Promise.all(rows.map(async a => {
-      const used = await accountMonthUsage(prisma, accountKey(a.type, a.providerPageId, a.id), 'imports');
+      const used = await accountMonthUsage(prisma, accountKey(a.type, a.providerPageId, a.id), 'imports', org.tier);
       return { socialAccountId: a.id, teamId: a.teamId, type: a.type, username: a.username, used, limit: l.importPostsPerAccount, remaining: Math.max(0, l.importPostsPerAccount - used) };
     }));
     return { limitPerSocialAccount: l.importPostsPerAccount, socialAccounts, pagination: { page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) } };
@@ -141,6 +141,7 @@ define({
 async function usage(actor: Actor, metric: 'posts' | 'comments' | 'uploads') {
   const org = await prisma.organization.findUniqueOrThrow({ where: { id: actor.organizationId } });
   const limit = limitsFor(org)[metric];
-  const used = await orgUsage(prisma, org.id, metric);
-  return { used, limit, remaining: Math.max(0, limit - used) };
+  const used = await orgUsage(prisma, org, metric);
+  // Siar extension: Free's allowance is one-time (resets: false); paid plans reset each month (UTC).
+  return { used, limit, remaining: Math.max(0, limit - used), resets: !limitsFor(org).plan.oneTime };
 }

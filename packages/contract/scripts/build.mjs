@@ -50,6 +50,15 @@ for (const [p, ops] of Object.entries(ref.paths)) {
 }
 for (const [p, ops] of Object.entries(extra)) paths[p] = { ...(paths[p] ?? {}), ...ops };
 
+// Siar's one extension to the reference shapes: a Starter plan between Free and Pro (docs/pricing.md).
+const addStarter = v => {
+  if (Array.isArray(v)) return v.forEach(addStarter);
+  if (!v || typeof v !== 'object') return;
+  if (Array.isArray(v.enum) && v.enum.includes('PRO') && v.enum.includes('BUSINESS') && !v.enum.includes('STARTER')) v.enum.splice(v.enum.indexOf('PRO'), 0, 'STARTER');
+  Object.values(v).forEach(addStarter);
+};
+addStarter(paths);
+
 const doc = {
   openapi: '3.0.2',
   info: {

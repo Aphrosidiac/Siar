@@ -11,37 +11,68 @@ import { define } from '../platform/routes.js';
 import { JOBS } from '../platform/queue.js';
 import { registerJob, runJob } from '../engine/jobs.js';
 import { balance, ensureAccount } from '../domain/credits.js';
-import { PLANS } from '../domain/plans.js';
+import type { FastifyRequest } from 'fastify';
+import { currencyFor, ONCE_METHODS, PLANS, TIER_ORDER, type Currency } from '../domain/plans.js';
 import {
-  billingEmail, failPayment, hadPaidPlan, hooks, invoiceDocument, invoiceView, LIVE_STATUSES, money, planLabel, RANK, renewalCharger, runRenewals, settlePayment,
-  subscriptionView, toMyr, usdCents, type Interval, type Requested, type Tier,
+  billingEmail, failPayment, hadPaidPlan, hooks, invoiceDocument, invoiceView, listPrice, LIVE_STATUSES, money, planLabel, RANK, renewalCharger, runRenewals, settlePayment,
+  subscriptionView, usdToMyr, type Interval, type Requested, type Tier,
 } from './billing-core.js';
-import { chip, chipConfigured, chipPublicKeys, PAID, verifySignature, type ChipPurchase } from './billing-chip.js';
+import { cardCountryOf, chip, chipAccepts, chipConfigured, chipPublicKeys, PAID, verifySignature, type ChipPurchase } from './billing-chip.js';
 import { mockCheckoutPage } from './billing-mock.js';
 import * as stripeP from './billing-stripe.js';
 
 /**
  * Billing: plans (subscriptions), invoices and X credit top-ups, behind three providers —
- *   STRIPE  global cards in USD; Stripe runs the subscription, we mirror its webhook events
- *   CHIP    Malaysian payments in MYR; we save the card and run renewals ourselves (cron)
+ *   STRIPE  cards in USD or ringgit (Stripe runs card subscriptions; we mirror its webhook events),
+ *           plus FPX / GrabPay for a yearly plan paid once
+ *   CHIP    Malaysian payments in ringgit (FPX, DuitNow, cards); we save the card and run renewals (cron)
  *   MOCK    BILLING_MODE=mock: a local checkout page that settles like a real provider would
- * Provider-independent rules live in billing-core.ts (settlement, renewals, dunning, invoices).
+ * Routing: the organization's billing country picks the price list (MY → ringgit, else USD).
+ * Ringgit goes to CHIP when CHIP has that kind of payment method open for the brand, else Stripe;
+ * USD always goes to Stripe. Provider-independent rules live in billing-core.ts.
  */
 
 type Kind = 'STRIPE' | 'CHIP' | 'MOCK';
 const mockEnabled = () => config.BILLING_MODE === 'mock' && !isProd;
 const meta = (m: unknown): Record<string, any> => (m && typeof m === 'object' && !Array.isArray(m) ? { ...(m as object) } : {});
 
-/** body.provider → the provider that will take the money. In mock mode both resolve to MOCK (the request is recorded). */
-function resolveProvider(requested?: Requested): { kind: Kind; requested: Requested } {
-  const r: Requested = requested ?? 'STRIPE';
+/** card = a saved card renews it; bank = a yearly plan paid once (FPX, DuitNow, GrabPay); once = a one-off payment (top-up). */
+type Need = 'card' | 'bank' | 'once';
+
+/** The visitor's country as Cloudflare saw it (CF-IPCountry), when it is a real country code. */
+export function detectedCountry(req?: FastifyRequest): string | null {
+  const c = String(req?.headers['cf-ipcountry'] ?? '').toUpperCase();
+  return /^[A-Z]{2}$/.test(c) && c !== 'XX' && c !== 'T1' ? c : null;
+}
+
+/** The organization's billing country; the first checkout fixes it from where the buyer is (MY when unknown). */
+async function countryOf(organizationId: string, req?: FastifyRequest, persist = false) {
+  const org = await prisma.organization.findUniqueOrThrow({ where: { id: organizationId }, select: { billingCountry: true } });
+  if (org.billingCountry) return org.billingCountry;
+  const c = detectedCountry(req) ?? 'MY';
+  if (persist) await prisma.organization.update({ where: { id: organizationId }, data: { billingCountry: c } });
+  return c;
+}
+
+/** Which provider takes a payment. body.provider, when given, is honoured (and checked). In mock mode everything resolves to MOCK. */
+async function route(currency: Currency, need: Need, requested?: Requested): Promise<{ kind: Kind; requested: Requested }> {
+  if (need === 'bank' && currency !== 'myr') throw badRequest(`Paying once by ${ONCE_METHODS} is for organizations billed in Malaysia. Pay by card instead.`, [{ code: 'invalid', message: 'Ringgit only', path: ['method'] }]);
+  if (requested === 'CHIP' && currency !== 'myr') throw badRequest('CHIP takes ringgit payments only. Organizations billed outside Malaysia pay through Stripe.', [{ code: 'invalid', message: 'Ringgit only', path: ['provider'] }]);
   if (config.BILLING_MODE === 'mock') {
     if (isProd) throw unavailable('Billing is not configured on this server.');
-    return { kind: 'MOCK', requested: r };
+    return { kind: 'MOCK', requested: requested ?? (currency === 'myr' ? 'CHIP' : 'STRIPE') };
   }
-  if (r === 'STRIPE' && !config.STRIPE_SECRET_KEY) throw unavailable('Card payments through Stripe are not configured on this server.');
-  if (r === 'CHIP' && !chipConfigured()) throw unavailable('CHIP payments are not configured on this server.');
-  return { kind: r, requested: r };
+  if (requested === 'CHIP' && !chipConfigured()) throw unavailable('CHIP payments are not configured on this server.');
+  if (requested) {
+    if (requested === 'STRIPE' && !config.STRIPE_SECRET_KEY) throw unavailable('Card payments through Stripe are not configured on this server.');
+    return { kind: requested, requested };
+  }
+  if (currency === 'myr') {
+    const open = need === 'once' ? (await chipAccepts('bank')) || (await chipAccepts('card')) : await chipAccepts(need);
+    if (open) return { kind: 'CHIP', requested: 'CHIP' };
+  }
+  if (!config.STRIPE_SECRET_KEY) throw unavailable('Payments are not configured on this server.');
+  return { kind: 'STRIPE', requested: 'STRIPE' };
 }
 
 // ───────────────────────── provider wiring for the core ─────────────────────────
@@ -58,7 +89,7 @@ renewalCharger.charge = async (sub, payment) => {
   const org = await prisma.organization.findUniqueOrThrow({ where: { id: sub.organizationId } });
   const purchase = await chip.createPurchase({
     reference: `Siar ${plan.name} renewal`, clientId: sub.providerCustomerId ?? org.chipClientId,
-    products: [{ name: `${planLabel(payment.tier, payment.billingInterval)} renewal`, price: toMyr(payment.amountCents) }],
+    products: [{ name: `${planLabel(payment.tier, payment.billingInterval)} renewal`, price: payment.amountCents }],
     metadata: { siar_payment: payment.id, organizationId: sub.organizationId }, successUrl: appUrl('/billing'),
   });
   await prisma.billingPayment.update({ where: { id: payment.id }, data: { providerRef: purchase.id } });
@@ -93,14 +124,15 @@ async function openCheckout(payment: any, prov: { kind: Kind; requested: Request
       ref = `mock_${prov.requested.toLowerCase()}_${payment.id}`;
       url = apiUrl(`/mock-billing/${payment.id}`);
     } else if (prov.kind === 'STRIPE') {
-      if (payment.purpose === 'CREDIT_TOPUP') ({ url, ref } = await stripeP.checkoutTopUp({ organizationId: payment.organizationId, paymentId: payment.id, amountUsd: payment.amountCents / 100 }));
-      else ({ url, ref } = await stripeP.checkoutSubscription({ organizationId: payment.organizationId, paymentId: payment.id, tier: payment.tier, interval: payment.billingInterval, trial: !!opts.trial, coupon: opts.coupon }));
+      if (payment.purpose === 'CREDIT_TOPUP') ({ url, ref } = await stripeP.checkoutTopUp({ organizationId: payment.organizationId, paymentId: payment.id, amount: payment.amountCents, currency: payment.currency, creditUsd: (payment.creditCents ?? payment.amountCents) / 100 }));
+      else if (payment.renewal === 'LINK') ({ url, ref } = await stripeP.checkoutOnce({ organizationId: payment.organizationId, paymentId: payment.id, tier: payment.tier, interval: payment.billingInterval, currency: payment.currency, amount: payment.amountCents, name: `${planLabel(payment.tier, payment.billingInterval)}${payment.isRenewal ? ' renewal' : ''}` }));
+      else ({ url, ref } = await stripeP.checkoutSubscription({ organizationId: payment.organizationId, paymentId: payment.id, tier: payment.tier, interval: payment.billingInterval, currency: payment.currency, trial: !!opts.trial, coupon: opts.coupon }));
     } else {
-      const card = payment.purpose === 'SUBSCRIPTION';
+      const card = payment.purpose === 'SUBSCRIPTION' && payment.renewal === 'AUTO';
       const zero = card && payment.amountCents === 0;
-      const name = payment.purpose === 'CREDIT_TOPUP' ? `Siar X credit (${money(payment.amountCents, 'usd')})` : !payment.tier ? 'Save a card for Siar renewals' : `${planLabel(payment.tier, payment.billingInterval)}${zero ? `, ${config.TRIAL_DAYS}-day trial` : ''}`;
+      const name = payment.purpose === 'CREDIT_TOPUP' ? `Siar X credit (${money(payment.creditCents ?? payment.amountCents, 'usd')})` : !payment.tier ? 'Save a card for Siar renewals' : `${planLabel(payment.tier, payment.billingInterval)}${payment.isRenewal ? ' renewal' : ''}${zero ? `, ${config.TRIAL_DAYS}-day trial` : ''}`;
       const p = await chip.createPurchase({
-        reference: name, clientId: await chipClientFor(payment.organizationId), products: [{ name, price: zero ? 0 : toMyr(payment.amountCents) }],
+        reference: name, clientId: await chipClientFor(payment.organizationId), products: [{ name, price: zero ? 0 : payment.amountCents }],
         saveCard: card && !zero, preauthorise: zero, metadata: { siar_payment: payment.id, organizationId: payment.organizationId },
         successUrl: returnUrl(payment, true), failureUrl: returnUrl(payment, false), cancelUrl: returnUrl(payment, false),
       });
@@ -117,7 +149,7 @@ async function openCheckout(payment: any, prov: { kind: Kind; requested: Request
 const providerOut = (kind: Kind, requested: string) => ({ provider: kind, requestedProvider: requested });
 
 async function changePlan(actor: Actor, sub: any, tier: Tier, interval: Interval) {
-  if (sub.status === 'past_due') throw conflict('Your last payment did not go through. Update your card in the billing portal first, then change plans.');
+  if (sub.status === 'past_due') throw conflict(sub.renewal === 'LINK' ? 'Your plan is due for renewal. Renew it first, then change plans.' : 'Your last payment did not go through. Update your card in the billing portal first, then change plans.');
   const m = meta(sub.metadata);
   const requested = m.requestedProvider ?? sub.provider;
   const done = (q: string) => ({ url: appUrl(`/billing?${q}`), ...providerOut(sub.provider, requested) });
@@ -147,7 +179,7 @@ async function changePlan(actor: Actor, sub: any, tier: Tier, interval: Interval
     // Nothing has been charged yet: the trial simply continues on the bigger plan.
     delete m.pendingChange;
     await prisma.$transaction(async tx => {
-      await tx.subscription.update({ where: { id: sub.id }, data: { tier, billingInterval: interval, unitAmountCents: sub.currency === 'myr' ? toMyr(usdCents(tier, interval)) : usdCents(tier, interval), metadata: m, cancelAtPeriodEnd: false } });
+      await tx.subscription.update({ where: { id: sub.id }, data: { tier, billingInterval: interval, unitAmountCents: listPrice(tier, interval, sub.currency), metadata: m, cancelAtPeriodEnd: false } });
       await tx.organization.update({ where: { id: sub.organizationId }, data: { tier } });
       await audit(tx, actor, 'subscription.upgrade', 'Subscription', sub.id, `Upgraded during the trial from ${label}`);
     });
@@ -157,12 +189,31 @@ async function changePlan(actor: Actor, sub: any, tier: Tier, interval: Interval
   const now = Date.now();
   const start = sub.currentPeriodStart?.getTime() ?? now, end = sub.currentPeriodEnd?.getTime() ?? now;
   const left = end > start ? Math.min(1, Math.max(0, (end - now) / (end - start))) : 0;
-  const unused = Math.round(usdCents(sub.tier, sub.billingInterval) * left);
-  const amount = Math.max(100, usdCents(tier, interval) - unused);
-  const payment = await prisma.billingPayment.create({ data: { organizationId: sub.organizationId, provider: sub.provider, purpose: 'SUBSCRIPTION', amountCents: amount, currency: 'usd', tier, billingInterval: interval } });
-  const url = await openCheckout(payment, { kind: sub.provider, requested });
-  await audit(prisma, actor, 'billing.checkout', 'BillingPayment', payment.id, `Started an upgrade from ${label} (${money(amount, 'usd')} after ${money(unused, 'usd')} credit for unused time)`);
-  return { url, ...providerOut(sub.provider, requested) };
+  const unused = Math.round(sub.unitAmountCents * left);
+  const amount = Math.max(100, listPrice(tier, interval, sub.currency) - unused);
+  // A link-renewed plan is upgraded by paying once again (routed afresh); a saved-card plan stays with its provider.
+  const prov = sub.renewal === 'LINK' ? await route(sub.currency as Currency, 'bank') : { kind: sub.provider as Kind, requested };
+  const payment = await prisma.billingPayment.create({ data: { organizationId: sub.organizationId, provider: prov.kind, purpose: 'SUBSCRIPTION', amountCents: amount, currency: sub.currency, tier, billingInterval: interval, renewal: sub.renewal } });
+  const url = await openCheckout(payment, prov);
+  await audit(prisma, actor, 'billing.checkout', 'BillingPayment', payment.id, `Started an upgrade from ${label} (${money(amount, sub.currency)} after ${money(unused, sub.currency)} credit for unused time)`);
+  return { url, ...providerOut(prov.kind, prov.requested) };
+}
+
+/** Pay the next period of a link-renewed plan (or a scheduled change to it) at its locked price. */
+async function renewLink(actor: Actor, sub: any) {
+  if (sub.renewal !== 'LINK') throw conflict('This plan renews by card on its own. There is nothing to pay now.');
+  const m = meta(sub.metadata);
+  if (sub.cancelAtPeriodEnd || m.pendingChange?.tier === 'FREE') throw conflict('This plan is set to end. Resume it first, then renew.');
+  const end = sub.currentPeriodEnd?.getTime() ?? 0;
+  if (sub.status !== 'past_due' && end - Date.now() > 30 * 86400_000) throw conflict(`This plan is paid until ${sub.currentPeriodEnd.toISOString().slice(0, 10)}. Renewal opens 30 days before that.`);
+  const tier = (m.pendingChange?.tier ?? sub.tier) as Tier;
+  const interval = (m.pendingChange?.interval ?? sub.billingInterval) as Interval;
+  const amount = tier === sub.tier && interval === sub.billingInterval ? sub.unitAmountCents : listPrice(tier, interval, sub.currency);
+  const prov = await route(sub.currency as Currency, 'bank');
+  const payment = await prisma.billingPayment.create({ data: { organizationId: sub.organizationId, provider: prov.kind, purpose: 'SUBSCRIPTION', amountCents: amount, currency: sub.currency, tier, billingInterval: interval, renewal: 'LINK', isRenewal: true } });
+  const url = await openCheckout(payment, prov);
+  await audit(prisma, actor, 'billing.checkout', 'BillingPayment', payment.id, `Started the renewal of ${planLabel(tier, interval)} (${money(amount, sub.currency)})`);
+  return { url, ...providerOut(prov.kind, prov.requested), currency: sub.currency, amountCents: amount };
 }
 
 async function cancelPlan(actor: Actor, sub: any) {
@@ -197,24 +248,50 @@ define({
     return subscriptionView(actor.organizationId);
   },
 
-  'billing.checkout': async ({ actor, body }) => {
+  'billing.plans': async ({ actor, req }) => {
+    requirePermission(actor, 'billing');
+    const country = await countryOf(actor.organizationId, req);
+    const currency = currencyFor(country);
+    const teamsInUse = await prisma.team.count({ where: { organizationId: actor.organizationId, deletedAt: null } });
+    const trialAvailable = config.TRIAL_DAYS > 0 && !(await hadPaidPlan(prisma, actor.organizationId));
+    return {
+      country, detectedCountry: detectedCountry(req), currency, teamsInUse, trialDays: trialAvailable ? config.TRIAL_DAYS : 0,
+      // Yearly plans can be paid once (FPX, DuitNow, GrabPay) only in ringgit; everything can be paid by card.
+      methods: { card: true, bank: currency === 'myr' },
+      plans: TIER_ORDER.map(t => {
+        const p = PLANS[t];
+        return {
+          tier: t, name: p.name, tagline: p.tagline, currency, price: p.prices ? p.prices[currency] : null, oneTime: p.oneTime, trial: p.trial && trialAvailable,
+          posts: p.posts, comments: p.comments, uploads: p.uploads, teams: p.teams, analytics: p.analytics,
+          dmsPerAccount: p.dmsPerAccount, automationRunsPerAccount: p.automationRunsPerAccount, importPostsPerAccount: p.importPostsPerAccount, reviewImportPerAccount: p.reviewImportPerAccount,
+        };
+      }),
+    };
+  },
+
+  'billing.checkout': async ({ actor, body, req }) => {
     requirePermission(actor, 'billing');
     const tier = body.plan as Tier;
     const interval = body.interval as Interval;
-    if (tier === 'ENTERPRISE') throw badRequest('Enterprise is priced per contract. Email hello@ffdev.studio and we will set it up for you.', [{ code: 'invalid', message: 'Choose PRO or BUSINESS', path: ['plan'] }]);
+    const method = (body.method ?? 'card') as 'card' | 'bank';
+    if (tier === 'ENTERPRISE') throw badRequest('Enterprise is priced per contract. Email hello@ffdev.studio and we will set it up for you.', [{ code: 'invalid', message: 'Choose STARTER, PRO or BUSINESS', path: ['plan'] }]);
     const sub = await liveSub(actor.organizationId);
+    if (sub && body.renew) return renewLink(actor, sub);
     if (sub) return changePlan(actor, sub, tier, interval);
+    if (body.renew) throw conflict('There is no running plan to renew. Choose a plan instead.');
     if (tier === 'FREE') throw conflict('You are already on the Free plan.');
-    const prov = resolveProvider(body.provider);
-    if (body.coupon && prov.kind === 'CHIP') throw badRequest('Promotion codes are only accepted at card checkout through Stripe.', [{ code: 'invalid', message: 'Not accepted with CHIP', path: ['coupon'] }]);
-    const trial = config.TRIAL_DAYS > 0 && !(await hadPaidPlan(prisma, actor.organizationId));
-    const usd = usdCents(tier, interval);
+    if (method === 'bank' && interval !== 'YEARLY') throw badRequest(`Monthly plans renew by card. Choose yearly to pay once by ${ONCE_METHODS}.`, [{ code: 'invalid', message: 'Yearly only', path: ['method'] }]);
+    const currency = currencyFor(await countryOf(actor.organizationId, req, true));
+    const prov = await route(currency, method, body.provider);
+    if (body.coupon && (prov.kind === 'CHIP' || method === 'bank')) throw badRequest('Promotion codes are only accepted at card checkout through Stripe.', [{ code: 'invalid', message: 'Not accepted here', path: ['coupon'] }]);
+    const trial = PLANS[tier].trial && method === 'card' && config.TRIAL_DAYS > 0 && !(await hadPaidPlan(prisma, actor.organizationId));
+    const amount = listPrice(tier, interval, currency);
     const payment = await prisma.billingPayment.create({
-      data: { organizationId: actor.organizationId, provider: prov.kind, purpose: 'SUBSCRIPTION', amountCents: trial && prov.kind !== 'STRIPE' ? 0 : usd, currency: 'usd', tier, billingInterval: interval },
+      data: { organizationId: actor.organizationId, provider: prov.kind, purpose: 'SUBSCRIPTION', amountCents: trial && prov.kind !== 'STRIPE' ? 0 : amount, currency, tier, billingInterval: interval, renewal: method === 'bank' ? 'LINK' : 'AUTO' },
     });
     const url = await openCheckout(payment, prov, { trial, coupon: body.coupon });
-    await audit(prisma, actor, 'billing.checkout', 'BillingPayment', payment.id, `Started checkout for ${planLabel(tier, interval)} through ${prov.requested}${trial ? ` with a ${config.TRIAL_DAYS}-day trial` : ''}`);
-    return { url, ...providerOut(prov.kind, prov.requested), trialDays: trial ? config.TRIAL_DAYS : 0 };
+    await audit(prisma, actor, 'billing.checkout', 'BillingPayment', payment.id, `Started checkout for ${planLabel(tier, interval)} at ${money(amount, currency)} through ${prov.requested}${method === 'bank' ? ' (paid once)' : ''}${trial ? ` with a ${config.TRIAL_DAYS}-day trial` : ''}`);
+    return { url, ...providerOut(prov.kind, prov.requested), trialDays: trial ? config.TRIAL_DAYS : 0, currency, amountCents: amount };
   },
 
   'billing.portal': async ({ actor }) => {
@@ -225,10 +302,11 @@ define({
       return { url: await stripeP.portalUrl(org.id), provider: 'STRIPE' };
     }
     if (!sub || !LIVE_STATUSES.includes(sub.status)) throw conflict('There is no paid plan yet. Choose a plan first; the card you pay with is kept for renewals.');
+    if (sub.renewal === 'LINK') throw conflict(`This plan was paid once (${ONCE_METHODS}), so there is no card on file. Renew it from Billing when the reminder arrives.`);
     // CHIP / mock: changing the card is a new zero-amount purchase that saves it.
     if (sub.provider === 'MOCK' && !mockEnabled()) throw unavailable('Billing is not configured on this server.');
     const requested = meta(sub.metadata).requestedProvider ?? sub.provider;
-    const payment = await prisma.billingPayment.create({ data: { organizationId: org.id, provider: sub.provider, purpose: 'SUBSCRIPTION', amountCents: 0, currency: 'usd' } });
+    const payment = await prisma.billingPayment.create({ data: { organizationId: org.id, provider: sub.provider, purpose: 'SUBSCRIPTION', amountCents: 0, currency: sub.currency } });
     const url = await openCheckout(payment, { kind: sub.provider as Kind, requested });
     await audit(prisma, actor, 'billing.portal', 'BillingPayment', payment.id, 'Started a card change');
     return { url, ...providerOut(sub.provider as Kind, requested) };
@@ -265,33 +343,42 @@ define({
     return invoiceDocument(row);
   },
 
-  'billing.details': async ({ actor }) => {
+  'billing.details': async ({ actor, req }) => {
     requirePermission(actor, 'billing');
-    const o = await prisma.organization.findUniqueOrThrow({ where: { id: actor.organizationId }, select: { billingName: true, billingEmail: true, billingAddress: true, billingTaxId: true } });
-    return { name: o.billingName, email: o.billingEmail, address: o.billingAddress, taxId: o.billingTaxId };
+    const o = await prisma.organization.findUniqueOrThrow({ where: { id: actor.organizationId }, select: { billingName: true, billingEmail: true, billingAddress: true, billingTaxId: true, billingCountry: true } });
+    return { name: o.billingName, email: o.billingEmail, address: o.billingAddress, taxId: o.billingTaxId, country: o.billingCountry, detectedCountry: detectedCountry(req) };
   },
 
-  'billing.updateDetails': async ({ actor, body }) => {
+  'billing.updateDetails': async ({ actor, body, req }) => {
     requirePermission(actor, 'billing');
     const clean = (v: unknown) => (typeof v === 'string' ? v.trim() || null : v === null ? null : undefined);
+    const country = clean(body.country)?.toUpperCase();
+    if (country && !/^[A-Z]{2}$/.test(country)) throw badRequest('country is a two-letter ISO 3166-1 code, like MY or SG.', [{ code: 'invalid', message: 'ISO 3166-1 alpha-2', path: ['country'] }]);
+    const before = await prisma.organization.findUniqueOrThrow({ where: { id: actor.organizationId }, select: { billingCountry: true } });
     const o = await prisma.organization.update({
       where: { id: actor.organizationId },
-      data: { billingName: clean(body.name), billingEmail: clean(body.email)?.toLowerCase(), billingAddress: clean(body.address), billingTaxId: clean(body.taxId) },
-      select: { billingName: true, billingEmail: true, billingAddress: true, billingTaxId: true },
+      data: { billingName: clean(body.name), billingEmail: clean(body.email)?.toLowerCase(), billingAddress: clean(body.address), billingTaxId: clean(body.taxId), ...(country !== undefined ? { billingCountry: country } : {}) },
+      select: { billingName: true, billingEmail: true, billingAddress: true, billingTaxId: true, billingCountry: true },
     });
-    await audit(prisma, actor, 'billing.details', 'Organization', actor.organizationId, 'Updated billing details');
-    return { name: o.billingName, email: o.billingEmail, address: o.billingAddress, taxId: o.billingTaxId };
+    const moved = country !== undefined && country !== before.billingCountry;
+    // A running plan keeps its currency and locked price; the new country applies to the next checkout.
+    await audit(prisma, actor, 'billing.details', 'Organization', actor.organizationId, moved ? `Updated billing details; billing country ${before.billingCountry ?? 'unset'} → ${country ?? 'unset'}` : 'Updated billing details');
+    return { name: o.billingName, email: o.billingEmail, address: o.billingAddress, taxId: o.billingTaxId, country: o.billingCountry, detectedCountry: detectedCountry(req) };
   },
 
-  'billing.topUp': async ({ actor, body }) => {
+  'billing.topUp': async ({ actor, body, req }) => {
     requirePermission(actor, 'credits.topUp');
     const amountUsd = Number(body.amountUsd);
     if (!Number.isInteger(amountUsd) || amountUsd < 5 || amountUsd > 5000) throw badRequest('Top-ups are whole dollars from $5 to $5000.', [{ code: 'invalid', message: 'Between 5 and 5000', path: ['amountUsd'] }]);
-    const prov = resolveProvider(body.provider);
-    const payment = await prisma.billingPayment.create({ data: { organizationId: actor.organizationId, provider: prov.kind, purpose: 'CREDIT_TOPUP', amountCents: amountUsd * 100, currency: 'usd' } });
+    // X credit is USD (X's own prices); organizations billed in Malaysia pay for it in ringgit at USD_MYR_RATE.
+    const currency = currencyFor(await countryOf(actor.organizationId, req, true));
+    const prov = await route(currency, 'once', body.provider);
+    const credit = amountUsd * 100;
+    const charge = currency === 'myr' ? usdToMyr(credit) : credit;
+    const payment = await prisma.billingPayment.create({ data: { organizationId: actor.organizationId, provider: prov.kind, purpose: 'CREDIT_TOPUP', amountCents: charge, currency, creditCents: credit } });
     const url = await openCheckout(payment, prov);
-    await audit(prisma, actor, 'billing.topUp', 'BillingPayment', payment.id, `Started a ${money(amountUsd * 100, 'usd')} X credit top-up through ${prov.requested}`);
-    return { url, ...providerOut(prov.kind, prov.requested) };
+    await audit(prisma, actor, 'billing.topUp', 'BillingPayment', payment.id, `Started a ${money(credit, 'usd')} X credit top-up${currency === 'myr' ? ` (${money(charge, 'myr')})` : ''} through ${prov.requested}`);
+    return { url, ...providerOut(prov.kind, prov.requested), currency, amountCents: charge };
   },
 
   'billing.ledger': async ({ actor, query }) => {
@@ -322,7 +409,7 @@ async function applyChipPurchase(p: ChipPurchase) {
   const payment = byRef ?? (p.purchase.metadata?.siar_payment ? await prisma.billingPayment.findUnique({ where: { id: p.purchase.metadata.siar_payment } }) : null);
   if (!payment || payment.provider !== 'CHIP') return 'unknown';
   if (PAID.has(p.status) || p.status === 'preauthorized') {
-    return settlePayment(payment.id, { charged: { amount: p.payment?.amount ?? (p.status === 'preauthorized' ? 0 : p.purchase.total), currency: 'myr' }, token: p.is_recurring_token ? p.id : null, via: 'chip-callback' });
+    return settlePayment(payment.id, { charged: { amount: p.payment?.amount ?? (p.status === 'preauthorized' ? 0 : p.purchase.total), currency: 'myr' }, token: p.is_recurring_token ? p.id : null, cardCountry: cardCountryOf(p), via: 'chip-callback' });
   }
   if (['error', 'cancelled', 'expired', 'blocked'].includes(p.status)) { await failPayment(payment.id, p.status, 'chip-callback'); return 'failed'; }
   return 'ignored';
@@ -376,11 +463,12 @@ export async function billingRawRoutes(app: FastifyInstance) {
     return reply.type('text/html; charset=utf-8').header('cache-control', 'no-store').send(mockCheckoutPage(p));
   });
 
-  app.post<{ Params: { paymentId: string } }>('/mock-billing/:paymentId/pay', async (req, reply) => {
+  // ?cardCountry=SG simulates a card issued abroad (the ringgit card-country flag).
+  app.post<{ Params: { paymentId: string }; Querystring: { cardCountry?: string } }>('/mock-billing/:paymentId/pay', async (req, reply) => {
     const p = await mockPayment(req.params.paymentId);
     if (!p) return notFoundPage(reply);
     if (p.status !== 'PENDING') return reply.redirect(`/mock-billing/${p.id}`, 303);
-    await settlePayment(p.id, { token: p.purpose === 'SUBSCRIPTION' ? `mock_tok_${p.id}` : null, via: 'mock' });
+    await settlePayment(p.id, { token: p.purpose === 'SUBSCRIPTION' && p.renewal === 'AUTO' ? `mock_tok_${p.id}` : null, cardCountry: req.query.cardCountry ?? null, via: 'mock' });
     return reply.redirect(returnUrl(p, true), 303);
   });
 

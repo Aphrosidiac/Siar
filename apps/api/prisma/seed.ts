@@ -14,6 +14,7 @@ import { tokenColumns } from '../src/platform/networks.js';
 import { encrypt, randomToken, sha256 } from '../src/platform/crypto.js';
 import { apiKeyPrefix, newApiKey } from '../src/platform/auth.js';
 import { NETWORK_TYPES } from '../src/domain/serialize.js';
+import { PLANS } from '../src/domain/plans.js';
 import type { NetworkType } from '@siar/networks';
 
 if (process.env.NODE_ENV === 'production' && process.env.SEED_FORCE !== '1') { console.error('Refusing to seed demo data in production (set SEED_FORCE=1 for a review environment).'); process.exit(1); }
@@ -110,15 +111,15 @@ const DMS: [string, string, string | null][] = [
 
 const MEDIA_REQUIRED = new Set(['TIKTOK', 'YOUTUBE', 'INSTAGRAM', 'PINTEREST', 'SNAPCHAT']);
 
-/** Six months on Pro (one paid invoice per period) and the X credit top-up the ledger shows. */
+/** Six months on Pro in ringgit (one paid invoice per period) and the X credit top-up the ledger shows. */
 async function seedInvoices(organizationId: string) {
   const billTo = { name: 'Demo Studio Sdn Bhd', email: 'accounts@demostudio.example', address: 'Level 12, Menara Demo\nJalan Ampang\n50450 Kuala Lumpur\nMalaysia', taxId: null };
-  const docs: { at: Date; description: string; amountCents: number; periodStart?: Date; periodEnd?: Date; ref: string }[] = [];
+  const docs: { at: Date; description: string; amountCents: number; periodStart?: Date; periodEnd?: Date; ref: string; method: string }[] = [];
   for (let k = 5; k >= 0; k--) {
     const start = new Date(Date.now() - 10 * DAY - k * 30 * DAY); const end = new Date(start.getTime() + 30 * DAY);
-    docs.push({ at: start, description: `Siar Pro (monthly)${k === 5 ? '' : ' renewal'}`, amountCents: 10_000, periodStart: start, periodEnd: end, ref: `seed_sub_${k}` });
+    docs.push({ at: start, description: `Siar Pro (monthly)${k === 5 ? '' : ' renewal'}`, amountCents: PLANS.PRO.prices!.myr.monthly, periodStart: start, periodEnd: end, ref: `seed_sub_${k}`, method: 'Visa •••• 4242' });
   }
-  docs.push({ at: new Date(Date.now() - 20 * DAY), description: 'X credit top-up ($25.00)', amountCents: 2_500, ref: 'seed_topup_1' });
+  docs.push({ at: new Date(Date.now() - 20 * DAY), description: 'X credit top-up ($25.00)', amountCents: 10_500, ref: 'seed_topup_1', method: 'FPX (Maybank2u)' });
   docs.sort((a, b) => a.at.getTime() - b.at.getTime());
   const seq = new Map<number, number>();
   for (const d of docs) {
@@ -130,8 +131,8 @@ async function seedInvoices(organizationId: string) {
     const n = seq.get(y)! + 1; seq.set(y, n);
     await prisma.billingInvoice.create({ data: {
       organizationId, provider: 'MOCK', providerInvoiceId: `${d.ref}_${organizationId.slice(-8)}`, number: `SIAR-${y}-${String(n).padStart(5, '0')}`,
-      description: d.description, amountCents: d.amountCents, status: 'paid', paidAt: d.at, createdAt: d.at, periodStart: d.periodStart ?? null, periodEnd: d.periodEnd ?? null,
-      paymentMethod: 'Visa •••• 4242', billTo,
+      description: d.description, amountCents: d.amountCents, currency: 'myr', status: 'paid', paidAt: d.at, createdAt: d.at, periodStart: d.periodStart ?? null, periodEnd: d.periodEnd ?? null,
+      paymentMethod: d.method, billTo,
       lines: [{ description: d.description.replace(' renewal', ''), quantity: 1, unitAmountCents: d.amountCents, amountCents: d.amountCents, periodStart: d.periodStart?.toISOString() ?? null, periodEnd: d.periodEnd?.toISOString() ?? null }],
     } });
   }
@@ -145,9 +146,9 @@ async function main() {
     await prisma.user.delete({ where: { id: existing.id } });
   }
   const user = await prisma.user.create({ data: { email: EMAIL, passwordHash: await hashPassword(PASSWORD), firstName: 'Demo', lastName: 'User', emailVerified: new Date(), onboardedAt: new Date(), timezone: 'Asia/Kuala_Lumpur' } });
-  const org = await prisma.organization.create({ data: { name: 'Demo Studio', createdById: user.id, tier: 'PRO', messagingEnabled: true, showVerboseErrors: true, billingName: 'Demo Studio Sdn Bhd', billingEmail: 'accounts@demostudio.example', billingAddress: 'Level 12, Menara Demo\nJalan Ampang\n50450 Kuala Lumpur\nMalaysia' } });
+  const org = await prisma.organization.create({ data: { name: 'Demo Studio', createdById: user.id, tier: 'PRO', messagingEnabled: true, showVerboseErrors: true, billingCountry: 'MY', billingName: 'Demo Studio Sdn Bhd', billingEmail: 'accounts@demostudio.example', billingAddress: 'Level 12, Menara Demo\nJalan Ampang\n50450 Kuala Lumpur\nMalaysia' } });
   await prisma.organizationMember.create({ data: { organizationId: org.id, userId: user.id, role: 'OWNER' } });
-  await prisma.subscription.create({ data: { organizationId: org.id, provider: 'MOCK', status: 'active', tier: 'PRO', billingInterval: 'MONTHLY', unitAmountCents: 10_000, currentPeriodStart: new Date(Date.now() - 10 * DAY), currentPeriodEnd: new Date(Date.now() + 20 * DAY) } });
+  await prisma.subscription.create({ data: { organizationId: org.id, provider: 'MOCK', status: 'active', tier: 'PRO', billingInterval: 'MONTHLY', currency: 'myr', unitAmountCents: PLANS.PRO.prices!.myr.monthly, metadata: { requestedProvider: 'CHIP' }, currentPeriodStart: new Date(Date.now() - 10 * DAY), currentPeriodEnd: new Date(Date.now() + 20 * DAY) } });
   await prisma.creditAccount.create({ data: { organizationId: org.id, balanceMicros: 18_455_000n } });
   await prisma.creditLedger.createMany({ data: [
     { organizationId: org.id, deltaMicros: 25_000_000n, reason: 'TOPUP', refType: 'seed', refId: 'topup-1', createdAt: new Date(Date.now() - 20 * DAY) },

@@ -3251,6 +3251,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/billing/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Plans and prices for this organization
+         * @description Prices depend on the billing country: organizations billed in Malaysia pay in ringgit (myr), everyone else in USD. Amounts are minor units; yearly is the whole year.
+         */
+        get: operations["billing.plans"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/billing/checkout": {
         parameters: {
             query?: never;
@@ -3260,7 +3280,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Start a plan checkout */
+        /**
+         * Start a plan checkout
+         * @description method card: a saved card renews the plan. method bank (yearly, ringgit only): paid once (FPX or GrabPay) and renewed from a link before it ends; renew: true pays that next period.
+         */
         post: operations["billing.checkout"];
         delete?: never;
         options?: never;
@@ -3781,7 +3804,7 @@ export interface operations {
                             metadata?: Record<string, never> | null;
                             stripePriceId: string;
                             /** @enum {string} */
-                            tier: "PRO" | "BUSINESS";
+                            tier: "STARTER" | "PRO" | "BUSINESS";
                             /** @enum {string} */
                             billingInterval: "MONTHLY" | "YEARLY";
                             isCustomPrice: boolean;
@@ -3810,7 +3833,7 @@ export interface operations {
                             maxMonthlyUploads?: number | null;
                             maxMonthlyImportedPosts?: number | null;
                             /** @enum {string|null} */
-                            pendingTier?: "PRO" | "BUSINESS" | null;
+                            pendingTier?: "STARTER" | "PRO" | "BUSINESS" | null;
                             /** @enum {string|null} */
                             pendingBillingInterval?: "MONTHLY" | "YEARLY" | null;
                             pendingPriceId?: string | null;
@@ -48144,7 +48167,7 @@ export interface operations {
                 content: {
                     "application/json": {
                         /** @enum {string} */
-                        plan: "FREE" | "PRO" | "BUSINESS" | "ENTERPRISE";
+                        plan: "FREE" | "STARTER" | "PRO" | "BUSINESS" | "ENTERPRISE";
                         /** @enum {string|null} */
                         interval?: "MONTHLY" | "YEARLY" | null;
                         /** @enum {string|null} */
@@ -48157,6 +48180,66 @@ export interface operations {
                         trialEndsAt?: string | null;
                         cancelAtPeriodEnd?: boolean;
                         currency?: string;
+                        amountCents?: number;
+                        /** @enum {string|null} */
+                        renewal?: "AUTO" | "LINK" | null;
+                        priceLocked?: boolean;
+                        /** @enum {string|null} */
+                        pendingPlan?: "FREE" | "STARTER" | "PRO" | "BUSINESS" | "ENTERPRISE" | null;
+                    };
+                };
+            };
+        };
+    };
+    "billing.plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        country: string;
+                        detectedCountry?: string | null;
+                        /** @enum {string} */
+                        currency: "myr" | "usd";
+                        teamsInUse?: number;
+                        trialDays?: number;
+                        methods?: {
+                            card?: boolean;
+                            bank?: boolean;
+                        };
+                        plans: {
+                            /** @enum {string} */
+                            tier: "FREE" | "STARTER" | "PRO" | "BUSINESS" | "ENTERPRISE";
+                            name: string;
+                            tagline?: string;
+                            /** @enum {string} */
+                            currency: "myr" | "usd";
+                            price: {
+                                monthly: number;
+                                yearly: number;
+                            } | null;
+                            oneTime?: boolean;
+                            trial?: boolean;
+                            posts?: number;
+                            comments?: number;
+                            uploads?: number;
+                            teams?: number | null;
+                            analytics?: boolean;
+                            dmsPerAccount?: number;
+                            automationRunsPerAccount?: number;
+                            importPostsPerAccount?: number;
+                            reviewImportPerAccount?: number;
+                        }[];
                     };
                 };
             };
@@ -48173,9 +48256,12 @@ export interface operations {
             content: {
                 "application/json": {
                     /** @enum {string} */
-                    plan: "FREE" | "PRO" | "BUSINESS" | "ENTERPRISE";
+                    plan: "FREE" | "STARTER" | "PRO" | "BUSINESS" | "ENTERPRISE";
                     /** @enum {string} */
                     interval: "MONTHLY" | "YEARLY";
+                    /** @enum {string} */
+                    method?: "card" | "bank";
+                    renew?: boolean;
                     /** @enum {string} */
                     provider?: "STRIPE" | "CHIP";
                     coupon?: string | null;
@@ -48192,6 +48278,10 @@ export interface operations {
                     "application/json": {
                         url: string;
                         provider?: string;
+                        /** @enum {string} */
+                        currency?: "myr" | "usd";
+                        amountCents?: number;
+                        trialDays?: number;
                     };
                 };
             };
@@ -48215,6 +48305,10 @@ export interface operations {
                     "application/json": {
                         url: string;
                         provider?: string;
+                        /** @enum {string} */
+                        currency?: "myr" | "usd";
+                        amountCents?: number;
+                        trialDays?: number;
                     };
                 };
             };
@@ -48237,7 +48331,7 @@ export interface operations {
                 content: {
                     "application/json": {
                         /** @enum {string} */
-                        plan: "FREE" | "PRO" | "BUSINESS" | "ENTERPRISE";
+                        plan: "FREE" | "STARTER" | "PRO" | "BUSINESS" | "ENTERPRISE";
                         /** @enum {string|null} */
                         interval?: "MONTHLY" | "YEARLY" | null;
                         /** @enum {string|null} */
@@ -48250,6 +48344,12 @@ export interface operations {
                         trialEndsAt?: string | null;
                         cancelAtPeriodEnd?: boolean;
                         currency?: string;
+                        amountCents?: number;
+                        /** @enum {string|null} */
+                        renewal?: "AUTO" | "LINK" | null;
+                        priceLocked?: boolean;
+                        /** @enum {string|null} */
+                        pendingPlan?: "FREE" | "STARTER" | "PRO" | "BUSINESS" | "ENTERPRISE" | null;
                     };
                 };
             };
@@ -48272,7 +48372,7 @@ export interface operations {
                 content: {
                     "application/json": {
                         /** @enum {string} */
-                        plan: "FREE" | "PRO" | "BUSINESS" | "ENTERPRISE";
+                        plan: "FREE" | "STARTER" | "PRO" | "BUSINESS" | "ENTERPRISE";
                         /** @enum {string|null} */
                         interval?: "MONTHLY" | "YEARLY" | null;
                         /** @enum {string|null} */
@@ -48285,6 +48385,12 @@ export interface operations {
                         trialEndsAt?: string | null;
                         cancelAtPeriodEnd?: boolean;
                         currency?: string;
+                        amountCents?: number;
+                        /** @enum {string|null} */
+                        renewal?: "AUTO" | "LINK" | null;
+                        priceLocked?: boolean;
+                        /** @enum {string|null} */
+                        pendingPlan?: "FREE" | "STARTER" | "PRO" | "BUSINESS" | "ENTERPRISE" | null;
                     };
                 };
             };
@@ -48390,6 +48496,8 @@ export interface operations {
                             email?: string | null;
                             address?: string | null;
                             taxId?: string | null;
+                            country?: string | null;
+                            detectedCountry?: string | null;
                         } | null;
                         issuer?: {
                             [key: string]: unknown;
@@ -48419,6 +48527,8 @@ export interface operations {
                         email?: string | null;
                         address?: string | null;
                         taxId?: string | null;
+                        country?: string | null;
+                        detectedCountry?: string | null;
                     };
                 };
             };
@@ -48439,6 +48549,7 @@ export interface operations {
                     email?: string | null;
                     address?: string | null;
                     taxId?: string | null;
+                    country?: string | null;
                 };
             };
         };
@@ -48454,6 +48565,8 @@ export interface operations {
                         email?: string | null;
                         address?: string | null;
                         taxId?: string | null;
+                        country?: string | null;
+                        detectedCountry?: string | null;
                     };
                 };
             };
@@ -48485,6 +48598,10 @@ export interface operations {
                     "application/json": {
                         url: string;
                         provider?: string;
+                        /** @enum {string} */
+                        currency?: "myr" | "usd";
+                        amountCents?: number;
+                        trialDays?: number;
                     };
                 };
             };

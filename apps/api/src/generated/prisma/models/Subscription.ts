@@ -46,6 +46,7 @@ export type SubscriptionMinAggregateOutputType = {
   status: string | null
   tier: $Enums.PlanTier | null
   billingInterval: $Enums.BillingInterval | null
+  renewal: $Enums.RenewalMode | null
   currency: string | null
   unitAmountCents: number | null
   couponId: string | null
@@ -73,6 +74,7 @@ export type SubscriptionMaxAggregateOutputType = {
   status: string | null
   tier: $Enums.PlanTier | null
   billingInterval: $Enums.BillingInterval | null
+  renewal: $Enums.RenewalMode | null
   currency: string | null
   unitAmountCents: number | null
   couponId: string | null
@@ -100,6 +102,7 @@ export type SubscriptionCountAggregateOutputType = {
   status: number
   tier: number
   billingInterval: number
+  renewal: number
   currency: number
   unitAmountCents: number
   couponId: number
@@ -140,6 +143,7 @@ export type SubscriptionMinAggregateInputType = {
   status?: true
   tier?: true
   billingInterval?: true
+  renewal?: true
   currency?: true
   unitAmountCents?: true
   couponId?: true
@@ -167,6 +171,7 @@ export type SubscriptionMaxAggregateInputType = {
   status?: true
   tier?: true
   billingInterval?: true
+  renewal?: true
   currency?: true
   unitAmountCents?: true
   couponId?: true
@@ -194,6 +199,7 @@ export type SubscriptionCountAggregateInputType = {
   status?: true
   tier?: true
   billingInterval?: true
+  renewal?: true
   currency?: true
   unitAmountCents?: true
   couponId?: true
@@ -309,6 +315,7 @@ export type SubscriptionGroupByOutputType = {
   status: string
   tier: $Enums.PlanTier
   billingInterval: $Enums.BillingInterval
+  renewal: $Enums.RenewalMode
   currency: string
   unitAmountCents: number
   couponId: string | null
@@ -360,6 +367,7 @@ export type SubscriptionWhereInput = {
   status?: Prisma.StringFilter<"Subscription"> | string
   tier?: Prisma.EnumPlanTierFilter<"Subscription"> | $Enums.PlanTier
   billingInterval?: Prisma.EnumBillingIntervalFilter<"Subscription"> | $Enums.BillingInterval
+  renewal?: Prisma.EnumRenewalModeFilter<"Subscription"> | $Enums.RenewalMode
   currency?: Prisma.StringFilter<"Subscription"> | string
   unitAmountCents?: Prisma.IntFilter<"Subscription"> | number
   couponId?: Prisma.StringNullableFilter<"Subscription"> | string | null
@@ -389,6 +397,7 @@ export type SubscriptionOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   tier?: Prisma.SortOrder
   billingInterval?: Prisma.SortOrder
+  renewal?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   unitAmountCents?: Prisma.SortOrder
   couponId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -421,6 +430,7 @@ export type SubscriptionWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.StringFilter<"Subscription"> | string
   tier?: Prisma.EnumPlanTierFilter<"Subscription"> | $Enums.PlanTier
   billingInterval?: Prisma.EnumBillingIntervalFilter<"Subscription"> | $Enums.BillingInterval
+  renewal?: Prisma.EnumRenewalModeFilter<"Subscription"> | $Enums.RenewalMode
   currency?: Prisma.StringFilter<"Subscription"> | string
   unitAmountCents?: Prisma.IntFilter<"Subscription"> | number
   couponId?: Prisma.StringNullableFilter<"Subscription"> | string | null
@@ -450,6 +460,7 @@ export type SubscriptionOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   tier?: Prisma.SortOrder
   billingInterval?: Prisma.SortOrder
+  renewal?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   unitAmountCents?: Prisma.SortOrder
   couponId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -486,6 +497,7 @@ export type SubscriptionScalarWhereWithAggregatesInput = {
   status?: Prisma.StringWithAggregatesFilter<"Subscription"> | string
   tier?: Prisma.EnumPlanTierWithAggregatesFilter<"Subscription"> | $Enums.PlanTier
   billingInterval?: Prisma.EnumBillingIntervalWithAggregatesFilter<"Subscription"> | $Enums.BillingInterval
+  renewal?: Prisma.EnumRenewalModeWithAggregatesFilter<"Subscription"> | $Enums.RenewalMode
   currency?: Prisma.StringWithAggregatesFilter<"Subscription"> | string
   unitAmountCents?: Prisma.IntWithAggregatesFilter<"Subscription"> | number
   couponId?: Prisma.StringNullableWithAggregatesFilter<"Subscription"> | string | null
@@ -513,6 +525,7 @@ export type SubscriptionCreateInput = {
   status: string
   tier: $Enums.PlanTier
   billingInterval: $Enums.BillingInterval
+  renewal?: $Enums.RenewalMode
   currency?: string
   unitAmountCents: number
   couponId?: string | null
@@ -542,6 +555,7 @@ export type SubscriptionUncheckedCreateInput = {
   status: string
   tier: $Enums.PlanTier
   billingInterval: $Enums.BillingInterval
+  renewal?: $Enums.RenewalMode
   currency?: string
   unitAmountCents: number
   couponId?: string | null
@@ -569,6 +583,7 @@ export type SubscriptionUpdateInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   tier?: Prisma.EnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier
   billingInterval?: Prisma.EnumBillingIntervalFieldUpdateOperationsInput | $Enums.BillingInterval
+  renewal?: Prisma.EnumRenewalModeFieldUpdateOperationsInput | $Enums.RenewalMode
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   unitAmountCents?: Prisma.IntFieldUpdateOperationsInput | number
   couponId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -598,6 +613,7 @@ export type SubscriptionUncheckedUpdateInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   tier?: Prisma.EnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier
   billingInterval?: Prisma.EnumBillingIntervalFieldUpdateOperationsInput | $Enums.BillingInterval
+  renewal?: Prisma.EnumRenewalModeFieldUpdateOperationsInput | $Enums.RenewalMode
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   unitAmountCents?: Prisma.IntFieldUpdateOperationsInput | number
   couponId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -626,6 +642,7 @@ export type SubscriptionCreateManyInput = {
   status: string
   tier: $Enums.PlanTier
   billingInterval: $Enums.BillingInterval
+  renewal?: $Enums.RenewalMode
   currency?: string
   unitAmountCents: number
   couponId?: string | null
@@ -653,6 +670,7 @@ export type SubscriptionUpdateManyMutationInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   tier?: Prisma.EnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier
   billingInterval?: Prisma.EnumBillingIntervalFieldUpdateOperationsInput | $Enums.BillingInterval
+  renewal?: Prisma.EnumRenewalModeFieldUpdateOperationsInput | $Enums.RenewalMode
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   unitAmountCents?: Prisma.IntFieldUpdateOperationsInput | number
   couponId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -681,6 +699,7 @@ export type SubscriptionUncheckedUpdateManyInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   tier?: Prisma.EnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier
   billingInterval?: Prisma.EnumBillingIntervalFieldUpdateOperationsInput | $Enums.BillingInterval
+  renewal?: Prisma.EnumRenewalModeFieldUpdateOperationsInput | $Enums.RenewalMode
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   unitAmountCents?: Prisma.IntFieldUpdateOperationsInput | number
   couponId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -714,6 +733,7 @@ export type SubscriptionCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   tier?: Prisma.SortOrder
   billingInterval?: Prisma.SortOrder
+  renewal?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   unitAmountCents?: Prisma.SortOrder
   couponId?: Prisma.SortOrder
@@ -747,6 +767,7 @@ export type SubscriptionMaxOrderByAggregateInput = {
   status?: Prisma.SortOrder
   tier?: Prisma.SortOrder
   billingInterval?: Prisma.SortOrder
+  renewal?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   unitAmountCents?: Prisma.SortOrder
   couponId?: Prisma.SortOrder
@@ -774,6 +795,7 @@ export type SubscriptionMinOrderByAggregateInput = {
   status?: Prisma.SortOrder
   tier?: Prisma.SortOrder
   billingInterval?: Prisma.SortOrder
+  renewal?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   unitAmountCents?: Prisma.SortOrder
   couponId?: Prisma.SortOrder
@@ -836,6 +858,10 @@ export type EnumBillingIntervalFieldUpdateOperationsInput = {
   set?: $Enums.BillingInterval
 }
 
+export type EnumRenewalModeFieldUpdateOperationsInput = {
+  set?: $Enums.RenewalMode
+}
+
 export type SubscriptionCreateWithoutOrganizationInput = {
   id?: string
   provider: $Enums.BillingProvider
@@ -845,6 +871,7 @@ export type SubscriptionCreateWithoutOrganizationInput = {
   status: string
   tier: $Enums.PlanTier
   billingInterval: $Enums.BillingInterval
+  renewal?: $Enums.RenewalMode
   currency?: string
   unitAmountCents: number
   couponId?: string | null
@@ -872,6 +899,7 @@ export type SubscriptionUncheckedCreateWithoutOrganizationInput = {
   status: string
   tier: $Enums.PlanTier
   billingInterval: $Enums.BillingInterval
+  renewal?: $Enums.RenewalMode
   currency?: string
   unitAmountCents: number
   couponId?: string | null
@@ -915,6 +943,7 @@ export type SubscriptionUpdateWithoutOrganizationInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   tier?: Prisma.EnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier
   billingInterval?: Prisma.EnumBillingIntervalFieldUpdateOperationsInput | $Enums.BillingInterval
+  renewal?: Prisma.EnumRenewalModeFieldUpdateOperationsInput | $Enums.RenewalMode
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   unitAmountCents?: Prisma.IntFieldUpdateOperationsInput | number
   couponId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -942,6 +971,7 @@ export type SubscriptionUncheckedUpdateWithoutOrganizationInput = {
   status?: Prisma.StringFieldUpdateOperationsInput | string
   tier?: Prisma.EnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier
   billingInterval?: Prisma.EnumBillingIntervalFieldUpdateOperationsInput | $Enums.BillingInterval
+  renewal?: Prisma.EnumRenewalModeFieldUpdateOperationsInput | $Enums.RenewalMode
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   unitAmountCents?: Prisma.IntFieldUpdateOperationsInput | number
   couponId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -972,6 +1002,7 @@ export type SubscriptionSelect<ExtArgs extends runtime.Types.Extensions.Internal
   status?: boolean
   tier?: boolean
   billingInterval?: boolean
+  renewal?: boolean
   currency?: boolean
   unitAmountCents?: boolean
   couponId?: boolean
@@ -1001,6 +1032,7 @@ export type SubscriptionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   status?: boolean
   tier?: boolean
   billingInterval?: boolean
+  renewal?: boolean
   currency?: boolean
   unitAmountCents?: boolean
   couponId?: boolean
@@ -1030,6 +1062,7 @@ export type SubscriptionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   status?: boolean
   tier?: boolean
   billingInterval?: boolean
+  renewal?: boolean
   currency?: boolean
   unitAmountCents?: boolean
   couponId?: boolean
@@ -1059,6 +1092,7 @@ export type SubscriptionSelectScalar = {
   status?: boolean
   tier?: boolean
   billingInterval?: boolean
+  renewal?: boolean
   currency?: boolean
   unitAmountCents?: boolean
   couponId?: boolean
@@ -1077,7 +1111,7 @@ export type SubscriptionSelectScalar = {
   updatedAt?: boolean
 }
 
-export type SubscriptionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "provider" | "providerSubscriptionId" | "providerCustomerId" | "providerPaymentToken" | "status" | "tier" | "billingInterval" | "currency" | "unitAmountCents" | "couponId" | "promotionCodeId" | "isCustomPrice" | "customPriceLabel" | "currentPeriodStart" | "currentPeriodEnd" | "trialEnd" | "cancelAtPeriodEnd" | "canceledAt" | "failedAttempts" | "nextRetryAt" | "metadata" | "createdAt" | "updatedAt", ExtArgs["result"]["subscription"]>
+export type SubscriptionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "provider" | "providerSubscriptionId" | "providerCustomerId" | "providerPaymentToken" | "status" | "tier" | "billingInterval" | "renewal" | "currency" | "unitAmountCents" | "couponId" | "promotionCodeId" | "isCustomPrice" | "customPriceLabel" | "currentPeriodStart" | "currentPeriodEnd" | "trialEnd" | "cancelAtPeriodEnd" | "canceledAt" | "failedAttempts" | "nextRetryAt" | "metadata" | "createdAt" | "updatedAt", ExtArgs["result"]["subscription"]>
 export type SubscriptionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }
@@ -1109,6 +1143,10 @@ export type $SubscriptionPayload<ExtArgs extends runtime.Types.Extensions.Intern
     status: string
     tier: $Enums.PlanTier
     billingInterval: $Enums.BillingInterval
+    renewal: $Enums.RenewalMode
+    /**
+     * The price this subscription renews at (price lock): set when it starts or changes plan, never by a list-price change.
+     */
     currency: string
     unitAmountCents: number
     couponId: string | null
@@ -1558,6 +1596,7 @@ export interface SubscriptionFieldRefs {
   readonly status: Prisma.FieldRef<"Subscription", 'String'>
   readonly tier: Prisma.FieldRef<"Subscription", 'PlanTier'>
   readonly billingInterval: Prisma.FieldRef<"Subscription", 'BillingInterval'>
+  readonly renewal: Prisma.FieldRef<"Subscription", 'RenewalMode'>
   readonly currency: Prisma.FieldRef<"Subscription", 'String'>
   readonly unitAmountCents: Prisma.FieldRef<"Subscription", 'Int'>
   readonly couponId: Prisma.FieldRef<"Subscription", 'String'>

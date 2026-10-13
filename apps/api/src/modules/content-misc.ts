@@ -49,7 +49,7 @@ function reviewOps(type: 'GOOGLE_BUSINESS' | 'FACEBOOK', ids: { start: string; s
       const a = await accountOf(c.actor, teamIdOf(c), type);
       const org = await prisma.organization.findUniqueOrThrow({ where: { id: c.actor.organizationId } });
       const count = Math.min(RESOURCE_LIMITS.reviewImportPerCall, Number(c.body.count ?? 50));
-      await consumeAccountMonth(prisma, accountKey(a.type, a.providerPageId, a.id), 'reviews', count, limitsFor(org).reviewImportPerAccount, 'Review import');
+      await consumeAccountMonth(prisma, accountKey(a.type, a.providerPageId, a.id), 'reviews', count, limitsFor(org).reviewImportPerAccount, 'Review import', org.tier);
       const imp = await prisma.reviewImport.create({ data: { type, teamId: a.teamId, organizationId: c.actor.organizationId, socialAccountId: a.id, count } });
       await enqueue(JOBS.importReviews, { importId: imp.id }, { singletonKey: `rev:${imp.id}` });
       return importOut(imp);
@@ -71,7 +71,7 @@ function reviewOps(type: 'GOOGLE_BUSINESS' | 'FACEBOOK', ids: { start: string; s
       const [rows, total] = await Promise.all([prisma.review.findMany({ where, orderBy: { publishedAt: 'desc' }, skip, take }), prisma.review.count({ where })]);
       const org = await prisma.organization.findUniqueOrThrow({ where: { id: c.actor.organizationId } });
       const limit = limitsFor(org).reviewImportPerAccount;
-      const used = await accountMonthUsage(prisma, accountKey(a.type, a.providerPageId, a.id), 'reviews');
+      const used = await accountMonthUsage(prisma, accountKey(a.type, a.providerPageId, a.id), 'reviews', org.tier);
       return { [listKey]: rows.map(reviewOut), total, limit, remainingCapacity: Math.max(0, limit - used) };
     },
     [ids.get]: async c => reviewOut(await reviewOf(c, type)),

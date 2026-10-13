@@ -335,6 +335,13 @@ export type EnumBillingIntervalFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumBillingIntervalFilter<$PrismaModel> | $Enums.BillingInterval
 }
 
+export type EnumRenewalModeFilter<$PrismaModel = never> = {
+  equals?: $Enums.RenewalMode | Prisma.EnumRenewalModeFieldRefInput<$PrismaModel>
+  in?: $Enums.RenewalMode[] | Prisma.ListEnumRenewalModeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RenewalMode[] | Prisma.ListEnumRenewalModeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRenewalModeFilter<$PrismaModel> | $Enums.RenewalMode
+}
+
 export type EnumBillingProviderWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.BillingProvider | Prisma.EnumBillingProviderFieldRefInput<$PrismaModel>
   in?: $Enums.BillingProvider[] | Prisma.ListEnumBillingProviderFieldRefInput<$PrismaModel>
@@ -353,6 +360,16 @@ export type EnumBillingIntervalWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumBillingIntervalFilter<$PrismaModel>
   _max?: Prisma.NestedEnumBillingIntervalFilter<$PrismaModel>
+}
+
+export type EnumRenewalModeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RenewalMode | Prisma.EnumRenewalModeFieldRefInput<$PrismaModel>
+  in?: $Enums.RenewalMode[] | Prisma.ListEnumRenewalModeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RenewalMode[] | Prisma.ListEnumRenewalModeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRenewalModeWithAggregatesFilter<$PrismaModel> | $Enums.RenewalMode
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRenewalModeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRenewalModeFilter<$PrismaModel>
 }
 
 export type EnumPaymentPurposeFilter<$PrismaModel = never> = {
@@ -1096,6 +1113,13 @@ export type NestedEnumBillingIntervalFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumBillingIntervalFilter<$PrismaModel> | $Enums.BillingInterval
 }
 
+export type NestedEnumRenewalModeFilter<$PrismaModel = never> = {
+  equals?: $Enums.RenewalMode | Prisma.EnumRenewalModeFieldRefInput<$PrismaModel>
+  in?: $Enums.RenewalMode[] | Prisma.ListEnumRenewalModeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RenewalMode[] | Prisma.ListEnumRenewalModeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRenewalModeFilter<$PrismaModel> | $Enums.RenewalMode
+}
+
 export type NestedEnumBillingProviderWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.BillingProvider | Prisma.EnumBillingProviderFieldRefInput<$PrismaModel>
   in?: $Enums.BillingProvider[] | Prisma.ListEnumBillingProviderFieldRefInput<$PrismaModel>
@@ -1114,6 +1138,16 @@ export type NestedEnumBillingIntervalWithAggregatesFilter<$PrismaModel = never> 
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumBillingIntervalFilter<$PrismaModel>
   _max?: Prisma.NestedEnumBillingIntervalFilter<$PrismaModel>
+}
+
+export type NestedEnumRenewalModeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RenewalMode | Prisma.EnumRenewalModeFieldRefInput<$PrismaModel>
+  in?: $Enums.RenewalMode[] | Prisma.ListEnumRenewalModeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RenewalMode[] | Prisma.ListEnumRenewalModeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRenewalModeWithAggregatesFilter<$PrismaModel> | $Enums.RenewalMode
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRenewalModeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRenewalModeFilter<$PrismaModel>
 }
 
 export type NestedEnumPaymentPurposeFilter<$PrismaModel = never> = {

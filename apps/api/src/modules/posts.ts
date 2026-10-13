@@ -9,7 +9,7 @@ import { define } from '../platform/routes.js';
 import type { Actor } from '../platform/auth.js';
 import * as S from '../domain/serialize.js';
 import { COMMENT_LENGTH, limitsFor, RESOURCE_LIMITS } from '../domain/plans.js';
-import { accountKey, consumeDaily, consumeOrg, releaseDaily } from '../domain/quota.js';
+import { accountKey, consumeDaily, consumeFreePosts, consumeOrg, releaseDaily } from '../domain/quota.js';
 import { kickTargets, recomputePost } from '../engine/publisher.js';
 import { teamOf } from './teams.js';
 import { networkFailure } from './accounts.js';
@@ -87,12 +87,13 @@ export async function checkDraft(actor: Actor, d: Draft) {
   return { accounts, uploads };
 }
 
-/** Quotas for a post leaving DRAFT: 1 monthly post, 1 daily post per account on its postDate (UTC). */
+/** Quotas for a post leaving DRAFT: 1 monthly post (one-time on Free, also counted per account), 1 daily post per account on its postDate (UTC). */
 async function consumeForSchedule(tx: Db, organizationId: string, accounts: { id: string; type: string; providerPageId: string | null }[], postDate: Date, firstComments: number) {
   const org = await tx.organization.findUniqueOrThrow({ where: { id: organizationId } });
   const l = limitsFor(org);
-  await consumeOrg(tx, org.id, 'posts', 1, l.posts);
-  if (firstComments) await consumeOrg(tx, org.id, 'comments', firstComments, l.comments);
+  await consumeOrg(tx, org, 'posts', 1, l.posts);
+  if (l.plan.oneTime) await consumeFreePosts(tx, accounts.map(a => accountKey(a.type, a.providerPageId, a.id)));
+  if (firstComments) await consumeOrg(tx, org, 'comments', firstComments, l.comments);
   for (const a of accounts) await consumeDaily(tx, accountKey(a.type, a.providerPageId, a.id), 'posts', 1, l.dailyPosts[a.type as NetworkType], postDate, adapter(a.type as NetworkType).displayName + ' post');
 }
 

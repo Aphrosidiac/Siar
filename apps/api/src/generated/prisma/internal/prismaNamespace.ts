@@ -4438,6 +4438,7 @@ export const OrganizationScalarFieldEnum = {
   billingName: 'billingName',
   billingAddress: 'billingAddress',
   billingTaxId: 'billingTaxId',
+  billingCountry: 'billingCountry',
   stripeCustomerId: 'stripeCustomerId',
   chipClientId: 'chipClientId',
   portalBrandName: 'portalBrandName',
@@ -4503,6 +4504,7 @@ export const SubscriptionScalarFieldEnum = {
   status: 'status',
   tier: 'tier',
   billingInterval: 'billingInterval',
+  renewal: 'renewal',
   currency: 'currency',
   unitAmountCents: 'unitAmountCents',
   couponId: 'couponId',
@@ -4556,9 +4558,13 @@ export const BillingPaymentScalarFieldEnum = {
   providerRef: 'providerRef',
   amountCents: 'amountCents',
   currency: 'currency',
+  creditCents: 'creditCents',
   status: 'status',
   tier: 'tier',
   billingInterval: 'billingInterval',
+  renewal: 'renewal',
+  isRenewal: 'isRenewal',
+  cardCountry: 'cardCountry',
   settledAt: 'settledAt',
   createdAt: 'createdAt'
 } as const
@@ -5590,6 +5596,20 @@ export type EnumBillingIntervalFieldRefInput<$PrismaModel> = FieldRefInputType<$
  * Reference to a field of type 'BillingInterval[]'
  */
 export type ListEnumBillingIntervalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BillingInterval[]'>
+    
+
+
+/**
+ * Reference to a field of type 'RenewalMode'
+ */
+export type EnumRenewalModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RenewalMode'>
+    
+
+
+/**
+ * Reference to a field of type 'RenewalMode[]'
+ */
+export type ListEnumRenewalModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RenewalMode[]'>
     
 
 

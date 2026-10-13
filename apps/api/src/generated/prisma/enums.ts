@@ -48,6 +48,7 @@ export type AuthTokenKind = (typeof AuthTokenKind)[keyof typeof AuthTokenKind]
 
 export const PlanTier = {
   FREE: 'FREE',
+  STARTER: 'STARTER',
   PRO: 'PRO',
   BUSINESS: 'BUSINESS',
   ENTERPRISE: 'ENTERPRISE'
@@ -80,6 +81,14 @@ export const BillingInterval = {
 } as const
 
 export type BillingInterval = (typeof BillingInterval)[keyof typeof BillingInterval]
+
+
+export const RenewalMode = {
+  AUTO: 'AUTO',
+  LINK: 'LINK'
+} as const
+
+export type RenewalMode = (typeof RenewalMode)[keyof typeof RenewalMode]
 
 
 export const PaymentPurpose = {

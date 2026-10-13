@@ -28,10 +28,12 @@ export type AggregateBillingPayment = {
 
 export type BillingPaymentAvgAggregateOutputType = {
   amountCents: number | null
+  creditCents: number | null
 }
 
 export type BillingPaymentSumAggregateOutputType = {
   amountCents: number | null
+  creditCents: number | null
 }
 
 export type BillingPaymentMinAggregateOutputType = {
@@ -42,9 +44,13 @@ export type BillingPaymentMinAggregateOutputType = {
   providerRef: string | null
   amountCents: number | null
   currency: string | null
+  creditCents: number | null
   status: string | null
   tier: $Enums.PlanTier | null
   billingInterval: $Enums.BillingInterval | null
+  renewal: $Enums.RenewalMode | null
+  isRenewal: boolean | null
+  cardCountry: string | null
   settledAt: Date | null
   createdAt: Date | null
 }
@@ -57,9 +63,13 @@ export type BillingPaymentMaxAggregateOutputType = {
   providerRef: string | null
   amountCents: number | null
   currency: string | null
+  creditCents: number | null
   status: string | null
   tier: $Enums.PlanTier | null
   billingInterval: $Enums.BillingInterval | null
+  renewal: $Enums.RenewalMode | null
+  isRenewal: boolean | null
+  cardCountry: string | null
   settledAt: Date | null
   createdAt: Date | null
 }
@@ -72,9 +82,13 @@ export type BillingPaymentCountAggregateOutputType = {
   providerRef: number
   amountCents: number
   currency: number
+  creditCents: number
   status: number
   tier: number
   billingInterval: number
+  renewal: number
+  isRenewal: number
+  cardCountry: number
   settledAt: number
   createdAt: number
   _all: number
@@ -83,10 +97,12 @@ export type BillingPaymentCountAggregateOutputType = {
 
 export type BillingPaymentAvgAggregateInputType = {
   amountCents?: true
+  creditCents?: true
 }
 
 export type BillingPaymentSumAggregateInputType = {
   amountCents?: true
+  creditCents?: true
 }
 
 export type BillingPaymentMinAggregateInputType = {
@@ -97,9 +113,13 @@ export type BillingPaymentMinAggregateInputType = {
   providerRef?: true
   amountCents?: true
   currency?: true
+  creditCents?: true
   status?: true
   tier?: true
   billingInterval?: true
+  renewal?: true
+  isRenewal?: true
+  cardCountry?: true
   settledAt?: true
   createdAt?: true
 }
@@ -112,9 +132,13 @@ export type BillingPaymentMaxAggregateInputType = {
   providerRef?: true
   amountCents?: true
   currency?: true
+  creditCents?: true
   status?: true
   tier?: true
   billingInterval?: true
+  renewal?: true
+  isRenewal?: true
+  cardCountry?: true
   settledAt?: true
   createdAt?: true
 }
@@ -127,9 +151,13 @@ export type BillingPaymentCountAggregateInputType = {
   providerRef?: true
   amountCents?: true
   currency?: true
+  creditCents?: true
   status?: true
   tier?: true
   billingInterval?: true
+  renewal?: true
+  isRenewal?: true
+  cardCountry?: true
   settledAt?: true
   createdAt?: true
   _all?: true
@@ -229,9 +257,13 @@ export type BillingPaymentGroupByOutputType = {
   providerRef: string | null
   amountCents: number
   currency: string
+  creditCents: number | null
   status: string
   tier: $Enums.PlanTier | null
   billingInterval: $Enums.BillingInterval | null
+  renewal: $Enums.RenewalMode
+  isRenewal: boolean
+  cardCountry: string | null
   settledAt: Date | null
   createdAt: Date
   _count: BillingPaymentCountAggregateOutputType | null
@@ -267,9 +299,13 @@ export type BillingPaymentWhereInput = {
   providerRef?: Prisma.StringNullableFilter<"BillingPayment"> | string | null
   amountCents?: Prisma.IntFilter<"BillingPayment"> | number
   currency?: Prisma.StringFilter<"BillingPayment"> | string
+  creditCents?: Prisma.IntNullableFilter<"BillingPayment"> | number | null
   status?: Prisma.StringFilter<"BillingPayment"> | string
   tier?: Prisma.EnumPlanTierNullableFilter<"BillingPayment"> | $Enums.PlanTier | null
   billingInterval?: Prisma.EnumBillingIntervalNullableFilter<"BillingPayment"> | $Enums.BillingInterval | null
+  renewal?: Prisma.EnumRenewalModeFilter<"BillingPayment"> | $Enums.RenewalMode
+  isRenewal?: Prisma.BoolFilter<"BillingPayment"> | boolean
+  cardCountry?: Prisma.StringNullableFilter<"BillingPayment"> | string | null
   settledAt?: Prisma.DateTimeNullableFilter<"BillingPayment"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"BillingPayment"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
@@ -283,9 +319,13 @@ export type BillingPaymentOrderByWithRelationInput = {
   providerRef?: Prisma.SortOrderInput | Prisma.SortOrder
   amountCents?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  creditCents?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   tier?: Prisma.SortOrderInput | Prisma.SortOrder
   billingInterval?: Prisma.SortOrderInput | Prisma.SortOrder
+  renewal?: Prisma.SortOrder
+  isRenewal?: Prisma.SortOrder
+  cardCountry?: Prisma.SortOrderInput | Prisma.SortOrder
   settledAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
@@ -302,9 +342,13 @@ export type BillingPaymentWhereUniqueInput = Prisma.AtLeast<{
   purpose?: Prisma.EnumPaymentPurposeFilter<"BillingPayment"> | $Enums.PaymentPurpose
   amountCents?: Prisma.IntFilter<"BillingPayment"> | number
   currency?: Prisma.StringFilter<"BillingPayment"> | string
+  creditCents?: Prisma.IntNullableFilter<"BillingPayment"> | number | null
   status?: Prisma.StringFilter<"BillingPayment"> | string
   tier?: Prisma.EnumPlanTierNullableFilter<"BillingPayment"> | $Enums.PlanTier | null
   billingInterval?: Prisma.EnumBillingIntervalNullableFilter<"BillingPayment"> | $Enums.BillingInterval | null
+  renewal?: Prisma.EnumRenewalModeFilter<"BillingPayment"> | $Enums.RenewalMode
+  isRenewal?: Prisma.BoolFilter<"BillingPayment"> | boolean
+  cardCountry?: Prisma.StringNullableFilter<"BillingPayment"> | string | null
   settledAt?: Prisma.DateTimeNullableFilter<"BillingPayment"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"BillingPayment"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
@@ -318,9 +362,13 @@ export type BillingPaymentOrderByWithAggregationInput = {
   providerRef?: Prisma.SortOrderInput | Prisma.SortOrder
   amountCents?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  creditCents?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   tier?: Prisma.SortOrderInput | Prisma.SortOrder
   billingInterval?: Prisma.SortOrderInput | Prisma.SortOrder
+  renewal?: Prisma.SortOrder
+  isRenewal?: Prisma.SortOrder
+  cardCountry?: Prisma.SortOrderInput | Prisma.SortOrder
   settledAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.BillingPaymentCountOrderByAggregateInput
@@ -341,9 +389,13 @@ export type BillingPaymentScalarWhereWithAggregatesInput = {
   providerRef?: Prisma.StringNullableWithAggregatesFilter<"BillingPayment"> | string | null
   amountCents?: Prisma.IntWithAggregatesFilter<"BillingPayment"> | number
   currency?: Prisma.StringWithAggregatesFilter<"BillingPayment"> | string
+  creditCents?: Prisma.IntNullableWithAggregatesFilter<"BillingPayment"> | number | null
   status?: Prisma.StringWithAggregatesFilter<"BillingPayment"> | string
   tier?: Prisma.EnumPlanTierNullableWithAggregatesFilter<"BillingPayment"> | $Enums.PlanTier | null
   billingInterval?: Prisma.EnumBillingIntervalNullableWithAggregatesFilter<"BillingPayment"> | $Enums.BillingInterval | null
+  renewal?: Prisma.EnumRenewalModeWithAggregatesFilter<"BillingPayment"> | $Enums.RenewalMode
+  isRenewal?: Prisma.BoolWithAggregatesFilter<"BillingPayment"> | boolean
+  cardCountry?: Prisma.StringNullableWithAggregatesFilter<"BillingPayment"> | string | null
   settledAt?: Prisma.DateTimeNullableWithAggregatesFilter<"BillingPayment"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"BillingPayment"> | Date | string
 }
@@ -355,9 +407,13 @@ export type BillingPaymentCreateInput = {
   providerRef?: string | null
   amountCents: number
   currency?: string
+  creditCents?: number | null
   status?: string
   tier?: $Enums.PlanTier | null
   billingInterval?: $Enums.BillingInterval | null
+  renewal?: $Enums.RenewalMode
+  isRenewal?: boolean
+  cardCountry?: string | null
   settledAt?: Date | string | null
   createdAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutPaymentsInput
@@ -371,9 +427,13 @@ export type BillingPaymentUncheckedCreateInput = {
   providerRef?: string | null
   amountCents: number
   currency?: string
+  creditCents?: number | null
   status?: string
   tier?: $Enums.PlanTier | null
   billingInterval?: $Enums.BillingInterval | null
+  renewal?: $Enums.RenewalMode
+  isRenewal?: boolean
+  cardCountry?: string | null
   settledAt?: Date | string | null
   createdAt?: Date | string
 }
@@ -385,9 +445,13 @@ export type BillingPaymentUpdateInput = {
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amountCents?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  creditCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   tier?: Prisma.NullableEnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier | null
   billingInterval?: Prisma.NullableEnumBillingIntervalFieldUpdateOperationsInput | $Enums.BillingInterval | null
+  renewal?: Prisma.EnumRenewalModeFieldUpdateOperationsInput | $Enums.RenewalMode
+  isRenewal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  cardCountry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   settledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutPaymentsNestedInput
@@ -401,9 +465,13 @@ export type BillingPaymentUncheckedUpdateInput = {
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amountCents?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  creditCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   tier?: Prisma.NullableEnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier | null
   billingInterval?: Prisma.NullableEnumBillingIntervalFieldUpdateOperationsInput | $Enums.BillingInterval | null
+  renewal?: Prisma.EnumRenewalModeFieldUpdateOperationsInput | $Enums.RenewalMode
+  isRenewal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  cardCountry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   settledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -416,9 +484,13 @@ export type BillingPaymentCreateManyInput = {
   providerRef?: string | null
   amountCents: number
   currency?: string
+  creditCents?: number | null
   status?: string
   tier?: $Enums.PlanTier | null
   billingInterval?: $Enums.BillingInterval | null
+  renewal?: $Enums.RenewalMode
+  isRenewal?: boolean
+  cardCountry?: string | null
   settledAt?: Date | string | null
   createdAt?: Date | string
 }
@@ -430,9 +502,13 @@ export type BillingPaymentUpdateManyMutationInput = {
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amountCents?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  creditCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   tier?: Prisma.NullableEnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier | null
   billingInterval?: Prisma.NullableEnumBillingIntervalFieldUpdateOperationsInput | $Enums.BillingInterval | null
+  renewal?: Prisma.EnumRenewalModeFieldUpdateOperationsInput | $Enums.RenewalMode
+  isRenewal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  cardCountry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   settledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -445,9 +521,13 @@ export type BillingPaymentUncheckedUpdateManyInput = {
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amountCents?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  creditCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   tier?: Prisma.NullableEnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier | null
   billingInterval?: Prisma.NullableEnumBillingIntervalFieldUpdateOperationsInput | $Enums.BillingInterval | null
+  renewal?: Prisma.EnumRenewalModeFieldUpdateOperationsInput | $Enums.RenewalMode
+  isRenewal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  cardCountry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   settledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -470,15 +550,20 @@ export type BillingPaymentCountOrderByAggregateInput = {
   providerRef?: Prisma.SortOrder
   amountCents?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  creditCents?: Prisma.SortOrder
   status?: Prisma.SortOrder
   tier?: Prisma.SortOrder
   billingInterval?: Prisma.SortOrder
+  renewal?: Prisma.SortOrder
+  isRenewal?: Prisma.SortOrder
+  cardCountry?: Prisma.SortOrder
   settledAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
 export type BillingPaymentAvgOrderByAggregateInput = {
   amountCents?: Prisma.SortOrder
+  creditCents?: Prisma.SortOrder
 }
 
 export type BillingPaymentMaxOrderByAggregateInput = {
@@ -489,9 +574,13 @@ export type BillingPaymentMaxOrderByAggregateInput = {
   providerRef?: Prisma.SortOrder
   amountCents?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  creditCents?: Prisma.SortOrder
   status?: Prisma.SortOrder
   tier?: Prisma.SortOrder
   billingInterval?: Prisma.SortOrder
+  renewal?: Prisma.SortOrder
+  isRenewal?: Prisma.SortOrder
+  cardCountry?: Prisma.SortOrder
   settledAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -504,15 +593,20 @@ export type BillingPaymentMinOrderByAggregateInput = {
   providerRef?: Prisma.SortOrder
   amountCents?: Prisma.SortOrder
   currency?: Prisma.SortOrder
+  creditCents?: Prisma.SortOrder
   status?: Prisma.SortOrder
   tier?: Prisma.SortOrder
   billingInterval?: Prisma.SortOrder
+  renewal?: Prisma.SortOrder
+  isRenewal?: Prisma.SortOrder
+  cardCountry?: Prisma.SortOrder
   settledAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
 export type BillingPaymentSumOrderByAggregateInput = {
   amountCents?: Prisma.SortOrder
+  creditCents?: Prisma.SortOrder
 }
 
 export type BillingPaymentCreateNestedManyWithoutOrganizationInput = {
@@ -576,9 +670,13 @@ export type BillingPaymentCreateWithoutOrganizationInput = {
   providerRef?: string | null
   amountCents: number
   currency?: string
+  creditCents?: number | null
   status?: string
   tier?: $Enums.PlanTier | null
   billingInterval?: $Enums.BillingInterval | null
+  renewal?: $Enums.RenewalMode
+  isRenewal?: boolean
+  cardCountry?: string | null
   settledAt?: Date | string | null
   createdAt?: Date | string
 }
@@ -590,9 +688,13 @@ export type BillingPaymentUncheckedCreateWithoutOrganizationInput = {
   providerRef?: string | null
   amountCents: number
   currency?: string
+  creditCents?: number | null
   status?: string
   tier?: $Enums.PlanTier | null
   billingInterval?: $Enums.BillingInterval | null
+  renewal?: $Enums.RenewalMode
+  isRenewal?: boolean
+  cardCountry?: string | null
   settledAt?: Date | string | null
   createdAt?: Date | string
 }
@@ -634,9 +736,13 @@ export type BillingPaymentScalarWhereInput = {
   providerRef?: Prisma.StringNullableFilter<"BillingPayment"> | string | null
   amountCents?: Prisma.IntFilter<"BillingPayment"> | number
   currency?: Prisma.StringFilter<"BillingPayment"> | string
+  creditCents?: Prisma.IntNullableFilter<"BillingPayment"> | number | null
   status?: Prisma.StringFilter<"BillingPayment"> | string
   tier?: Prisma.EnumPlanTierNullableFilter<"BillingPayment"> | $Enums.PlanTier | null
   billingInterval?: Prisma.EnumBillingIntervalNullableFilter<"BillingPayment"> | $Enums.BillingInterval | null
+  renewal?: Prisma.EnumRenewalModeFilter<"BillingPayment"> | $Enums.RenewalMode
+  isRenewal?: Prisma.BoolFilter<"BillingPayment"> | boolean
+  cardCountry?: Prisma.StringNullableFilter<"BillingPayment"> | string | null
   settledAt?: Prisma.DateTimeNullableFilter<"BillingPayment"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"BillingPayment"> | Date | string
 }
@@ -648,9 +754,13 @@ export type BillingPaymentCreateManyOrganizationInput = {
   providerRef?: string | null
   amountCents: number
   currency?: string
+  creditCents?: number | null
   status?: string
   tier?: $Enums.PlanTier | null
   billingInterval?: $Enums.BillingInterval | null
+  renewal?: $Enums.RenewalMode
+  isRenewal?: boolean
+  cardCountry?: string | null
   settledAt?: Date | string | null
   createdAt?: Date | string
 }
@@ -662,9 +772,13 @@ export type BillingPaymentUpdateWithoutOrganizationInput = {
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amountCents?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  creditCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   tier?: Prisma.NullableEnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier | null
   billingInterval?: Prisma.NullableEnumBillingIntervalFieldUpdateOperationsInput | $Enums.BillingInterval | null
+  renewal?: Prisma.EnumRenewalModeFieldUpdateOperationsInput | $Enums.RenewalMode
+  isRenewal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  cardCountry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   settledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -676,9 +790,13 @@ export type BillingPaymentUncheckedUpdateWithoutOrganizationInput = {
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amountCents?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  creditCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   tier?: Prisma.NullableEnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier | null
   billingInterval?: Prisma.NullableEnumBillingIntervalFieldUpdateOperationsInput | $Enums.BillingInterval | null
+  renewal?: Prisma.EnumRenewalModeFieldUpdateOperationsInput | $Enums.RenewalMode
+  isRenewal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  cardCountry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   settledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -690,9 +808,13 @@ export type BillingPaymentUncheckedUpdateManyWithoutOrganizationInput = {
   providerRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amountCents?: Prisma.IntFieldUpdateOperationsInput | number
   currency?: Prisma.StringFieldUpdateOperationsInput | string
+  creditCents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   tier?: Prisma.NullableEnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier | null
   billingInterval?: Prisma.NullableEnumBillingIntervalFieldUpdateOperationsInput | $Enums.BillingInterval | null
+  renewal?: Prisma.EnumRenewalModeFieldUpdateOperationsInput | $Enums.RenewalMode
+  isRenewal?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  cardCountry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   settledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -707,9 +829,13 @@ export type BillingPaymentSelect<ExtArgs extends runtime.Types.Extensions.Intern
   providerRef?: boolean
   amountCents?: boolean
   currency?: boolean
+  creditCents?: boolean
   status?: boolean
   tier?: boolean
   billingInterval?: boolean
+  renewal?: boolean
+  isRenewal?: boolean
+  cardCountry?: boolean
   settledAt?: boolean
   createdAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -723,9 +849,13 @@ export type BillingPaymentSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   providerRef?: boolean
   amountCents?: boolean
   currency?: boolean
+  creditCents?: boolean
   status?: boolean
   tier?: boolean
   billingInterval?: boolean
+  renewal?: boolean
+  isRenewal?: boolean
+  cardCountry?: boolean
   settledAt?: boolean
   createdAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -739,9 +869,13 @@ export type BillingPaymentSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   providerRef?: boolean
   amountCents?: boolean
   currency?: boolean
+  creditCents?: boolean
   status?: boolean
   tier?: boolean
   billingInterval?: boolean
+  renewal?: boolean
+  isRenewal?: boolean
+  cardCountry?: boolean
   settledAt?: boolean
   createdAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -755,14 +889,18 @@ export type BillingPaymentSelectScalar = {
   providerRef?: boolean
   amountCents?: boolean
   currency?: boolean
+  creditCents?: boolean
   status?: boolean
   tier?: boolean
   billingInterval?: boolean
+  renewal?: boolean
+  isRenewal?: boolean
+  cardCountry?: boolean
   settledAt?: boolean
   createdAt?: boolean
 }
 
-export type BillingPaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "provider" | "purpose" | "providerRef" | "amountCents" | "currency" | "status" | "tier" | "billingInterval" | "settledAt" | "createdAt", ExtArgs["result"]["billingPayment"]>
+export type BillingPaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "provider" | "purpose" | "providerRef" | "amountCents" | "currency" | "creditCents" | "status" | "tier" | "billingInterval" | "renewal" | "isRenewal" | "cardCountry" | "settledAt" | "createdAt", ExtArgs["result"]["billingPayment"]>
 export type BillingPaymentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }
@@ -784,11 +922,27 @@ export type $BillingPaymentPayload<ExtArgs extends runtime.Types.Extensions.Inte
     provider: $Enums.BillingProvider
     purpose: $Enums.PaymentPurpose
     providerRef: string | null
+    /**
+     * What is charged, in `currency` minor units.
+     */
     amountCents: number
     currency: string
+    /**
+     * X credit bought by a top-up, in USD cents (the credit balance is USD whatever the charge currency).
+     */
+    creditCents: number | null
     status: string
     tier: $Enums.PlanTier | null
     billingInterval: $Enums.BillingInterval | null
+    renewal: $Enums.RenewalMode
+    /**
+     * Pays for the next period of the running subscription (link renewal paid early).
+     */
+    isRenewal: boolean
+    /**
+     * Issuing country of the card that paid, when the provider reports one.
+     */
+    cardCountry: string | null
     settledAt: Date | null
     createdAt: Date
   }, ExtArgs["result"]["billingPayment"]>
@@ -1222,9 +1376,13 @@ export interface BillingPaymentFieldRefs {
   readonly providerRef: Prisma.FieldRef<"BillingPayment", 'String'>
   readonly amountCents: Prisma.FieldRef<"BillingPayment", 'Int'>
   readonly currency: Prisma.FieldRef<"BillingPayment", 'String'>
+  readonly creditCents: Prisma.FieldRef<"BillingPayment", 'Int'>
   readonly status: Prisma.FieldRef<"BillingPayment", 'String'>
   readonly tier: Prisma.FieldRef<"BillingPayment", 'PlanTier'>
   readonly billingInterval: Prisma.FieldRef<"BillingPayment", 'BillingInterval'>
+  readonly renewal: Prisma.FieldRef<"BillingPayment", 'RenewalMode'>
+  readonly isRenewal: Prisma.FieldRef<"BillingPayment", 'Boolean'>
+  readonly cardCountry: Prisma.FieldRef<"BillingPayment", 'String'>
   readonly settledAt: Prisma.FieldRef<"BillingPayment", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"BillingPayment", 'DateTime'>
 }

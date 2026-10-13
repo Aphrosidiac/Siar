@@ -28,7 +28,7 @@ export async function createUpload(actor: Pick<Actor, 'organizationId'>, teamId:
   if (buf.length > MAX()) throw badRequest(`The file is larger than the ${config.MAX_UPLOAD_MB} MB limit. Use the large upload flow.`);
   const org = await prisma.organization.findUniqueOrThrow({ where: { id: actor.organizationId } });
   const p: Probe = await probe(buf, declaredMime, name);
-  await consumeOrg(prisma, org.id, 'uploads', 1, limitsFor(org).uploads);
+  await consumeOrg(prisma, org, 'uploads', 1, limitsFor(org).uploads);
   try {
     const path = keyFor(org.id, p.ext);
     await storage.put(path, buf, p.mime);
@@ -45,7 +45,7 @@ export async function createUpload(actor: Pick<Actor, 'organizationId'>, teamId:
     if (needsWork) await enqueue(JOBS.processUpload, { uploadId: u.id }, { singletonKey: `upl:${u.id}` });
     return u;
   } catch (err) {
-    await releaseOrg(prisma, org.id, 'uploads', 1);
+    await releaseOrg(prisma, org, 'uploads', 1);
     throw err;
   }
 }

@@ -8,13 +8,15 @@ import { logger } from '../platform/logger.js';
 import { queueMail } from '../platform/mail.js';
 import { PLANS } from '../domain/plans.js';
 import { appUrl } from '../platform/config.js';
-import { billingEmail, failPayment, LIVE_STATUSES, money, recordInvoice, settlePayment, usdCents, type Interval, type Tier } from './billing-core.js';
+import { billingEmail, failPayment, listPrice, LIVE_STATUSES, money, recordInvoice, settlePayment, type Interval, type Tier } from './billing-core.js';
 
 /**
  * Stripe (BILLING_MODE=live + STRIPE_SECRET_KEY). Stripe owns the subscription lifecycle (trial,
  * renewals, retries); Siar mirrors it from webhook events into Subscription / Organization.tier /
- * BillingInvoice. Prices are created once per plan+interval+amount and found again by lookup_key,
- * so changing PLANS makes new prices without touching existing subscribers.
+ * BillingInvoice. Prices are created once per plan+interval+currency+amount and found again by
+ * lookup_key, so changing PLANS makes new prices without touching existing subscribers (price lock).
+ * Ringgit (billing country MY) and USD subscriptions run on the same account; a yearly plan paid once
+ * (FPX, GrabPay, a one-off card payment) is a `payment` checkout that Siar renews by link.
  */
 
 let client: Stripe | null = null;
@@ -28,11 +30,11 @@ export function constructEvent(raw: Buffer | string, signature: string, secret =
   return Stripe.webhooks.constructEvent(raw, signature, secret);
 }
 
-export const lookupKey = (tier: Tier, interval: Interval) => `siar_${tier.toLowerCase()}_${interval.toLowerCase()}_${usdCents(tier, interval)}`;
+export const lookupKey = (tier: Tier, interval: Interval, currency: string) => `siar_${tier.toLowerCase()}_${interval.toLowerCase()}_${currency}_${listPrice(tier, interval, currency)}`;
 
-/** siar_pro_monthly_10000 → { tier: PRO, interval: MONTHLY }. Falls back to price metadata. */
+/** siar_pro_monthly_myr_9900 (or the older siar_pro_monthly_10000) → { tier: PRO, interval: MONTHLY }. Falls back to price metadata. */
 export function planOfPrice(price: { lookup_key?: string | null; metadata?: Record<string, string> | null } | null | undefined): { tier: Tier; interval: Interval } | null {
-  const m = /^siar_(pro|business|enterprise)_(monthly|yearly)(_\d+)?$/.exec(price?.lookup_key ?? '');
+  const m = /^siar_(starter|pro|business|enterprise)_(monthly|yearly)(_(?:usd|myr))?(_\d+)?$/.exec(price?.lookup_key ?? '');
   if (m) return { tier: m[1].toUpperCase() as Tier, interval: m[2].toUpperCase() as Interval };
   const t = price?.metadata?.tier, i = price?.metadata?.interval;
   if (t && t in PLANS && (i === 'MONTHLY' || i === 'YEARLY')) return { tier: t as Tier, interval: i };
@@ -40,14 +42,14 @@ export function planOfPrice(price: { lookup_key?: string | null; metadata?: Reco
 }
 
 const priceCache = new Map<string, string>();
-export async function priceId(tier: Tier, interval: Interval) {
-  const key = lookupKey(tier, interval);
+export async function priceId(tier: Tier, interval: Interval, currency: string) {
+  const key = lookupKey(tier, interval, currency);
   const hit = priceCache.get(key);
   if (hit) return hit;
   const found = await stripe().prices.list({ lookup_keys: [key], active: true, limit: 1 });
   const id = found.data[0]?.id ?? (await stripe().prices.create({
-    currency: 'usd', unit_amount: usdCents(tier, interval), recurring: { interval: interval === 'YEARLY' ? 'year' : 'month' }, lookup_key: key,
-    product_data: { name: `Siar ${PLANS[tier].name}`, metadata: { tier } }, metadata: { tier, interval },
+    currency, unit_amount: listPrice(tier, interval, currency), recurring: { interval: interval === 'YEARLY' ? 'year' : 'month' }, lookup_key: key,
+    product_data: { name: `Siar ${PLANS[tier].name}`, metadata: { tier } }, metadata: { tier, interval, currency },
   }, { idempotencyKey: `price-${key}` })).id;
   priceCache.set(key, id);
   return id;
@@ -62,7 +64,7 @@ export async function ensureCustomer(organizationId: string) {
   return c.id;
 }
 
-export async function checkoutSubscription(o: { organizationId: string; paymentId: string; tier: Tier; interval: Interval; trial: boolean; coupon?: string | null }) {
+export async function checkoutSubscription(o: { organizationId: string; paymentId: string; tier: Tier; interval: Interval; currency: string; trial: boolean; coupon?: string | null }) {
   const s = stripe();
   let discounts: Stripe.Checkout.SessionCreateParams.Discount[] | undefined;
   if (o.coupon) {
@@ -73,7 +75,7 @@ export async function checkoutSubscription(o: { organizationId: string; paymentI
   const meta = { organizationId: o.organizationId, paymentId: o.paymentId, purpose: 'SUBSCRIPTION', tier: o.tier, interval: o.interval };
   const session = await s.checkout.sessions.create({
     mode: 'subscription', customer: await ensureCustomer(o.organizationId), client_reference_id: o.organizationId,
-    line_items: [{ price: await priceId(o.tier, o.interval), quantity: 1 }],
+    line_items: [{ price: await priceId(o.tier, o.interval, o.currency), quantity: 1 }],
     subscription_data: { metadata: { organizationId: o.organizationId, tier: o.tier, interval: o.interval }, ...(o.trial ? { trial_period_days: config.TRIAL_DAYS } : {}) },
     metadata: meta, ...(discounts ? { discounts } : { allow_promotion_codes: true }),
     success_url: appUrl('/billing?checkout=success'), cancel_url: appUrl('/billing?checkout=canceled'),
@@ -81,11 +83,26 @@ export async function checkoutSubscription(o: { organizationId: string; paymentI
   return { url: session.url!, ref: session.id };
 }
 
-export async function checkoutTopUp(o: { organizationId: string; paymentId: string; amountUsd: number }) {
+/**
+ * A plan period paid once (renewal LINK): FPX, GrabPay or a card, whatever the account offers for the
+ * currency. Settled by checkout.session.completed / async_payment_succeeded like a CHIP purchase.
+ */
+export async function checkoutOnce(o: { organizationId: string; paymentId: string; tier: Tier; interval: Interval; currency: string; amount: number; name: string }) {
+  const meta = { organizationId: o.organizationId, paymentId: o.paymentId, purpose: 'SUBSCRIPTION', tier: o.tier, interval: o.interval };
+  const session = await stripe().checkout.sessions.create({
+    mode: 'payment', customer: await ensureCustomer(o.organizationId), client_reference_id: o.organizationId,
+    line_items: [{ price_data: { currency: o.currency, unit_amount: o.amount, product_data: { name: o.name, description: 'Paid once. Siar emails a renewal link before the period ends.' } }, quantity: 1 }],
+    metadata: meta, payment_intent_data: { metadata: meta },
+    success_url: appUrl('/billing?checkout=success'), cancel_url: appUrl('/billing?checkout=canceled'),
+  }, { idempotencyKey: `once-${o.paymentId}` });
+  return { url: session.url!, ref: session.id };
+}
+
+export async function checkoutTopUp(o: { organizationId: string; paymentId: string; amount: number; currency: string; creditUsd: number }) {
   const meta = { organizationId: o.organizationId, paymentId: o.paymentId, purpose: 'CREDIT_TOPUP' };
   const session = await stripe().checkout.sessions.create({
     mode: 'payment', customer: await ensureCustomer(o.organizationId), client_reference_id: o.organizationId,
-    line_items: [{ price_data: { currency: 'usd', unit_amount: o.amountUsd * 100, product_data: { name: 'Siar X credit', description: 'Prepaid balance for X (Twitter) pass-through charges' } }, quantity: 1 }],
+    line_items: [{ price_data: { currency: o.currency, unit_amount: o.amount, product_data: { name: `Siar X credit ($${o.creditUsd})`, description: 'Prepaid balance for X (Twitter) pass-through charges' } }, quantity: 1 }],
     metadata: meta, payment_intent_data: { metadata: meta },
     success_url: appUrl('/billing?tab=credits&topup=success'), cancel_url: appUrl('/billing?tab=credits&topup=canceled'),
   }, { idempotencyKey: `topup-${o.paymentId}` });
@@ -108,7 +125,7 @@ export async function changePlan(subscriptionId: string, tier: Tier, interval: I
   const s = stripe();
   const cur = await s.subscriptions.retrieve(subscriptionId);
   const item = cur.items.data[0];
-  const price = await priceId(tier, interval);
+  const price = await priceId(tier, interval, cur.currency);
   if (when === 'now') {
     await releaseSchedule(cur);
     const updated = await s.subscriptions.update(cur.id, {
@@ -174,7 +191,7 @@ export async function syncSubscription(s: Stripe.Subscription, deleted = false) 
     if (meta.pendingChange && meta.pendingChange.tier === plan.tier && meta.pendingChange.interval === plan.interval) delete meta.pendingChange;
     const data = {
       provider: 'STRIPE' as const, providerSubscriptionId: s.id, providerCustomerId: idOf(s.customer as any), status, tier: plan.tier, billingInterval: plan.interval,
-      currency: s.currency ?? 'usd', unitAmountCents: item?.price?.unit_amount ?? usdCents(plan.tier, plan.interval),
+      currency: s.currency ?? 'usd', unitAmountCents: item?.price?.unit_amount ?? listPrice(plan.tier, plan.interval, s.currency ?? 'usd'),
       currentPeriodStart: ts(item?.current_period_start ?? (s as any).current_period_start), currentPeriodEnd: ts(item?.current_period_end ?? (s as any).current_period_end),
       trialEnd: ts(s.trial_end), cancelAtPeriodEnd: !!s.cancel_at_period_end || !!s.cancel_at, canceledAt: ts(s.canceled_at) ?? (deleted ? new Date() : null),
       couponId: (s as any).discounts?.[0] && typeof (s as any).discounts[0] !== 'string' ? (s as any).discounts[0].coupon?.id ?? null : null,
@@ -189,6 +206,15 @@ export async function syncSubscription(s: Stripe.Subscription, deleted = false) 
     if (tier !== org.tier) await audit(tx, systemActor(orgId), 'subscription.sync', 'Subscription', row.id, `Plan is now ${PLANS[tier].name} (Stripe status ${status})`);
     return row;
   });
+}
+
+/** Issuing country of the card behind a completed checkout (null for FPX / GrabPay, or when Stripe cannot say). */
+async function cardCountryOf(session: Stripe.Checkout.Session): Promise<string | null> {
+  try {
+    const s = await stripe().checkout.sessions.retrieve(session.id, { expand: ['payment_intent.payment_method', 'subscription.default_payment_method', 'setup_intent.payment_method'] });
+    const pm = ((s.payment_intent as Stripe.PaymentIntent | null)?.payment_method ?? (s.subscription as Stripe.Subscription | null)?.default_payment_method ?? (s.setup_intent as Stripe.SetupIntent | null)?.payment_method) as Stripe.PaymentMethod | string | null;
+    return pm && typeof pm !== 'string' ? pm.card?.country ?? null : null;
+  } catch (err) { logger.warn({ err, session: session.id }, 'card country lookup failed'); return null; }
 }
 
 async function paymentFor(session: Stripe.Checkout.Session) {
@@ -232,7 +258,7 @@ export async function handleStripeEvent(event: Stripe.Event): Promise<{ handled:
       if (session.customer && !(await prisma.organization.findFirst({ where: { id: p.organizationId, stripeCustomerId: { not: null } } }))) {
         await prisma.organization.update({ where: { id: p.organizationId }, data: { stripeCustomerId: idOf(session.customer as any) } }).catch(() => undefined);
       }
-      await settlePayment(p.id, { charged: { amount: session.amount_total ?? p.amountCents, currency: session.currency ?? 'usd' }, via: 'stripe-webhook' });
+      await settlePayment(p.id, { charged: { amount: session.amount_total ?? p.amountCents, currency: session.currency ?? p.currency }, cardCountry: await cardCountryOf(session), via: 'stripe-webhook' });
       return { handled: true };
     }
     case 'checkout.session.async_payment_failed':

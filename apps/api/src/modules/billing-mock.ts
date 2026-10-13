@@ -1,5 +1,5 @@
 import { PLANS } from '../domain/plans.js';
-import { chargedAmount, chargedCurrency, money } from './billing-core.js';
+import { money } from './billing-core.js';
 
 /**
  * The local stand-in for a provider's hosted checkout (BILLING_MODE=mock). "Pay" and "Decline"
@@ -8,17 +8,18 @@ import { chargedAmount, chargedCurrency, money } from './billing-core.js';
  */
 const esc = (s: string) => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 
-export function describePayment(p: { purpose: string; tier: string | null; billingInterval: string | null; amountCents: number }) {
+export function describePayment(p: { purpose: string; tier: string | null; billingInterval: string | null; amountCents: number; renewal?: string; isRenewal?: boolean }) {
   if (p.purpose === 'CREDIT_TOPUP') return 'X credit top-up';
   if (!p.tier) return 'Save a card for renewals';
   const name = PLANS[p.tier as keyof typeof PLANS]?.name ?? p.tier;
   const per = p.billingInterval === 'YEARLY' ? 'yearly' : 'monthly';
-  return p.amountCents === 0 ? `Siar ${name} (${per}), free trial` : `Siar ${name} (${per})`;
+  const once = p.renewal === 'LINK' ? ', paid once' : '';
+  return p.amountCents === 0 ? `Siar ${name} (${per}), free trial` : `Siar ${name} (${per})${p.isRenewal ? ' renewal' : ''}${once}`;
 }
 
-export function mockCheckoutPage(p: { id: string; purpose: string; tier: string | null; billingInterval: string | null; amountCents: number; status: string; provider: any; providerRef: string | null }) {
-  const currency = chargedCurrency(p);
-  const charged = chargedAmount(p.amountCents, currency);
+export function mockCheckoutPage(p: { id: string; purpose: string; tier: string | null; billingInterval: string | null; amountCents: number; currency: string; status: string; provider: any; providerRef: string | null; renewal?: string; isRenewal?: boolean }) {
+  const currency = p.currency;
+  const charged = p.amountCents;
   const via = p.providerRef?.startsWith('mock_chip_') ? 'CHIP (simulated)' : 'Stripe (simulated)';
   const open = p.status === 'PENDING';
   const body = open

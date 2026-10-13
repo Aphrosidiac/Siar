@@ -6,6 +6,7 @@
 import { createServer } from 'node:http';
 import { deflateSync } from 'node:zlib';
 import { prisma } from '../src/platform/db.js';
+import { linkCycle } from '../src/modules/billing-core.js';
 
 const API = process.env.API ?? 'http://localhost:3290';
 const MOCK = process.env.MOCK ?? 'http://127.0.0.1:3299';
@@ -66,6 +67,8 @@ async function main() {
   // The mock hands every run the same Mastodon account, and daily caps follow the network account
   // across organizations — so repeated runs on one day would hit the cap. Start each run at zero.
   await prisma.dailyCounter.deleteMany({ where: { accountKey: { startsWith: 'MASTODON' } } });
+  // Free posts are also counted per social account across organizations (one-time): start each run at zero.
+  await prisma.accountMonthCounter.deleteMany({ where: { accountKey: { startsWith: 'MASTODON' }, period: 'free' } });
   const health = await call('GET', '/api/v1/');
   ok(health.status === 200 && health.json.platforms?.MASTODON, 'health is public and lists networks');
 
@@ -92,11 +95,12 @@ async function main() {
   const wh = await call('POST', '/api/v1/webhook', { url: 'http://127.0.0.1:3298/hook', events: ['post.published', 'team.created', 'social-account.created'] }, { expect: 201 });
   ok(wh.json.secret?.startsWith('whsec_'), 'webhook created with a signing secret');
 
+  // Free includes one brand, the team made at sign up: swap it for Brand A (so team.created fires).
+  ok((await call('DELETE', `/api/v1/team/${first.json.items[0].id}`, undefined, { key: true })).status < 300, 'the sign-up team can be deleted');
   const team = await call('POST', '/api/v1/team/', { name: 'Brand A' }, { key: true, expect: 201 });
   ok(team.json.id && team.json.socialAccounts.length === 0, 'team created through the API key');
-  await call('POST', '/api/v1/team/', { name: 'Brand B' }, { key: true, expect: 201 });
-  const fourth = await call('POST', '/api/v1/team/', { name: 'Brand C' }, { key: true });
-  ok(fourth.status === 403 && /Social sets limit reached/.test(fourth.json.message), 'free plan stops at 3 social sets with the reference message');
+  const second = await call('POST', '/api/v1/team/', { name: 'Brand B' }, { key: true });
+  ok(second.status === 403 && /Social sets limit reached/.test(second.json.message) && /Free plan includes 1 brand/.test(second.json.message), 'Free includes one brand, with the reference message');
 
   const bad = await call('POST', '/api/v1/team/', { avatarUrl: 'x' }, { key: true });
   ok(bad.status === 400 && Array.isArray(bad.json.issues), 'validation errors carry issues[]');
@@ -136,7 +140,7 @@ async function main() {
   ok((await call('GET', `/api/v1/post/reference-key/${encodeURIComponent(post.json.referenceKey)}`, undefined, { key: true })).json.id === post.json.id, 'get by reference key');
 
   const usage = await call('GET', '/api/v1/organization/usage/posts', undefined, { key: true });
-  ok(usage.json.used === 1 && usage.json.limit === 20, 'monthly post usage counted (1/20)');
+  ok(usage.json.used === 1 && usage.json.limit === 20 && usage.json.resets === false, 'Free post usage counted as a one-time allowance (1/20, no reset)');
 
   await until(async () => received.filter(r => r.body.type === 'post.published').length, n => n >= 1, 15_000);
   ok(received.some(r => r.body.type === 'post.published' && r.headers['x-siar-signature']), 'post.published webhook delivered and signed');
@@ -151,20 +155,93 @@ async function main() {
   const cmDone = await until(() => call('GET', `/api/v1/comment/${cm.json.id}`, undefined, { key: true }), r => ['POSTED', 'ERROR'].includes(r.json.status));
   ok(cmDone.json.status === 'POSTED', `comment published (${cmDone.json.status} ${cmDone.json.error ?? ''})`);
 
-  // ── billing (mock provider) ──
-  const co = await call('POST', '/api/v1/billing/checkout', { plan: 'PRO', interval: 'MONTHLY' });
-  ok(co.status < 300 && co.json.url, `checkout returns a URL (${co.status} ${co.json?.message ?? ''})`);
-  const pid = new URL(co.json.url).pathname.split('/').pop();
-  const pay = await fetch(`${API}/mock-billing/${pid}/pay`, { method: 'POST', redirect: 'manual' });
-  ok(pay.status < 400, `mock payment settles (${pay.status})`);
-  const sub = await until(() => call('GET', '/api/v1/billing/subscription'), r => r.json.plan === 'PRO');
-  ok(sub.json.plan === 'PRO', `organization is on PRO after payment (${sub.json.plan})`);
-  ok((await call('POST', '/api/v1/team/', { name: 'Brand D' }, { key: true })).status < 300, 'team cap lifted on PRO');
+  // ── Free is one-time: the organization's 20 posts, and each account's 20 across organizations ──
+  const freeDraft = () => call('POST', '/api/v1/post/', { teamId: team.json.id, title: 'free', postDate: new Date(Date.now() + 3600_000).toISOString(), status: 'SCHEDULED', socialAccountTypes: ['MASTODON'], data: { MASTODON: { text: `Free check ${Date.now()}` } } }, { key: true });
+  const orgFree = { organizationId: su.json.currentOrganizationId, period: 'free', metric: 'posts' };
+  await prisma.usageCounter.update({ where: { organizationId_period_metric: orgFree }, data: { used: 20 } });
+  const spent = await freeDraft();
+  ok(spent.status === 403 && /20 free posts/.test(spent.json.message), `Free stops after 20 posts, pointing at a plan (${spent.status})`);
+  await prisma.usageCounter.update({ where: { organizationId_period_metric: orgFree }, data: { used: 2 } });
+  const mastodonKey = (await prisma.accountMonthCounter.findFirst({ where: { accountKey: { startsWith: 'MASTODON' }, period: 'free', metric: 'freePosts' } }))!.accountKey;
+  await prisma.accountMonthCounter.update({ where: { accountKey_period_metric: { accountKey: mastodonKey, period: 'free', metric: 'freePosts' } }, data: { used: 20 } });
+  const reused = await freeDraft();
+  ok(reused.status === 403 && /This social account has already used the 20 free posts/.test(reused.json.message), 'an account that used its free posts elsewhere does not get a fresh allowance');
+  await prisma.accountMonthCounter.update({ where: { accountKey_period_metric: { accountKey: mastodonKey, period: 'free', metric: 'freePosts' } }, data: { used: 2 } });
+
+  // ── billing (mock provider): ringgit list, Starter, upgrade, price lock ──
+  const pay = async (url: string, q = '') => fetch(`${API}/mock-billing/${new URL(url).pathname.split('/').pop()}/pay${q}`, { method: 'POST', redirect: 'manual' });
+  const plans = await call('GET', '/api/v1/billing/plans', undefined, { expect: 200 });
+  const offer = (t: string) => plans.json.plans.find((p: any) => p.tier === t);
+  ok(plans.json.currency === 'myr' && offer('STARTER').price.monthly === 3_900 && offer('PRO').price.yearly === 99_000 && offer('FREE').oneTime, 'Malaysia sees the ringgit list (Starter RM39, Pro RM990 a year, Free one-time)');
+  ok(offer('PRO').trial && !offer('STARTER').trial && plans.json.trialDays === 14, 'only Pro offers the 14-day trial');
+  const co = await call('POST', '/api/v1/billing/checkout', { plan: 'STARTER', interval: 'MONTHLY' });
+  ok(co.status < 300 && co.json.url && co.json.currency === 'myr' && co.json.amountCents === 3_900 && co.json.trialDays === 0, `Starter checkout charges exactly RM39.00, no trial (${co.status} ${co.json?.message ?? co.json?.amountCents})`);
+  ok((await pay(co.json.url)).status < 400, 'mock payment settles');
+  const sub = await until(() => call('GET', '/api/v1/billing/subscription'), r => r.json.plan === 'STARTER');
+  ok(sub.json.plan === 'STARTER' && sub.json.currency === 'myr' && sub.json.amountCents === 3_900 && sub.json.renewal === 'AUTO' && sub.json.priceLocked, `organization is on Starter at a locked RM39 (${sub.json.plan} ${sub.json.amountCents})`);
+  const inv = await call('GET', '/api/v1/billing/invoices');
+  ok(inv.json.items[0].currency === 'myr' && inv.json.items[0].amountCents === 3_900, 'the invoice is in ringgit');
+  const starterCap = await call('POST', '/api/v1/team/', { name: 'Brand B' }, { key: true });
+  ok(starterCap.status === 403 && /Starter plan includes 1 brand/.test(starterCap.json.message), 'Starter includes one brand');
+  const upgrade = await call('POST', '/api/v1/billing/checkout', { plan: 'PRO', interval: 'MONTHLY' });
+  ok(upgrade.status < 300 && upgrade.json.url, `upgrade to Pro opens a checkout (${upgrade.status} ${upgrade.json?.message ?? ''})`);
+  await pay(upgrade.json.url);
+  const pro = await until(() => call('GET', '/api/v1/billing/subscription'), r => r.json.plan === 'PRO');
+  ok(pro.json.plan === 'PRO' && pro.json.amountCents === 9_900, `upgrade lands on Pro at RM99 (${pro.json.plan} ${pro.json.amountCents})`);
+  for (const n of ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']) await call('POST', '/api/v1/team/', { name: `Brand ${n}` }, { key: true, expect: 201 });
+  const eleventh = await call('POST', '/api/v1/team/', { name: 'Brand K' }, { key: true });
+  ok(eleventh.status === 403 && /Pro plan includes 10 brands/.test(eleventh.json.message), 'Pro includes ten brands');
+  // Price lock: a renewal charges the subscription's own price, not today's list price.
+  await prisma.subscription.update({ where: { organizationId: su.json.currentOrganizationId }, data: { unitAmountCents: 7_900 } });
+  const renewed = await call('POST', '/mock-billing/renew', {});
+  ok(renewed.json.subscription?.amountCents === 7_900 && renewed.json.result?.paid === 1, `a renewal keeps the locked price (RM79 while the list says RM99): ${JSON.stringify(renewed.json.result)}`);
+  const lastInv = await call('GET', '/api/v1/billing/invoices');
+  ok(lastInv.json.items[0].amountCents === 7_900 && /renewal/.test(lastInv.json.items[0].description), 'the renewal invoice charged the locked price');
   const top = await call('POST', '/api/v1/billing/credits/top-up', { amountUsd: 10 });
   const tpid = new URL(top.json.url).pathname.split('/').pop();
   await fetch(`${API}/mock-billing/${tpid}/pay`, { method: 'POST', redirect: 'manual' });
   const bal = await until(() => call('GET', '/api/v1/billing/credits/balance', undefined, { key: true }), r => r.json.balanceMicros >= 10_000_000);
-  ok(bal.json.balanceMicros === 10_000_000, `X credit top-up lands in the ledger (${bal.json.balanceMicros})`);
+  ok(top.json.currency === 'myr' && top.json.amountCents === 4_200 && bal.json.balanceMicros === 10_000_000, `$10 of X credit is charged RM42.00 and lands as $10 in the ledger (${top.json.amountCents} → ${bal.json.balanceMicros})`);
+
+  // ── a second organization: USD outside Malaysia, a yearly plan paid once (FPX), link renewal ──
+  const ownerCookie = cookie;
+  cookie = '';
+  const su2 = await call('POST', '/api/v1/auth/signup', { email: `e2e-link+${Date.now()}@example.com`, password: 'correct horse battery', firstName: 'Link', organizationName: 'E2E Link Org' }, { expect: 201 });
+  const linkOrgId = su2.json.currentOrganizationId;
+  await call('PATCH', '/api/v1/billing/details', { country: 'SG' }, { expect: 200 });
+  const sg = await call('GET', '/api/v1/billing/plans');
+  ok(sg.json.currency === 'usd' && sg.json.plans.find((p: any) => p.tier === 'PRO').price.monthly === 4_900 && !sg.json.methods.bank, 'billed outside Malaysia: the USD list (Pro $49), card only');
+  const sgBank = await call('POST', '/api/v1/billing/checkout', { plan: 'PRO', interval: 'YEARLY', method: 'bank' });
+  ok(sgBank.status === 400, 'paying once by FPX is refused outside Malaysia');
+  await call('PATCH', '/api/v1/billing/details', { country: 'MY' }, { expect: 200 });
+  const monthlyBank = await call('POST', '/api/v1/billing/checkout', { plan: 'PRO', interval: 'MONTHLY', method: 'bank' });
+  ok(monthlyBank.status === 400, 'paying once is for yearly plans only');
+  const once = await call('POST', '/api/v1/billing/checkout', { plan: 'PRO', interval: 'YEARLY', method: 'bank' });
+  ok(once.status < 300 && once.json.amountCents === 99_000 && once.json.trialDays === 0, `Pro yearly paid once costs RM990.00 with no trial (${once.json?.amountCents ?? once.json?.message})`);
+  await pay(once.json.url, '?cardCountry=SG');
+  const linked = await until(() => call('GET', '/api/v1/billing/subscription'), r => r.json.plan === 'PRO');
+  ok(linked.json.renewal === 'LINK' && linked.json.currency === 'myr' && linked.json.amountCents === 99_000, `a plan paid once renews by link (${linked.json.renewal})`);
+  const flagged = await prisma.auditLog.count({ where: { action: 'billing.cardCountry', organizationId: linkOrgId } });
+  ok(flagged >= 1, 'a ringgit payment with a foreign card is recorded in the audit log');
+  const early = await call('POST', '/api/v1/billing/checkout', { plan: 'PRO', interval: 'YEARLY', renew: true });
+  ok(early.status === 409 && /Renewal opens 30 days before/.test(early.json.message), 'renewal opens 30 days before the end date');
+  // Reminders: 7 days and 1 day before the end date, each sent once (the clock moves, the end date does not).
+  const linkSub = await prisma.subscription.findUniqueOrThrow({ where: { organizationId: linkOrgId } });
+  const endAt = linkSub.currentPeriodEnd!.getTime();
+  const r1 = await linkCycle(linkSub.id, new Date(endAt - 5 * 86400_000));
+  const r2 = await linkCycle(linkSub.id, new Date(endAt - 4 * 86400_000));
+  const r3 = await linkCycle(linkSub.id, new Date(endAt - 12 * 3600_000));
+  const reminded = ((await prisma.subscription.findUniqueOrThrow({ where: { id: linkSub.id } })).metadata as any)?.reminded ?? [];
+  ok(r1 === 'reminded' && r2 === 'idle' && r3 === 'reminded' && reminded.length === 2, `a link plan is reminded at 7 days and at 1 day, each once (${r1}, ${r2}, ${r3}: ${reminded.join(' ')})`);
+  const ended = await call('POST', '/mock-billing/renew', {});
+  ok(ended.json.subscription?.status === 'past_due' && ended.json.result?.['link-grace'] >= 1, `an unpaid link plan gets its grace period at the end date (${JSON.stringify(ended.json.result)})`);
+  const renewal = await call('POST', '/api/v1/billing/checkout', { plan: 'PRO', interval: 'YEARLY', renew: true });
+  ok(renewal.status < 300 && renewal.json.amountCents === 99_000, `the renewal link charges the locked RM990 (${renewal.json?.amountCents ?? renewal.json?.message})`);
+  const before = await prisma.subscription.findUniqueOrThrow({ where: { organizationId: linkOrgId } });
+  await pay(renewal.json.url);
+  const after = await until(() => call('GET', '/api/v1/billing/subscription'), r => r.json.status === 'active');
+  ok(after.json.status === 'active' && new Date(after.json.currentPeriodEnd).getTime() > before.currentPeriodEnd!.getTime() + 300 * 86400_000, 'paying the renewal extends the plan by a year from its old end date');
+  cookie = ownerCookie;
 
   // ── link in bio ──
   const slug = `e2e-${Date.now().toString(36)}`;

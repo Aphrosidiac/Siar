@@ -44,8 +44,8 @@ const schema = z.object({
   CHIP_SECRET_KEY: z.string().default(''),
   CHIP_BRAND_ID: z.string().default(''),
   CHIP_API_URL: z.string().default('https://gate.chip-in.asia/api/v1'),
-  /** MYR per USD used to price CHIP checkouts (CHIP settles in MYR). */
-  CHIP_USD_MYR: z.coerce.number().default(4.7),
+  /** MYR per USD for X credit bought in ringgit (the credit balance is USD). Plan prices are set in ringgit directly. */
+  USD_MYR_RATE: z.coerce.number().default(4.2),
   SMTP_URL: z.string().default(''),
   MAIL_FROM: z.string().default('Siar <hello@siaran.my>'),
   RUN_JOBS_IN_API: bool('false'),

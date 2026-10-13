@@ -52,6 +52,16 @@ export type ChargeResult =
 export const PAID = new Set(['paid', 'cleared', 'settled', 'refunded', 'pending_refund', 'chargeback']);
 const CARD_METHODS = new Set(['visa', 'mastercard', 'maestro', 'mpgs_apple_pay', 'mpgs_google_pay']);
 
+/** The paying card's issuing country, when CHIP reports one (field names vary by acquirer). */
+export function cardCountryOf(p: ChipPurchase): string | null {
+  const extra = p.transaction_data?.extra ?? {};
+  for (const k of ['card_issuer_country', 'issuer_country', 'card_country', 'country']) {
+    const v = extra[k];
+    if (typeof v === 'string' && /^[A-Za-z]{2}$/.test(v)) return v.toUpperCase();
+  }
+  return null;
+}
+
 export function failureOf(p: ChipPurchase): { code: string; message: string } {
   const a = [...(p.transaction_data?.attempts ?? [])].find(x => !x.successful && x.error);
   return { code: a?.error?.code ?? 'unknown', message: a?.error?.message ?? 'The payment was declined.' };
@@ -135,6 +145,29 @@ async function cardMethods(kind: 'card' | 'preauth', amount: number) {
   }
   if (!hit.list.length) throw upstream('Card payments that can be saved are not enabled on this CHIP brand. Ask CHIP to enable recurring card payments.');
   return hit.list;
+}
+
+/**
+ * Can this CHIP brand take this kind of payment right now? CHIP approves payment methods per brand,
+ * so a configured brand may still have none open. Checkout routes ringgit payments to CHIP only
+ * when this says yes (Stripe otherwise). Errors count as "no".
+ *   card — a card that can be saved for renewals (monthly / yearly AUTO)
+ *   bank — anything paid once: FPX, DuitNow, e-wallets, cards (yearly LINK)
+ */
+export async function chipAccepts(kind: 'card' | 'bank'): Promise<boolean> {
+  if (!chipConfigured()) return false;
+  try {
+    if (kind === 'card') return (await cardMethods('card', 1000)).length > 0;
+    const q = new URLSearchParams({ brand_id: config.CHIP_BRAND_ID, currency: 'MYR', amount: '1000' });
+    const key = q.toString();
+    let hit = methodCache.get(key);
+    if (!hit || Date.now() - hit.at > 30 * 60_000) {
+      const r = await api<{ available_payment_methods: string[] }>('GET', `/payment_methods/?${key}`);
+      hit = { at: Date.now(), list: r.available_payment_methods ?? [] };
+      methodCache.set(key, hit);
+    }
+    return hit.list.some(m => !CARD_METHODS.has(m));
+  } catch { return false; }
 }
 
 export const callbackUrl = () => apiUrl('/api/v1/billing/chip/callback');

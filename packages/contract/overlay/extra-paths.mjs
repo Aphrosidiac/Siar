@@ -44,17 +44,25 @@ const Delivery = obj({ id: S.str, event: S.str, eventId: S.str, attempt: S.int, 
 const Notification = obj({ id: S.str, title: S.str, body: S.strN, link: S.strN, kind: S.str, readAt: S.dateN, createdAt: S.date }, ['id', 'title']);
 const BioItem = obj({ id: S.str, bioId: S.str, type: { type: 'string', enum: ['LINK', 'HEADER', 'SOCIAL', 'TEXT'] }, title: S.str, url: S.strN, icon: S.strN, position: S.int, active: S.bool, clicks: S.int }, ['id', 'type', 'title']);
 const Bio = obj({ id: S.str, teamId: S.str, slug: S.str, title: S.str, description: S.strN, avatarUrl: S.strN, theme: S.json, published: S.bool, items: arr(BioItem), createdAt: S.date, updatedAt: S.date }, ['id', 'slug', 'title']);
-const Plan = { type: 'string', enum: ['FREE', 'PRO', 'BUSINESS', 'ENTERPRISE'] };
-const Subscription = obj({ plan: Plan, interval: { type: 'string', enum: ['MONTHLY', 'YEARLY'], nullable: true }, status: { type: 'string', enum: ['trialing', 'active', 'canceled', 'incomplete', 'incomplete_expired', 'past_due', 'unpaid', 'paused'], nullable: true }, provider: { type: 'string', enum: ['STRIPE', 'CHIP', 'MOCK'], nullable: true }, currentPeriodEnd: S.dateN, trialEndsAt: S.dateN, cancelAtPeriodEnd: S.bool, currency: S.str }, ['plan']);
+const Plan = { type: 'string', enum: ['FREE', 'STARTER', 'PRO', 'BUSINESS', 'ENTERPRISE'] };
+const Currency = { type: 'string', enum: ['myr', 'usd'] };
+const Money = obj({ monthly: S.int, yearly: S.int }, ['monthly', 'yearly']);
+const Subscription = obj({ plan: Plan, interval: { type: 'string', enum: ['MONTHLY', 'YEARLY'], nullable: true }, status: { type: 'string', enum: ['trialing', 'active', 'canceled', 'incomplete', 'incomplete_expired', 'past_due', 'unpaid', 'paused'], nullable: true }, provider: { type: 'string', enum: ['STRIPE', 'CHIP', 'MOCK'], nullable: true }, currentPeriodEnd: S.dateN, trialEndsAt: S.dateN, cancelAtPeriodEnd: S.bool, currency: S.str, amountCents: S.int, renewal: { type: 'string', enum: ['AUTO', 'LINK'], nullable: true }, priceLocked: S.bool, pendingPlan: { ...Plan, nullable: true } }, ['plan']);
 const Invoice = obj({ id: S.str, number: S.str, description: S.str, amountCents: S.int, currency: S.str, status: S.str, provider: S.str, pdfUrl: S.strN, hostedUrl: S.strN, periodStart: S.dateN, periodEnd: S.dateN, paidAt: S.dateN, paymentMethod: S.strN, createdAt: S.date }, ['id', 'number', 'amountCents']);
 const InvoiceLine = obj({ description: S.str, quantity: S.int, unitAmountCents: S.int, amountCents: S.int, periodStart: S.dateN, periodEnd: S.dateN }, ['description', 'amountCents']);
-const BillingDetails = obj({ name: S.strN, email: S.strN, address: S.strN, taxId: S.strN }, []);
+const BillingDetails = obj({ name: S.strN, email: S.strN, address: S.strN, taxId: S.strN, country: S.strN, detectedCountry: S.strN }, []);
 const InvoiceDocument = { ...Invoice, properties: { ...Invoice.properties, lines: arr(InvoiceLine), subtotalCents: S.int, totalCents: S.int, amountPaidCents: S.int, amountDueCents: S.int, billTo: { ...BillingDetails, nullable: true }, issuer: S.json } };
 const LedgerRow = obj({ id: S.str, deltaMicroUsd: S.int, reason: S.str, action: S.strN, refType: S.strN, refId: S.strN, createdAt: S.date }, ['id', 'deltaMicroUsd', 'reason']);
 const Bot = obj({ id: S.str, teamId: S.str, name: S.str, avatarUrl: S.strN, createdAt: S.date }, ['id', 'name']);
 const AuditRow = obj({ id: S.str, actorType: S.str, actorName: S.str, action: S.str, entity: S.str, entityId: S.strN, summary: S.str, createdAt: S.date }, ['id', 'summary']);
 const PortalInfo = obj({ organizationName: S.str, brandName: S.strN, logoUrl: S.strN, accentColor: S.strN, teamName: S.str, allowedTypes: arr(S.str), connected: arr(obj({ type: S.str, username: S.strN, displayName: S.strN, avatarUrl: S.strN })), redirectUrl: S.strN, expiresAt: S.date }, ['organizationName', 'teamName', 'allowedTypes']);
-const Checkout = obj({ url: S.str, provider: S.str }, ['url']);
+const Checkout = obj({ url: S.str, provider: S.str, currency: Currency, amountCents: S.int, trialDays: S.int }, ['url']);
+const PlanOffer = obj({
+  tier: Plan, name: S.str, tagline: S.str, currency: Currency, price: { ...Money, nullable: true }, oneTime: S.bool, trial: S.bool,
+  posts: S.int, comments: S.int, uploads: S.int, teams: { type: 'integer', nullable: true }, analytics: S.bool,
+  dmsPerAccount: S.int, automationRunsPerAccount: S.int, importPostsPerAccount: S.int, reviewImportPerAccount: S.int,
+}, ['tier', 'name', 'currency', 'price']);
+const PlanList = obj({ country: S.str, detectedCountry: S.strN, currency: Currency, teamsInUse: S.int, trialDays: S.int, methods: obj({ card: S.bool, bank: S.bool }), plans: arr(PlanOffer) }, ['country', 'currency', 'plans']);
 
 export const extraPaths = {
   // ── auth (dashboard; cookie session) ──────────────────────────────────
@@ -156,7 +164,8 @@ export const extraPaths = {
 
   // ── billing ────────────────────────────────────────────────────────────
   '/api/v1/billing/subscription': { get: op('billing.subscription', 'billing', 'Current plan and subscription', { res: Subscription }) },
-  '/api/v1/billing/checkout': { post: op('billing.checkout', 'billing', 'Start a plan checkout', { body: obj({ plan: Plan, interval: { type: 'string', enum: ['MONTHLY', 'YEARLY'] }, provider: { type: 'string', enum: ['STRIPE', 'CHIP'] }, coupon: S.strN }, ['plan', 'interval']), res: Checkout }) },
+  '/api/v1/billing/plans': { get: op('billing.plans', 'billing', 'Plans and prices for this organization', { res: PlanList, description: 'Prices depend on the billing country: organizations billed in Malaysia pay in ringgit (myr), everyone else in USD. Amounts are minor units; yearly is the whole year.' }) },
+  '/api/v1/billing/checkout': { post: op('billing.checkout', 'billing', 'Start a plan checkout', { body: obj({ plan: Plan, interval: { type: 'string', enum: ['MONTHLY', 'YEARLY'] }, method: { type: 'string', enum: ['card', 'bank'] }, renew: S.bool, provider: { type: 'string', enum: ['STRIPE', 'CHIP'] }, coupon: S.strN }, ['plan', 'interval']), res: Checkout, description: 'method card: a saved card renews the plan. method bank (yearly, ringgit only): paid once (FPX or GrabPay) and renewed from a link before it ends; renew: true pays that next period.' }) },
   '/api/v1/billing/portal': { post: op('billing.portal', 'billing', 'Open the payment-details portal', { res: Checkout }) },
   '/api/v1/billing/cancel': { post: op('billing.cancel', 'billing', 'Cancel at the end of the period', { res: Subscription }) },
   '/api/v1/billing/resume': { post: op('billing.resume', 'billing', 'Undo a pending cancellation', { res: Subscription }) },
@@ -164,7 +173,7 @@ export const extraPaths = {
   '/api/v1/billing/invoices/{id}': { get: op('billing.invoice', 'billing', 'Get an invoice with its lines', { params: [idParam], res: InvoiceDocument }) },
   '/api/v1/billing/details': {
     get: op('billing.details', 'billing', 'Billing details printed on invoices', { res: BillingDetails }),
-    patch: op('billing.updateDetails', 'billing', 'Update billing details', { body: obj({ name: { type: 'string', maxLength: 200, nullable: true }, email: { type: 'string', format: 'email', maxLength: 254, nullable: true }, address: { type: 'string', maxLength: 600, nullable: true }, taxId: { type: 'string', maxLength: 60, nullable: true } }), res: BillingDetails }),
+    patch: op('billing.updateDetails', 'billing', 'Update billing details', { body: obj({ name: { type: 'string', maxLength: 200, nullable: true }, email: { type: 'string', format: 'email', maxLength: 254, nullable: true }, address: { type: 'string', maxLength: 600, nullable: true }, taxId: { type: 'string', maxLength: 60, nullable: true }, country: { type: 'string', pattern: '^[A-Za-z]{2}$', nullable: true } }), res: BillingDetails }),
   },
   '/api/v1/billing/credits/top-up': { post: op('billing.topUp', 'billing', 'Buy X credit', { body: obj({ amountUsd: { type: 'integer', minimum: 5, maximum: 5000 }, provider: { type: 'string', enum: ['STRIPE', 'CHIP'] } }, ['amountUsd']), res: Checkout }) },
   '/api/v1/billing/credits/ledger': { get: op('billing.ledger', 'billing', 'Credit movements', { params: page, res: list(LedgerRow) }) },

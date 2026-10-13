@@ -1,26 +1,35 @@
 import type { NetworkType } from '@siar/networks';
 
 /**
- * Plans, quotas and caps — the single source the API enforces, the billing page renders and the
- * site's pricing.md / llms.txt are generated from. Defaults mirror the reference rate card
- * (docs/reference/2026-10-11/pricing.md). Fakhrul sets final prices before launch (PLAN D4).
+ * Plans, quotas and caps: the single source the API enforces, the billing page renders and the
+ * site's pricing pages / pricing.md / llms.txt are generated from. Prices are set in ringgit for
+ * Malaysia and in USD for everywhere else (docs/pricing.md); yearly is 10x monthly.
+ * Free is a one-time allowance, not a monthly one (quota.ts counts it in the `free` period).
  */
-export type Tier = 'FREE' | 'PRO' | 'BUSINESS' | 'ENTERPRISE';
+export type Tier = 'FREE' | 'STARTER' | 'PRO' | 'BUSINESS' | 'ENTERPRISE';
 export type Interval = 'MONTHLY' | 'YEARLY';
+export type Currency = 'myr' | 'usd';
+
+/** One period's price in minor units (sen / cents). `yearly` is the whole year. */
+export interface Price { monthly: number; yearly: number }
 
 export interface PlanDef {
   tier: Tier;
   name: string;
   tagline: string;
-  /** USD cents per month; yearly = per-month rate when billed yearly. null = custom. */
-  priceMonthlyCents: number | null;
-  priceYearlyMonthlyCents: number | null;
+  /** null = priced per contract (Enterprise). */
+  prices: Record<Currency, Price> | null;
+  /** Free: the whole one-time allowance. Paid plans: per month. */
   posts: number;
   comments: number;
   uploads: number;
-  /** null = unlimited */
+  /** Brands (teams). null = unlimited */
   teams: number | null;
   analytics: boolean;
+  /** Free only: the allowances above never reset. */
+  oneTime: boolean;
+  /** Only this plan offers a free trial (an organization's first paid plan, by card). */
+  trial: boolean;
   importPostsPerAccount: number;
   commentImportPerPost: number;
   reviewImportPerAccount: number;
@@ -28,12 +37,43 @@ export interface PlanDef {
   automationRunsPerAccount: number;
 }
 
+const price = (monthly: number): Price => ({ monthly, yearly: monthly * 10 });
+
 export const PLANS: Record<Tier, PlanDef> = {
-  FREE: { tier: 'FREE', name: 'Free', tagline: 'For trying out', priceMonthlyCents: 0, priceYearlyMonthlyCents: 0, posts: 20, comments: 50, uploads: 200, teams: 3, analytics: false, importPostsPerAccount: 5, commentImportPerPost: 25, reviewImportPerAccount: 5, dmsPerAccount: 0, automationRunsPerAccount: 0 },
-  PRO: { tier: 'PRO', name: 'Pro', tagline: 'For power users', priceMonthlyCents: 10_000, priceYearlyMonthlyCents: 9_000, posts: 10_000, comments: 5_000, uploads: 100_000, teams: null, analytics: true, importPostsPerAccount: 100, commentImportPerPost: 200, reviewImportPerAccount: 200, dmsPerAccount: 200, automationRunsPerAccount: 200 },
-  BUSINESS: { tier: 'BUSINESS', name: 'Business', tagline: 'For growing businesses', priceMonthlyCents: 40_000, priceYearlyMonthlyCents: 36_000, posts: 100_000, comments: 50_000, uploads: 1_000_000, teams: null, analytics: true, importPostsPerAccount: 500, commentImportPerPost: 1_000, reviewImportPerAccount: 200, dmsPerAccount: 1_000, automationRunsPerAccount: 1_000 },
-  ENTERPRISE: { tier: 'ENTERPRISE', name: 'Enterprise', tagline: 'For large organizations', priceMonthlyCents: null, priceYearlyMonthlyCents: null, posts: 1_000_000, comments: 500_000, uploads: 10_000_000, teams: null, analytics: true, importPostsPerAccount: 5_000, commentImportPerPost: 5_000, reviewImportPerAccount: 1_000, dmsPerAccount: 10_000, automationRunsPerAccount: 10_000 },
+  FREE: { tier: 'FREE', name: 'Free', tagline: 'Try every network', prices: { myr: price(0), usd: price(0) }, posts: 20, comments: 50, uploads: 60, teams: 1, analytics: false, oneTime: true, trial: false, importPostsPerAccount: 5, commentImportPerPost: 25, reviewImportPerAccount: 5, dmsPerAccount: 0, automationRunsPerAccount: 0 },
+  STARTER: { tier: 'STARTER', name: 'Starter', tagline: 'For one business', prices: { myr: price(3_900), usd: price(1_900) }, posts: 300, comments: 1_000, uploads: 3_000, teams: 1, analytics: true, oneTime: false, trial: false, importPostsPerAccount: 50, commentImportPerPost: 100, reviewImportPerAccount: 50, dmsPerAccount: 500, automationRunsPerAccount: 200 },
+  PRO: { tier: 'PRO', name: 'Pro', tagline: 'For freelancers and agencies', prices: { myr: price(9_900), usd: price(4_900) }, posts: 10_000, comments: 5_000, uploads: 100_000, teams: 10, analytics: true, oneTime: false, trial: true, importPostsPerAccount: 100, commentImportPerPost: 200, reviewImportPerAccount: 200, dmsPerAccount: 1_000, automationRunsPerAccount: 1_000 },
+  BUSINESS: { tier: 'BUSINESS', name: 'Business', tagline: 'For apps built on Siar', prices: { myr: price(39_900), usd: price(14_900) }, posts: 100_000, comments: 50_000, uploads: 1_000_000, teams: null, analytics: true, oneTime: false, trial: false, importPostsPerAccount: 500, commentImportPerPost: 1_000, reviewImportPerAccount: 1_000, dmsPerAccount: 5_000, automationRunsPerAccount: 5_000 },
+  ENTERPRISE: { tier: 'ENTERPRISE', name: 'Enterprise', tagline: 'For large organizations', prices: null, posts: 1_000_000, comments: 500_000, uploads: 10_000_000, teams: null, analytics: true, oneTime: false, trial: false, importPostsPerAccount: 5_000, commentImportPerPost: 5_000, reviewImportPerAccount: 1_000, dmsPerAccount: 10_000, automationRunsPerAccount: 10_000 },
 };
+
+/**
+ * How a yearly plan can be paid once, as customers read it. Only methods that work today: add DuitNow
+ * here (and on the site) when CHIP opens it for the brand.
+ */
+export const ONCE_METHODS = 'FPX or GrabPay';
+
+/** A yearly plan paid once (renewal LINK) stays active this many days after its end date while unpaid. */
+export const LINK_GRACE_DAYS = 3;
+/** Reminders before a link-renewed plan's end date, in days. */
+export const LINK_REMIND_DAYS = [7, 1];
+
+export const TIER_ORDER: Tier[] = ['FREE', 'STARTER', 'PRO', 'BUSINESS', 'ENTERPRISE'];
+
+/** Ringgit for organizations billed in Malaysia, USD for everyone else. */
+export const currencyFor = (country: string | null | undefined): Currency => (!country || country.toUpperCase() === 'MY' ? 'myr' : 'usd');
+
+/** One period of a plan in minor units, or null when it is priced per contract. */
+export function priceOf(tier: Tier, interval: Interval, currency: Currency): number | null {
+  const p = PLANS[tier].prices;
+  return p ? (interval === 'YEARLY' ? p[currency].yearly : p[currency].monthly) : null;
+}
+
+/** "RM39", "$19", "RM3,990": whole units (every list price is a whole number). */
+export function formatPrice(minor: number, currency: Currency) {
+  const v = (minor / 100).toLocaleString('en-US', { maximumFractionDigits: minor % 100 ? 2 : 0, minimumFractionDigits: minor % 100 ? 2 : 0 });
+  return currency === 'myr' ? `RM${v}` : `$${v}`;
+}
 
 type Caps = Record<NetworkType, number>;
 const caps = (free: number, pro: number, business: number): [number, number, number] => [free, pro, business];
@@ -47,7 +87,8 @@ const COMMENT_CAPS: Record<NetworkType, [number, number, number]> = {
   THREADS: caps(3, 200, 250), LINKEDIN: caps(3, 18, 24), PINTEREST: caps(3, 24, 36), REDDIT: caps(3, 24, 36), MASTODON: caps(3, 50, 100),
   DISCORD: caps(3, 100, 200), SLACK: caps(3, 100, 200), BLUESKY: caps(3, 50, 100), GOOGLE_BUSINESS: caps(3, 20, 40), SNAPCHAT: caps(3, 24, 36),
 };
-const idx = (t: Tier) => (t === 'FREE' ? 0 : t === 'PRO' ? 1 : 2);
+/** Starter shares Pro's daily caps: they protect the accounts with the networks, not Siar's margin. */
+const idx = (t: Tier) => (t === 'FREE' ? 0 : t === 'STARTER' || t === 'PRO' ? 1 : 2);
 const pick = (table: Record<NetworkType, [number, number, number]>, t: Tier) =>
   Object.fromEntries(Object.entries(table).map(([k, v]) => [k, v[idx(t)]])) as Caps;
 
@@ -96,4 +137,6 @@ export function limitsFor(org: { tier: Tier; monthlyPostLimit?: number | null; m
 }
 
 export const period = (d = new Date()) => d.toISOString().slice(0, 7);
+/** The counter period for a plan: Free's allowance is one-time, paid plans reset every month (UTC). */
+export const quotaPeriod = (tier: Tier, d = new Date()) => (PLANS[tier].oneTime ? 'free' : period(d));
 export const utcDay = (d = new Date()) => d.toISOString().slice(0, 10);

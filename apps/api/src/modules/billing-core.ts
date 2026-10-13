@@ -8,19 +8,22 @@ import { notify } from '../platform/events.js';
 import { logger } from '../platform/logger.js';
 import { queueMail } from '../platform/mail.js';
 import { credit } from '../domain/credits.js';
-import { PLANS } from '../domain/plans.js';
+import { formatPrice, LINK_GRACE_DAYS, LINK_REMIND_DAYS, ONCE_METHODS, PLANS, priceOf, type Currency } from '../domain/plans.js';
 
 /**
  * Billing core, shared by every provider (Stripe, CHIP, the local mock):
- *   prices      — PLANS (USD cents) → a period's price; CHIP charges the MYR equivalent (CHIP_USD_MYR)
+ *   prices      — PLANS carries a ringgit list (billing country MY) and a USD list (everywhere else);
+ *                 a payment is charged in exactly that currency, never converted
+ *   price lock  — a subscription renews at the price it started at (Subscription.unitAmountCents);
+ *                 only a plan change takes the current list price
  *   settlement  — one function turns a paid checkout into a subscription / a top-up / a saved card,
- *                 whether the news came from a CHIP callback, a mock "Pay" click or our renewal cron
- *   renewals    — CHIP and mock subscriptions are renewed by us (saved card, 3 attempts over 7 days,
- *                 then the organization drops to FREE). Stripe renews its own subscriptions.
+ *                 whether the news came from a CHIP callback, a Stripe webhook, a mock "Pay" click or our cron
+ *   renewals    — AUTO: a saved card (CHIP and mock: our cron, 3 attempts over 7 days, then FREE; Stripe
+ *                 renews its own). LINK (FPX / DuitNow / GrabPay, yearly): reminders 7 days and 1 day
+ *                 before the period ends, 3 days' grace after it, then FREE.
  *   invoices    — SIAR-YYYY-NNNNN, one row per paid period / top-up, receipt emailed
  *
- * BillingPayment rows always carry the USD list price of what was bought (amountCents, currency
- * 'usd'); what the provider actually charged (MYR for CHIP) lands on the BillingInvoice.
+ * BillingPayment.amountCents/currency is what is charged. X credit is always USD (creditCents).
  */
 
 export type Tier = PlanTier;
@@ -28,18 +31,19 @@ export type Interval = BillingInterval;
 export type Requested = 'STRIPE' | 'CHIP';
 
 export const LIVE_STATUSES = ['trialing', 'active', 'past_due'];
-export const RANK: Record<Tier, number> = { FREE: 0, PRO: 1, BUSINESS: 2, ENTERPRISE: 3 };
+export const RANK: Record<Tier, number> = { FREE: 0, STARTER: 1, PRO: 2, BUSINESS: 3, ENTERPRISE: 4 };
 /** Retry gaps after a failed renewal: day 0, then +3 days, then +4 days (3 attempts over 7 days). */
 export const RETRY_GAP_DAYS = [3, 4];
 export const MAX_ATTEMPTS = 3;
 
-/** USD cents for one period of a plan. */
-export function usdCents(tier: Tier, interval: Interval) {
-  const p = PLANS[tier];
-  if (p.priceMonthlyCents === null || p.priceYearlyMonthlyCents === null) throw badRequest('Enterprise is priced per contract. Email hello@ffdev.studio and we will set it up for you.');
-  return interval === 'YEARLY' ? p.priceYearlyMonthlyCents * 12 : p.priceMonthlyCents;
+/** List price of one period of a plan, in `currency` minor units. */
+export function listPrice(tier: Tier, interval: Interval, currency: string) {
+  const v = priceOf(tier, interval, currency as Currency);
+  if (v === null) throw badRequest('Enterprise is priced per contract. Email hello@ffdev.studio and we will set it up for you.');
+  return v;
 }
-export const toMyr = (usd: number) => Math.round(usd * config.CHIP_USD_MYR);
+/** X credit is USD; bought in ringgit it is charged at USD_MYR_RATE. */
+export const usdToMyr = (usdCents: number) => Math.round(usdCents * config.USD_MYR_RATE);
 
 export function addInterval(d: Date, interval: Interval, n = 1) {
   const months = (interval === 'YEARLY' ? 12 : 1) * n;
@@ -61,9 +65,7 @@ const day = (d: Date) => d.toISOString().slice(0, 10);
 const per = (i: Interval) => (i === 'YEARLY' ? 'year' : 'month');
 export const planLabel = (tier: Tier, interval: Interval) => `Siar ${PLANS[tier].name} (${interval === 'YEARLY' ? 'yearly' : 'monthly'})`;
 
-/** Which currency a payment was charged in: CHIP (live, or the mock standing in for it) is MYR. */
-export const chargedCurrency = (p: { provider: BillingProvider; providerRef: string | null }) => (p.provider === 'CHIP' || p.providerRef?.startsWith('mock_chip_') ? 'myr' : 'usd');
-export const chargedAmount = (usd: number, currency: string) => (currency === 'myr' ? toMyr(usd) : usd);
+export const priceLabel = (minor: number, currency: string) => formatPrice(minor, currency as Currency);
 
 const meta = (m: unknown): Record<string, any> => (m && typeof m === 'object' && !Array.isArray(m) ? { ...(m as object) } : {});
 
@@ -161,9 +163,13 @@ export async function subscriptionView(organizationId: string, db: Db = prisma) 
   return {
     plan: org.tier, interval: s?.billingInterval ?? null, status: s?.status ?? null, provider: s?.provider ?? null,
     currentPeriodEnd: s?.currentPeriodEnd?.toISOString() ?? null, trialEndsAt: (s?.status === 'trialing' ? s.trialEnd : org.trialEndsAt)?.toISOString() ?? null,
-    cancelAtPeriodEnd: s?.cancelAtPeriodEnd ?? false, currency: s?.currency ?? 'usd',
+    cancelAtPeriodEnd: s?.cancelAtPeriodEnd ?? false, currency: s?.currency ?? (org.billingCountry && org.billingCountry !== 'MY' ? 'usd' : 'myr'),
     // Siar extensions
     amountCents: s?.unitAmountCents ?? 0,
+    /** AUTO = a saved card renews it; LINK = paid once per period, renewed from a link before currentPeriodEnd. */
+    renewal: s?.renewal ?? null,
+    /** The price is locked: renewals charge amountCents whatever the list price becomes. */
+    priceLocked: !!s && LIVE_STATUSES.includes(s.status),
     pendingPlan: m.pendingChange?.tier ?? null, pendingInterval: m.pendingChange?.interval ?? null,
     requestedProvider: m.requestedProvider ?? s?.provider ?? null,
     failedAttempts: s?.failedAttempts ?? 0, nextRetryAt: s && s.status === 'past_due' ? s.nextRetryAt?.toISOString() ?? null : null,
@@ -187,6 +193,8 @@ export interface Settlement {
   token?: string | null;
   /** Free-text origin for logs: 'mock', 'chip-callback', 'stripe-webhook', 'renewal'. */
   via: string;
+  /** Issuing country of the card that paid (ISO alpha-2), when the provider reports one. */
+  cardCountry?: string | null;
 }
 
 /** Retire a saved card at the provider. Set by billing.ts (CHIP live deletes the token; mock has nothing to do). */
@@ -204,14 +212,21 @@ export async function settlePayment(paymentId: string, s: Settlement): Promise<'
     const claimed = await tx.billingPayment.updateMany({ where: { id: p.id, status: { in: ['PENDING', 'FAILED', 'CANCELED'] } }, data: { status: 'PAID', settledAt: new Date() } });
     if (!claimed.count) return 'already' as const;
     const actor = systemActor(p.organizationId);
-    const currency = s.charged?.currency.toLowerCase() ?? chargedCurrency(p);
-    const amount = s.charged?.amount ?? chargedAmount(p.amountCents, currency);
+    const currency = s.charged?.currency.toLowerCase() ?? p.currency;
+    const amount = s.charged?.amount ?? p.amountCents;
     const ref = p.providerRef ?? p.id;
+    const cardCountry = s.cardCountry?.toUpperCase() ?? null;
+    if (cardCountry) {
+      await tx.billingPayment.update({ where: { id: p.id }, data: { cardCountry } });
+      // Ringgit prices are for organizations billed in Malaysia: a foreign card is recorded, never refused.
+      if (currency === 'myr' && cardCountry !== 'MY') await audit(tx, actor, 'billing.cardCountry', 'BillingPayment', p.id, `A ringgit payment of ${money(amount, currency)} was made with a card issued in ${cardCountry}`, { via: s.via });
+    }
 
     if (p.purpose === 'CREDIT_TOPUP') {
-      await credit(tx, p.organizationId, BigInt(p.amountCents) * 10_000n, 'TOPUP', { type: `${p.provider.toLowerCase()}_payment`, id: ref }, `Top-up ${money(p.amountCents, 'usd')}`);
-      await recordInvoice(tx, { organizationId: p.organizationId, provider: p.provider, providerInvoiceId: ref, description: `X credit top-up (${money(p.amountCents, 'usd')})`, amountCents: amount, currency, status: 'paid', paidAt: new Date() });
-      await audit(tx, actor, 'credit.topUp', 'CreditAccount', p.organizationId, `Added ${money(p.amountCents, 'usd')} of X credit`, { paymentId: p.id, via: s.via });
+      const usd = p.creditCents ?? p.amountCents;
+      await credit(tx, p.organizationId, BigInt(usd) * 10_000n, 'TOPUP', { type: `${p.provider.toLowerCase()}_payment`, id: ref }, `Top-up ${money(usd, 'usd')}`);
+      await recordInvoice(tx, { organizationId: p.organizationId, provider: p.provider, providerInvoiceId: ref, description: `X credit top-up (${money(usd, 'usd')})`, amountCents: amount, currency, status: 'paid', paidAt: new Date() });
+      await audit(tx, actor, 'credit.topUp', 'CreditAccount', p.organizationId, `Added ${money(usd, 'usd')} of X credit${currency === 'myr' ? ` for ${money(amount, currency)}` : ''}`, { paymentId: p.id, via: s.via });
       return 'settled' as const;
     }
 
@@ -226,16 +241,18 @@ export async function settlePayment(paymentId: string, s: Settlement): Promise<'
       return 'settled' as const;
     }
 
-    // Stripe runs its own subscription; its webhook events (subscription.*, invoice.paid) carry the state.
-    if (p.provider === 'STRIPE') return 'settled' as const;
+    // A Stripe card subscription runs itself; its webhook events (subscription.*, invoice.paid) carry the state.
+    // Link-renewed plans paid through Stripe (FPX, GrabPay, a one-off card payment) settle here like CHIP.
+    if (p.provider === 'STRIPE' && p.renewal === 'AUTO') return 'settled' as const;
 
     const tier = p.tier;
     const interval = p.billingInterval;
     const now = new Date();
-    const live = !!sub && LIVE_STATUSES.includes(sub.status) && sub.provider === p.provider;
+    // A link-renewed plan may be renewed through another provider (Stripe FPX now, CHIP later): it is still the same plan.
+    const live = !!sub && LIVE_STATUSES.includes(sub.status) && (sub.provider === p.provider || (sub.renewal === 'LINK' && p.renewal === 'LINK'));
     // Started at/after the period end = paying for the next period (renewal, or a past-due catch-up).
-    const renewal = live && !!sub!.currentPeriodEnd && p.createdAt >= sub!.currentPeriodEnd;
-    const trial = p.amountCents === 0;
+    const renewal = live && !!sub!.currentPeriodEnd && (p.isRenewal || p.createdAt >= sub!.currentPeriodEnd);
+    const trial = p.amountCents === 0 && !p.isRenewal;
     const start = renewal ? sub!.currentPeriodEnd! : now;
     const end = trial ? addDays(now, config.TRIAL_DAYS) : addInterval(start, interval);
     const m = meta(sub?.metadata);
@@ -243,12 +260,15 @@ export async function settlePayment(paymentId: string, s: Settlement): Promise<'
     delete m.mockDeclines;
     if (p.providerRef?.startsWith('mock_')) m.requestedProvider = p.providerRef.startsWith('mock_chip_') ? 'CHIP' : 'STRIPE';
     if (s.token && sub?.providerPaymentToken && sub.providerPaymentToken !== s.token) oldTokens.push({ provider: sub.provider, token: sub.providerPaymentToken });
-    const subCurrency = chargedCurrency(p);
+    // Price lock: renewing the same plan keeps its price; a new or changed plan takes today's list price.
+    const samePlan = renewal && sub!.tier === tier && sub!.billingInterval === interval && sub!.currency === p.currency;
+    const unit = samePlan ? sub!.unitAmountCents : listPrice(tier, interval, p.currency);
+    if (m.reminded) delete m.reminded;
     const data = {
-      provider: p.provider, status: trial ? 'trialing' : 'active', tier, billingInterval: interval, currency: subCurrency,
-      unitAmountCents: chargedAmount(usdCents(tier, interval), subCurrency), currentPeriodStart: start, currentPeriodEnd: end,
+      provider: p.provider, status: trial ? 'trialing' : 'active', tier, billingInterval: interval, currency: p.currency, renewal: p.renewal,
+      unitAmountCents: unit, currentPeriodStart: start, currentPeriodEnd: end,
       trialEnd: trial ? end : sub?.trialEnd ?? null, cancelAtPeriodEnd: false, canceledAt: null, failedAttempts: 0, nextRetryAt: null,
-      providerPaymentToken: s.token ?? sub?.providerPaymentToken ?? null, metadata: m,
+      providerPaymentToken: p.renewal === 'LINK' ? null : s.token ?? sub?.providerPaymentToken ?? null, metadata: m,
     };
     const row = sub
       ? await tx.subscription.update({ where: { id: sub.id }, data })
@@ -274,7 +294,7 @@ export async function failPayment(paymentId: string, reason: string, via: string
     const p = await tx.billingPayment.findUnique({ where: { id: paymentId } });
     if (!p) return false;
     const r = await tx.billingPayment.updateMany({ where: { id: p.id, status: 'PENDING' }, data: { status: 'FAILED', settledAt: new Date() } });
-    if (r.count) await audit(tx, systemActor(p.organizationId), 'billing.payment.failed', 'BillingPayment', p.id, `Payment of ${money(p.amountCents, 'usd')} did not go through: ${reason}`, { via });
+    if (r.count) await audit(tx, systemActor(p.organizationId), 'billing.payment.failed', 'BillingPayment', p.id, `Payment of ${money(p.amountCents, p.currency)} did not go through: ${reason}`, { via });
     return r.count > 0;
   });
 }
@@ -286,11 +306,11 @@ export type ChargeOutcome = { status: 'paid'; charged?: { amount: number; curren
 export const renewalCharger: { charge: (sub: any, payment: any) => Promise<ChargeOutcome> } = { charge: async () => ({ status: 'failed', reason: 'No charger configured.', tokenInvalid: false }) };
 
 const dueWhere = (now: Date) => ({
-  provider: { in: ['CHIP', 'MOCK'] as BillingProvider[] }, status: { in: LIVE_STATUSES },
+  provider: { in: ['CHIP', 'MOCK'] as BillingProvider[] }, renewal: 'AUTO' as const, status: { in: LIVE_STATUSES },
   OR: [{ nextRetryAt: null, currentPeriodEnd: { lte: now } }, { nextRetryAt: { lte: now } }],
 });
 
-/** The cron (JOBS.billingRenewals): every CHIP/mock subscription whose period ended or whose retry is due. */
+/** The cron (JOBS.billingRenewals, hourly): saved-card renewals that are due, then the link-renewal cycle. */
 export async function runRenewals() {
   const due = await prisma.subscription.findMany({ where: dueWhere(new Date()), select: { id: true } });
   const out: Record<string, number> = {};
@@ -298,7 +318,58 @@ export async function runRenewals() {
     try { const r = await renewOne(s.id); out[r] = (out[r] ?? 0) + 1; }
     catch (err) { logger.error({ err, subscriptionId: s.id }, 'renewal failed'); out.error = (out.error ?? 0) + 1; }
   }
+  const links = await prisma.subscription.findMany({ where: { renewal: 'LINK', status: { in: LIVE_STATUSES } }, select: { id: true } });
+  for (const s of links) {
+    try { const r = await linkCycle(s.id); if (r !== 'idle') out[`link-${r}`] = (out[`link-${r}`] ?? 0) + 1; }
+    catch (err) { logger.error({ err, subscriptionId: s.id }, 'link renewal step failed'); out.error = (out.error ?? 0) + 1; }
+  }
   return out;
+}
+
+
+/**
+ * One step of a link-renewed (FPX / DuitNow / GrabPay) subscription: remind before the period ends,
+ * open a grace period when it ends unpaid, and move to Free when the grace runs out.
+ * Paying the renewal link (billing.checkout on the same plan) settles the next period early.
+ */
+export async function linkCycle(subId: string, now = new Date()): Promise<'idle' | 'reminded' | 'grace' | 'ended'> {
+  const sub = await prisma.subscription.findUniqueOrThrow({ where: { id: subId } });
+  if (sub.renewal !== 'LINK' || !LIVE_STATUSES.includes(sub.status) || !sub.currentPeriodEnd) return 'idle';
+  const end = sub.currentPeriodEnd;
+  const m = meta(sub.metadata);
+  const plan = PLANS[sub.tier].name;
+  const pendingTier = m.pendingChange?.tier as Tier | undefined;
+  if (end <= now) {
+    if (sub.cancelAtPeriodEnd || pendingTier === 'FREE') { await endSubscription(sub.id, 'ended at the period end'); return 'ended'; }
+    if (sub.status === 'past_due') {
+      if (sub.nextRetryAt && sub.nextRetryAt <= now) { await endSubscription(sub.id, `was not renewed within ${LINK_GRACE_DAYS} days of ending`); return 'ended'; }
+      return 'idle';
+    }
+    const graceEnd = addDays(end, LINK_GRACE_DAYS);
+    await prisma.$transaction(async tx => {
+      await tx.subscription.update({ where: { id: sub.id }, data: { status: 'past_due', nextRetryAt: graceEnd } });
+      await audit(tx, systemActor(sub.organizationId), 'subscription.grace', 'Subscription', sub.id, `${plan} reached its renewal date unpaid; ${LINK_GRACE_DAYS} days' grace until ${day(graceEnd)}`);
+      await notify(tx, sub.organizationId, { kind: 'billing', title: `Renew ${plan} by ${day(graceEnd)}`, body: `Your ${plan} plan reached its renewal date. Renew by ${day(graceEnd)} to keep it; after that the organization moves to Free.`, link: '/billing' }, ['OWNER', 'ADMIN']);
+      const to = await billingEmail(tx, sub.organizationId);
+      if (to) await queueMail(tx, { to, subject: `Renew your Siar ${plan} plan by ${day(graceEnd)}`, kicker: 'Action needed', alert: true, details: [['Plan', plan], ['Amount', money(sub.unitAmountCents, sub.currency)], ['Renew by', day(graceEnd)]], reason: 'You received this email because this address is the billing contact for a Siar organization.', heading: `Your ${plan} plan is due`, paragraphs: [`Your ${plan} plan reached its renewal date on ${day(end)}. It keeps running until ${day(graceEnd)}.`, `Renew by then with ${ONCE_METHODS} or a card, at the same price. Otherwise the organization moves to Free; nothing is deleted.`], cta: { label: 'Renew now', url: appUrl('/billing?renew=1') } });
+    });
+    return 'grace';
+  }
+  const daysLeft = (end.getTime() - now.getTime()) / 86400_000;
+  const reminded: string[] = Array.isArray(m.reminded) ? m.reminded : [];
+  const due = LINK_REMIND_DAYS.filter(d => daysLeft <= d && !reminded.includes(`${day(end)}:${d}`));
+  if (!due.length || sub.cancelAtPeriodEnd || pendingTier === 'FREE') return 'idle';
+  const tier = (pendingTier ?? sub.tier) as Tier;
+  const interval = (m.pendingChange?.interval ?? sub.billingInterval) as Interval;
+  const amount = tier === sub.tier && interval === sub.billingInterval ? sub.unitAmountCents : listPrice(tier, interval, sub.currency);
+  await prisma.$transaction(async tx => {
+    await tx.subscription.update({ where: { id: sub.id }, data: { metadata: { ...m, reminded: [...reminded, ...due.map(d => `${day(end)}:${d}`)] } } });
+    const to = await billingEmail(tx, sub.organizationId);
+    const left = Math.max(1, Math.ceil(daysLeft));
+    await notify(tx, sub.organizationId, { kind: 'billing', title: `${PLANS[tier].name} renews on ${day(end)}`, body: `Renew for ${money(amount, sub.currency)} with ${ONCE_METHODS} or a card before ${day(end)}.`, link: '/billing' }, ['OWNER']);
+    if (to) await queueMail(tx, { to, subject: `Your Siar ${PLANS[tier].name} plan renews in ${left} ${left === 1 ? 'day' : 'days'}`, kicker: 'Billing', details: [['Plan', `${PLANS[tier].name} (${per(interval)}ly)`], ['Amount', money(amount, sub.currency)], ['Renew by', day(end)]], reason: 'You received this email because this address is the billing contact for a Siar organization.', heading: `Time to renew ${PLANS[tier].name}`, paragraphs: [`Your plan was paid once, so it does not renew by itself. Renew before ${day(end)} with ${ONCE_METHODS} or a card.`, 'Your price is locked while you stay subscribed.'], cta: { label: 'Renew now', url: appUrl('/billing?renew=1') } });
+  });
+  return 'reminded';
 }
 
 export async function renewOne(subId: string): Promise<'skipped' | 'ended' | 'paid' | 'pending' | 'failed' | 'downgraded'> {
@@ -315,7 +386,9 @@ export async function renewOne(subId: string): Promise<'skipped' | 'ended' | 'pa
   const tier = (m.pendingChange?.tier ?? sub.tier) as Tier;
   const interval = (m.pendingChange?.interval ?? sub.billingInterval) as Interval;
   if (tier === 'FREE') { await endSubscription(sub.id, 'moved to Free at the period end'); return 'ended'; }
-  const payment = await prisma.billingPayment.create({ data: { organizationId: sub.organizationId, provider: sub.provider, purpose: 'SUBSCRIPTION', amountCents: usdCents(tier, interval), currency: 'usd', tier, billingInterval: interval } });
+  // Price lock: the same plan renews at its own price; a scheduled change takes the new plan's list price.
+  const amount = tier === sub.tier && interval === sub.billingInterval ? sub.unitAmountCents : listPrice(tier, interval, sub.currency);
+  const payment = await prisma.billingPayment.create({ data: { organizationId: sub.organizationId, provider: sub.provider, purpose: 'SUBSCRIPTION', amountCents: amount, currency: sub.currency, tier, billingInterval: interval } });
   let r: ChargeOutcome;
   try {
     r = sub.providerPaymentToken ? await renewalCharger.charge(sub, payment) : { status: 'failed', reason: 'There is no card on file.', tokenInvalid: true };
@@ -335,7 +408,7 @@ async function chargeFailed(subId: string, paymentId: string, reason: string, to
     const attempts = sub.failedAttempts + 1;
     const actor = systemActor(sub.organizationId);
     const to = await billingEmail(tx, sub.organizationId);
-    const amount = money(chargedAmount(payment.amountCents, sub.currency), sub.currency);
+    const amount = money(payment.amountCents, payment.currency);
     const plan = PLANS[sub.tier].name;
     if (attempts >= MAX_ATTEMPTS) {
       await tx.subscription.update({ where: { id: subId }, data: { status: 'canceled', canceledAt: new Date(), failedAttempts: attempts, nextRetryAt: null, cancelAtPeriodEnd: false } });
