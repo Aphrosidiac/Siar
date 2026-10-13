@@ -6,7 +6,7 @@ const { items, title = 'Frequently asked questions' } = Astro.props;
   {title && <h2>{title}</h2>}
   {items.map((i) => (
     <details>
-      <summary>{i.q}</summary>
+      <summary><h3>{i.q}</h3></summary>
       <p set:html={i.a} />
     </details>
   ))}

@@ -19,7 +19,8 @@ import { SIGNUP_URL, DESCRIPTION } from '../config';
 const N = NETWORKS.length;
 const faq = [
   { q: 'Is Siar an API or an app?', a: `Both. Everything is built on one REST API, and the dashboard is a client of that same API. Developers wire Siar into their product; social teams use the dashboard to write, schedule, reply and report across ${N} networks.` },
-  { q: 'How is it priced?', a: `Per organization, never per connected account. The Free plan includes ${PLANS.FREE.posts} posts a month. Paid plans start at $${paidFrom()} a month on yearly billing and allow unlimited teams and accounts. X (Twitter) usage is passed through at X's own price from a prepaid credit balance.` },
+  { q: 'How is Siar priced?', a: `Per organization, never per connected account. The Free plan includes ${PLANS.FREE.posts} posts a month. Paid plans start at $${paidFrom()} a month on yearly billing and allow unlimited teams and accounts. X (Twitter) usage is passed through at X's own price from a prepaid credit balance.` },
+  { q: 'Which social networks does Siar support?', a: `${N} networks: ${NETWORKS.map((n) => n.name).join(', ')}. Each one has its own page with the post types, media rules and limits Siar enforces. See <a href="/platforms">all platforms</a>.` },
   { q: 'Can my customers connect their own accounts?', a: 'Yes. Create a team per customer and send them a hosted connect link with your logo and name. They authorize in their own browser and land back in your app; you never handle their passwords or tokens.' },
   { q: 'Do I need developer apps on every network?', a: 'No. Accounts connect through the network apps Siar operates. What each network needs from the account itself (a business profile, a Page, a channel) is listed on its network page.' },
   { q: 'What happens when a network rejects a post?', a: 'Most rejections never happen: each network\'s limits are checked when you create the post, so you get a 400 you can fix straight away. If a network still says no, you get its own message and code on the post, a webhook, and a retry endpoint.' },
@@ -45,7 +46,7 @@ const audiences = [
   ['04', 'Product and ops teams', 'Release notes to LinkedIn, X, Slack and Discord in one request, on a schedule, from your CI.', '/use-cases/social-media-scheduling-api'],
 ];
 ---
-<Base title="Siar | Write it once. Siar it everywhere." description={DESCRIPTION} jsonLd={[softwareLd(), faqLd(faq)]}>
+<Base title="Siar | Write it once. Siar it everywhere." description={DESCRIPTION} jsonLd={[softwareLd({ offers: 'free' }), faqLd(faq)]}>
   <section class="m-hero">
     <div class="m-wide">
       <div class="hero-top" data-reveal>
@@ -55,7 +56,7 @@ const audiences = [
       <div class="hero-text">
       <h1 class="m-display" data-lines><span class="ln"><span>Write it once.</span></span><span class="ln"><span style="--d:1">Siar it everywhere.</span></span></h1>
       <div class="hero-sub">
-        <p class="m-lead" data-reveal style="--d:3">One API and one dashboard to publish, schedule, reply and measure on {N} social networks. Connect as many accounts as you like. Pay one price per organization.</p>
+        <p class="m-lead" data-reveal style="--d:3">Siar is one API and one dashboard to publish, schedule, reply and measure on {N} social networks. Connect as many accounts as you like. Pay one price per organization.</p>
         <div class="hero-cta" data-reveal style="--d:4">
           <div class="m-actions"><a class="pill ink" href={SIGNUP_URL}>Start free <span class="arr" aria-hidden="true">→</span></a><a class="pill" href="/docs/quickstart">Read the quickstart</a></div>
           <p class="m-note">Free plan · {PLANS.FREE.posts} posts a month · no card</p>
