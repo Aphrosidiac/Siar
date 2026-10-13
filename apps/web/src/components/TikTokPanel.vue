@@ -5,7 +5,7 @@ import Select from './ui/Select.vue';
 import Toggle from './ui/Toggle.vue';
 import Input from './ui/Input.vue';
 import Avatar from './ui/Avatar.vue';
-import type { SocialAccount } from '@/lib/types';
+import type { SocialAccount, Upload } from '@/lib/types';
 import { handle } from '@/lib/format';
 import { api } from '@/lib/api';
 
@@ -14,7 +14,7 @@ import { api } from '@/lib/api';
  * offer only their privacy levels with no default, grey out interactions they switched off, check their max video
  * length, stop when they cannot post, disclose commercial content, and show the Music Usage Confirmation line.
  */
-const props = defineProps<{ account: SocialAccount | null; values: Record<string, any>; issues: Record<string, string>; hasImages: boolean; hasVideo: boolean; videoLength?: number | null }>();
+const props = defineProps<{ account: SocialAccount | null; values: Record<string, any>; issues: Record<string, string>; hasImages: boolean; hasVideo: boolean; videoLength?: number | null; media?: Upload[]; caption?: string }>();
 const emit = defineEmits<{ set: [key: string, value: unknown]; block: [reason: string | null] }>();
 const v = (k: string) => props.values[k];
 const set = (k: string, val: unknown) => emit('set', k, val);
@@ -60,8 +60,8 @@ const draft = computed(() => !!v('uploadToDraft'));
 // Only the levels this creator allows; "Only me" is unavailable for branded content.
 const privacyOptions = computed(() => {
   const allowed = info.value?.privacyLevelOptions;
-  return PRIVACY.filter((o) => !allowed?.length || allowed.includes(o.value)).map((o): { value: string; label: string; disabled?: boolean } =>
-    o.value === 'SELF_ONLY' && v('isBrandContent') ? { ...o, label: 'Only me (not available for branded content)', disabled: true } : o);
+  return PRIVACY.filter((o) => !allowed?.length || allowed.includes(o.value)).map((o): { value: string; label: string; sub?: string; disabled?: boolean } =>
+    o.value === 'SELF_ONLY' && v('isBrandContent') ? { ...o, sub: 'Branded content visibility cannot be set to private.', disabled: true } : o);
 });
 watch(privacyOptions, (opts) => { const p = v('privacy'); if (p && !opts.some((o) => o.value === p && !o.disabled)) set('privacy', undefined); });
 
@@ -72,7 +72,13 @@ const tooLong = computed(() => {
   return props.hasVideo && max && len && len > max ? `This video is ${Math.round(len)}s. This account can post videos up to ${max}s.` : null;
 });
 const label = computed(() => v('isBrandContent') ? 'Paid partnership' : v('isOrganicBrandContent') ? 'Promotional content' : null);
-const blockReason = computed(() => draft.value ? null : info.value && !info.value.canPost ? info.value.reason : tooLong.value);
+// Disclosure on with neither option chosen: TikTok requires the publish button to be disabled, with this text.
+const DISCLOSE_MISSING = 'You need to indicate if your content promotes yourself, a third party, or both.';
+const discloseMissing = computed(() => disclose.value && !v('isOrganicBrandContent') && !v('isBrandContent'));
+// What will be posted, shown before the creator consents (TikTok: display a preview of the to-be-posted content).
+const previewVideo = computed(() => props.media?.find((m) => m.type === 'video') ?? null);
+const previewImages = computed(() => (previewVideo.value ? [] : (props.media ?? []).filter((m) => m.type === 'image').slice(0, 4)));
+const blockReason = computed(() => discloseMissing.value ? DISCLOSE_MISSING : draft.value ? null : info.value && !info.value.canPost ? info.value.reason : tooLong.value);
 watch(blockReason, (r) => emit('block', r ?? null), { immediate: true });
 </script>
 
@@ -82,6 +88,12 @@ watch(blockReason, (r) => emit('block', r ?? null), { immediate: true });
       <Avatar :src="avatar" :name="nickname" :size="36" />
       <div class="grow"><div class="tiny muted">Posting as</div><div class="strong" data-testid="tiktok-nickname">{{ nickname }}</div><div v-if="username" class="tiny muted">{{ handle(username) }}</div></div>
       <UserRound :size="16" class="faint" />
+    </div>
+    <div v-if="previewVideo || previewImages.length" class="preview" data-testid="tiktok-preview">
+      <div class="tiny muted">Preview</div>
+      <video v-if="previewVideo" :src="previewVideo.url ?? undefined" :poster="previewVideo.thumbnailUrl ?? undefined" controls muted playsinline preload="metadata" class="pv" />
+      <div v-else class="pimgs"><img v-for="m in previewImages" :key="m.id" :src="(m.thumbnailUrl || m.url)!" alt="" class="pv" /></div>
+      <p class="small preview-text">{{ caption }}</p>
     </div>
     <div v-if="info && !info.canPost && !draft" class="callout danger small" role="alert" data-testid="tiktok-cannot-post">{{ info.reason }}</div>
     <div v-else-if="infoError" class="callout warn small">{{ infoError }} The form shows every option; TikTok checks them when the post goes out.</div>
@@ -106,8 +118,8 @@ watch(blockReason, (r) => emit('block', r ?? null), { immediate: true });
       <template v-if="disclose">
         <Toggle :model-value="!!v('isOrganicBrandContent')" label="Your brand" help="You are promoting yourself or your own business. Labelled “Promotional content”." @update:model-value="set('isOrganicBrandContent', $event || undefined)" />
         <Toggle :model-value="!!v('isBrandContent')" label="Branded content" :disabled="v('privacy') === 'SELF_ONLY'" :help="v('privacy') === 'SELF_ONLY' ? 'Branded content can’t be private. Choose another visibility first.' : 'You are promoting another brand or a third party. Labelled “Paid partnership”.'" @update:model-value="set('isBrandContent', $event || undefined)" />
-        <div v-if="!v('isOrganicBrandContent') && !v('isBrandContent')" class="callout warn small">Select at least one option to continue.</div>
-        <div v-else-if="label" class="callout info small" data-testid="tiktok-label">Your {{ hasImages && !hasVideo ? 'photo post' : 'video' }} will be labeled “{{ label }}”.</div>
+        <div v-if="discloseMissing" class="callout warn small">{{ DISCLOSE_MISSING }}</div>
+        <div v-else-if="label" class="callout info small" data-testid="tiktok-label">Your {{ hasImages && !hasVideo ? 'photo' : 'video' }} will be labeled as “{{ label }}”.</div>
         <div v-if="brandPrivate" class="callout danger small" role="alert">Branded content cannot be private. Choose another visibility.</div>
       </template>
     </fieldset>
@@ -130,6 +142,11 @@ watch(blockReason, (r) => emit('block', r ?? null), { immediate: true });
 
 <style scoped>
 .creator { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-subtle); }
+.preview { display: flex; flex-direction: column; gap: 8px; }
+.pv { width: 160px; aspect-ratio: 9 / 16; object-fit: cover; border-radius: var(--radius); background: #0b0b0a; border: 1px solid var(--border); }
+.pimgs { display: flex; gap: 8px; flex-wrap: wrap; }
+.pimgs .pv { width: 96px; }
+.preview-text { white-space: pre-wrap; margin: 0; max-width: 60ch; }
 .group { border: 0; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
 .group legend { padding: 0; margin-bottom: 4px; }
 </style>
