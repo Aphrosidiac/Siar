@@ -88,3 +88,23 @@ https://siaran.my/ (the instructions give the sign-in URL).
 3. Fakhrul answers the three Data handling declarations and ticks the 27 usage agreements.
 4. The Testing page shows the required API calls (see above).
 5. Fakhrul reads the submission and presses Submit, by 2026-11-10.
+
+## Cleanup after recording (2026-10-13)
+
+All test content from the recordings is removed:
+- Siar: the 6 test posts deleted from Posts (Facebook and Threads copies deleted on the network by Siar). The 8
+  Inbox comments of those posts were soft-deleted in the database (`FetchedComment.deletedAt`), since Siar does not
+  yet hear about comment removals.
+- Instagram @ffdev.studio: the 5 test posts deleted on instagram.com (Instagram's API cannot delete posts); their
+  comments went with them. Only FF's real posts remain.
+- Facebook FF Dev Studio Page: no test posts left (newest is the real "Quick quiz" reel).
+- Threads @ffdev.studio: the "Testing Siar publishing" thread and its self-reply, and the reply to fakhrlfahmi,
+  deleted on threads.com (Siar's delete missed the first because its Threads account had been reconnected; filed as
+  a task). fakhrlfahmi's two test replies deleted from that account.
+- Not removed: direct messages (Messenger and Instagram DMs cannot be deleted for the other person) and the Siar
+  Inbox conversations with Jon Doe and fakhrlfahmi, which F8/I5/G2 rely on if re-shot.
+
+Reviewer comment automation: Fakhrul approved a Siar flow (Instagram, COMMENT_CREATED, keyword "Siar review",
+step SEND_PUBLIC_COMMENT_REPLY) so the reviewer can test instagram_business_manage_comments on any FF post. Siar has
+no automation screen; creating it through `POST /api/v1/automations` from the browser was blocked by Claude's
+permission classifier, so it is not created yet.
