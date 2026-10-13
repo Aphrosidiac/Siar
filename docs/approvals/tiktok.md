@@ -40,12 +40,13 @@ can be raised later.
 
 Rejections usually cite one of 2/4/5/6/7. Each is built into the composer.
 
-## Status (2026-10-13) — ready to submit
+## Status (2026-10-13) — ready to submit (checked against TikTok's Content Sharing Guidelines §1–11)
 - Developer account hello@ffdev.studio; org **FF DEV STUDIO** 7696076379615659029; app **Siar** 7696085856649693236.
 - **Sandbox "Siar review"** 7696050807262955540: full config; its keys are on production (`NETWORK_TIKTOK_CLIENT_KEY/SECRET`,
   server env backup .env.bak-20261013-191607). Target user: ffdev.studio. siaran.my verified for both environments
   (two TXT records on the zone, keep both).
-- **Production draft saved**: imported from the sandbox + scope explanation + demo film `review/out/K1.mp4` (3:36,
+- **Production draft saved**: imported from the sandbox + scope explanation + demo films `review/out/K1.mp4` (3:36, end to end) and `K2.mp4` (0:58, the post form up close: preview,
+  disclosure blocks Publish, labels, Branded Content Policy, Only me disabled) (K1
   recorded with `scripts/meta-review/rec.sh`, edited by `edit.mjs K1`, tail take K1b). Only Submit is left (Fakhrul).
 - Unaudited apps can only post to a **private** TikTok account: @ffdev.studio was switched to private for the film.
   Switch it back to public when done; until the audit passes, Siar's TikTok posts fail on public accounts.

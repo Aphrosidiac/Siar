@@ -122,5 +122,17 @@
     "label": "Products and scopes shown in this recording",
     "footer": "Recorded in Siar (app.siaran.my) on 13 October 2026 with the Siar sandbox and FF Dev Studio's own TikTok account (private, as TikTok requires before the audit).",
     "tail": "K1b"
+  },
+  "K2": {
+    "title": "TikTok: the post form, up close",
+    "perms": [
+      "video.publish",
+      "creator_info",
+      "Commercial content disclosure",
+      "Privacy levels"
+    ],
+    "review": "TIKTOK APP REVIEW",
+    "label": "What this recording shows",
+    "footer": "Recorded in Siar (app.siaran.my) on 13 October 2026 with the Siar sandbox and FF Dev Studio's own TikTok account. Nothing is posted in this clip."
   }
 }
