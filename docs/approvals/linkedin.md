@@ -3,6 +3,44 @@
 Personal-profile posting (`w_member_social`) works as soon as the app exists. Company **Pages**
 need the Community Management API, which LinkedIn grants to registered legal entities.
 
+## Status (2026-10-14)
+- **"Siar"** (client 86eizozqekvoht, created 2026-10-12, verified by the FF Dev Studio page): Share on LinkedIn +
+  Sign In with OpenID Connect. Live in production — personal-profile posting only.
+- **"Siar Pages"** (client 8628thwls2dbfm, app 264129310, created 2026-10-14, verified by the FF Dev Studio page
+  the same day): no other products. Community Management **Development tier form SUBMITTED 2026-10-14 ~00:30**
+  (Qualtrics form from the Products tab; LinkedIn allows 21 days from the request to fill it).
+  Answers: legal name FF DEV STUDIO, no alternate name, https://ffdev.studio, the SSM principal address, Malaysia;
+  primary use case **Platform**; other use cases Page management, Page analytics, Profile management; the
+  description below.
+- Developer business email: **siaran@ffdev.studio** (set 2026-10-14; the access request verified it with a code;
+  the settings-page "Verify email" link mail is separate — click it if the setting still shows Pending).
+- Next: an email from **Microsoft Vetting Services** to siaran@ffdev.studio (business verification — answer it;
+  they may ask for the SSM certificate), then LinkedIn's decision by email. After Development tier: the
+  **Standard tier** form appears under Products and needs the screencast below. If refused, the same app can't
+  re-apply: create a new app and submit a new form.
+
+### Description submitted (use cases)
+> Siar (https://siaran.my) is a self-service social media management dashboard and API built by FF DEV STUDIO.
+> Businesses and agencies sign up at https://app.siaran.my, connect their social accounts with OAuth, and publish
+> to all of them from one composer.
+>
+> Page management: an admin of a LinkedIn Page connects it to Siar and chooses which Pages to manage. They write a
+> post (text, images, video, documents or an article link), publish it now or schedule it, and Siar posts it as the
+> organization. Siar lists the comments on the Page's posts so the team can reply as the Page and delete spam. Only
+> Pages the member administers are offered.
+>
+> Page analytics: Siar shows each Page's follower count and page statistics, and impressions, clicks, reactions,
+> comments and shares for each post Siar published, so customers can see what performed best.
+>
+> Profile management: members can also connect their own profile and publish or schedule posts to it, and see the
+> analytics of those posts.
+>
+> Siar acts only on accounts the member connects and authorizes, stores tokens encrypted, and deletes a member's
+> data when they disconnect or ask (https://siaran.my/data-deletion). We do not sell LinkedIn data, use it for
+> advertising, or build profiles from it.
+
+Trap: the Qualtrics form is **one page** — its only button is labelled "Next" but it submits.
+
 ## [F] Day 1
 1. linkedin.com/company/setup → create the **FF DEV STUDIO** company page (or use the existing one),
    logo + website https://ffdev.studio.
