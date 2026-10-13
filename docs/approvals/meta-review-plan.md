@@ -271,7 +271,7 @@ laptop screen): Jon Doe (Facebook) and fakhrlfahmi (Instagram, Threads).
 | F5 Reply to and moderate Page comments | pages_manage_engagement | Done: reply, like, hide, unhide, delete, each shown on facebook.com |
 | F6 Real-time Page updates | pages_manage_metadata | Done: a comment and a DM arrive with no reload |
 | F7 Facebook Page insights | read_insights | Done |
-| F8 Messenger inbox | pages_messaging, Business Asset User Profile Access | **Waiting**: Jon Doe needs a Tester role so the profile picture loads (see below) |
+| F8 Messenger inbox | pages_messaging, Business Asset User Profile Access | Done: messages off → on through Facebook Login (pages_messaging), Jon Doe's DM arrives with his name and picture, reply from Siar, both shown in Meta Business Suite |
 | G1 Instagram Login: connect, publish, insights | instagram_business_basic, …_content_publish, …_manage_insights | Done |
 | G2 Instagram Login: direct messages | instagram_business_manage_messages | Done |
 | G3 Instagram Login: comments | instagram_business_manage_comments | Done |
@@ -281,11 +281,11 @@ laptop screen): Jon Doe (Facebook) and fakhrlfahmi (Instagram, Threads).
 | T1 Threads: connect, publish, insights, delete | threads_basic, threads_content_publish, threads_manage_insights, threads_delete | Done |
 | T2 Threads replies | threads_read_replies, threads_manage_replies | Done: import, reply, hide; Threads' "Hidden by you" page |
 
-**F8 blocker.** Facebook only returns a sender's name and profile picture through the User Profile API for
-people with a role on the app until Business Asset User Profile Access has Advanced Access. Without it Siar
-falls back to the conversation's participant name, so the film could not show the profile picture. Adding Jon
-Doe as a Tester (App roles → Add People) is an app-permission change Fakhrul makes himself; then Jon Doe accepts
-the invite and F8 is recorded like F6.
+**F8 and the profile picture.** Facebook only returns a sender's name and profile picture through the User Profile API
+for people with a role on the app until Business Asset User Profile Access has Advanced Access. Jon Doe was added as a
+Tester (App roles → Add People) and accepted the invite (developers.facebook.com → account menu → Pending App Request).
+Siar looks a participant up once, so the existing Jon Doe conversation, named earlier from the participant list, had
+its saved name cleared to make Siar fetch the profile (and picture) again.
 
 Product fixes made while recording (deployed): comment import keeps the author a webhook delivered (8715655);
 the post drawer shows each network's likes, comments and views with Refresh (c994dad, 3f656a6).
