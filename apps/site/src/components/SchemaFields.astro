@@ -8,29 +8,29 @@ const Self = Astro.self;
 <ul class:list={['sf', { root: depth === 0 }]}>
   {fields.map((f) => (
     <li>
-      <div class="row">
-        <code class="n">{f.name}</code>
-        <span class="t">{f.type}</span>
-        {f.required && <span class="req">required</span>}
-        {f.nullable && <span class="opt">nullable</span>}
-        {f.default !== undefined && f.default !== null && <span class="opt">default {fmt(f.default)}</span>}
-        {f.notes.map((n) => <span class="opt">{n}</span>)}
+      <div class="sf-row">
+        <code class="sf-n">{f.name}</code>
+        <span class="sf-t">{f.type}</span>
+        {f.required && <span class="sf-req">required</span>}
+        {f.nullable && <span class="sf-opt">nullable</span>}
+        {f.default !== undefined && f.default !== null && <span class="sf-opt">default {fmt(f.default)}</span>}
+        {f.notes.map((n) => <span class="sf-opt">{n}</span>)}
       </div>
       {f.enum && f.enum.length > 0 && (
-        <div class="enum">One of: {f.enum.map((e, i) => <><code>{String(e)}</code>{i < f.enum!.length - 1 ? ' ' : ''}</>)}</div>
+        <div class="sf-enum">One of: {f.enum.map((e, i) => <><code>{String(e)}</code>{i < f.enum!.length - 1 ? ' ' : ''}</>)}</div>
       )}
       {f.children && f.children.length > 0 && (
-        <details open={open && depth === 0} class="kids">
+        <details open={open && depth === 0} class="sf-kids">
           <summary>{f.children.length} field{f.children.length === 1 ? '' : 's'}</summary>
           <Self fields={f.children} depth={depth + 1} />
         </details>
       )}
       {f.variants && f.variants.length > 0 && (
-        <details class="kids">
+        <details class="sf-kids">
           <summary>One of {f.variants.length} shapes</summary>
           {f.variants.map((v) => (
-            <div class="variant">
-              <p class="vl">{v.label}</p>
+            <div class="sf-var">
+              <p class="sf-vl">{v.label}</p>
               {v.fields.length ? <Self fields={v.fields} depth={depth + 1} /> : null}
             </div>
           ))}
@@ -39,22 +39,24 @@ const Self = Astro.self;
     </li>
   ))}
 </ul>
-<style>
+<style is:global>
+  /* global, with sf- prefixes: request schemas nest thousands of rows deep, and a scoped style would stamp a
+     data-astro-cid attribute on every one of them (it pushed /docs/api/automation past 2 MB) */
   .sf { list-style: none; margin: 0; padding: 0; }
   .sf.root { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-elevated); margin: 0 0 20px; }
   .sf li { margin: 0; padding: 10px 14px; border-top: 1px solid var(--border); }
   .sf.root > li:first-child { border-top: 0; }
-  .row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; }
-  .n { font-weight: 500; font-size: var(--fs-13); background: none !important; padding: 0 !important; color: var(--text); }
-  .t { font-family: var(--mono); font-size: var(--fs-12); color: var(--text-subtle); overflow-wrap: anywhere; }
-  .req { font-family: var(--mono); font-size: var(--fs-11); font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--text); }
-  .opt { font-size: var(--fs-12); color: var(--text-subtle); }
-  .enum { font-size: var(--fs-13); color: var(--text-subtle); margin-top: 6px; line-height: 28px; }
-  .enum code { font-size: var(--fs-12); }
-  .kids { margin-top: 8px; }
-  .kids > summary { font-size: var(--fs-13); color: var(--text-subtle); }
-  .kids :global(.sf) { border-left: 1px solid var(--border-strong); margin: 8px 0 0 2px; }
-  .kids :global(.sf li) { padding: 8px 0 8px 12px; border-top: 0; }
-  .variant { margin-top: 8px; }
-  .vl { font-family: var(--mono); font-size: var(--fs-12); color: var(--text-muted); margin: 4px 0 0; }
+  .sf-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; }
+  .sf-n { font-weight: 500; font-size: var(--fs-13); background: none !important; padding: 0 !important; color: var(--text); }
+  .sf-t { font-family: var(--mono); font-size: var(--fs-12); color: var(--text-subtle); overflow-wrap: anywhere; }
+  .sf-req { font-family: var(--mono); font-size: var(--fs-11); font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--text); }
+  .sf-opt { font-size: var(--fs-12); color: var(--text-subtle); }
+  .sf-enum { font-size: var(--fs-13); color: var(--text-subtle); margin-top: 6px; line-height: 28px; }
+  .sf-enum code { font-size: var(--fs-12); }
+  .sf-kids { margin-top: 8px; }
+  .sf-kids > summary { font-size: var(--fs-13); color: var(--text-subtle); }
+  .sf-kids .sf { border-left: 1px solid var(--border-strong); margin: 8px 0 0 2px; }
+  .sf-kids .sf li { padding: 8px 0 8px 12px; border-top: 0; }
+  .sf-var { margin-top: 8px; }
+  .sf-vl { font-family: var(--mono); font-size: var(--fs-12); color: var(--text-muted); margin: 4px 0 0; }
 </style>

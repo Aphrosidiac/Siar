@@ -20,7 +20,7 @@ const faq = [
   { q: 'What does Enterprise add?', a: 'Higher quotas, daily caps and rate limits set per organization, and a quoted price. Contact us with your volumes.' },
 ];
 ---
-<Base title="Pricing" description={`Siar pricing: Free with ${PLANS.FREE.posts} posts a month, paid plans from $${paidFrom()} a month billed yearly. Priced per organization with unlimited connected accounts. X usage passed through at cost.`} jsonLd={[softwareLd(), faqLd(faq), breadcrumbLd([{ name: 'Pricing', href: '/pricing' }])]}>
+<Base title="Pricing: per organization, unlimited accounts" description={`Siar pricing: Free with ${PLANS.FREE.posts} posts a month, paid plans from $${paidFrom()} a month billed yearly. Priced per organization with unlimited connected accounts. X usage passed through at cost.`} jsonLd={[softwareLd(), faqLd(faq), breadcrumbLd([{ name: 'Pricing', href: '/pricing' }])]}>
   <PageHero kicker="Pricing" note="per organization" title="Pay for what you publish." dim="Not for each account." lead={`Plans are per organization. Paid plans have no limit on teams or connected accounts across all ${NETWORKS.length} networks. A plain-text version of this page is at <a href="/pricing.md">/pricing.md</a>.`} />
   <section class="section tight">
     <div class="container">

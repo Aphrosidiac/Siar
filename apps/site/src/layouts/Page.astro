@@ -2,9 +2,9 @@
 import Base from './Base.astro';
 import { LAST_UPDATED } from '../config';
 const fm = Astro.props.frontmatter ?? Astro.props;
-const { title, description, updated, eyebrow } = fm;
+const { title, metaTitle, description, updated, eyebrow } = fm;
 ---
-<Base title={title} description={description}>
+<Base title={metaTitle ?? title} description={description}>
   <section class="m-hero ph">
     <div class="m-wide">
       <p class="m-kicker" data-reveal><span class="n">{eyebrow ?? 'Siar'}</span>{updated !== false && <><span class="rule"></span>updated {updated ?? LAST_UPDATED}</>}</p>

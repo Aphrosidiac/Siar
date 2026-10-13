@@ -3,6 +3,7 @@ import Base from './Base.astro';
 import { GUIDE_NAV, API_NAV, flatGuide } from '../lib/docs';
 import { breadcrumbLd, articleLd } from '../lib/seo';
 import { LAST_UPDATED } from '../config';
+import { updatedAt } from '../lib/updated.mjs';
 
 const fm = Astro.props.frontmatter ?? Astro.props;
 const { title, description, nav = 'guide', toc = true } = fm;
@@ -13,9 +14,10 @@ const idx = flat.findIndex((i) => i.href === path);
 const prev = nav === 'guide' && idx > 0 ? flat[idx - 1] : null;
 const next = nav === 'guide' && idx >= 0 && idx < flat.length - 1 ? flat[idx + 1] : null;
 const headings: { depth: number; slug: string; text: string }[] = (Astro.props.headings ?? []).filter((h: any) => h.depth === 2);
+const updated = updatedAt(path) ?? LAST_UPDATED;
 const crumbs = [{ name: 'Docs', href: '/docs' }, { name: title, href: path }];
 ---
-<Base title={`${title} | Siar docs`} description={description} jsonLd={[breadcrumbLd(crumbs), articleLd({ title, description: description ?? title, date: LAST_UPDATED, path })]}>
+<Base title={`${title} | Siar docs`} description={description} jsonLd={[breadcrumbLd(crumbs), articleLd({ title, description: description ?? title, date: updated, path })]}>
   <div class:list={['container', 'dl', { notoc: !(toc && headings.length > 2) }]}>
     <aside class="side">
       <details class="sidewrap" open>
@@ -33,6 +35,7 @@ const crumbs = [{ name: 'Docs', href: '/docs' }, { name: title, href: path }];
     <article class="art">
       <h1>{title}</h1>
       {description && <p class="lead">{description}</p>}
+      <p class="upd xs muted">Updated <time datetime={updated}>{new Date(`${updated}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })}</time></p>
       <div class="doc"><slot /></div>
       {(prev || next) && (
         <div class="pn">
@@ -65,6 +68,7 @@ const crumbs = [{ name: 'Docs', href: '/docs' }, { name: title, href: path }];
   .art { min-width: 0; max-width: 780px; }
   .notoc .art { max-width: 920px; }
   .art h1 { margin-bottom: 12px; }
+  .upd { margin: -4px 0 24px; }
   .doc { margin-top: 24px; }
   .doc :global(h2) { margin-top: 44px; padding-top: 4px; }
   .doc :global(h3) { font-size: var(--fs-18); margin-top: 28px; }

@@ -3,16 +3,15 @@ import Base from '../../layouts/Base.astro';
 import PageHero from '../../components/PageHero.astro';
 import Cta from '../../components/Cta.astro';
 import { NETWORKS, type NetworkInfo } from '../../lib/networks';
-import { faqLd, breadcrumbLd } from '../../lib/seo';
+import { breadcrumbLd } from '../../lib/seo';
 
 export function getStaticPaths() {
   return NETWORKS.map((n) => ({ params: { api: n.apiSlug }, props: { n } }));
 }
 const { n } = Astro.props as { n: NetworkInfo };
 const errs = n.errors;
-const faq = errs.slice(0, 8).map((e) => ({ q: `${n.name} error ${e.code}: what does it mean?`, a: `${e.meaning} ${e.fix}` }));
 ---
-<Base title={`${n.name} API errors and how to fix them`} description={`${errs.length ? `${errs.length} ${n.name} API errors` : `How ${n.name} errors are reported`}: what each rejection means and the fix, as relayed by Siar.`} jsonLd={[...(faq.length ? [faqLd(faq)] : []), breadcrumbLd([{ name: `${n.name} API`, href: `/${n.apiSlug}` }, { name: 'Errors', href: `/${n.apiSlug}/errors` }])]}>
+<Base title={`${n.name} API errors and how to fix them`} description={`${errs.length ? `${errs.length} ${n.name} API errors` : `How ${n.name} errors are reported`}: what each rejection means and the fix, as relayed by Siar.`} jsonLd={[breadcrumbLd([{ name: `${n.name} API`, href: `/${n.apiSlug}` }, { name: 'Errors', href: `/${n.apiSlug}/errors` }])]}>
   <PageHero kicker={`${n.name} API`} note="errors" title={`${n.name} API errors`} dim="and how to fix them." lead={`When ${n.name} rejects a request, Siar stores the network's own code and message on the post and returns it to you unchanged, so what you read here matches what you see in the API. <a href="/${n.apiSlug}">Back to the ${n.name} API</a>.`} />
   <section class="section tight">
     <div class="container body">

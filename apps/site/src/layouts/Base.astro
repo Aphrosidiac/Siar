@@ -3,7 +3,8 @@ import '../styles/global.css';
 import '../styles/marketing.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { SITE_NAME, SITE_URL, DESCRIPTION, LEGAL_NAME, LEGAL_REG, CONTACT_EMAIL, COMPANY_URL } from '../config';
+import { SITE_NAME, SITE_URL, DESCRIPTION } from '../config';
+import { orgLd, websiteLd } from '../lib/seo';
 
 interface Props {
   title: string;
@@ -17,17 +18,7 @@ const { title, description = DESCRIPTION, jsonLd = [], noindex = false, ogType =
 const fullTitle = /siar/i.test(title) ? title : `${title} | ${SITE_NAME}`;
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 const canonical = `${SITE_URL}${path === '/' ? '' : path}`;
-const org = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  '@id': `${SITE_URL}/#org`,
-  name: SITE_NAME,
-  url: SITE_URL,
-  logo: `${SITE_URL}/favicon.svg`,
-  email: CONTACT_EMAIL,
-  parentOrganization: { '@type': 'Organization', name: LEGAL_NAME, url: COMPANY_URL, identifier: LEGAL_REG, address: { '@type': 'PostalAddress', addressCountry: 'MY' } },
-};
-const ld = [org, ...jsonLd];
+const ld = [orgLd(), ...(path === '/' ? [websiteLd()] : []), ...jsonLd];
 ---
 <!doctype html>
 <html lang="en">
