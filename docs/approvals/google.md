@@ -1,7 +1,8 @@
 # Google — YouTube Data API + Business Profile APIs
 
-**Status (2026-10-13):** project, APIs, consent screen, scopes, OAuth client and Search Console done.
-Next: publish to Production → keys on the server → connect FF's channel → film → submit verification.
+**Status (2026-10-13, 23:10):** app **In production** (unverified), keys live on api.siaran.my, FF's channel
+connected, branding verified by Google's automated check (not yet published), demo film `review/out/Y0.mp4` rendered.
+Next (Fakhrul): Publish branding → upload Y0 to YouTube as unlisted → Verification Center → submit with the text below.
 
 ## Identifiers
 
@@ -73,3 +74,42 @@ Google account that manages a verified Business Profile (FF's own) that is 60+ d
 project number of siar-prod. Use case text: *"Siar lets businesses publish posts, update
 information, reply to reviews and read performance for the Business Profiles they own, from one
 dashboard and API."*
+
+## Demo film Y0 (2026-10-13)
+
+`review/out/Y0.mp4` (2:17) = takes Y0 (opening, title card) + Y2 (connect) + Y1 (compose → analytics) + Y1b (delete),
+joined by `edit.mjs` (`tail` may now be a list). Recorded with the address-bar strip on (`TOOLBAR=140:92 rec.sh start
+<take> 708`) so the client_id is visible during sign-in, as Google asks.
+1. Social accounts → YouTube + → Google account chooser (client_id in the URL) → consent screen with the 3 YouTube
+   scopes → Allow → connected; channel picker (channels.list).
+2. Composer → YouTube only → MP4 → title, type Short, privacy Private, description → Publish now.
+3. Post drawer: Processing → Posted (status polling, `videos.list`); Refresh reads views/likes/comments.
+4. Analytics → YouTube → Refresh now (`yt-analytics.readonly`).
+5. Posts → Delete → "It is deleted from YouTube too" → Post deleted (checked in YouTube Studio off camera: the
+   Shorts list is empty).
+Not filmed: comment replies (no comments are possible on private videos; API uploads stay private until the YouTube
+audit) and thumbnails (no dashboard control yet; API `misc.youtube.setThumbnail`). The YouTube Studio shots were cut:
+the extension's glow and pointer showed there.
+
+Recording traps learned here: inject the cursor/hider on **every** page load, Google's and YouTube's included (do the
+navigation inside `@cut`); mark `@cut` *before* a click that redirects (the white flash comes ~0.3 s after); Chrome must
+be in front of the Claude window on the laptop screen for the whole take, or the take records the Claude app. Check
+every take with a contact sheet (`ffmpeg … fps=1/2,tile`) before using it.
+
+**Scope justifications as filmed (paste):**
+- `youtube.upload` — Upload the videos and Shorts the user writes or schedules in Siar to the YouTube channel they
+  connected.
+- `youtube.force-ssl` — Read the connected channel and the processing status and statistics of videos the user
+  uploaded through Siar, list their uploads, edit or delete those videos when the user edits or deletes the post in
+  Siar, and reply to and moderate comments on the user's own videos from Siar's Inbox.
+- `yt-analytics.readonly` (not sensitive; for reference) — Show views, likes and watch time of the user's channel and
+  videos in Siar's Analytics.
+
+## Incidents
+
+- 2026-10-13: the YouTube film was first recorded as `G1`, a name Meta's Instagram Login film already used.
+  `rec.sh start` deleted Meta's raw G1 take and the render overwrote `review/out/G1.mp4`; no backup exists (Meta holds
+  the uploaded copy). `rec.sh` now refuses an existing name unless `RETAKE=1`. If Meta asks for G1 again it must be
+  re-recorded.
+- The first Y2 take started while the Claude app covered Chrome: its first 18 s show another session's chat. Those
+  frames were cut (never in Y0) and the review stills deleted; the raw `review/raw/Y2.mp4` still holds them (git-ignored).

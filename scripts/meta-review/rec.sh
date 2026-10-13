@@ -14,7 +14,10 @@ case "$1" in
     # so the crop follows Chrome's debugging bar appearing or not
     if [ -n "${3:-}" ]; then CROP="2816:$(( $3 * 2 )):0:$(( 1762 - $3 * 2 ))"; fi
     pgrep -qf "caffeinate -dimu" || { echo "start caffeinate -dimu first: an idle Mac shows its screen saver mid-take"; exit 1; }
-    park; f="$2"; echo "$f" > "$CUR"; rm -f "$D/$f.mp4" "$D/$f.tl"
+    f="$2"
+    # never reuse a film name: a re-take of an existing film needs RETAKE=1 (2026-10-13 a new "G1" deleted Meta's G1 take)
+    if [ -z "${RETAKE:-}" ] && { [ -e "$D/$f.mp4" ] || [ -e "$D/../out/$f.mp4" ]; }; then echo "$f already exists (raw or out); pick a new name or RETAKE=1"; exit 1; fi
+    park; echo "$f" > "$CUR"; rm -f "$D/$f.mp4" "$D/$f.tl"
     VF="crop=${CROP:-2816:1400:0:362}"
     # TOOLBAR=<y>:<h> (screen pixels, 2x) also records Chrome's address bar strip and stacks it over the viewport,
     # for reviews that must see the real URL (Google OAuth verification: client_id on the consent screen)

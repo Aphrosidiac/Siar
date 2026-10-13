@@ -191,22 +191,27 @@ execFileSync('ffmpeg', args, { stdio: 'inherit' });
 
 // edit decision list, for the review notes
 const out = { film, rawDuration: +dur.toFixed(2), duration: +(TITLE + mainDur + HOLD).toFixed(2), pieces, captions: states.map((s) => ({ at: +(TITLE + s.from).toFixed(2), to: +(TITLE + Math.min(s.to, mainDur + HOLD)).toFixed(2), caption: s.caption, url: s.url, ...(s.cut ? { cut: true } : {}) })) };
-// a tail take (films.json `tail`): edit it as a part, append it, and carry its captions over
-if (meta.tail) {
-  const r = spawnSync('node', [new URL(import.meta.url).pathname, meta.tail, '--part'], { encoding: 'utf8' });
-  if (r.status !== 0) throw new Error(`tail ${meta.tail} failed: ${r.stderr}`);
+// tail takes (films.json `tail`: a name or a list): edit each as a part, append in order, carry their captions over;
+// the end hold goes after the last one
+const tails = [meta.tail ?? []].flat();
+out.tails = [];
+tails.forEach((name, k) => {
+  const last = k === tails.length - 1, hold = last ? 1.5 : 0;
+  const r = spawnSync('node', [new URL(import.meta.url).pathname, name, '--part'], { encoding: 'utf8' });
+  if (r.status !== 0) throw new Error(`tail ${name} failed: ${r.stderr}`);
   process.stdout.write(r.stdout.split('\n').filter((l) => l.startsWith('CAPTION CUT')).map((l) => `${l}\n`).join(''));
-  const tail = JSON.parse(readFileSync(`${OUT}${meta.tail}.edl.json`, 'utf8'));
+  const tail = JSON.parse(readFileSync(`${OUT}${name}.edl.json`, 'utf8'));
   const joined = `${TMP}${film}-joined.mp4`;
-  execFileSync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', '-i', `${OUT}${film}.mp4`, '-i', `${OUT}${meta.tail}.mp4`, '-filter_complex',
-    '[0:v][1:v]concat=n=2:v=1:a=0,tpad=stop_mode=clone:stop_duration=1.5,setparams=color_primaries=bt709:color_trc=bt709:colorspace=bt709:range=tv[v]', '-map', '[v]',
+  execFileSync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', '-i', `${OUT}${film}.mp4`, '-i', `${OUT}${name}.mp4`, '-filter_complex',
+    `[0:v][1:v]concat=n=2:v=1:a=0,tpad=stop_mode=clone:stop_duration=${hold},setparams=color_primaries=bt709:color_trc=bt709:colorspace=bt709:range=tv[v]`, '-map', '[v]',
     '-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-pix_fmt', 'yuv420p', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709', '-color_range', 'tv',
     '-movflags', '+faststart', joined], { stdio: 'inherit' });
   execFileSync('mv', [joined, `${OUT}${film}.mp4`]);
   const at = out.duration;
-  out.captions.push(...tail.captions.map((c, i, all) => ({ ...c, at: +(c.at + at).toFixed(2), to: +(c.to + at + (i === all.length - 1 ? 1.5 : 0)).toFixed(2) })));
-  out.tail = { film: meta.tail, at, pieces: tail.pieces };
-  out.duration = +(at + tail.duration + 1.5).toFixed(2);
-}
+  out.captions.push(...tail.captions.map((c, i, all) => ({ ...c, at: +(c.at + at).toFixed(2), to: +(c.to + at + (i === all.length - 1 ? hold : 0)).toFixed(2) })));
+  out.tails.push({ film: name, at, pieces: tail.pieces });
+  out.duration = +(at + tail.duration + hold).toFixed(2);
+});
+if (out.tails.length === 1) out.tail = out.tails[0];
 writeFileSync(`${OUT}${film}.edl.json`, JSON.stringify(out, null, 1));
-console.log(`${film}: raw ${out.rawDuration}s → ${out.duration}s, ${kept.length} pieces, ${states.length} captions${meta.tail ? ` + tail ${meta.tail}` : ''}`);
+console.log(`${film}: raw ${out.rawDuration}s → ${out.duration}s, ${kept.length} pieces, ${states.length} captions${tails.length ? ` + tail ${tails.join(', ')}` : ''}`);
