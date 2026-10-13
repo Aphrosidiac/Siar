@@ -34,8 +34,12 @@ const esc = (s: string) => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;
 // turn warm tints into muddy browns; pure neutrals invert to the app's own dark grey. The ink button and
 // band stay ink, and the logo is a self-contained ink tile.
 const C = { page: '#FFFFFF', card: '#FFFFFF', panel: '#F4F4F5', line: '#E4E4E7', ink: '#0B0B0A', paper: '#FFFFFF', text: '#0B0B0A', body: '#3F3F46', muted: '#71717A', faint: '#A1A1AA', alert: '#D8452E' };
-const FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Helvetica,Arial,sans-serif";
-const MONO = "'SF Mono',Menlo,Consolas,'Liberation Mono',monospace";
+// IBM Plex, the product's typeface, served from siaran.my/fonts. Apple Mail, Outlook for Mac, Samsung Mail
+// and Thunderbird load it; Gmail and Outlook for Windows ignore web fonts and fall back to the system stack.
+const FONT = "'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
+const MONO = "'IBM Plex Mono','SF Mono',Menlo,Consolas,'Liberation Mono',monospace";
+const fontFaces = () => [['Sans', 400, 400], ['Sans', 500, 500], ['Sans', 600, 600], ['Sans', 600, 700], ['Mono', 400, 400], ['Mono', 500, 500]]
+  .map(([f, file, w]) => `@font-face { font-family:'IBM Plex ${f}'; font-style:normal; font-weight:${w}; src:url('${siteUrl(`/fonts/plex-${String(f).toLowerCase()}-${file}.woff2`)}') format('woff2'); }`).join('\n');
 
 /**
  * Siar transactional email: the product's cream-and-ink language, table layout, inline styles.
@@ -73,6 +77,7 @@ export function renderMail(m: MailBody) {
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="x-apple-disable-message-reformatting">
 <meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark"><title>${esc(m.subject)}</title>
 <style>
+${fontFaces()}
 @media (prefers-color-scheme: dark) {
   .bg, .card { background:#111113 !important; } .panel { background:#1C1C1F !important; }
   .t { color:#FAFAFA !important; } .b { color:#D4D4D8 !important; } .m { color:#A1A1AA !important; }
@@ -90,7 +95,7 @@ export function renderMail(m: MailBody) {
 ${top}
 <tr><td class="pad" style="padding:40px 48px 44px">
 ${kicker}
-<h1 class="h1 t" style="margin:0 0 16px;font-size:34px;line-height:38px;font-weight:700;letter-spacing:-.04em;color:${C.text}">${esc(m.heading)}</h1>
+<h1 class="h1 t" style="margin:0 0 16px;font-size:34px;line-height:38px;font-weight:700;letter-spacing:-.03em;color:${C.text}">${esc(m.heading)}</h1>
 <div class="b">${paragraphs}</div>
 ${cta}${details}${steps}${footnote}
 </td></tr>
