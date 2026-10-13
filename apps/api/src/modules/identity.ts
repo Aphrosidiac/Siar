@@ -63,7 +63,8 @@ async function sendVerification(userId: string, email: string, welcome = false) 
       to: email, subject: 'Confirm your email for Siar', kicker: 'Confirm email', heading: 'Confirm your email.',
       paragraphs: ['Confirm this address so publishing alerts, invoices and password resets from Siar reach you.'],
       cta: { label: 'Confirm email', url },
-      footnote: 'The link works for 3 days. If you did not ask for this, ignore this email.',
+      details: [['Email', email], ['Link expires', 'In 3 days']],
+      footnote: 'Didn\'t ask for this? Ignore this email. Nothing changes until the link is used.',
       reason: 'You received this email because confirmation was requested for this Siar account.',
     });
 }
