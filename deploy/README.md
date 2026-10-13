@@ -31,6 +31,6 @@ Siar runs on the shared Tencent box next to ~25 other apps, so nothing is instal
   Redis db 11, `/srv/siar/shared/.env` (secrets generated on the box, mode 600), `pm2-siar.service`,
   origin certificate `/etc/ssl/cloudflare/siaran.my.{pem,key}`.
 - Cloudflare: DNS `siaran.my`, `www`, `app`, `api`, `media` → the box, proxied; R2 bucket `siar-media`
-  (`STORAGE_DRIVER=s3`). Mail: Resend key `siar-prod`, sending from `hello@ffdev.studio` (the Resend
+  (`STORAGE_DRIVER=s3`). Mail: Resend key `siar-prod`, sending from `siar@ffdev.studio` (the Resend
   plan's domain limit is reached, so siaran.my is not a sending domain yet).
 - Deploy credentials live in `.env.deploy` (git-ignored) at the repo root.
