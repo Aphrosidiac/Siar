@@ -11,7 +11,7 @@ films come from `review/out/<film>.mp4` (`scripts/meta-review/films.json` maps f
 | Description + film saved | all except public_profile (26) |
 | Extra fields | pages_messaging: Page = FF Dev Studio, plus the five test steps below. instagram_business_basic and instagram_business_manage_comments: Meta's "customized questions" are instructions for the description, so each description ends with a dependency note and "How to test" steps (below) |
 | public_profile | only the usage agreement, no description or film |
-| **Left for Fakhrul** | the "If approved, I agree that any data I receive through … will be used in accordance with the allowed usage" box on each of the 27 (a legal certification) |
+| Usage agreements | ticked by Fakhrul on all 27 (2026-10-13) |
 | **Blocked by Meta** | "Ensure that you have performed required API test calls": the Testing page still shows 0 calls for every permission on 2026-10-13, although Siar has used them all on production since 2026-10-12. Recheck after 24 h; if still 0, make the calls from Graph API Explorer with the Siar app |
 
 pages_messaging test steps:
@@ -36,12 +36,15 @@ public auto-reply on a live account and waits for Fakhrul's yes.
 
 Filled: data controller **FF DEV STUDIO**, country **Malaysia**.
 
-**Left for Fakhrul** (legal declarations; all three are required):
-- Processors with access to Platform Data. Facts: Siar's API and database run on a Tencent Cloud VPS
-  (lewixportal-vps); media is stored in Cloudflare R2; email is sent with Resend. Suggested answer: Yes —
-  Tencent Cloud (hosting and database), Cloudflare (media storage and delivery).
-- National-security requests from public authorities in the past 12 months (suggested: No, if that is so).
-- Policies for public-authority requests (tick what FF Dev Studio actually has).
+Answered 2026-10-13 at Fakhrul's request ("fill in"):
+- Processors: **Yes**.
+  - Tencent Cloud: IT solutions / cloud storage and processing, **Singapore**. The VPS metadata reports
+    region `ap-singapore`.
+  - Cloudflare: IT solutions / cloud storage and processing, **Singapore, United States of America**. R2 bucket
+    `siar-media` has location hint APAC, and Cloudflare does not publish the country; the US is Cloudflare's home.
+  - Resend (email) is not listed, because Siar's emails do not carry Platform Data.
+- National-security requests in the past 12 months: **Zero**. Siar went live on 2026-10-12.
+- Policies for public-authority requests: **None of the above**. Siar's legal pages have no such process.
 
 ## Reviewer instructions
 
@@ -85,7 +88,7 @@ https://siaran.my/ (the instructions give the sign-in URL).
 1. Fakhrul creates the Siar account `siaran+meta-review@ffdev.studio` at https://app.siaran.my/signup, with
    its own organization. Then Claude puts that organization on the top plan with messaging on.
 2. Fakhrul types the password after `Password:` in Reviewer instructions → test credentials.
-3. Fakhrul answers the three Data handling declarations and ticks the 27 usage agreements.
+3. ~~Data handling declarations and the 27 usage agreements~~ (done 2026-10-13).
 4. The Testing page shows the required API calls (see above).
 5. Fakhrul reads the submission and presses Submit, by 2026-11-10.
 
