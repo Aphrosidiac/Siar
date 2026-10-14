@@ -82,3 +82,8 @@ risk a rejection.
 - All 27 permissions now have their final film and text. All five steps are green and Submit is enabled.
 - Left for Fakhrul: Jon Doe's Facebook email and password in Reviewer instructions; deleting the G1 test post;
   pressing Submit.
+
+## Submitted (2026-10-14)
+
+Fakhrul filled in Jon Doe's login (checked as present, values not read), deleted the G1 test post, and submitted.
+The submissions page shows "Review in progress".

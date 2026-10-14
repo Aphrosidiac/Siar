@@ -324,3 +324,20 @@ instructions had to be opened and confirmed with Next to clear "Needs your revie
 **Optional:** an Instagram comment auto-reply for the instagram_business_manage_comments reviewer. Fakhrul
 approved it. It is not created, because Claude's permission classifier blocked the API call from the browser.
 If it is created, add the post link and the keyword "Siar review" to that permission's description.
+
+## 11. Submitted (2026-10-14)
+
+Fakhrul submitted the App Review on 2026-10-14. Its status is "Review in progress" (Meta: most are reviewed within 20
+days). The pre-submit audit and every fix made before submitting are in [meta-review-audit.md](meta-review-audit.md).
+
+Keep these as they are while the review runs:
+- the reviewer account `siaran+meta-review@ffdev.studio`: org "Meta Review" on PRO with messaging on;
+- Jon Doe's Tester role on the app (its Facebook login is in the reviewer instructions);
+- the Instagram reply rule (flow `01a13930-8899-70a9-b8e3-107d6917defb`, keyword "Siar review") and the post
+  https://www.instagram.com/p/DeTrh77EdKX/ with fakhrlfahmi's "(Siar review)" comment and the automatic reply;
+- the @ffdev.studio Instagram connection on Instagram Login with messages on, the FF Dev Studio Page connection,
+  and Threads;
+- the films in `review/final/` (the uploaded versions).
+
+If Meta asks for changes: reply in the App Review thread. The films rebuild with
+`node scripts/meta-review/assemble.mjs <film>` once a part is re-edited with `edit.mjs`.
