@@ -178,5 +178,9 @@
   "CIGL": {
     "title": "Instagram Login",
     "perms": []
+  },
+  "G3A": {
+    "title": "Instagram comment auto-reply",
+    "perms": []
   }
 }

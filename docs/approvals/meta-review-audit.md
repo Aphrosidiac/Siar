@@ -69,3 +69,16 @@ risk a rejection.
 - Left: #4, the auto-reply. It waits on Fakhrul running the console snippet. Then the G3 auto-reply clip, the
   instagram_business_manage_comments update (post https://www.instagram.com/p/DeTrh77EdKX/ and keyword
   "Siar review"), Jon Doe's login, and deleting the G1 test post.
+
+## Done (2026-10-14, evening)
+
+- #4: Fakhrul created the reply rule (flow 01a13930…, keyword "Siar review", Instagram Login account). The reply
+  text was first stored garbled (emoji mangled by `pbcopy`); it was fixed in the database to plain text, and the
+  bad reply was deleted. Instagram silently hid a repeat of a comment the owner had just deleted, so the take
+  uses "Does this include hosting? (Siar review)". Siar replied 4 s after it. G3 = S0 + CIGL + G3 + G3A.
+- instagram_business_manage_comments: the "not by an automated reply" sentence was replaced with the reply rule;
+  added the post link (https://www.instagram.com/p/DeTrh77EdKX/), the keyword, the 30 s promise and the
+  screencast note.
+- All 27 permissions now have their final film and text. All five steps are green and Submit is enabled.
+- Left for Fakhrul: Jon Doe's Facebook email and password in Reviewer instructions; deleting the G1 test post;
+  pressing Submit.

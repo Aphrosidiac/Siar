@@ -30,7 +30,7 @@ export const ASSEMBLY = {
   I5: { before: ['S0'], after: ['I5U'] },
   G1: { before: ['S0', 'CIGL'] },
   G2: { before: ['S0'], after: ['G2U'] },
-  G3: { before: ['S0', 'CIGL'] },
+  G3: { before: ['S0', 'CIGL'], after: ['G3A'] },
   T1: { before: ['S0'] },
   T2: { before: ['S0', 'CTH'] },
 };
