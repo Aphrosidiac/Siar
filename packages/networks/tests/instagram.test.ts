@@ -94,6 +94,9 @@ describe('instagram (Instagram Login)', () => {
     const parsed = msg.parseWebhook({ object: 'instagram', entry: [{ id: '17841400000000001', time: 1790000000, messaging: [{ sender: { id: '900' }, recipient: { id: '17841400000000001' }, timestamp: 1790000000000, message: { mid: 'm1', text: 'hello' } }], changes: [{ field: 'comments', value: { id: 'c1', text: 'nice', from: { id: '900', username: 'fan' }, media: { id: id } } }] }] });
     expect(parsed[0].messages[0]).toMatchObject({ direction: 'INBOUND', text: 'hello' });
     expect(parsed[0].comments[0].externalPostId).toBe(id);
+    // an unsent DM comes back with the original mid and is_deleted
+    const unsent = msg.parseWebhook({ object: 'instagram', entry: [{ id: '17841400000000001', time: 1790000001, messaging: [{ sender: { id: '900' }, recipient: { id: '17841400000000001' }, timestamp: 1790000001000, message: { mid: 'm1', is_deleted: true } }] }] });
+    expect(unsent[0].messages[0]).toMatchObject({ externalMessageId: 'm1', direction: 'INBOUND', text: null, platformData: { isUnsent: true } });
   });
 
   it('validates the spec fields and maps Meta errors', async () => {

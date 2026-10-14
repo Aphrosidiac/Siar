@@ -312,7 +312,14 @@ export function parseMetaWebhook(body: unknown): ParsedEntry[] {
       const outbound = !!ev.message?.is_echo || sender === accountId;
       const participant = outbound ? recipient : sender;
       const sentAt = new Date(Number(ev.timestamp ?? entry.time ?? Date.now()));
-      if (ev.message && !ev.message.is_deleted) {
+      if (ev.message?.is_deleted) {
+        // Instagram: the sender unsent a message. It arrives with the original mid and no text.
+        s.messages.push({
+          externalMessageId: String(ev.message.mid), externalParticipantId: participant, direction: outbound ? 'OUTBOUND' : 'INBOUND',
+          text: null, attachments: [], sentAt, isEcho: !!ev.message.is_echo, replyToExternalId: null,
+          platformData: { isUnsent: true, unsentAt: sentAt.toISOString() },
+        });
+      } else if (ev.message) {
         s.messages.push({
           externalMessageId: String(ev.message.mid), externalParticipantId: participant, direction: outbound ? 'OUTBOUND' : 'INBOUND',
           text: ev.message.text ?? null, attachments: attachmentsOf(ev.message), sentAt, isEcho: !!ev.message.is_echo,

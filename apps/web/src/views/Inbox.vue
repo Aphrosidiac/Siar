@@ -61,7 +61,7 @@ async function runImport() {
 
 // ── messages ──
 interface Conversation { id: string; platform: NetworkType; participantDisplayName?: string | null; participantUsername?: string | null; participantAvatarUrl?: string | null; status: 'OPEN' | 'ARCHIVED'; lastActivityAt: string; lastMessagePreview?: string | null; unreadCount: number; platformData?: { canReply?: boolean } | null; socialAccount?: { username?: string | null } }
-interface Message { id: string; direction: 'INBOUND' | 'OUTBOUND'; status: string; text?: string | null; attachments?: { type: string; url?: string; name?: string }[]; sentAt?: string | null; createdAt: string; error?: string | null }
+interface Message { id: string; direction: 'INBOUND' | 'OUTBOUND'; status: string; text?: string | null; attachments?: { type: string; url?: string; name?: string }[]; sentAt?: string | null; createdAt: string; error?: string | null; platformData?: { isUnsent?: boolean } | null }
 const convStatus = ref('OPEN');
 const convs = useQuery(() => api.get<{ items: Conversation[]; total: number }>('/conversations/', { teamId: session.teamId, status: convStatus.value, limit: 50 }), { deps: [convStatus, () => session.teamId], enabled: () => !!session.teamId });
 const activeId = ref<string | null>(null);
@@ -228,8 +228,9 @@ onMounted(async () => {
                 <QueryState :loading="msgs.loading.value" :error="msgs.error.value" :status="msgs.status.value" :has-data="!!msgs.data.value" feature="Messages" @retry="msgs.reload">
                   <div v-for="m in ordered" :key="m.id" class="bubble-row" :class="{ out: m.direction === 'OUTBOUND' }">
                     <div class="bubble" :class="{ out: m.direction === 'OUTBOUND', failed: m.status === 'FAILED' }">
-                      <div class="prewrap">{{ m.text }}</div>
-                      <a v-for="a in m.attachments ?? []" :key="a.url" :href="a.url" target="_blank" rel="noopener" class="small">{{ a.name ?? a.type }}</a>
+                      <div v-if="m.platformData?.isUnsent" class="unsent">Message unsent</div>
+                      <div v-else class="prewrap">{{ m.text }}</div>
+                      <a v-for="a in m.platformData?.isUnsent ? [] : m.attachments ?? []" :key="a.url" :href="a.url" target="_blank" rel="noopener" class="small">{{ a.name ?? a.type }}</a>
                       <div class="tiny meta">{{ formatDateTime(m.sentAt ?? m.createdAt, timezone) }} <StatusBadge v-if="m.direction === 'OUTBOUND'" :status="m.status" size="sm" /></div>
                       <div v-if="m.error" class="tiny danger-text">{{ m.error }}</div>
                     </div>
@@ -285,6 +286,7 @@ onMounted(async () => {
 .bubble.out { background: var(--text); color: var(--bg); }
 .bubble.out .meta { color: inherit; opacity: .65; }
 .bubble.failed { outline: 1px solid var(--danger); }
+.unsent { font-style: italic; opacity: .7; }
 .meta { color: var(--text-subtle); display: flex; gap: 6px; align-items: center; }
 .composer { border-top: 1px solid var(--border); padding: 12px 16px; }
 .quote { margin: 0; padding: 8px 12px; border: 1px solid var(--border-soft); color: var(--text-muted); background: var(--bg-subtle); border-radius: var(--radius); }

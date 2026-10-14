@@ -129,10 +129,15 @@ async function ingestMessage(a: SocialAccount, orgId: string, m0: InboundMessage
     // Edits and unsends arrive with the original message id.
     if (pd.isEdited || pd.isUnsent) {
       const u = await prisma.conversationMessage.update({ where: { id: existing.id }, data: { text: pd.isUnsent ? null : msg.text ?? existing.text, platformData: { ...((existing.platformData as object) ?? {}), ...pd } } });
+      if (pd.isUnsent && existing.sentAt) {
+        // The list preview shows the latest message's text; don't keep showing one that was unsent.
+        await prisma.conversation.updateMany({ where: { id: existing.conversationId, lastMessageAt: existing.sentAt }, data: { lastMessagePreview: 'Message unsent' } });
+      }
       await publish(orgId, [['conversation.message.updated', message(u)]]);
     }
     return 'duplicate';
   }
+  if (pd.isUnsent) return 'duplicate'; // an unsend for a message Siar never stored
 
   const { row: conv0, created } = await upsertConversation(a, { id: msg.externalParticipantId, username: msg.participantUsername, displayName: msg.participantDisplayName, avatarUrl: msg.participantAvatarUrl, externalConversationId: (pd.conversationId as string) ?? null }, msg.sentAt);
   let replyTo: object | undefined;

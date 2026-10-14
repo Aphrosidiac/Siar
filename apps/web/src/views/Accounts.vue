@@ -37,7 +37,7 @@ const connectFor = ref<NetworkType | null>(null);
 const opts = reactive({ mastodon: '', mastodonError: null as string | null, instagramConnectionMethod: 'FACEBOOK' as 'FACEBOOK' | 'INSTAGRAM' });
 // Bluesky goes straight to Bluesky's sign-in; only Mastodon (which server?) and Instagram (which login?) ask first.
 function startConnect(type: NetworkType) {
-  if (type === 'MASTODON' || type === 'INSTAGRAM') { opts.mastodon = ''; opts.mastodonError = null; connectFor.value = type; return; }
+  if (type === 'MASTODON' || type === 'INSTAGRAM' || type === 'FACEBOOK') { opts.mastodon = ''; opts.mastodonError = null; connectFor.value = type; return; }
   void go(type);
 }
 function submitConnect() {
@@ -271,6 +271,9 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
             <NetworkIcon :type="m.value" :size="28" :title="false" />
             <span class="opt-tx wrap"><span class="strong">{{ m.label }}</span><span class="tiny muted">{{ m.help }}</span></span>
           </label>
+        </div>
+        <div v-if="connectFor === 'FACEBOOK' || (connectFor === 'INSTAGRAM' && opts.instagramConnectionMethod === 'FACEBOOK')" class="callout small" role="note">
+          <div>Facebook asks you to <span class="strong">explicitly give Siar permission to manage your business assets</span>. In the Facebook window, choose the business, the Pages{{ connectFor === 'INSTAGRAM' ? ' and the Instagram account' : '' }} Siar may use, then save. Siar only uses the assets you choose.</div>
         </div>
         <div class="row" style="justify-content: flex-end"><Button variant="secondary" @click="connectFor = null">Cancel</Button><Button type="submit" variant="primary" :icon-right="ExternalLink">Continue</Button></div>
       </form>
