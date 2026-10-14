@@ -1,4 +1,4 @@
-import { SITE_URL, SITE_NAME, DESCRIPTION, LEGAL_NAME, LEGAL_REG, COMPANY_URL, CONTACT_EMAIL } from '../config';
+import { SITE_URL, SITE_NAME, DESCRIPTION, LEGAL_NAME, LEGAL_REG, COMPANY_URL, CONTACT_EMAIL, CONTACT_PHONE_TEL, ADDRESS_LINES } from '../config';
 import { PLANS, TIERS, priceOf } from './plans';
 
 const strip = (s: string) => s.replace(/<[^>]+>/g, '');
@@ -18,7 +18,7 @@ export const orgLd = () => ({
   logo: `${SITE_URL}/favicon.svg`,
   description: DESCRIPTION,
   email: CONTACT_EMAIL,
-  contactPoint: { '@type': 'ContactPoint', contactType: 'customer support', email: CONTACT_EMAIL, availableLanguage: ['en', 'ms'] },
+  contactPoint: { '@type': 'ContactPoint', contactType: 'customer support', email: CONTACT_EMAIL, telephone: CONTACT_PHONE_TEL, availableLanguage: ['en', 'ms'] },
   parentOrganization: {
     '@type': 'Organization',
     '@id': COMPANY_ID,
@@ -26,7 +26,8 @@ export const orgLd = () => ({
     legalName: LEGAL_NAME,
     url: COMPANY_URL,
     identifier: LEGAL_REG,
-    address: { '@type': 'PostalAddress', addressCountry: 'MY' },
+    telephone: CONTACT_PHONE_TEL,
+    address: { '@type': 'PostalAddress', streetAddress: ADDRESS_LINES.street, postalCode: ADDRESS_LINES.postcode, addressLocality: ADDRESS_LINES.city, addressRegion: ADDRESS_LINES.region, addressCountry: 'MY' },
   },
 });
 

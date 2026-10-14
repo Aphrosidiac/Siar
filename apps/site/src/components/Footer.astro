@@ -1,12 +1,12 @@
 ---
 import { NETWORKS } from '../lib/networks';
-import { LEGAL_ENTITY, CONTACT_EMAIL, COMPANY_URL, SIGNUP_URL } from '../config';
+import { LEGAL_ENTITY, CONTACT_EMAIL, CONTACT_PHONE, CONTACT_PHONE_TEL, ADDRESS, COMPANY_URL, SIGNUP_URL } from '../config';
 const year = 2026;
 const cols = [
   { h: 'Product', l: [['/features', 'Product tour'], ['/pricing', 'Pricing'], ['/platforms', 'Networks'], ['/use-cases', 'Use cases'], ['/changelog', 'Changelog']] },
   { h: 'Build', l: [['/docs/quickstart', 'Quickstart'], ['/docs', 'Documentation'], ['/docs/api', 'API reference'], ['/docs/webhooks', 'Webhooks'], ['/docs/sdk-cli-mcp', 'SDK, CLI and MCP'], ['/openapi.json', 'OpenAPI']] },
   { h: 'Use cases', l: [['/use-cases/social-media-posting-api', 'Posting API'], ['/use-cases/social-media-scheduling-api', 'Scheduling API'], ['/use-cases/multi-tenant-social-media-api', 'Multi-tenant'], ['/use-cases/social-media-api-for-ai-agents', 'For AI agents']] },
-  { h: 'Company', l: [['/about', 'About'], ['/contact', 'Contact'], ['/terms', 'Terms'], ['/privacy', 'Privacy'], ['/data-deletion', 'Data deletion']] },
+  { h: 'Company', l: [['/about', 'About'], ['/contact', 'Contact'], ['/terms', 'Terms'], ['/privacy', 'Privacy'], ['/refunds', 'Refunds'], ['/delivery', 'Delivery'], ['/data-deletion', 'Data deletion']] },
 ];
 ---
 <footer class="ftr m-ink">
@@ -32,6 +32,16 @@ const cols = [
       <p><strong>Siar by <a href={COMPANY_URL} rel="noopener">FF Dev Studio</a></strong> · © {year} {LEGAL_ENTITY}</p>
       <p class="tm">Network names are trademarks of their owners, used only to describe compatibility. Siar is not affiliated with or endorsed by any of them.</p>
     </div>
+    <div class="legal">
+      <address>
+        <p><strong>FF DEV STUDIO (202603234793)</strong></p>
+        <p>{ADDRESS}</p>
+        <p><a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> · <a href={`tel:${CONTACT_PHONE_TEL}`}>{CONTACT_PHONE}</a></p>
+      </address>
+      <nav aria-label="Legal">
+        <a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/refunds">Refunds</a><a href="/delivery">Delivery</a>
+      </nav>
+    </div>
   </div>
 </footer>
 <style>
@@ -54,5 +64,13 @@ const cols = [
   .bottom strong { color: var(--text); font-weight: 500; }
   .bottom a { color: inherit; }
   .tm { max-width: 560px; }
+  .legal { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; flex-wrap: wrap; border-top: 1px solid var(--border); margin-top: 20px; padding-top: 20px; }
+  .legal address { font-style: normal; }
+  .legal address p { margin: 0; font-size: var(--fs-13); line-height: 20px; color: var(--text-subtle); overflow-wrap: anywhere; }
+  .legal address strong { color: var(--text); font-weight: 500; }
+  .legal a { color: inherit; }
+  .legal nav { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+  .legal nav a { font-size: var(--fs-13); line-height: 20px; color: var(--text-subtle); text-decoration: none; }
+  .legal nav a:hover, .legal address a:hover { color: var(--text); }
   @media (max-width: 1000px) { .top { grid-template-columns: repeat(2, minmax(0, 1fr)); } .lead-col { grid-column: 1 / -1; } }
 </style>

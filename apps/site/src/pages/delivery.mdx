@@ -1,0 +1,34 @@
+---
+layout: ../layouts/Page.astro
+title: Delivery policy
+metaTitle: Siar delivery, shipping and returns policy
+description: "Siar is software delivered online. Nothing is shipped, so there are no shipping costs and no returns."
+eyebrow: Legal
+updated: "2026-10-14"
+---
+import { LEGAL_NAME, LEGAL_REG, CONTACT_EMAIL, CONTACT_PHONE, CONTACT_PHONE_TEL, SITE_NAME, DASHBOARD_URL } from '../config';
+
+{SITE_NAME} is a software service sold by **{LEGAL_NAME}** (company number {LEGAL_REG}, Malaysia). It is an API, a web dashboard and documentation that you use online. We do not sell or ship physical goods.
+
+## Shipping
+
+Nothing is shipped, so there is no shipping address to give, no shipping charge and no delivery time to wait for. The price you see on the [pricing page](/pricing) is the whole price; it has no shipping or handling fee.
+
+## How and when you get access
+
+- **Free plan.** [Create an account]({DASHBOARD_URL}/signup) and you can use the dashboard and the API straight away. No payment is needed.
+- **Paid plans.** The plan is switched on automatically once the payment is confirmed. The payment is confirmed by our payment processor: a card payment at once, FPX or GrabPay when your bank reports it. Your organization's limits change as soon as that happens, and you receive a receipt by email. Your invoices are always in Billing in the dashboard.
+- **Free trial.** The trial starts as soon as you finish the card step.
+- **X credit.** Credit is added to your balance once the top-up payment is confirmed.
+
+Access is delivered on the web, in the [dashboard]({DASHBOARD_URL}), and through the API with your API keys. There is nothing to download or install, except the optional client libraries listed in the [documentation](/docs/sdk-cli-mcp).
+
+## If your plan is not active after paying
+
+Refresh the Billing page first. If the payment went through but the plan has not changed, email [{CONTACT_EMAIL}](mailto:{CONTACT_EMAIL}) or call [{CONTACT_PHONE}](tel:{CONTACT_PHONE_TEL}) with your organization name and the payment reference, and we will fix it. If it cannot be fixed, we refund the payment.
+
+## Returns
+
+Because nothing physical is sold, there is nothing to return. To stop paying, cancel your plan; to ask about a payment, see the [refund and cancellation policy](/refunds).
+
+Siar by FF Dev Studio.

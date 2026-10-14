@@ -1,0 +1,66 @@
+---
+layout: ../layouts/Page.astro
+title: Refunds and cancellation
+metaTitle: Siar refund and cancellation policy
+description: "How to cancel a Siar plan, what happens to a free trial, and when payments are refunded."
+eyebrow: Legal
+updated: "2026-10-14"
+---
+import { LEGAL_NAME, LEGAL_REG, CONTACT_EMAIL, CONTACT_PHONE, CONTACT_PHONE_TEL, SITE_NAME, DASHBOARD_URL } from '../config';
+import { LINK_GRACE_DAYS, LINK_REMIND_DAYS } from '../../../api/src/domain/plans.ts';
+import { TRIAL_DAYS, TRIAL_TIER, PLANS } from '../lib/plans';
+
+This page explains how to cancel a paid {SITE_NAME} plan and when a payment is refunded. It is part of the [terms of service](/terms) (section 5) and applies to every payment made to **{LEGAL_NAME}** (company number {LEGAL_REG}, Malaysia), whether by card, FPX or GrabPay. Prices and plans are on the [pricing page](/pricing); how access is delivered is on the [delivery page](/delivery).
+
+## The short version
+
+- You can cancel a paid plan at any time from the dashboard. It stays active until the end of the period you already paid for, then the organization moves to Free. Nothing is deleted.
+- Cancel a free trial before it ends and you are not charged.
+- Fees already paid are not refunded, except where the law requires it or where we charged you in error.
+
+## Free plan
+
+The Free plan costs nothing and needs no card, so there is nothing to cancel or refund. Its allowance is a one-time allowance of posts, comments and uploads.
+
+## Free trial
+
+The {PLANS[TRIAL_TIER].name} plan has a {TRIAL_DAYS}-day free trial. It is offered once, on an organization's first paid plan, and it needs a card. Nothing is charged while the trial runs. If you cancel before the trial ends, no charge is ever made. If you do not, the card is charged the price of the plan when the trial ends, and from then on the normal rules below apply.
+
+## How to cancel
+
+Only the organization owner can change billing. Open **Billing** in the [dashboard]({DASHBOARD_URL}/billing) and choose to cancel, or choose the Free plan. We email the billing contact to confirm.
+
+- The plan, and everything in it, stays active until the end of the period that is paid for. It is not cut short and the unused days are not charged again or refunded.
+- No further payment is taken after you cancel. A plan paid by card does not renew; a yearly plan paid once does not get a renewal link.
+- At the end of the period the organization moves to Free. Teams over the Free limit stay, but new ones cannot be added. Nothing is deleted.
+- Changed your mind? Resume the plan from Billing before the period ends and it carries on as before, at the same price.
+
+Moving to a smaller paid plan, or from yearly to monthly, works the same way: it takes effect at the end of the current period and nothing is refunded for the difference.
+
+## Refunds
+
+As the [terms](/terms) say, except where the law requires otherwise, fees already paid are not refunded. This applies to a month or year that has started, to the unused part of a period after you cancel or downgrade, and to unused posts, comments or uploads: paid quotas count per calendar month and do not roll over.
+
+We do refund or correct a payment in these cases:
+
+- **The law requires it.** Nothing on this page limits a right you have under the law of your country.
+- **We charged you in error,** for example twice for the same period, or an amount that does not match the plan and price on your invoice. Email us with the receipt number (it looks like SIAR-2026-00001). We will check it, and where the charge was our mistake we refund it in full.
+
+**X credit.** Credit you buy for the X (Twitter) API is prepaid. Credit that has already been spent on X API calls cannot be refunded.
+
+A refund goes back to the payment method that paid, in the currency it was charged in, through our payment processor. How long it takes to show on your statement depends on your bank.
+
+## Upgrades
+
+If you move to a bigger plan in the middle of a period, you pay the new plan's price less credit for the unused time left on the current period, and the new plan starts straight away. That credit is applied to the new charge; it is not paid out.
+
+## Renewals and failed payments
+
+- **Card plans** renew automatically at the end of each period, at the price you started on. If a renewal payment fails we tell you by email and try again. Updating your card in Billing retries right away. If the payment still cannot be collected, the organization moves to Free and nothing is deleted.
+- **Yearly plans paid once** (by FPX or GrabPay) do not renew by themselves. We email a renewal link {LINK_REMIND_DAYS[0]} days and {LINK_REMIND_DAYS[1]} day before the end date. The plan stays active for {LINK_GRACE_DAYS} days after the end date while the renewal is unpaid, and the organization then moves to Free. No payment is taken unless you pay the link.
+
+## How to ask
+
+Email [{CONTACT_EMAIL}](mailto:{CONTACT_EMAIL}) from the billing contact address, or call [{CONTACT_PHONE}](tel:{CONTACT_PHONE_TEL}). Include the organization name and the receipt number. Your receipts and invoices are always in Billing in the dashboard.
+
+Siar by FF Dev Studio.

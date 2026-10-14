@@ -1,4 +1,4 @@
-import { SITE_URL, API_BASE, DESCRIPTION, LEGAL_ENTITY, CONTACT_EMAIL } from '../config';
+import { SITE_URL, API_BASE, DESCRIPTION, LEGAL_ENTITY, CONTACT_EMAIL, ADDRESS } from '../config';
 import { NETWORKS } from '../lib/networks';
 import { PLANS, TIERS, TRIAL_DAYS, PRICE_LOCK, fmtQuota, money, isFree, isCustom, brandsLabel } from '../lib/plans';
 import { USE_CASES } from '../lib/usecases';
@@ -8,7 +8,7 @@ import { WEBHOOK_EVENTS } from '../lib/events';
 export const GET = () => {
   const L: string[] = [];
   L.push('# Siar', '', `> ${DESCRIPTION}`, '');
-  L.push(`Siar is operated by ${LEGAL_ENTITY}. Contact: ${CONTACT_EMAIL}. API base URL: ${API_BASE}. Authentication: organization API key in the x-api-key header. ${operations().length} operations are described in an OpenAPI document.`, '');
+  L.push(`Siar is operated by ${LEGAL_ENTITY}. Address: ${ADDRESS}. Contact: ${CONTACT_EMAIL}. API base URL: ${API_BASE}. Authentication: organization API key in the x-api-key header. ${operations().length} operations are described in an OpenAPI document.`, '');
   L.push('## Docs', '');
   for (const [p, t, d] of [
     ['/docs/quickstart', 'Quickstart', 'Get a key, create a team, connect an account and publish.'],
@@ -39,6 +39,6 @@ export const GET = () => {
     const per = p.oneTime ? 'one-time' : 'a month';
     L.push(`- ${p.name}: ${cost}; ${q(p.posts)} posts, ${q(p.comments)} comments, ${q(p.uploads)} uploads (${per}); ${brandsLabel(p.teams).toLowerCase()}.`);
   }
-  L.push('', '## Optional', '', `- [Features](${SITE_URL}/features)`, `- [Platforms](${SITE_URL}/platforms)`, `- [Changelog](${SITE_URL}/changelog)`, `- [About](${SITE_URL}/about)`, `- [Terms](${SITE_URL}/terms)`, `- [Privacy](${SITE_URL}/privacy)`, `- [Data deletion](${SITE_URL}/data-deletion)`, '');
+  L.push('', '## Optional', '', `- [Features](${SITE_URL}/features)`, `- [Platforms](${SITE_URL}/platforms)`, `- [Changelog](${SITE_URL}/changelog)`, `- [About](${SITE_URL}/about)`, `- [Terms](${SITE_URL}/terms)`, `- [Privacy](${SITE_URL}/privacy)`, `- [Refunds and cancellation](${SITE_URL}/refunds)`, `- [Delivery](${SITE_URL}/delivery)`, `- [Data deletion](${SITE_URL}/data-deletion)`, '');
   return new Response(L.join('\n'), { headers: { 'content-type': 'text/plain; charset=utf-8' } });
 };
