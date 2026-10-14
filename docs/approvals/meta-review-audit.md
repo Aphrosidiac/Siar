@@ -36,3 +36,15 @@ risk a rejection.
 - Data handling, the usage agreements, the reviewer login (on Pro, messaging on) and the site URL.
 - Privacy, terms and data-deletion pages answer 200. The data-deletion page covers revoking access, disconnecting and email.
 - Captions are in English and the app UI is English. The films review clean (`review.py`).
+
+## Progress (2026-10-14)
+
+- Deployed `faaecd38d608` (Fakhrul approved): unsent Instagram DMs (#3), the business-assets notice (#6) and the
+  privacy policy's Meta data section (#7). All three were checked live.
+- Decided: Jon Doe (already a Tester) is the Facebook account for pages_messaging (#5). Fakhrul types its login
+  into Meta's form.
+- #4, the automation: creating it from the browser was blocked again by Claude's permission guard. Fakhrul runs
+  the console snippet in meta-review-submission.md, or allows the browser JavaScript permission.
+- Still to do: an end-to-end test of the unsend; the recordings (#1 sign-in, #2 consent passes, the unsend in
+  I5/G2, the auto-reply in G3, and G1, which has to be re-recorded or downloaded from Meta); then the description,
+  reviewer-instruction and film updates in the form.
