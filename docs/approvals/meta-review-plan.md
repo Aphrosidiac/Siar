@@ -316,9 +316,10 @@ The form is filled in except for Submit. [meta-review-submission.md](meta-review
 | Reviewer instructions | instructions + reviewer login `siaran+meta-review@ffdev.studio`; Fakhrul pasted the password (`META_REVIEWER_PASSWORD` in `.env.networks`). Org "Meta Review" is on PRO with messaging |
 | Test content cleanup | done on all networks and in Siar (DMs stay; they can't be deleted for the other side) |
 
-**Blocking Submit:** Meta's Testing page shows 0 API calls for every permission. Siar has used them all on
-production since 2026-10-12. Recheck on 2026-10-14. If it still shows 0, make the calls from Graph API
-Explorer with the Siar app. Then Fakhrul reads the submission and presses Submit, by 2026-11-10.
+**Testing (2026-10-14): complete.** All four use cases show "Testing complete" and every required permission shows
+Completed. The calls came from Siar's own production use, so Graph API Explorer was not needed. Reviewer
+instructions had to be opened and confirmed with Next to clear "Needs your review". All five steps are green and
+**Submit for review is enabled**. Fakhrul reads the submission and presses it, by 2026-11-10.
 
 **Optional:** an Instagram comment auto-reply for the instagram_business_manage_comments reviewer. Fakhrul
 approved it. It is not created, because Claude's permission classifier blocked the API call from the browser.

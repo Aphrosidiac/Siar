@@ -4,8 +4,8 @@ Submission draft: App Review → submissions, `submission_id=28644479528540223` 
 descriptions and the film uploaded for each are in [meta-review-submission.json](meta-review-submission.json);
 films come from `review/out/<film>.mp4` (`scripts/meta-review/films.json` maps film → permissions).
 
-**Status (2026-10-13, end of day):** everything is entered. Submit waits only on Meta's Testing page counting the
-API test calls (0 so far); see [meta-review-plan.md §10](meta-review-plan.md#10-submission-status-2026-10-13).
+**Status (2026-10-13, end of day):** everything is entered. Since 2026-10-14 testing is complete and Submit for review is
+enabled, waiting for Fakhrul; see [meta-review-plan.md §10](meta-review-plan.md#10-submission-status-2026-10-13).
 
 ## Allowed usage (27 permissions)
 
