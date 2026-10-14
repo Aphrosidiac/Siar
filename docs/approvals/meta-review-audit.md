@@ -48,3 +48,24 @@ risk a rejection.
 - Still to do: an end-to-end test of the unsend; the recordings (#1 sign-in, #2 consent passes, the unsend in
   I5/G2, the auto-reply in G3, and G1, which has to be re-recorded or downloaded from Meta); then the description,
   reviewer-instruction and film updates in the form.
+
+## Progress (2026-10-14, afternoon)
+
+- #1 and #2 are done for 26 of 27 permissions. Each permission's film was replaced by a final film from
+  `review/final/` (`scripts/meta-review/assemble.mjs`): the film's title card, then the Siar sign-in (S0), then
+  the consent head for its login where the original had none, then the body:
+  - CFB (Facebook, with the business-assets notice) for F1 and F3–F6;
+  - CIG (Instagram through a Page) for I3;
+  - CIGL (Instagram Login, cut from G2's consent) for G1 and G3;
+  - CTH (Threads, cut from T1's consent) for T2.
+- #3: the unsend takes I5U (Page route, including turning messages on) and G2U (Instagram Login) are appended
+  to I5 and G2. The unsend was verified live on both routes.
+- G1 was re-recorded: Instagram Login account, a test post published to @ffdev.studio
+  (https://www.instagram.com/p/DedvzHqCRWk/, to delete), Analytics refresh.
+- Descriptions now carry the business_management dependency, the steps for testing an unsend, and the
+  sign-in/consent opening. The pages_messaging steps now use the Tester account. Reviewer instructions have a
+  Tester account block (Fakhrul fills in Jon Doe's email and password) and a note that every film starts
+  signed out.
+- Left: #4, the auto-reply. It waits on Fakhrul running the console snippet. Then the G3 auto-reply clip, the
+  instagram_business_manage_comments update (post https://www.instagram.com/p/DeTrh77EdKX/ and keyword
+  "Siar review"), Jon Doe's login, and deleting the G1 test post.
