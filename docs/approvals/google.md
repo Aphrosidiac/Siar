@@ -1,19 +1,50 @@
 # Google — YouTube Data API + Business Profile APIs
 
-**Status: OAuth verification SUBMITTED 2026-10-14 ~00:05 MYT** (Verification Center, sensitive scopes
-youtube.upload + youtube.force-ssl). Google answers by email to hello@ffdev.studio, usually within days, often with
-questions first. Meanwhile the app is **In production, unverified**: users see the unverified-app screen (≤100 users);
-API uploads stay **private** until the YouTube API audit passes.
+**Status: OAuth verification APPROVED 2026-10-15** (email to hello@ffdev.studio 14:58 MYT: youtube.force-ssl and
+youtube.upload approved for project 764055308499 / siar-prod). Verification Center: branding verified + shown, data
+access verified. Users no longer see the unverified-app screen. Any new scope or consent-screen change needs a new
+verification.
 - Branding verified + published (Siar name and logo on the consent screen).
 - Demo: **https://youtu.be/vYfVcrmfVLA** (unlisted, FF's channel) = `review/out/Y0.mp4`.
-- Questionnaire: personal use No, internal No, dev/testing No, Gmail SMTP plugin No; both acknowledgements ticked by
-  Fakhrul. Additional info: recorded with a Workspace account of the owning org (so no unverified screen in the film),
-  uploads private pending the YouTube audit, business.manage not sensitive.
-- Keys live on api.siaran.my since release f0e6b6e (also carries the Past posts fix `ef19fae`).
+- Keys live on api.siaran.my since release f0e6b6e.
 
-**Next:** (1) answer Google's email if it asks (likely: show the unverified-app screen → re-film sign-in with a
-non-org account, e.g. Fakhrul's gmail); (2) after verification, the YouTube API Services audit form (text below);
-(3) Business Profile: **PARKED 2026-10-14** (see below).
+**YouTube API Services audit + quota: FILLED 2026-10-15, submit = Fakhrul** (form support.google.com/youtube/contact/yt_api_form,
+answers below). Until it passes, API uploads stay **private** (Siar flags `lockedPrivate` on the post).
+
+### Compliance work for the audit (release 8ec1540, deployed 2026-10-15)
+
+Checked against the YouTube Developer Policies (III.A terms/privacy, III.E.4 storage):
+- Privacy policy "Data from YouTube": YouTube API Services, YouTube ToS + Google Privacy Policy links, data read/stored,
+  use and sharing, no third-party ads, device storage (Cookies), retention, revoke link
+  security.google.com/settings/security/permissions, contact. Terms §3 binds YouTube users to the YouTube ToS.
+  Data deletion page: Google revoke link, YouTube data deleted within 7 days.
+- Connect dialog (dashboard) and hosted connect page show `YouTubeTerms.vue` (YouTube ToS, Google privacy, revoke).
+- Daily retention (`youtubeRetention` in engine/maintenance.ts): channel profile refreshed before 30 days, imported
+  YouTube comments and history deleted after 30 days unless refreshed, everything read from YouTube for a removed
+  channel wiped (`wipeYouTubeData`), YouTube's disconnected grace capped at 7 days (`YOUTUBE_MAX_GRACE_HOURS`).
+  Analytics are kept while the channel authorizes Siar (6-hourly connection checks + hourly token refresh).
+
+### Audit form answers (2026-10-15)
+
+- Request: compliance audit for additional quota. Applying as an organization: FF DEV STUDIO, legal name of the owner,
+  https://ffdev.studio, SSM address (country "Other: Malaysia"), category Creator Tools and Services, Independent
+  Developer/Sole Proprietor, contact hello@ffdev.studio (technical + business same).
+- Audience: creators, brands, agencies, developers. Revenue: subscriptions + freemium. No Google rep. Learned via docs.
+- Client: Siar, https://siaran.my, /privacy, /terms, public, name has no "YouTube".
+- Project 764055308499; use cases Video Uploading & Account Management, Tools for Creators, Analytics & Reporting;
+  OAuth yes; derived-metrics addendum NOT requested; 10k-100k requests/day.
+- 22 endpoints: videos.insert/list/update/delete, thumbnails.set, channels.list, commentThreads.list/insert,
+  comments.list/insert/update/delete/setModerationStatus, playlists.list/insert/update/delete,
+  playlistItems.list/insert/delete, videoCategories.list, i18nRegions.list. Never search.list.
+- Quota: 100,000 units/day shared (≈750 units per active channel per day × 100-130 channels at launch, an estimate);
+  videos.insert 30,000 units/day (300 uploads at ~100 units).
+- Evidence (git-ignored, `review/youtube-audit/`): privacy-policy-youtube-section.pdf, homepage-privacy-link-youtube.pdf,
+  terms-of-service-youtube.pdf, oauth-revocation-upload-analytics.pdf (Y0 film frames + Siar Disconnect menu + Google
+  linked-apps page). Captured from Chrome on the external screen with the address bar strip stacked over the viewport
+  (debugging bar dropped, extension glow hidden).
+
+**Next:** after the audit passes, uploads can be public: re-check one upload's privacyStatus. (2) Business Profile:
+**PARKED 2026-10-14** (see below).
 
 ## Identifiers
 
