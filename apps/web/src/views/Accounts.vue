@@ -12,6 +12,7 @@ import Avatar from '@/components/ui/Avatar.vue';
 import Button from '@/components/ui/Button.vue';
 import Badge from '@/components/ui/Badge.vue';
 import Modal from '@/components/ui/Modal.vue';
+import YouTubeTerms from '@/components/YouTubeTerms.vue';
 import Select from '@/components/ui/Select.vue';
 import Checkbox from '@/components/ui/Checkbox.vue';
 import Dropdown from '@/components/ui/Dropdown.vue';
@@ -35,9 +36,9 @@ const busy = ref<string | null>(null);
 // ── connect ──
 const connectFor = ref<NetworkType | null>(null);
 const opts = reactive({ mastodon: '', mastodonError: null as string | null, instagramConnectionMethod: 'FACEBOOK' as 'FACEBOOK' | 'INSTAGRAM' });
-// Bluesky goes straight to Bluesky's sign-in; only Mastodon (which server?) and Instagram (which login?) ask first.
+// Bluesky goes straight to Bluesky's sign-in; Mastodon (which server?), Instagram (which login?), Facebook (business assets) and YouTube (its terms) ask first.
 function startConnect(type: NetworkType) {
-  if (type === 'MASTODON' || type === 'INSTAGRAM' || type === 'FACEBOOK') { opts.mastodon = ''; opts.mastodonError = null; connectFor.value = type; return; }
+  if (type === 'MASTODON' || type === 'INSTAGRAM' || type === 'FACEBOOK' || type === 'YOUTUBE') { opts.mastodon = ''; opts.mastodonError = null; connectFor.value = type; return; }
   void go(type);
 }
 function submitConnect() {
@@ -275,6 +276,7 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
         <div v-if="connectFor === 'FACEBOOK' || (connectFor === 'INSTAGRAM' && opts.instagramConnectionMethod === 'FACEBOOK')" class="callout small" role="note">
           <div>Facebook asks you to <span class="strong">explicitly give Siar permission to manage your business assets</span>. In the Facebook window, choose the business, the Pages{{ connectFor === 'INSTAGRAM' ? ' and the Instagram account' : '' }} Siar may use, then save. Siar only uses the assets you choose.</div>
         </div>
+        <YouTubeTerms v-if="connectFor === 'YOUTUBE'" />
         <div class="row" style="justify-content: flex-end"><Button variant="secondary" @click="connectFor = null">Cancel</Button><Button type="submit" variant="primary" :icon-right="ExternalLink">Continue</Button></div>
       </form>
     </Modal>

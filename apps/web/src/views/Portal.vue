@@ -14,6 +14,7 @@ import MastodonField from '@/components/MastodonField.vue';
 import { confirm } from '@/lib/confirm';
 import { toast } from '@/lib/toast';
 import type { NetworkType } from '@/lib/types';
+import YouTubeTerms from '@/components/YouTubeTerms.vue';
 
 interface Info { organizationName: string; brandName?: string | null; logoUrl?: string | null; accentColor?: string | null; teamName: string; allowedTypes: string[]; connected?: { type?: string; username?: string | null; displayName?: string | null; avatarUrl?: string | null; needsChannel?: boolean }[]; redirectUrl?: string | null; expiresAt?: string | null }
 const route = useRoute(); const router = useRouter();
@@ -90,6 +91,7 @@ async function disconnect(t: string) {
             <Button v-else size="sm" variant="primary" :loading="busy === t" @click="start(t)">Connect</Button>
           </article>
         </div>
+        <YouTubeTerms v-if="info.allowedTypes.includes('YOUTUBE')" />
         <div v-if="info.redirectUrl" class="row" style="justify-content: center"><Button :href="info.redirectUrl" variant="secondary">Go back</Button></div>
         <footer class="tiny faint center">Powered by Siar · Siar by FF Dev Studio</footer>
       </template>

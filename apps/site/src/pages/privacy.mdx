@@ -3,7 +3,7 @@ layout: ../layouts/Page.astro
 title: Privacy policy
 description: "What data Siar collects, why, how long it is kept, who processes it and how to exercise your rights."
 eyebrow: Legal
-updated: 2026-10-14
+updated: 2026-10-15
 ---
 import { LEGAL_NAME, LEGAL_REG, CONTACT_EMAIL, SITE_NAME } from '../config';
 import { RESOURCE_LIMITS } from '../lib/plans';
@@ -39,6 +39,22 @@ Siar uses this data only to show it to the business's own team in Siar and to ca
 
 The data is deleted when the business disconnects the account, when access is removed in Facebook or Instagram settings (Meta notifies Siar and the account is deleted after the grace period above), or on request. A person who commented on or messaged a business can ask us to delete that data at [{CONTACT_EMAIL}](mailto:{CONTACT_EMAIL}). See [data deletion](/data-deletion).
 
+## Data from YouTube
+
+Siar uses **YouTube API Services** to publish videos and manage channels for the people who connect a YouTube channel. By connecting a channel you also agree to the [YouTube Terms of Service](https://www.youtube.com/t/terms), and Google's handling of your data is described in the [Google Privacy Policy](https://www.google.com/policies/privacy).
+
+When you connect a channel, Siar reads and stores:
+
+- **The channel:** its id, title, handle and thumbnail, and the access and refresh tokens Google issues (encrypted).
+- **Videos you publish through Siar:** their ids, processing status, privacy setting and links, and the views, likes, comments counts and watch time YouTube reports for them and for the channel.
+- **Comments on your videos,** when you open or import them: the comment text, the commenter's channel name, id and profile picture, and like and reply counts, so your team can read, reply to and moderate them.
+
+Siar uses this only to show it to your own team and to do what your team asks: upload, edit or delete your videos, set thumbnails, reply to and moderate comments, and show analytics. It is never sold, never shared with other customers or third parties except the service providers listed below that run Siar, never used for advertising, and never used to train machine-learning models. Siar does not let third parties serve content or advertisements through it.
+
+Retention: the channel's profile is refreshed from YouTube at least every 30 days; imported comments and imported video history are deleted after 30 days unless refreshed; analytics are kept only while the channel still authorizes Siar, which Siar re-checks every few hours. When you disconnect the channel, or YouTube stops authorizing Siar, everything Siar read from YouTube for it is deleted within 7 days. Posts your team wrote in Siar stay in your account.
+
+You can revoke Siar's access at any time from the [Google security settings page](https://security.google.com/settings/security/permissions), in addition to disconnecting the channel in Siar. To ask us to delete stored YouTube data sooner, see [data deletion](/data-deletion) or email [{CONTACT_EMAIL}](mailto:{CONTACT_EMAIL}); we delete it within 7 days. Questions or complaints about privacy go to the same address.
+
 ## Why we use it
 
 To provide the service (publish, schedule, read comments and analytics, deliver webhooks), to bill and support you, to keep the service secure and prevent abuse, to meet legal obligations, and to improve reliability. We do not sell personal data and we do not use data from connected social accounts for advertising or to train machine-learning models.
@@ -68,7 +84,7 @@ Depending on where you live (including under Malaysia's Personal Data Protection
 
 ## Cookies
 
-The website uses no advertising or cross-site tracking cookies. The dashboard uses a session cookie to keep you signed in, and your browser stores a theme preference locally.
+The website uses no advertising or cross-site tracking cookies. The dashboard uses a session cookie to keep you signed in, and your browser stores a theme preference locally. Siar does not store or read other information on your device.
 
 ## Children
 

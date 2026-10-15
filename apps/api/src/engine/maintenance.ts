@@ -1,4 +1,5 @@
 import { isNetworkError, type NetworkType } from '@siar/networks';
+import { Prisma } from '../generated/prisma/client.js';
 import { prisma } from '../platform/db.js';
 import { emit, flushDeliveries } from '../platform/events.js';
 import { flushOutbox } from '../platform/mail.js';
@@ -7,7 +8,7 @@ import { adapter, refreshAccount } from '../platform/networks.js';
 import { JOBS } from '../platform/queue.js';
 import * as storage from '../platform/storage.js';
 import { isPortableVideo, probe, transcode, imageThumb, videoFrame } from '../platform/media.js';
-import { checkOne } from '../modules/accounts.js';
+import { checkOne, refreshProfileOf } from '../modules/accounts.js';
 import { systemActor, audit } from '../platform/audit.js';
 import * as S from '../domain/serialize.js';
 import { RESOURCE_LIMITS } from '../domain/plans.js';
@@ -75,8 +76,53 @@ registerJob(JOBS.retention, async () => {
   }
   await prisma.uploadSession.deleteMany({ where: { expiresAt: { lt: new Date(Date.now() - 86400_000) } } });
   await prisma.oAuthState.deleteMany({ where: { expiresAt: { lt: new Date(Date.now() - 86400_000) } } });
-  return rows.length;
+  const youtube = await youtubeRetention().catch(err => { logger.error({ err }, 'youtube retention failed'); return null; });
+  return { media: rows.length, youtube };
 });
+
+/**
+ * YouTube Developer Policies III.E.4 (the API audit checks this):
+ *   - authorized data (the channel profile) is refreshed before it is 30 days old;
+ *   - other people's data (imported comments) and imported video history are deleted after 30 days
+ *     unless a newer import refreshed them;
+ *   - everything read from YouTube for a channel that was disconnected or removed is deleted (daily, so
+ *     within 7 days; checkOne caps YouTube's disconnected grace at 7 days too). Posts written in Siar stay.
+ * Analytics may be kept while the channel still authorizes Siar (re-checked every 6 h and on every token
+ * refresh), so they go only with the channel.
+ */
+export async function youtubeRetention() {
+  const DAY = 86400_000;
+  const stale = new Date(Date.now() - 30 * DAY);
+  const profileDue = new Date(Date.now() - 25 * DAY);
+  const live = await prisma.socialAccount.findMany({
+    where: { type: 'YOUTUBE', deletedAt: null, state: 'CONNECTED', OR: [{ profileRefreshedAt: null }, { profileRefreshedAt: { lt: profileDue } }] },
+    select: { id: true }, take: 500,
+  });
+  let profiles = 0;
+  for (const a of live) { try { await refreshProfileOf(a.id); profiles++; } catch (err) { logger.warn({ err, id: a.id }, 'youtube profile refresh failed'); } }
+
+  const comments = await prisma.fetchedComment.deleteMany({ where: { platform: 'YOUTUBE', updatedAt: { lt: stale } } });
+  const history = await prisma.profilePost.deleteMany({ where: { internal: false, updatedAt: { lt: stale }, socialAccount: { type: 'YOUTUBE' } } });
+
+  const gone = (await prisma.socialAccount.findMany({ where: { type: 'YOUTUBE', deletedAt: { not: null } }, select: { id: true } })).map(a => a.id);
+  const wiped = gone.length ? await wipeYouTubeData(gone) : 0;
+  return { profiles, comments: comments.count, history: history.count, wiped };
+}
+
+/** Delete what Siar read from YouTube for these (removed) channels; posts written in Siar stay. */
+export async function wipeYouTubeData(ids: string[]) {
+  const r = await prisma.$transaction([
+    prisma.fetchedComment.deleteMany({ where: { socialAccountId: { in: ids } } }),
+    prisma.profilePost.deleteMany({ where: { socialAccountId: { in: ids }, internal: false } }),
+    prisma.postAnalytics.deleteMany({ where: { profilePost: { socialAccountId: { in: ids } } } }),
+    prisma.socialAccountAnalytics.deleteMany({ where: { socialAccountId: { in: ids } } }),
+    prisma.socialAccount.updateMany({
+      where: { id: { in: ids }, OR: [{ avatarUrl: { not: null } }, { bio: { not: null } }, { userEmail: { not: null } }] },
+      data: { avatarUrl: null, bio: null, userEmail: null, channels: Prisma.DbNull },
+    }),
+  ]);
+  return r.reduce((n, x) => n + x.count, 0);
+}
 
 /** Convert a video every network accepts (H.264/AAC MP4), then mark the upload READY. */
 registerJob(JOBS.processUpload, async d => {

@@ -245,13 +245,7 @@ define({
 
   'socialAccount.profileRefresh': async ({ actor, body }) => {
     const a = await accountOf(actor, body.teamId, body.type);
-    const ad = adapter(a.type as NetworkType);
-    const rt = await loadAccount(a.id).catch(networkFailure);
-    const p = await ad.refreshProfile(networkContext(a.type as NetworkType), rt).catch(networkFailure);
-    const data: Record<string, unknown> = { profileRefreshedAt: new Date() };
-    for (const k of ['username', 'displayName', 'avatarUrl', 'bio', 'userUsername', 'userDisplayName', 'userEmail'] as const) if (p[k] !== undefined) data[k] = p[k];
-    if (p.channels) data.channels = p.channels;
-    return S.socialAccount(await prisma.socialAccount.update({ where: { id: a.id }, data }));
+    return S.socialAccount(await refreshProfileOf(a.id));
   },
 
   'socialAccount.getByType': async ({ actor, query }) => S.socialAccount(await accountOf(actor, query.teamId, query.type)),
@@ -328,6 +322,21 @@ async function portalLink(token: string) {
 const GENERIC_REASON = 'The network no longer accepts this connection.';
 
 /** Ask the network whether the grant still works; mark NEEDS_RECONNECT and schedule deletion if not. */
+/** Re-read the account's profile from the network (the dashboard's Refresh, and the YouTube 30-day refresh). */
+export async function refreshProfileOf(accountId: string) {
+  const a = await prisma.socialAccount.findUniqueOrThrow({ where: { id: accountId } });
+  const ad = adapter(a.type as NetworkType);
+  const rt = await loadAccount(a.id).catch(networkFailure);
+  const p = await ad.refreshProfile(networkContext(a.type as NetworkType), rt).catch(networkFailure);
+  const data: Record<string, unknown> = { profileRefreshedAt: new Date() };
+  for (const k of ['username', 'displayName', 'avatarUrl', 'bio', 'userUsername', 'userDisplayName', 'userEmail'] as const) if (p[k] !== undefined) data[k] = p[k];
+  if (p.channels) data.channels = p.channels;
+  return prisma.socialAccount.update({ where: { id: a.id }, data });
+}
+
+/** YouTube caps the disconnected grace period at 7 days, whatever the organization set. */
+export const YOUTUBE_MAX_GRACE_HOURS = 168;
+
 export async function checkOne(accountId: string): Promise<boolean> {
   const a = await prisma.socialAccount.findUniqueOrThrow({ where: { id: accountId }, include: { mastodonServer: true, team: { include: { organization: true } } } });
   const ad = adapter(a.type as NetworkType);
@@ -345,7 +354,9 @@ export async function checkOne(accountId: string): Promise<boolean> {
     else await prisma.socialAccount.update({ where: { id: a.id }, data: { lastCheckedAt: new Date() } });
     return true;
   }
-  const deleteOn = new Date(Date.now() + org.deleteAccountAfter * 3600_000);
+  // YouTube Developer Policies III.E.4: data from a channel that no longer authorizes Siar goes within 7 days.
+  const graceHours = a.type === 'YOUTUBE' ? Math.min(org.deleteAccountAfter, YOUTUBE_MAX_GRACE_HOURS) : org.deleteAccountAfter;
+  const deleteOn = new Date(Date.now() + graceHours * 3600_000);
   const updated = await prisma.socialAccount.update({ where: { id: a.id }, data: { state: 'NEEDS_RECONNECT', stateReason: reason ?? a.stateReason ?? GENERIC_REASON, disconnectedCheckTryAt: new Date(), lastCheckedAt: new Date(), deleteOn: a.deleteOn ?? deleteOn } });
   if (a.state === 'CONNECTED') {
     const ids = await emit(prisma, org.id, 'social-account.updated', S.socialAccount(updated));
