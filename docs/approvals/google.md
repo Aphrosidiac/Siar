@@ -8,7 +8,8 @@ verification.
 - Demo: **https://youtu.be/vYfVcrmfVLA** (unlisted, FF's channel) = `review/out/Y0.mp4`.
 - Keys live on api.siaran.my since release f0e6b6e.
 
-**YouTube API Services audit + quota: FILLED 2026-10-15, submit = Fakhrul** (form support.google.com/youtube/contact/yt_api_form,
+**YouTube API Services audit + quota: SUBMITTED 2026-10-15 ~15:40 MYT** (Fakhrul did the reCAPTCHA + Submit; "Your email has
+been sent"). Google answers by email to hello@ffdev.studio; all 8 attestations ticked, derived-metrics addendum not requested (form support.google.com/youtube/contact/yt_api_form,
 answers below). Until it passes, API uploads stay **private** (Siar flags `lockedPrivate` on the post).
 
 ### Compliance work for the audit (release 8ec1540, deployed 2026-10-15)
