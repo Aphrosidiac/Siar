@@ -10,13 +10,15 @@
  * issuer, audience, expiry and nonce checks run for real.
  *
  * Who signs in: POST /__host/accounts.google.com/__mock/next-identity { sub, email, email_verified, hd,
- * name, given_name, family_name, picture, deny } sets the next identity (used once). Without it: the
+ * name, given_name, family_name, picture, deny, tamper } sets the next identity (used once). Without it: the
  * login_hint address, else mock.user@gmail.com.
  */
 import { createHash, generateKeyPairSync, sign } from 'node:crypto';
 import { id, type MockRegistry, type MockRequest, type MockResponse } from '../registry.js';
 
-interface Identity { sub: string; email: string; email_verified?: boolean | string; hd?: string; name?: string; given_name?: string; family_name?: string; picture?: string; deny?: boolean }
+/** `tamper` makes the ID token wrong on purpose, so the API's checks are exercised: each must refuse it. */
+type Tamper = 'aud' | 'azp' | 'iss' | 'nonce' | 'exp' | 'sig' | 'kid' | 'alg-none';
+interface Identity { sub: string; email: string; email_verified?: boolean | string; hd?: string; name?: string; given_name?: string; family_name?: string; picture?: string; deny?: boolean; tamper?: Tamper }
 interface Pending { identity: Identity; nonce: string | null; challenge: string; clientId: string; redirectUri: string; exp: number }
 
 const { privateKey, publicKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
@@ -24,10 +26,12 @@ const KID = `mock-${id()}`;
 const JWK = { ...publicKey.export({ format: 'jwk' }), kid: KID, alg: 'RS256', use: 'sig' };
 
 const b64 = (v: unknown) => Buffer.from(JSON.stringify(v)).toString('base64url');
-function jwt(claims: Record<string, unknown>) {
-  const head = b64({ alg: 'RS256', kid: KID, typ: 'JWT' });
+const { privateKey: strangerKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
+function jwt(claims: Record<string, unknown>, tamper?: Tamper) {
+  if (tamper === 'alg-none') return `${b64({ alg: 'none', typ: 'JWT' })}.${b64(claims)}.`;
+  const head = b64({ alg: 'RS256', kid: tamper === 'kid' ? 'unknown-key' : KID, typ: 'JWT' });
   const body = b64(claims);
-  return `${head}.${body}.${sign('sha256', Buffer.from(`${head}.${body}`), privateKey).toString('base64url')}`;
+  return `${head}.${body}.${sign('sha256', Buffer.from(`${head}.${body}`), tamper === 'sig' ? strangerKey : privateKey).toString('base64url')}`;
 }
 const subOf = (email: string) => String(BigInt('0x' + createHash('sha256').update(email).digest('hex').slice(0, 15))).padStart(21, '1');
 const err = (status: number, error: string, error_description: string): MockResponse => ({ status, json: { error, error_description } });
@@ -75,8 +79,13 @@ export function token(m: MockRegistry, b: Record<string, string>): MockResponse 
     ...(p.nonce ? { nonce: p.nonce } : {}), ...(i.hd ? { hd: i.hd } : {}), ...(i.name ? { name: i.name } : {}),
     ...(i.given_name ? { given_name: i.given_name } : {}), ...(i.family_name ? { family_name: i.family_name } : {}), ...(i.picture ? { picture: i.picture } : {}),
   };
+  if (i.tamper === 'aud') claims.aud = 'someone-else.apps.googleusercontent.com';
+  if (i.tamper === 'azp') claims.azp = 'someone-else.apps.googleusercontent.com';
+  if (i.tamper === 'iss') claims.iss = 'https://accounts.evil.example';
+  if (i.tamper === 'nonce') claims.nonce = 'not-the-nonce-you-sent';
+  if (i.tamper === 'exp') { claims.iat = now - 7200; claims.exp = now - 3600; }
   s.issued.push({ sub: i.sub, email: i.email, aud: b.client_id });
-  return { json: { access_token: `ya29.${id()}`, expires_in: 3599, scope: 'openid https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile', token_type: 'Bearer', id_token: jwt(claims) } };
+  return { json: { access_token: `ya29.${id()}`, expires_in: 3599, scope: 'openid https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile', token_type: 'Bearer', id_token: jwt(claims, i.tamper) } };
 }
 
 export default function googleSignIn(m: MockRegistry) {

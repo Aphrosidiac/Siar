@@ -4,17 +4,27 @@
  * ground, the G left of the label, Google's own wording. A plain link: the API runs the redirect flow.
  * Clicking shows a spinner, since the browser is leaving for Google.
  */
-import { ref } from 'vue';
+import { onBeforeUnmount, ref } from 'vue';
 import Spinner from './ui/Spinner.vue';
 
 defineProps<{ href: string; label?: string }>();
 const leaving = ref(false);
+let timer: ReturnType<typeof setTimeout> | undefined;
+function go(e: MouseEvent) {
+  // a new tab or window (ctrl/cmd/shift/middle click) leaves this page where it is: no spinner
+  if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  leaving.value = true;
+  // a navigation that never happens (stopped, offline) must not leave the button stuck
+  clearTimeout(timer); timer = setTimeout(() => { leaving.value = false; }, 8000);
+}
 // back/forward cache: the page comes back as it was left, spinner and all
-addEventListener('pageshow', () => { leaving.value = false; });
+const reset = () => { leaving.value = false; clearTimeout(timer); };
+addEventListener('pageshow', reset);
+onBeforeUnmount(() => { removeEventListener('pageshow', reset); clearTimeout(timer); });
 </script>
 
 <template>
-  <a :href="href" class="gbtn" :class="{ leaving }" :aria-busy="leaving || undefined" @click="leaving = true">
+  <a :href="href" class="gbtn" :class="{ leaving }" :aria-busy="leaving || undefined" @click="go">
     <Spinner v-if="leaving" :size="16" />
     <svg v-else class="g" viewBox="0 0 48 48" width="18" height="18" aria-hidden="true" focusable="false">
       <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />

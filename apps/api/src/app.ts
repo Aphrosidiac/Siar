@@ -24,7 +24,8 @@ import { registerModules, registerRawRoutes } from './modules/index.js';
 export async function buildApp() {
   const app = Fastify({
     loggerInstance: logger as unknown as FastifyBaseLogger,
-    trustProxy: true,
+    // nginx on this box is the only proxy: trust X-Forwarded-* from loopback alone (it sets them, deploy/nginx/siar.conf)
+    trustProxy: 'loopback',
     bodyLimit: 20 * 1024 * 1024,
     forceCloseConnections: true,
     routerOptions: { ignoreTrailingSlash: true, ignoreDuplicateSlashes: true },

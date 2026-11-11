@@ -2798,9 +2798,29 @@ export interface paths {
         post?: never;
         /**
          * Disconnect Google sign-in
-         * @description Only when the account also has a password, so it can still be signed in to.
+         * @description Needs the current password, and only works when the account has one, so it can still be signed in to.
          */
         delete: operations["user.unlinkGoogle"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user/me/google/connect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start connecting Google sign-in
+         * @description Checks the current password (the email must be confirmed) and returns the URL to send the browser to. The link works for 5 minutes, for this session only.
+         */
+        post: operations["user.startGoogleLink"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -46877,7 +46897,13 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    currentPassword: string;
+                };
+            };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -46892,6 +46918,34 @@ export interface operations {
                             /** Format: date-time */
                             linkedAt?: string | null;
                         } | null;
+                    };
+                };
+            };
+        };
+    };
+    "user.startGoogleLink": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    currentPassword: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        url: string;
                     };
                 };
             };

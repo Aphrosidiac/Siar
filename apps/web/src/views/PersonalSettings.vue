@@ -10,13 +10,13 @@ import Input from '@/components/ui/Input.vue';
 import Select from '@/components/ui/Select.vue';
 import Avatar from '@/components/ui/Avatar.vue';
 import Badge from '@/components/ui/Badge.vue';
+import Modal from '@/components/ui/Modal.vue';
 import { api, isApiError, issuesByPath } from '@/lib/api';
 import { loadSession, session, setTheme, theme, type ThemePref } from '@/lib/store';
 import { TIMEZONES, browserTz, fullName } from '@/lib/format';
 import { useDraft } from '@/lib/dirty';
 import { toast } from '@/lib/toast';
-import { confirm } from '@/lib/confirm';
-import { googleError, googleStartUrl, useGoogleSignIn } from '@/lib/google';
+import { googleError, useGoogleSignIn } from '@/lib/google';
 
 const u = session.me!.user;
 const { form: p, dirty, discard, commit } = useDraft({ firstName: u.firstName ?? '', lastName: u.lastName ?? '', timezone: u.timezone ?? browserTz(), avatarUrl: u.avatarUrl ?? '' });
@@ -40,7 +40,6 @@ const route = useRoute(); const router = useRouter();
 // first paint from the session (no jump), then the endpoint's answer
 const methods = ref<Methods | null>(u.hasPassword === undefined ? null : { password: !!u.hasPassword, google: u.googleEmail != null ? { email: u.googleEmail || null, linkedAt: null } : null });
 const googleOn = useGoogleSignIn();
-const connectHref = googleStartUrl({ intent: 'link' });
 async function loadMethods() { try { methods.value = await api.get<Methods>('/user/me/sign-in-methods'); void loadSession(true); } catch (e) { toast.fail(e); } }
 onMounted(async () => {
   await loadMethods();
@@ -49,10 +48,21 @@ onMounted(async () => {
   else if (route.query.error) toast.error('Google not connected', googleError(route.query.error));
   if (route.query.google || route.query.error) void router.replace({ query: { ...route.query, google: undefined, error: undefined } });
 });
-async function disconnectGoogle() {
-  if (!(await confirm({ title: 'Disconnect Google?', message: `You will sign in with ${u.email} and your password. You can connect Google again any time.`, confirmLabel: 'Disconnect', danger: true }))) return;
-  busy.value = 'google';
-  try { methods.value = await api.del<Methods>('/user/me/google'); void loadSession(true); toast.success('Google disconnected'); } catch (e) { toast.fail(e); } finally { busy.value = null; }
+// connecting or disconnecting Google asks for the password again (a borrowed session cannot change how the account signs in)
+const gate = reactive({ open: false, mode: 'connect' as 'connect' | 'disconnect', password: '', error: '' });
+function askPassword(mode: 'connect' | 'disconnect') { Object.assign(gate, { open: true, mode, password: '', error: '' }); }
+async function confirmGate() {
+  busy.value = 'google'; gate.error = '';
+  try {
+    if (gate.mode === 'connect') {
+      const r = await api.post<{ url: string }>('/user/me/google/connect', { currentPassword: gate.password });
+      location.assign(r.url); // off to Google; back here with ?google=linked or ?error=
+      return;
+    }
+    methods.value = await api.del<Methods>('/user/me/google', { currentPassword: gate.password });
+    void loadSession(true); gate.open = false; toast.success('Google disconnected');
+  } catch (e) { gate.error = isApiError(e) ? (issuesByPath(e.issues).currentPassword ?? e.message) : String(e); }
+  finally { busy.value = null; }
 }
 async function sendSetup() {
   busy.value = 'setup';
@@ -99,8 +109,8 @@ const themes: { value: ThemePref; label: string; icon: typeof Sun }[] = [{ value
               <div class="m-n">Google</div>
               <div class="small muted truncate">{{ methods.google ? `Connected as ${methods.google.email ?? 'your Google account'}` : 'Not connected' }}</div>
             </div>
-            <Button v-if="methods.google" variant="secondary" size="sm" :loading="busy === 'google'" :disabled="!methods.password" :title="!methods.password ? 'Set a password first, so you can still sign in' : undefined" @click="disconnectGoogle">Disconnect</Button>
-            <Button v-else variant="secondary" size="sm" :href="connectHref">Connect</Button>
+            <Button v-if="methods.google" variant="secondary" size="sm" :disabled="!methods.password" @click="askPassword('disconnect')">Disconnect</Button>
+            <Button v-else variant="secondary" size="sm" :disabled="!u.emailVerifiedAt" @click="askPassword('connect')">Connect</Button>
           </li>
           <li class="m-row">
             <span class="m-ico" aria-hidden="true"><KeyRound :size="16" /></span>
@@ -113,6 +123,7 @@ const themes: { value: ThemePref; label: string; icon: typeof Sun }[] = [{ value
           </li>
         </ul>
         <p v-if="methods?.google && !methods.password" class="small muted m-note">Set a password before you disconnect Google, so you can still sign in.</p>
+        <p v-else-if="methods && !methods.google && googleOn && !u.emailVerifiedAt" class="small muted m-note">Confirm your email to connect Google.</p>
       </SettingsSection>
 
       <SettingsSection v-if="methods?.password !== false" title="Password" description="At least 10 characters. Other sessions stay signed in.">
@@ -124,6 +135,12 @@ const themes: { value: ThemePref; label: string; icon: typeof Sun }[] = [{ value
         </form>
       </SettingsSection>
     </div>
+    <Modal :open="gate.open" :title="gate.mode === 'connect' ? 'Connect Google' : 'Disconnect Google?'" :description="gate.mode === 'connect' ? 'Enter your password, then choose your Google account.' : `You will sign in with ${u.email} and your password.`" size="sm" @close="gate.open = false">
+      <form class="stack-16" @submit.prevent="confirmGate">
+        <Input v-model="gate.password" type="password" label="Your password" autocomplete="current-password" required autofocus :error="gate.error" />
+        <div class="row" style="justify-content: flex-end"><Button variant="secondary" @click="gate.open = false">Cancel</Button><Button type="submit" :variant="gate.mode === 'connect' ? 'primary' : 'danger'" :loading="busy === 'google'" :disabled="!gate.password">{{ gate.mode === 'connect' ? 'Continue to Google' : 'Disconnect' }}</Button></div>
+      </form>
+    </Modal>
     <SaveBar :dirty="dirty" :busy="busy === 'profile'" :disabled="!p.firstName.trim()" @save="saveProfile" @discard="discard" />
   </div>
 </template>

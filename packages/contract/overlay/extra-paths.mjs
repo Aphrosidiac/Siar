@@ -98,7 +98,8 @@ export const extraPaths = {
   '/api/v1/user/me/onboarding': { post: op('user.completeOnboarding', 'user', 'Finish the first-login welcome', { description: 'Marks the welcome as done (or skipped) and makes sure the organization has at least one team.', res: Session }) },
   '/api/v1/user/me/password': { post: op('user.changePassword', 'user', 'Change my password', { body: obj({ currentPassword: S.str, newPassword: { type: 'string', minLength: 10 } }, ['currentPassword', 'newPassword']) }) },
   '/api/v1/user/me/sign-in-methods': { get: op('user.signInMethods', 'user', 'How I sign in', { res: SignInMethods }) },
-  '/api/v1/user/me/google': { delete: op('user.unlinkGoogle', 'user', 'Disconnect Google sign-in', { description: 'Only when the account also has a password, so it can still be signed in to.', res: SignInMethods }) },
+  '/api/v1/user/me/google': { delete: op('user.unlinkGoogle', 'user', 'Disconnect Google sign-in', { description: 'Needs the current password, and only works when the account has one, so it can still be signed in to.', body: obj({ currentPassword: S.str }, ['currentPassword']), res: SignInMethods }) },
+  '/api/v1/user/me/google/connect': { post: op('user.startGoogleLink', 'user', 'Start connecting Google sign-in', { description: 'Checks the current password (the email must be confirmed) and returns the URL to send the browser to. The link works for 5 minutes, for this session only.', body: obj({ currentPassword: S.str }, ['currentPassword']), res: obj({ url: S.str }, ['url']) }) },
   '/api/v1/user/me/password/setup': { post: op('user.sendPasswordSetup', 'user', 'Email me a link to set a password', { description: 'For accounts that sign in with Google only. The link works for one hour.' }) },
   '/api/v1/user/members': { get: op('user.members', 'user', 'List organization members', { params: page, res: list(Member) }) },
   '/api/v1/user/members/{id}': {

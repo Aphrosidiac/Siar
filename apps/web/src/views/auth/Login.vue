@@ -6,7 +6,7 @@ import Input from '@/components/ui/Input.vue';
 import Button from '@/components/ui/Button.vue';
 import GoogleButton from '@/components/GoogleButton.vue';
 import OrDivider from '@/components/OrDivider.vue';
-import { api, errorMessage } from '@/lib/api';
+import { api, errorMessage, isApiError } from '@/lib/api';
 import { loadSession } from '@/lib/store';
 import { googleError, googleStartUrl, useGoogleSignIn } from '@/lib/google';
 
@@ -23,7 +23,11 @@ async function submit() {
     await api.post('/auth/login', { email: email.value.trim(), password: password.value }, { noAuthRedirect: true });
     await loadSession(true);
     await router.replace(nextPath ?? '/posts');
-  } catch (e) { error.value = errorMessage(e); } finally { busy.value = false; }
+  } catch (e) {
+    error.value = errorMessage(e);
+    // the API never says which accounts sign in with Google (no account discovery); the page can hint
+    if (google.value && isApiError(e) && e.status === 401) error.value += ' Signed up with Google? Use "Continue with Google".';
+  } finally { busy.value = false; }
 }
 </script>
 <template>

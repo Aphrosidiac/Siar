@@ -95,7 +95,6 @@ define({
 
   'auth.login': async ({ body, req, reply }) => {
     const user = await prisma.user.findUnique({ where: { email: norm(body.email) } });
-    if (user && !user.deletedAt && !user.passwordHash && user.googleSub) throw unauthenticated('This account signs in with Google. Use "Continue with Google", or set a password with "Forgot password?".');
     if (!user || user.deletedAt || !user.passwordHash || !(await verifyPassword(body.password, user.passwordHash))) throw unauthenticated('Email or password is incorrect.');
     const first = await prisma.organizationMember.findFirst({ where: { userId: user.id, organization: { deletedAt: null } }, orderBy: { createdAt: 'asc' } });
     setSessionCookie(reply, await createSession(user.id, first?.organizationId ?? null, req));
@@ -202,26 +201,6 @@ define({
   },
 
   'user.signInMethods': async ({ sessionUser }) => signInMethods(sessionUser!.userId),
-
-  /** Disconnect Google. Only with a password left to sign in with, or the account would be locked out. */
-  'user.unlinkGoogle': async ({ sessionUser }) => {
-    const su = sessionUser as SessionUser;
-    const u = await prisma.user.findUniqueOrThrow({ where: { id: su.userId } });
-    if (!u.googleSub) return signInMethods(u.id);
-    if (!u.passwordHash) throw badRequest('Set a password before you disconnect Google, or you could not sign in any more.');
-    await prisma.$transaction(async tx => {
-      await tx.user.update({ where: { id: u.id }, data: { googleSub: null, googleEmail: null, googleLinkedAt: null } });
-      if (su.organizationId) await audit(tx, { kind: 'USER', organizationId: su.organizationId, name: su.name, userId: u.id }, 'user.google.unlink', 'User', u.id, `${u.email} disconnected Google sign-in`);
-    });
-    await queueMail(prisma, {
-      to: u.email, subject: 'Google sign-in was disconnected from Siar', kicker: 'Security', heading: 'Google sign-in disconnected.',
-      paragraphs: ['Google can no longer be used to sign in to this Siar account. Your email and password still work.'],
-      details: [['Account', u.email], ['Google account', u.googleEmail ?? 'Google']],
-      footnote: 'Did not do this? Reset your password straight away and contact siaran@ffdev.studio.',
-      reason: 'You received this email because the sign-in methods of this Siar account changed.',
-    });
-    return signInMethods(u.id);
-  },
 
   /** Google-only accounts: email a one-hour link to choose a password (the reset flow, worded for a first password). */
   'user.sendPasswordSetup': async ({ sessionUser }) => {

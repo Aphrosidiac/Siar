@@ -81,5 +81,6 @@ export const siteUrl = (path = '') => join(config.SITE_URL, path);
  */
 export function googleSignInClient(): { id: string; secret: string } | null {
   if (config.GOOGLE_SIGNIN_CLIENT_ID && config.GOOGLE_SIGNIN_CLIENT_SECRET) return { id: config.GOOGLE_SIGNIN_CLIENT_ID, secret: config.GOOGLE_SIGNIN_CLIENT_SECRET };
-  return config.NETWORK_MODE === 'mock' ? { id: 'mock-google-signin.apps.googleusercontent.com', secret: 'mock-google-signin-secret' } : null;
+  // never in production: a production process started in mock mode must not sign anyone in against a mock
+  return config.NETWORK_MODE === 'mock' && !isProd ? { id: 'mock-google-signin.apps.googleusercontent.com', secret: 'mock-google-signin-secret' } : null;
 }

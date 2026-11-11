@@ -138088,7 +138088,74 @@
       }
      }
     },
-    "description": "Only when the account also has a password, so it can still be signed in to."
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "currentPassword": {
+          "type": "string"
+         }
+        },
+        "required": [
+         "currentPassword"
+        ]
+       }
+      }
+     }
+    },
+    "description": "Needs the current password, and only works when the account has one, so it can still be signed in to."
+   }
+  },
+  "/api/v1/user/me/google/connect": {
+   "post": {
+    "operationId": "user.startGoogleLink",
+    "tags": [
+     "user"
+    ],
+    "summary": "Start connecting Google sign-in",
+    "parameters": [],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "url": {
+           "type": "string"
+          }
+         },
+         "required": [
+          "url"
+         ]
+        }
+       }
+      }
+     }
+    },
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "currentPassword": {
+          "type": "string"
+         }
+        },
+        "required": [
+         "currentPassword"
+        ]
+       }
+      }
+     }
+    },
+    "description": "Checks the current password (the email must be confirmed) and returns the URL to send the browser to. The link works for 5 minutes, for this session only."
    }
   },
   "/api/v1/user/me/password/setup": {

@@ -59,6 +59,16 @@ if [ $ok != 1 ]; then
   if [ -n "$PREV" ]; then sudo -n -u siar ln -sfn $PREV /srv/siar/current; as_siar pm2 delete siar-api >/dev/null 2>&1 || true; as_siar pm2 start $PREV/ecosystem.config.cjs >/dev/null; as_siar pm2 save >/dev/null; fi
   exit 1
 fi
+# Cloudflare's address ranges for real_ip (siar.conf includes the file): refreshed when missing or a week old
+cf=/etc/nginx/siar-cloudflare-ips.conf
+if [ ! -s $cf ] || [ -n "$(find $cf -mtime +7 2>/dev/null)" ]; then
+  t=$(mktemp)
+  { echo "# written by Siar deploy/deploy-shared.sh from https://www.cloudflare.com/ips/ on $(date -u +%F)"
+    for v in 4 6; do curl -fsS --max-time 15 "https://www.cloudflare.com/ips-v$v" | sed -E '/^[[:space:]]*$/d; s/^(.+)$/set_real_ip_from \1;/'; done
+    echo "real_ip_header CF-Connecting-IP;"; } > "$t" 2>/dev/null || true
+  if [ "$(grep -c '^set_real_ip_from ' "$t")" -ge 10 ]; then sudo -n cp "$t" $cf && sudo -n chmod 644 $cf; else echo "Cloudflare IP list unavailable; keeping the current $cf" >&2; fi
+  rm -f "$t"
+fi
 c=/etc/nginx/sites-available/siar.conf
 sudo -n sh -c "[ -f $c ] && cp $c $c.prev || true; cp $R/nginx.conf $c; ln -sf $c /etc/nginx/sites-enabled/siar.conf"
 if sudo -n nginx -t 2>/dev/null; then sudo -n systemctl reload nginx; else

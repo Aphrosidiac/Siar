@@ -16,7 +16,8 @@ answers below). Until it passes, API uploads stay **private** (Siar flags `locke
 
 "Continue with Google" on app.siaran.my (login, signup, accept invite; connect/disconnect under Your account).
 Code: apps/api/src/modules/google-signin.ts (OIDC code flow + PKCE S256, state, nonce, ID token verified with
-`jose` against Google's JWKS), tests: `pnpm --filter @siar/api e2e:google` (58 checks against the mock Google).
+`jose` against Google's JWKS), tests: `pnpm --filter @siar/api e2e:google` (84 checks against the mock Google,
+including tampered ID tokens: aud, azp, iss, nonce, exp, signature, unknown key, alg none).
 
 - **Its own OAuth client** in `siar-prod`: Clients → Web application **"Siar sign-in"**. Authorized redirect URIs:
   `https://app.siaran.my/api/v1/auth/google/callback` and `http://localhost:5290/api/v1/auth/google/callback`.
@@ -27,10 +28,17 @@ Code: apps/api/src/modules/google-signin.ts (OIDC code flow + PKCE S256, state, 
   change there re-opens verification). Users see the verified Siar name and logo.
 - **Env:** `GOOGLE_SIGNIN_CLIENT_ID` + `GOOGLE_SIGNIN_CLIENT_SECRET` in /srv/siar/shared/.env (and Siar/.env.networks
   on the Mac). Empty = the button is hidden (`GET /api/v1/auth/providers`). Mock mode needs neither.
-- **Linking rule:** an existing Siar account is linked by email only when Google is authoritative for the address
-  (gmail.com/googlemail.com, or a Workspace domain via `hd`); otherwise the person signs in with their password
-  and connects Google in Your account. Linking to an account whose email was never confirmed drops its password
-  and sessions (pre-account-takeover defence) and emails the owner.
+- **Linking rule:** an existing Siar account is linked by email only when its email is confirmed and Google is
+  authoritative for the address (gmail.com/googlemail.com, or a Workspace domain via `hd`); otherwise the person
+  signs in with their password and connects Google in Your account. An unconfirmed account is never linked, by
+  email or from settings (pre-account-takeover: a squatter's account, keys and members are never inherited); the
+  inbox owner recovers it with "Forgot password?". Connecting and disconnecting Google need the current password.
+  Invitations accept with Google only for the invited address and only where Google is authoritative.
+- **Audit 2026-11-12** (two independent reviews, all findings fixed): real client IP behind Cloudflare
+  (nginx real_ip from Cloudflare ranges, `/etc/nginx/siar-cloudflare-ips.conf` refreshed by deploy-shared.sh;
+  Fastify trusts loopback only), OAuth codes/state/invite tokens redacted in API and nginx logs, no mock Google
+  in production, security mails queued inside their transactions, invite join in one transaction, generic
+  password-login error (no Google-account discovery), forged callbacks cannot cancel a real sign-in.
 
 ### Compliance work for the audit (release 8ec1540, deployed 2026-10-15)
 
