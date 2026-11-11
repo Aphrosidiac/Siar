@@ -26,19 +26,30 @@ export const isOwner = computed(() => role.value === 'OWNER' || !!session.me?.us
 export const timezone = computed(() => session.me?.user.timezone || browserTz());
 export const tier = computed<Tier>(() => session.org?.tier ?? currentMembership.value?.tier ?? 'FREE');
 
+/** Network drops and gateway errors while the API restarts during a release: worth a quick second try. */
+const transient = (e: unknown) => isApiError(e) && [0, 502, 503, 504].includes(e.status);
+const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Who is signed in. 401 means signed out (session.me = null). Any other failure throws and leaves the
+ * session unresolved, so the next navigation asks again instead of treating the person as signed out.
+ */
 export async function loadSession(force = false) {
   if (session.ready && !force) return session.me;
-  try {
-    const me = await api.get<AuthMe>('/auth/me', undefined, { noAuthRedirect: true });
-    session.me = me;
-    setOrganizationId(me.currentOrganizationId ?? null);
-    if (me.currentOrganizationId) await Promise.all([loadOrg(), loadTeams()]);
-  } catch (e) {
-    if (!isApiError(e) || e.status !== 401) throw e;
-    session.me = null;
-  } finally {
-    session.ready = true;
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const me = await api.get<AuthMe>('/auth/me', undefined, { noAuthRedirect: true, timeoutMs: 15000 });
+      session.me = me;
+      setOrganizationId(me.currentOrganizationId ?? null);
+      if (me.currentOrganizationId) await Promise.all([loadOrg(), loadTeams()]);
+      break;
+    } catch (e) {
+      if (isApiError(e) && e.status === 401) { session.me = null; setOrganizationId(null); break; }
+      if (attempt < 2 && transient(e)) { await pause(attempt ? 1500 : 500); continue; }
+      throw e;
+    }
   }
+  session.ready = true;
   return session.me;
 }
 

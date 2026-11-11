@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 import { loadSession, session } from '@/lib/store';
-import { setUnauthenticatedHandler } from '@/lib/api';
+import { errorMessage, setUnauthenticatedHandler } from '@/lib/api';
+import { boot } from '@/lib/boot';
+import { toast } from '@/lib/toast';
 import { isStaleChunk, loadNewBuild } from '@/lib/stale';
 
 const views = import.meta.glob('./views/**/*.vue') as Record<string, () => Promise<any>>;
@@ -61,8 +63,19 @@ setUnauthenticatedHandler(() => {
 });
 
 let welcomeShown = false;
+/** A navigation that cannot finish: on the first page of a load show the boot error, later just say so. */
+function failed(err: unknown, to: { fullPath: string }) {
+  if (boot.ready) { toast.fail(err, 'That page did not open'); return; }
+  boot.error = errorMessage(err);
+  boot.target = to.fullPath;
+}
+
 router.beforeEach(async (to) => {
-  const me = await loadSession();
+  let me = null;
+  try { me = await loadSession(); } catch (err) {
+    // public pages (connect portal, password reset) do not depend on who is signed in
+    if (!to.meta.public) { failed(err, to); return false; }
+  }
   if (to.meta.guest && me) return typeof to.query.next === 'string' && to.query.next.startsWith('/') ? to.query.next : '/posts';
   if (!to.meta.public && !to.meta.guest && !me) return { path: '/login', query: to.fullPath !== '/' ? { next: to.fullPath } : {} };
   // the person who made the organization lands on the welcome until they finish or skip it; once per
@@ -72,9 +85,12 @@ router.beforeEach(async (to) => {
 });
 
 // a page chunk from an earlier release is gone: load the new build at the page they asked for
-router.onError((err, to) => { if (isStaleChunk(err)) loadNewBuild(to.fullPath); });
+router.onError((err, to) => { if (isStaleChunk(err) && loadNewBuild(to.fullPath)) return; failed(err, to); });
 
-router.afterEach((to) => {
+router.afterEach((to, _from, failure) => {
+  if (failure) return;
+  boot.ready = true;
+  boot.error = null;
   const t = to.meta.title as string | undefined;
   document.title = t ? `${t} · Siar` : 'Siar';
 });

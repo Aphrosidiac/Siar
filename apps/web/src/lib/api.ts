@@ -35,6 +35,8 @@ export interface RequestOptions {
   signal?: AbortSignal;
   /** Do not bounce to /login on 401 (used by the session probe and public pages). */
   noAuthRedirect?: boolean;
+  /** Give up after this many ms (ApiError status 0) instead of waiting on a stalled connection. */
+  timeoutMs?: number;
 }
 
 let onUnauthenticated: (() => void) | null = null;
@@ -60,9 +62,11 @@ export async function request<T = any>(method: string, path: string, opts: Reque
   else if (opts.body !== undefined) { headers['content-type'] = 'application/json'; body = JSON.stringify(opts.body); }
   let res: Response;
   try {
-    res = await fetch(buildUrl(path, opts.query), { method, headers, body, credentials: 'include', signal: opts.signal });
+    const signal = opts.signal ?? (opts.timeoutMs ? AbortSignal.timeout(opts.timeoutMs) : undefined);
+    res = await fetch(buildUrl(path, opts.query), { method, headers, body, credentials: 'include', signal });
   } catch (e) {
     if ((e as Error).name === 'AbortError') throw e;
+    if ((e as Error).name === 'TimeoutError') throw new ApiError(0, 'Siar is taking too long to respond. Try again in a moment.');
     throw new ApiError(0, 'Cannot reach the Siar API. Check your connection and try again.');
   }
   const text = await res.text();
@@ -70,7 +74,9 @@ export async function request<T = any>(method: string, path: string, opts: Reque
   if (text) { try { json = JSON.parse(text); } catch { json = null; } }
   if (!res.ok) {
     if (res.status === 401 && !opts.noAuthRedirect && onUnauthenticated) onUnauthenticated();
-    const message = json?.message || (res.status === 501 ? 'Not available on this server yet.' : `Request failed (${res.status}).`);
+    const message = json?.message || (res.status === 501 ? 'Not available on this server yet.'
+      : res.status >= 502 && res.status <= 504 ? 'Siar is briefly unavailable. Try again in a moment.'
+      : `Request failed (${res.status}).`);
     throw new ApiError(res.status, message, Array.isArray(json?.issues) ? json.issues : [], json);
   }
   return json as T;
