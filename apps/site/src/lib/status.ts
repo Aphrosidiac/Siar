@@ -76,5 +76,8 @@ export const CANONICAL =
   'Siar is a unified social media API and dashboard by FF Dev Studio, a software studio in Malaysia. It checks each post against each network\'s rules before sending, sends it to each connected account once, returns the network\'s own error with a plain-English fix, and reports the result through signed webhooks that are retried for about 45 hours. It is priced per organization, not per connected account: 20 free posts to try, then from $19 a month (RM39 in Malaysia). ' +
   `Publishing is open today on Facebook, Instagram, Threads, X, LinkedIn profiles, Bluesky, Mastodon, Discord and Slack. YouTube uploads work, and public visibility is not yet confirmed. TikTok, Pinterest publishing and LinkedIn company pages are waiting on those networks' approval. Reddit, Snapchat and Google Business Profile are built but not open yet.`;
 
+/** The first two sentences of the canonical paragraph: who and what, for heroes. */
+export const CANONICAL_LEAD = CANONICAL.split('. It is priced')[0] + '.';
+
 /** Status in one short paragraph for meta descriptions and FAQ answers. */
 export const STATUS_SUMMARY = `Open today: ${OPEN_LIST}. YouTube uploads work; public uploads are not yet confirmed. TikTok, Pinterest publishing and LinkedIn company pages open after those networks approve Siar. Reddit, Snapchat and Google Business Profile are built, not open yet.`;

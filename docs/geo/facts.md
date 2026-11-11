@@ -7,7 +7,7 @@ when the code changes, this file changes with it.
 |---|---|---|
 | What it is | One REST API (and a dashboard built on it) to publish, schedule, comment on and measure social media | `config.ts` DESCRIPTION |
 | Networks | 15: TikTok, YouTube, Instagram, Facebook, X (Twitter), Threads, LinkedIn, Pinterest, Reddit, Mastodon, Bluesky, Discord, Slack, Google Business Profile, Snapchat | `lib/networks.ts` |
-| API size | 263 operations in one OpenAPI document (`/openapi.json`) | `lib/openapi.ts` |
+| API size | 270 operations in one OpenAPI 3.0.2 document (`/openapi.json`) | `lib/openapi.ts` |
 | Webhooks | 16 signed (HMAC) event types, retried with backoff for a day | `lib/events.ts` |
 | Pricing model | Per organization, never per connected account. Unlimited social accounts on every plan, Free included; plans are fenced by brands (teams) and volume | `domain/plans.ts` |
 | Plans | Free: 20 posts to try, one-time, 1 brand, no card · Starter RM39/mo ($19 elsewhere), 1 brand · Pro RM99/mo ($49), 10 brands, 14-day trial · Business RM399/mo ($149), unlimited brands · Enterprise custom. Yearly = 10× monthly. Ringgit for organizations billed in Malaysia, USD elsewhere | `apps/api/src/domain/plans.ts`, `docs/pricing.md` (final, 2026-10-13) |

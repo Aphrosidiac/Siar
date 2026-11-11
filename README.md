@@ -12,7 +12,7 @@ Unlimited connected accounts, one price per organization.
 [siaran.my](https://siaran.my) · [Docs](https://siaran.my/docs) · [API reference](https://siaran.my/docs/api) · [Plan](docs/PLAN.md)
 
 ![Status: built, not deployed](https://img.shields.io/badge/status-built%2C%20not%20deployed-0b0b0a?style=flat-square)
-![API: 262/262 operations](https://img.shields.io/badge/API-262%2F262%20operations-0b0b0a?style=flat-square)
+![API: 270 operations](https://img.shields.io/badge/API-270%20operations-0b0b0a?style=flat-square)
 ![e2e: 38/38](https://img.shields.io/badge/e2e-38%2F38-0b0b0a?style=flat-square)
 ![Networks: 15](https://img.shields.io/badge/networks-15-0b0b0a?style=flat-square)
 
@@ -52,7 +52,7 @@ that already speaks that API switches by changing its base URL.
 | **Connect** | A hosted connect link with your name on it: customers sign in to each network themselves and land back in your app. Tokens are encrypted and never returned. |
 | **Reply** | Comments and DMs from every network in one inbox; reply as the account. |
 | **Measure** | Followers, impressions, views, likes and comments per network over time. |
-| **Build on it** | REST API (OpenAPI 3.1), TypeScript SDK, JSON-first CLI, MCP server for AI agents, HMAC-signed webhooks with a delivery log and replay. |
+| **Build on it** | REST API (OpenAPI 3.0), TypeScript SDK, JSON-first CLI, MCP server for AI agents, HMAC-signed webhooks with a delivery log and replay. |
 | **Run it** | Sign in with email or Google, teams, roles, API keys, quotas, Stripe / CHIP billing with invoices, link-in-bio pages, Google Business locations, Discord and Slack bots. |
 
 ## See it
@@ -165,7 +165,7 @@ apps/
   web/        Vue 3 + Vite dashboard and hosted connect portal          :5290
   site/       Astro marketing site + docs (88 pages)                    :4290
 packages/
-  contract/   OpenAPI 3.1 document (the contract) + generated TS types
+  contract/   OpenAPI 3.0 document (the contract) + generated TS types
   networks/   One adapter per network behind one interface; no DB
   sdk/        TypeScript SDK
   cli/        JSON-first CLI (`siar`), ships SKILL.md for agents

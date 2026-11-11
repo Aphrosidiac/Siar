@@ -12,7 +12,7 @@ import { OP_COUNT } from '../lib/openapi';
 import { PLANS, money, PRICE_LOCK } from '../lib/plans';
 import { postTabs } from '../lib/snippets';
 import { softwareLd, faqLd } from '../lib/seo';
-import { NETWORK_STATUS, CANONICAL, OPEN_LIST, type Status } from '../lib/status';
+import { NETWORK_STATUS, CANONICAL, CANONICAL_LEAD, OPEN_LIST, OPEN_ORDER } from '../lib/status';
 import { SIGNUP_URL, LEGAL_NAME, LEGAL_REG } from '../config';
 
 const N = NETWORKS.length;
@@ -20,9 +20,9 @@ const usd = (t: 'STARTER' | 'PRO' | 'BUSINESS') => money(t, 'MONTHLY', 'usd');
 const rm = (t: 'STARTER' | 'PRO' | 'BUSINESS') => money(t, 'MONTHLY', 'myr');
 const free = PLANS.FREE.posts;
 
-/** Open first, then waiting, then not open; each tile carries its exact status line. */
-const ORDER: Record<Status, number> = { open: 0, partial: 1, waiting: 2, 'not-open': 3 };
-const tiles = [...NETWORKS].sort((a, b) => ORDER[NETWORK_STATUS[a.type].status] - ORDER[NETWORK_STATUS[b.type].status]);
+/** Open first (in the order buyers ask), then YouTube, then waiting, then not open; each tile carries its exact status line. */
+const TILE_ORDER = [...OPEN_ORDER, 'YOUTUBE', 'TIKTOK', 'PINTEREST', 'REDDIT', 'SNAPCHAT', 'GOOGLE_BUSINESS'];
+const tiles = TILE_ORDER.map((t) => NETWORKS.find((n) => n.type === t)!).filter(Boolean);
 
 const faq = [
   { q: 'What is a unified social media API?', a: 'A unified social media API is one API that publishes to many social networks through a single request format, one key and one set of webhooks. You stop maintaining a separate integration, login flow and error handler for each network. Siar is one: it adds a check before sending and a signed result after.' },
@@ -135,7 +135,7 @@ const notYet = [
       <h1 class="m-display" data-lines><span class="ln"><span>Write it once.</span></span> <span class="ln"><span style="--d:1">Siar it everywhere.</span></span></h1>
       <div class="hero-sub">
         <p class="m-lead pos" data-reveal style="--d:3">The unified social media API where every post is accounted for.</p>
-        <p class="hero-canon" data-reveal style="--d:3">{CANONICAL}</p>
+        <p class="hero-canon" data-reveal style="--d:3">{CANONICAL_LEAD}</p>
         <div class="hero-cta" data-reveal style="--d:4">
           <div class="m-actions"><a class="pill ink" href={SIGNUP_URL}>Start with {free} free posts</a><a class="pill" href="/docs/quickstart">Read the quickstart</a></div>
           <p class="note">No card. A one-time allowance, with no time limit.</p>
@@ -313,7 +313,7 @@ const notYet = [
   .m-hero h1 .ln { display: block; }
   .hero-sub { display: flex; flex-direction: column; align-items: flex-start; gap: 20px; margin-top: clamp(28px, 4vw, 48px); max-width: 720px; }
   .pos { color: var(--text); font-weight: 500; }
-  .hero-canon { margin: 0; font-size: var(--fs-15); line-height: 24px; color: var(--text-muted); }
+  .hero-canon { margin: 0; font-size: var(--fs-16); line-height: 26px; color: var(--text-muted); }
   .hero-cta { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
   .note { margin: 0; font-size: var(--fs-14); line-height: 20px; color: var(--text-subtle); }
   .hero-main { display: grid; grid-template-columns: minmax(0, 1fr) clamp(250px, 21vw, 300px); column-gap: clamp(48px, 6vw, 96px); align-items: center; }
@@ -370,11 +370,11 @@ const notYet = [
   .grid15 { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-top: 1px solid var(--border); border-left: 1px solid var(--border); }
   .grid15 li { margin: 0; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
   .grid15 a { display: flex; flex-direction: column; gap: 6px; padding: 22px 20px 20px; min-height: 196px; height: 100%; text-decoration: none; color: var(--text); transition: background 200ms var(--ease-out); }
-  .grid15 a :global(.ni) { margin-bottom: auto; }
+  .grid15 a :global(.ni) { margin-bottom: 0; }
   .grid15 a:hover { background: var(--bg-elevated); }
   .grid15 .closed a { color: var(--text-subtle); }
   .grid15 .closed :global(.ni) { opacity: .55; }
-  .nm { font-size: var(--fs-16); font-weight: 600; letter-spacing: -0.01em; margin-top: 24px; }
+  .nm { font-size: var(--fs-16); font-weight: 600; letter-spacing: -0.01em; margin-top: 20px; }
   .ln2 { font-size: var(--fs-13); line-height: 18px; color: var(--text-subtle); }
   .more-l { margin: 24px 0 0; }
   @media (max-width: 1000px) { .grid15 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
