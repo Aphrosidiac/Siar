@@ -14,12 +14,14 @@ import slack from './slack.js';
 import bluesky from './bluesky.js';
 import googleBusiness from './google-business.js';
 import snapchat from './snapchat.js';
+import googleSignIn from './google-signin.js';
 
 /**
  * Register every network mock. Order matters only for the catch-all host '*' (Mastodon, whose
  * servers can be any host) — it goes last so specific hosts win.
  */
 export function registerAll(m: MockRegistry) {
+  googleSignIn(m);
   for (const r of [tiktok, youtube, instagram, facebook, twitter, threads, linkedin, pinterest, reddit, discord, slack, bluesky, googleBusiness, snapchat]) r(m);
   mastodon(m);
 }

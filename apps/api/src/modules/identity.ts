@@ -1,4 +1,4 @@
-import { appUrl, config } from '../platform/config.js';
+import { appUrl, config, googleSignInClient } from '../platform/config.js';
 import { randomToken, sha256 } from '../platform/crypto.js';
 import { prisma } from '../platform/db.js';
 import { audit } from '../platform/audit.js';
@@ -10,22 +10,30 @@ import { define } from '../platform/routes.js';
 import * as S from '../domain/serialize.js';
 import { RESOURCE_LIMITS } from '../domain/plans.js';
 
-const norm = (e: string) => e.trim().toLowerCase();
+export const norm = (e: string) => e.trim().toLowerCase();
 const staff = new Set(config.STAFF_EMAILS.split(',').map(s => norm(s)).filter(Boolean));
+export const isStaffEmail = (email: string) => staff.has(norm(email));
 
-async function sessionPayload(userId: string, currentOrganizationId: string | null) {
+export async function sessionPayload(userId: string, currentOrganizationId: string | null) {
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
   const ms = await prisma.organizationMember.findMany({ where: { userId, organization: { deletedAt: null } }, include: { organization: true }, orderBy: { createdAt: 'asc' } });
   const current = ms.find(m => m.organizationId === currentOrganizationId)?.organizationId ?? ms[0]?.organizationId ?? null;
   return {
-    user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, avatarUrl: user.avatarUrl, timezone: user.timezone, emailVerifiedAt: user.emailVerified?.toISOString() ?? null, onboardedAt: user.onboardedAt?.toISOString() ?? null, createdAt: user.createdAt.toISOString(), isStaff: user.role === 'ADMIN' },
+    user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, avatarUrl: user.avatarUrl, timezone: user.timezone, emailVerifiedAt: user.emailVerified?.toISOString() ?? null, onboardedAt: user.onboardedAt?.toISOString() ?? null, createdAt: user.createdAt.toISOString(), isStaff: user.role === 'ADMIN',
+      // how this person signs in (Your account renders from it without a second request)
+      hasPassword: !!user.passwordHash, googleEmail: user.googleSub ? user.googleEmail ?? '' : null },
     memberships: ms.map(m => ({ id: m.id, organizationId: m.organizationId, organizationName: m.organization.name ?? 'Organization', role: m.role, tier: m.organization.tier })),
     currentOrganizationId: current,
   };
 }
 
+export async function signInMethods(userId: string) {
+  const u = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { passwordHash: true, googleSub: true, googleEmail: true, googleLinkedAt: true } });
+  return { password: !!u.passwordHash, google: u.googleSub ? { email: u.googleEmail, linkedAt: u.googleLinkedAt?.toISOString() ?? null } : null };
+}
+
 /** A new organization with its owner, a credit account and a first team, so nothing opens empty. */
-async function createOrganization(tx: any, userId: string, name: string, teamName = 'Main') {
+export async function createOrganization(tx: any, userId: string, name: string, teamName = 'Main') {
   const org = await tx.organization.create({ data: { name, createdById: userId, trialEndsAt: null } });
   await tx.organizationMember.create({ data: { organizationId: org.id, userId, role: 'OWNER' } });
   await tx.creditAccount.create({ data: { organizationId: org.id } });
@@ -87,6 +95,7 @@ define({
 
   'auth.login': async ({ body, req, reply }) => {
     const user = await prisma.user.findUnique({ where: { email: norm(body.email) } });
+    if (user && !user.deletedAt && !user.passwordHash && user.googleSub) throw unauthenticated('This account signs in with Google. Use "Continue with Google", or set a password with "Forgot password?".');
     if (!user || user.deletedAt || !user.passwordHash || !(await verifyPassword(body.password, user.passwordHash))) throw unauthenticated('Email or password is incorrect.');
     const first = await prisma.organizationMember.findFirst({ where: { userId: user.id, organization: { deletedAt: null } }, orderBy: { createdAt: 'asc' } });
     setSessionCookie(reply, await createSession(user.id, first?.organizationId ?? null, req));
@@ -99,6 +108,8 @@ define({
     clearSessionCookie(reply);
     return { success: true };
   },
+
+  'auth.providers': async () => ({ google: !!googleSignInClient() }),
 
   'auth.verifyEmail': async ({ body }) => {
     const t = await prisma.authToken.findUnique({ where: { id: sha256(body.token) } });
@@ -181,11 +192,50 @@ define({
 
   'user.changePassword': async ({ sessionUser, body }) => {
     const u = await prisma.user.findUniqueOrThrow({ where: { id: sessionUser!.userId } });
-    if (!u.passwordHash || !(await verifyPassword(body.currentPassword, u.passwordHash))) throw badRequest('Your current password is incorrect.', [{ code: 'invalid', message: 'Incorrect password', path: ['currentPassword'] }]);
+    if (!u.passwordHash) throw badRequest('This account has no password yet. Use "Set a password" to get a link by email.');
+    if (!(await verifyPassword(body.currentPassword, u.passwordHash))) throw badRequest('Your current password is incorrect.', [{ code: 'invalid', message: 'Incorrect password', path: ['currentPassword'] }]);
     await prisma.$transaction([
       prisma.user.update({ where: { id: u.id }, data: { passwordHash: await hashPassword(body.newPassword) } }),
       prisma.session.updateMany({ where: { userId: u.id, revokedAt: null, id: { not: sessionUser!.sessionId } }, data: { revokedAt: new Date() } }),
     ]);
+    return { success: true };
+  },
+
+  'user.signInMethods': async ({ sessionUser }) => signInMethods(sessionUser!.userId),
+
+  /** Disconnect Google. Only with a password left to sign in with, or the account would be locked out. */
+  'user.unlinkGoogle': async ({ sessionUser }) => {
+    const su = sessionUser as SessionUser;
+    const u = await prisma.user.findUniqueOrThrow({ where: { id: su.userId } });
+    if (!u.googleSub) return signInMethods(u.id);
+    if (!u.passwordHash) throw badRequest('Set a password before you disconnect Google, or you could not sign in any more.');
+    await prisma.$transaction(async tx => {
+      await tx.user.update({ where: { id: u.id }, data: { googleSub: null, googleEmail: null, googleLinkedAt: null } });
+      if (su.organizationId) await audit(tx, { kind: 'USER', organizationId: su.organizationId, name: su.name, userId: u.id }, 'user.google.unlink', 'User', u.id, `${u.email} disconnected Google sign-in`);
+    });
+    await queueMail(prisma, {
+      to: u.email, subject: 'Google sign-in was disconnected from Siar', kicker: 'Security', heading: 'Google sign-in disconnected.',
+      paragraphs: ['Google can no longer be used to sign in to this Siar account. Your email and password still work.'],
+      details: [['Account', u.email], ['Google account', u.googleEmail ?? 'Google']],
+      footnote: 'Did not do this? Reset your password straight away and contact siaran@ffdev.studio.',
+      reason: 'You received this email because the sign-in methods of this Siar account changed.',
+    });
+    return signInMethods(u.id);
+  },
+
+  /** Google-only accounts: email a one-hour link to choose a password (the reset flow, worded for a first password). */
+  'user.sendPasswordSetup': async ({ sessionUser }) => {
+    const u = await prisma.user.findUniqueOrThrow({ where: { id: sessionUser!.userId } });
+    if (u.passwordHash) throw badRequest('This account already has a password. Change it below.');
+    const token = randomToken();
+    await prisma.authToken.create({ data: { id: sha256(token), kind: 'RESET_PASSWORD', userId: u.id, expiresAt: new Date(Date.now() + 3600_000) } });
+    await queueMail(prisma, {
+      to: u.email, subject: 'Set a password for Siar', kicker: 'Security', heading: 'Set a password.',
+      paragraphs: ['You sign in to Siar with Google. Choose a password too, and you can also sign in with your email.'],
+      details: [['Account', u.email]], cta: { label: 'Choose a password', url: appUrl(`/reset-password?token=${token}&set=1`) },
+      footnote: 'The link works for one hour. If you did not ask for this, ignore it: nothing changes.',
+      reason: 'You received this email because a password was requested for this Siar account.',
+    });
     return { success: true };
   },
 

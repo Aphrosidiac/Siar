@@ -8,6 +8,8 @@ import { api, errorMessage, isApiError, issuesByPath } from '@/lib/api';
 
 const route = useRoute();
 const token = String(route.query.token ?? '');
+// ?set=1: the "Set a password" email of an account that signs in with Google
+const first = route.query.set === '1';
 const password = ref(''); const busy = ref(false); const done = ref(false); const error = ref(''); const fieldErr = ref('');
 async function submit() {
   busy.value = true; error.value = ''; fieldErr.value = '';
@@ -16,13 +18,13 @@ async function submit() {
 }
 </script>
 <template>
-  <AuthShell title="Choose a new password">
+  <AuthShell :title="first ? 'Choose a password' : 'Choose a new password'">
     <div v-if="!token" class="callout danger">This reset link is missing its token. Request a new one.</div>
-    <div v-else-if="done" class="stack-16"><div class="callout success" role="status">Your password was changed. You can sign in now.</div><Button to="/login" variant="primary" block>Sign in</Button></div>
+    <div v-else-if="done" class="stack-16"><div class="callout success" role="status">{{ first ? 'Your password is set. You can sign in with it or with Google.' : 'Your password was changed. You can sign in now.' }}</div><Button to="/login" variant="primary" block>Sign in</Button></div>
     <form v-else class="stack-16" @submit.prevent="submit">
       <div v-if="error && !fieldErr" class="callout danger" role="alert">{{ error }}</div>
-      <Input v-model="password" label="New password" type="password" required autofocus autocomplete="new-password" :error="fieldErr" help="At least 10 characters." />
-      <Button type="submit" variant="primary" block :loading="busy">Change password</Button>
+      <Input v-model="password" :label="first ? 'Password' : 'New password'" type="password" required autofocus autocomplete="new-password" :error="fieldErr" help="At least 10 characters." />
+      <Button type="submit" variant="primary" block :loading="busy">{{ first ? 'Set password' : 'Change password' }}</Button>
     </form>
     <template #below><router-link to="/forgot-password">Request a new link</router-link></template>
   </AuthShell>

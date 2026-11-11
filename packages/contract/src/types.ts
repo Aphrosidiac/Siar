@@ -2677,6 +2677,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sign-in methods this server offers
+         * @description Which sign-in providers are switched on, so the sign-in pages only show working buttons. "Continue with Google" itself is a redirect flow: GET /api/v1/auth/google/start, back through /api/v1/auth/google/callback.
+         */
+        get: operations["auth.providers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/switch-organization": {
         parameters: {
             query?: never;
@@ -2743,6 +2763,63 @@ export interface paths {
         put?: never;
         /** Change my password */
         post: operations["user.changePassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user/me/sign-in-methods": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** How I sign in */
+        get: operations["user.signInMethods"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user/me/google": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Disconnect Google sign-in
+         * @description Only when the account also has a password, so it can still be signed in to.
+         */
+        delete: operations["user.unlinkGoogle"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user/me/password/setup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Email me a link to set a password
+         * @description For accounts that sign in with Google only. The link works for one hour.
+         */
+        post: operations["user.sendPasswordSetup"];
         delete?: never;
         options?: never;
         head?: never;
@@ -46548,6 +46625,28 @@ export interface operations {
             };
         };
     };
+    "auth.providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        google: boolean;
+                    };
+                };
+            };
+        };
+    };
     "auth.switchOrganization": {
         parameters: {
             query?: never;
@@ -46730,6 +46829,82 @@ export interface operations {
                 };
             };
         };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success: boolean;
+                    };
+                };
+            };
+        };
+    };
+    "user.signInMethods": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        password: boolean;
+                        google: {
+                            email: string | null;
+                            /** Format: date-time */
+                            linkedAt?: string | null;
+                        } | null;
+                    };
+                };
+            };
+        };
+    };
+    "user.unlinkGoogle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        password: boolean;
+                        google: {
+                            email: string | null;
+                            /** Format: date-time */
+                            linkedAt?: string | null;
+                        } | null;
+                    };
+                };
+            };
+        };
+    };
+    "user.sendPasswordSetup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {

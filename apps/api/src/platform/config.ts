@@ -49,6 +49,13 @@ const schema = z.object({
   SMTP_URL: z.string().default(''),
   MAIL_FROM: z.string().default('Siar <hello@siaran.my>'),
   RUN_JOBS_IN_API: bool('false'),
+  /**
+   * "Continue with Google" (OpenID Connect): a web OAuth client of its own, separate from the YouTube
+   * client. Redirect URI: <APP_URL>/api/v1/auth/google/callback. Empty = the button is hidden
+   * (mock mode signs in against the mock Google without them).
+   */
+  GOOGLE_SIGNIN_CLIENT_ID: z.string().default(''),
+  GOOGLE_SIGNIN_CLIENT_SECRET: z.string().default(''),
   /** Emails that become Siar staff (User.role = ADMIN) on sign-up. */
   STAFF_EMAILS: z.string().default('hello@ffdev.studio'),
   TRIAL_DAYS: z.coerce.number().default(14),
@@ -67,3 +74,12 @@ const join = (base: string, path: string) => base.replace(/\/$/, '') + path;
 export const appUrl = (path = '') => join(config.APP_URL, path);
 export const apiUrl = (path = '') => join(config.API_URL, path);
 export const siteUrl = (path = '') => join(config.SITE_URL, path);
+
+/**
+ * The "Continue with Google" OAuth client, or null when sign-in with Google is off. Mock mode signs in
+ * against the mock Google (mocks/) with a stand-in client, so dev and e2e need no keys.
+ */
+export function googleSignInClient(): { id: string; secret: string } | null {
+  if (config.GOOGLE_SIGNIN_CLIENT_ID && config.GOOGLE_SIGNIN_CLIENT_SECRET) return { id: config.GOOGLE_SIGNIN_CLIENT_ID, secret: config.GOOGLE_SIGNIN_CLIENT_SECRET };
+  return config.NETWORK_MODE === 'mock' ? { id: 'mock-google-signin.apps.googleusercontent.com', secret: 'mock-google-signin-secret' } : null;
+}

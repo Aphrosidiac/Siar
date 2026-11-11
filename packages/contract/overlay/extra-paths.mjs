@@ -36,6 +36,7 @@ const Membership = obj({ id: S.str, organizationId: S.str, organizationName: S.s
 const Member = obj({ id: S.str, userId: S.str, email: S.str, firstName: S.strN, lastName: S.strN, role: Role, createdAt: S.date }, ['id', 'userId', 'email', 'role']);
 const Invitation = obj({ id: S.str, email: S.str, role: Role, expiresAt: S.date, createdAt: S.date }, ['id', 'email', 'role']);
 const Session = obj({ user: User, memberships: arr(Membership), currentOrganizationId: S.strN }, ['user', 'memberships']);
+const SignInMethods = obj({ password: S.bool, google: { ...obj({ email: S.strN, linkedAt: S.dateN }, ['email']), nullable: true } }, ['password', 'google']);
 const ApiKey = obj({ id: S.str, name: S.str, prefix: S.str, lastUsedAt: S.dateN, createdAt: S.date }, ['id', 'name', 'prefix']);
 const ApiKeyCreated = obj({ id: S.str, name: S.str, prefix: S.str, key: S.str, createdAt: S.date }, ['id', 'key']);
 const EVENTS = ['post.published', 'comment.published', 'team.created', 'team.updated', 'team.deleted', 'social-account.created', 'social-account.updated', 'social-account.deleted', 'credit.low-balance', 'credit.exhausted', 'comment.received', 'conversation.created', 'conversation.updated', 'conversation.message.created', 'conversation.message.updated', 'conversation.read.updated'];
@@ -86,6 +87,7 @@ export const extraPaths = {
   '/api/v1/auth/resend-verification': { post: op('auth.resendVerification', 'auth', 'Send the verification email again') },
   '/api/v1/auth/forgot-password': { post: op('auth.forgotPassword', 'auth', 'Email a password reset link', { body: obj({ email: S.str }, ['email']), security: PUBLIC }) },
   '/api/v1/auth/reset-password': { post: op('auth.resetPassword', 'auth', 'Set a new password from a reset link', { body: obj({ token: S.str, password: { type: 'string', minLength: 10 } }, ['token', 'password']), security: PUBLIC }) },
+  '/api/v1/auth/providers': { get: op('auth.providers', 'auth', 'Sign-in methods this server offers', { description: 'Which sign-in providers are switched on, so the sign-in pages only show working buttons. "Continue with Google" itself is a redirect flow: GET /api/v1/auth/google/start, back through /api/v1/auth/google/callback.', res: obj({ google: S.bool }, ['google']), security: PUBLIC }) },
   '/api/v1/auth/switch-organization': { post: op('auth.switchOrganization', 'auth', 'Switch the active organization', { body: obj({ organizationId: S.str }, ['organizationId']), res: Session }) },
 
   // ── user & members ────────────────────────────────────────────────────
@@ -95,6 +97,9 @@ export const extraPaths = {
   },
   '/api/v1/user/me/onboarding': { post: op('user.completeOnboarding', 'user', 'Finish the first-login welcome', { description: 'Marks the welcome as done (or skipped) and makes sure the organization has at least one team.', res: Session }) },
   '/api/v1/user/me/password': { post: op('user.changePassword', 'user', 'Change my password', { body: obj({ currentPassword: S.str, newPassword: { type: 'string', minLength: 10 } }, ['currentPassword', 'newPassword']) }) },
+  '/api/v1/user/me/sign-in-methods': { get: op('user.signInMethods', 'user', 'How I sign in', { res: SignInMethods }) },
+  '/api/v1/user/me/google': { delete: op('user.unlinkGoogle', 'user', 'Disconnect Google sign-in', { description: 'Only when the account also has a password, so it can still be signed in to.', res: SignInMethods }) },
+  '/api/v1/user/me/password/setup': { post: op('user.sendPasswordSetup', 'user', 'Email me a link to set a password', { description: 'For accounts that sign in with Google only. The link works for one hour.' }) },
   '/api/v1/user/members': { get: op('user.members', 'user', 'List organization members', { params: page, res: list(Member) }) },
   '/api/v1/user/members/{id}': {
     patch: op('user.updateMember', 'user', 'Change a member role', { params: [idParam], body: obj({ role: Role }, ['role']), res: Member }),

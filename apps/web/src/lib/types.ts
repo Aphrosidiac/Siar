@@ -13,7 +13,7 @@ export type NetworkType = 'TIKTOK' | 'YOUTUBE' | 'INSTAGRAM' | 'FACEBOOK' | 'TWI
 export type Role = 'OWNER' | 'ADMIN' | 'MEMBER';
 
 type MeBase = Resp<'auth.me'>;
-export type AuthMe = Omit<MeBase, 'user' | 'memberships'> & { user: MeBase['user'] & { isStaff?: boolean }; memberships: (MeBase['memberships'][number] & { tier?: Tier })[] };
+export type AuthMe = Omit<MeBase, 'user' | 'memberships'> & { user: MeBase['user'] & { isStaff?: boolean; hasPassword?: boolean; googleEmail?: string | null }; memberships: (MeBase['memberships'][number] & { tier?: Tier })[] };
 export type Tier = 'FREE' | 'STARTER' | 'PRO' | 'BUSINESS' | 'ENTERPRISE';
 export type Organization = Resp<'organization.getOrganization'> & { tier?: Tier; trialEndsAt?: string | null; portalBrandName?: string | null; portalLogoUrl?: string | null; portalAccentColor?: string | null };
 

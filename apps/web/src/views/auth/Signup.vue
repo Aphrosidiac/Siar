@@ -1,16 +1,22 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import AuthShell from '@/components/AuthShell.vue';
 import Input from '@/components/ui/Input.vue';
 import Button from '@/components/ui/Button.vue';
+import GoogleButton from '@/components/GoogleButton.vue';
+import OrDivider from '@/components/OrDivider.vue';
 import { api, errorMessage, isApiError, issuesByPath } from '@/lib/api';
 import { loadSession } from '@/lib/store';
+import { googleError, googleStartUrl, useGoogleSignIn } from '@/lib/google';
 
-const router = useRouter();
+const router = useRouter(); const route = useRoute();
 // one name field: names don't split into first/last the same way everywhere
 const f = reactive({ name: '', email: '', password: '' });
-const busy = ref(false); const error = ref(''); const fields = ref<Record<string, string>>({});
+const busy = ref(false); const error = ref(googleError(route.query.error)); const fields = ref<Record<string, string>>({});
+const google = useGoogleSignIn();
+const googleHref = googleStartUrl({ from: 'signup' });
+if (route.query.error) void router.replace({ query: { ...route.query, error: undefined } });
 const pwOk = computed(() => f.password.length >= 10);
 const site = location.hostname.startsWith('app.') ? `${location.protocol}//${location.hostname.slice(4)}` : `${location.protocol}//${location.hostname}:4290`;
 async function submit() {
@@ -28,17 +34,23 @@ async function submit() {
 <template>
   <AuthShell title="Start publishing everywhere." subtitle="Create your free account. 20 free posts to try, no card needed.">
     <template #switch>Have an account? <router-link to="/login">Sign in</router-link></template>
-    <form class="stack-16" novalidate @submit.prevent="submit">
+    <div class="stack-16">
       <div v-if="error && !Object.keys(fields).length" class="callout danger" role="alert">{{ error }}</div>
-      <Input v-model="f.name" label="Full name" required autocomplete="name" :error="fields.name" autofocus />
-      <Input v-model="f.email" label="Work email" type="email" required autocomplete="email" placeholder="you@company.com" :error="fields.email" />
-      <div>
-        <Input v-model="f.password" label="Password" type="password" required autocomplete="new-password" :error="fields.password" />
-        <p v-if="!fields.password" class="pw small" :class="{ ok: pwOk }"><span class="tick" aria-hidden="true">{{ pwOk ? '✓' : '·' }}</span>At least 10 characters</p>
-      </div>
-      <Button type="submit" variant="primary" block :loading="busy">Create account <span aria-hidden="true">→</span></Button>
+      <template v-if="google">
+        <GoogleButton :href="googleHref" label="Sign up with Google" />
+        <OrDivider />
+      </template>
+      <form class="stack-16" novalidate @submit.prevent="submit">
+        <Input v-model="f.name" label="Full name" required autocomplete="name" :error="fields.name" autofocus />
+        <Input v-model="f.email" label="Work email" type="email" required autocomplete="email" placeholder="you@company.com" :error="fields.email" />
+        <div>
+          <Input v-model="f.password" label="Password" type="password" required autocomplete="new-password" :error="fields.password" />
+          <p v-if="!fields.password" class="pw small" :class="{ ok: pwOk }"><span class="tick" aria-hidden="true">{{ pwOk ? '✓' : '·' }}</span>At least 10 characters</p>
+        </div>
+        <Button type="submit" variant="primary" block :loading="busy">Create account <span aria-hidden="true">→</span></Button>
+      </form>
       <p class="terms tiny">By creating an account you agree to the <a :href="`${site}/terms`">Terms</a> and <a :href="`${site}/privacy`">Privacy Policy</a>.</p>
-    </form>
+    </div>
   </AuthShell>
 </template>
 <style scoped>

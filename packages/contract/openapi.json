@@ -137521,6 +137521,38 @@
     "security": []
    }
   },
+  "/api/v1/auth/providers": {
+   "get": {
+    "operationId": "auth.providers",
+    "tags": [
+     "auth"
+    ],
+    "summary": "Sign-in methods this server offers",
+    "parameters": [],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "google": {
+           "type": "boolean"
+          }
+         },
+         "required": [
+          "google"
+         ]
+        }
+       }
+      }
+     }
+    },
+    "security": [],
+    "description": "Which sign-in providers are switched on, so the sign-in pages only show working buttons. \"Continue with Google\" itself is a redirect flow: GET /api/v1/auth/google/start, back through /api/v1/auth/google/callback."
+   }
+  },
   "/api/v1/auth/switch-organization": {
    "post": {
     "operationId": "auth.switchOrganization",
@@ -137958,6 +137990,136 @@
       }
      }
     }
+   }
+  },
+  "/api/v1/user/me/sign-in-methods": {
+   "get": {
+    "operationId": "user.signInMethods",
+    "tags": [
+     "user"
+    ],
+    "summary": "How I sign in",
+    "parameters": [],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "password": {
+           "type": "boolean"
+          },
+          "google": {
+           "type": "object",
+           "properties": {
+            "email": {
+             "type": "string",
+             "nullable": true
+            },
+            "linkedAt": {
+             "type": "string",
+             "format": "date-time",
+             "nullable": true
+            }
+           },
+           "required": [
+            "email"
+           ],
+           "nullable": true
+          }
+         },
+         "required": [
+          "password",
+          "google"
+         ]
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/user/me/google": {
+   "delete": {
+    "operationId": "user.unlinkGoogle",
+    "tags": [
+     "user"
+    ],
+    "summary": "Disconnect Google sign-in",
+    "parameters": [],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "password": {
+           "type": "boolean"
+          },
+          "google": {
+           "type": "object",
+           "properties": {
+            "email": {
+             "type": "string",
+             "nullable": true
+            },
+            "linkedAt": {
+             "type": "string",
+             "format": "date-time",
+             "nullable": true
+            }
+           },
+           "required": [
+            "email"
+           ],
+           "nullable": true
+          }
+         },
+         "required": [
+          "password",
+          "google"
+         ]
+        }
+       }
+      }
+     }
+    },
+    "description": "Only when the account also has a password, so it can still be signed in to."
+   }
+  },
+  "/api/v1/user/me/password/setup": {
+   "post": {
+    "operationId": "user.sendPasswordSetup",
+    "tags": [
+     "user"
+    ],
+    "summary": "Email me a link to set a password",
+    "parameters": [],
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "success": {
+           "type": "boolean"
+          }
+         },
+         "required": [
+          "success"
+         ]
+        }
+       }
+      }
+     }
+    },
+    "description": "For accounts that sign in with Google only. The link works for one hour."
    }
   },
   "/api/v1/user/members": {

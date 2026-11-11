@@ -1,4 +1,5 @@
 import { consent, id, type MockRegistry, type MockRequest, type MockResponse } from '../registry.js';
+import * as gsi from './google-signin.js';
 
 /**
  * YouTube — Google OAuth 2.0 (accounts.google.com, oauth2.googleapis.com), YouTube Data API v3
@@ -36,12 +37,14 @@ export default function youtube(m: MockRegistry) {
 
   // ── OAuth ──
   m.on('GET', 'accounts.google.com', '/o/oauth2/v2/auth', req => {
+    if (gsi.isSignInAuthorize(req)) return gsi.authorize(m, req);
     if (!req.query.client_id) return { status: 400, json: { error: 'invalid_request', error_description: 'client_id is required' } };
     if (req.query.access_type !== 'offline') return { status: 400, json: { error: 'invalid_request', error_description: 'access_type=offline is required for a refresh token' } };
     return consent(req);
   });
   m.on('POST', 'oauth2.googleapis.com', '/token', req => {
     const b = req.body;
+    if (gsi.isSignInCode(b.code)) return gsi.token(m, b);
     if (!b.client_id || !b.client_secret) return { status: 401, json: { error: 'invalid_client', error_description: 'The OAuth client was not found.' } };
     if (b.grant_type === 'authorization_code') {
       if (!String(b.code ?? '').startsWith('mockcode_')) return { status: 400, json: { error: 'invalid_grant', error_description: 'Malformed auth code.' } };

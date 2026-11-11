@@ -81,6 +81,7 @@ Tokens live in `apps/web/src/styles.css`; the site mirrors them.
 pnpm --filter @siar/mocks dev          # mock networks :3299
 pnpm --filter @siar/api dev            # API :3290 (jobs in-process in dev)
 pnpm --filter @siar/api e2e            # end-to-end checks
+pnpm --filter @siar/api e2e:google     # Continue with Google: every sign-in/link path against the mock Google
 pnpm --filter @siar/networks test      # adapter tests (self-contained)
 pnpm --filter @siar/web dev            # dashboard :5290 (proxies /api to :3290)
 ```

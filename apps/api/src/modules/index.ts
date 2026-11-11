@@ -17,6 +17,7 @@ import { billingRawRoutes } from './billing.js';
 import { bioRawRoutes } from './bio.js';
 import { messagingRawRoutes } from './messaging.js';
 import { blueskyRawRoutes } from './bluesky-oauth.js';
+import { googleSignInRawRoutes } from './google-signin.js';
 
 /** Imported for its side effects; kept as a function so app.ts reads as a sequence. */
 export function registerModules() {}
@@ -30,4 +31,5 @@ export async function registerRawRoutes(app: FastifyInstance) {
   await bioRawRoutes(app);
   await messagingRawRoutes(app);
   await blueskyRawRoutes(app);
+  await googleSignInRawRoutes(app);
 }

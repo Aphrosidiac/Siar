@@ -3,7 +3,7 @@ layout: ../layouts/Page.astro
 title: Privacy policy
 description: "What data Siar collects, why, how long it is kept, who processes it and how to exercise your rights."
 eyebrow: Legal
-updated: 2026-10-15
+updated: 2026-11-12
 ---
 import { LEGAL_NAME, LEGAL_REG, CONTACT_EMAIL, SITE_NAME } from '../config';
 import { RESOURCE_LIMITS } from '../lib/plans';
@@ -15,7 +15,8 @@ This policy covers two groups: customers who use Siar (developers and their team
 ## What we collect
 
 **From customers**
-- Account details: name, email address, organization name and a password hash.
+- Account details: name, email address, organization name and a password hash (no password if you only sign in with Google).
+- If you sign in with Google: your Google account id, the email address of that Google account, your name and profile picture, and whether Google has verified the email. Siar asks Google only for `openid`, `email` and `profile`. It keeps no Google access token and reads nothing else from your Google account. You can disconnect Google under Your account, and remove Siar from your [Google account connections](https://myaccount.google.com/connections) any time.
 - Billing details: plan, invoices and a payment-provider reference. Card numbers are handled by our payment processor, not stored by us.
 - Usage and security records: API requests by key, quotas used, audit log entries, IP address and user agent for sign-in and security.
 - Content you send: posts, comments, uploaded media, webhook endpoints and settings.
@@ -84,7 +85,7 @@ Depending on where you live (including under Malaysia's Personal Data Protection
 
 ## Cookies
 
-The website uses no advertising or cross-site tracking cookies. The dashboard uses a session cookie to keep you signed in, and your browser stores a theme preference locally. Siar does not store or read other information on your device.
+The website uses no advertising or cross-site tracking cookies. The dashboard uses a session cookie to keep you signed in and, while you sign in with Google, a short-lived cookie (10 minutes) that ties Google's reply to your browser. Your browser also stores a theme preference locally. Siar does not store or read other information on your device.
 
 ## Children
 

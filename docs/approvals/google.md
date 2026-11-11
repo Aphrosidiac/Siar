@@ -12,6 +12,26 @@ verification.
 been sent"). Google answers by email to hello@ffdev.studio; all 8 attestations ticked, derived-metrics addendum not requested (form support.google.com/youtube/contact/yt_api_form,
 answers below). Until it passes, API uploads stay **private** (Siar flags `lockedPrivate` on the post).
 
+### Sign in with Google (dashboard sign-in, 2026-11-12)
+
+"Continue with Google" on app.siaran.my (login, signup, accept invite; connect/disconnect under Your account).
+Code: apps/api/src/modules/google-signin.ts (OIDC code flow + PKCE S256, state, nonce, ID token verified with
+`jose` against Google's JWKS), tests: `pnpm --filter @siar/api e2e:google` (58 checks against the mock Google).
+
+- **Its own OAuth client** in `siar-prod`: Clients → Web application **"Siar sign-in"**. Authorized redirect URIs:
+  `https://app.siaran.my/api/v1/auth/google/callback` and `http://localhost:5290/api/v1/auth/google/callback`.
+  No JavaScript origins needed (server-side flow). Not the "Siar web" YouTube client: sign-in must not show
+  YouTube permissions, and the two can be rotated apart.
+- **Scopes `openid email profile` only.** These are non-sensitive and need no verification; they are not added
+  to the consent screen's Data access page, so the verified consent screen is left exactly as approved (any
+  change there re-opens verification). Users see the verified Siar name and logo.
+- **Env:** `GOOGLE_SIGNIN_CLIENT_ID` + `GOOGLE_SIGNIN_CLIENT_SECRET` in /srv/siar/shared/.env (and Siar/.env.networks
+  on the Mac). Empty = the button is hidden (`GET /api/v1/auth/providers`). Mock mode needs neither.
+- **Linking rule:** an existing Siar account is linked by email only when Google is authoritative for the address
+  (gmail.com/googlemail.com, or a Workspace domain via `hd`); otherwise the person signs in with their password
+  and connects Google in Your account. Linking to an account whose email was never confirmed drops its password
+  and sessions (pre-account-takeover defence) and emails the owner.
+
 ### Compliance work for the audit (release 8ec1540, deployed 2026-10-15)
 
 Checked against the YouTube Developer Policies (III.A terms/privacy, III.E.4 storage):

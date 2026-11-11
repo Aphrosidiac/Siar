@@ -51,7 +51,13 @@ model User {
   externalId    String    @unique @default(uuid(7))
   email         String    @unique
   emailVerified DateTime?
+  /// Null for accounts that only sign in with Google.
   passwordHash  String?
+  /// Google account (OpenID Connect `sub`) linked for "Continue with Google"; stable, never reused by Google.
+  googleSub      String?   @unique
+  /// The Google account's email when it was linked (may differ from `email`).
+  googleEmail    String?
+  googleLinkedAt DateTime?
   firstName     String?
   lastName      String?
   avatarUrl     String?

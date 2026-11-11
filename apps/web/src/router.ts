@@ -4,6 +4,7 @@ import { errorMessage, setUnauthenticatedHandler } from '@/lib/api';
 import { boot } from '@/lib/boot';
 import { toast } from '@/lib/toast';
 import { isStaleChunk, loadNewBuild } from '@/lib/stale';
+import { googleReady } from '@/lib/google';
 
 const views = import.meta.glob('./views/**/*.vue') as Record<string, () => Promise<any>>;
 const view = (name: string) => views[`./views/${name}.vue`]!;
@@ -72,7 +73,9 @@ function failed(err: unknown, to: { fullPath: string }) {
 
 router.beforeEach(async (to) => {
   let me = null;
-  try { me = await loadSession(); } catch (err) {
+  // the sign-in pages show "Continue with Google" only when the server offers it: know before they render
+  const providers = to.meta.guest || to.path === '/accept-invite' ? googleReady() : null;
+  try { me = await loadSession(); await providers; } catch (err) {
     // public pages (connect portal, password reset) do not depend on who is signed in
     if (!to.meta.public) { failed(err, to); return false; }
   }

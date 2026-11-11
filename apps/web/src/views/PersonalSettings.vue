@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
-import { Check, Monitor, Moon, Sun } from 'lucide-vue-next';
+import { onMounted, reactive, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { Check, KeyRound, Monitor, Moon, Sun } from 'lucide-vue-next';
 import PageHead from '@/components/PageHead.vue';
 import SettingsSection from '@/components/settings/SettingsSection.vue';
 import SaveBar from '@/components/settings/SaveBar.vue';
@@ -14,6 +15,8 @@ import { loadSession, session, setTheme, theme, type ThemePref } from '@/lib/sto
 import { TIMEZONES, browserTz, fullName } from '@/lib/format';
 import { useDraft } from '@/lib/dirty';
 import { toast } from '@/lib/toast';
+import { confirm } from '@/lib/confirm';
+import { googleError, googleStartUrl, useGoogleSignIn } from '@/lib/google';
 
 const u = session.me!.user;
 const { form: p, dirty, discard, commit } = useDraft({ firstName: u.firstName ?? '', lastName: u.lastName ?? '', timezone: u.timezone ?? browserTz(), avatarUrl: u.avatarUrl ?? '' });
@@ -31,6 +34,31 @@ async function changePassword() {
   try { await api.post('/user/me/password', { currentPassword: pw.currentPassword, newPassword: pw.newPassword }); Object.assign(pw, { currentPassword: '', newPassword: '', confirm: '' }); toast.success('Password changed'); }
   catch (e) { if (isApiError(e)) we.value = issuesByPath(e.issues); toast.fail(e); } finally { busy.value = null; }
 }
+// ── sign-in methods ──
+interface Methods { password: boolean; google: { email: string | null; linkedAt: string | null } | null }
+const route = useRoute(); const router = useRouter();
+// first paint from the session (no jump), then the endpoint's answer
+const methods = ref<Methods | null>(u.hasPassword === undefined ? null : { password: !!u.hasPassword, google: u.googleEmail != null ? { email: u.googleEmail || null, linkedAt: null } : null });
+const googleOn = useGoogleSignIn();
+const connectHref = googleStartUrl({ intent: 'link' });
+async function loadMethods() { try { methods.value = await api.get<Methods>('/user/me/sign-in-methods'); void loadSession(true); } catch (e) { toast.fail(e); } }
+onMounted(async () => {
+  await loadMethods();
+  // back from Google: ?google=linked or ?error=<code>
+  if (route.query.google === 'linked') toast.success('Google connected', 'You can now sign in with Google.');
+  else if (route.query.error) toast.error('Google not connected', googleError(route.query.error));
+  if (route.query.google || route.query.error) void router.replace({ query: { ...route.query, google: undefined, error: undefined } });
+});
+async function disconnectGoogle() {
+  if (!(await confirm({ title: 'Disconnect Google?', message: `You will sign in with ${u.email} and your password. You can connect Google again any time.`, confirmLabel: 'Disconnect', danger: true }))) return;
+  busy.value = 'google';
+  try { methods.value = await api.del<Methods>('/user/me/google'); void loadSession(true); toast.success('Google disconnected'); } catch (e) { toast.fail(e); } finally { busy.value = null; }
+}
+async function sendSetup() {
+  busy.value = 'setup';
+  try { await api.post('/user/me/password/setup'); toast.success('Check your email', `We sent a link to ${u.email} to set your password. It works for one hour.`); } catch (e) { toast.fail(e); } finally { busy.value = null; }
+}
+
 const themes: { value: ThemePref; label: string; icon: typeof Sun }[] = [{ value: 'light', label: 'Light', icon: Sun }, { value: 'dark', label: 'Dark', icon: Moon }, { value: 'system', label: 'Match system', icon: Monitor }];
 </script>
 
@@ -60,7 +88,34 @@ const themes: { value: ThemePref; label: string; icon: typeof Sun }[] = [{ value
         </div>
       </SettingsSection>
 
-      <SettingsSection title="Password" description="At least 10 characters. Other sessions stay signed in.">
+      <SettingsSection title="Sign-in methods" description="The ways you can sign in to this account.">
+        <div v-if="!methods" class="methods"><div class="m-row"><span class="small muted">Loading…</span></div></div>
+        <ul v-else class="methods">
+          <li v-if="googleOn || methods.google" class="m-row">
+            <span class="m-ico" aria-hidden="true">
+              <svg viewBox="0 0 48 48" width="18" height="18"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" /><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" /><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" /><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" /></svg>
+            </span>
+            <div class="m-text min0">
+              <div class="m-n">Google</div>
+              <div class="small muted truncate">{{ methods.google ? `Connected as ${methods.google.email ?? 'your Google account'}` : 'Not connected' }}</div>
+            </div>
+            <Button v-if="methods.google" variant="secondary" size="sm" :loading="busy === 'google'" :disabled="!methods.password" :title="!methods.password ? 'Set a password first, so you can still sign in' : undefined" @click="disconnectGoogle">Disconnect</Button>
+            <Button v-else variant="secondary" size="sm" :href="connectHref">Connect</Button>
+          </li>
+          <li class="m-row">
+            <span class="m-ico" aria-hidden="true"><KeyRound :size="16" /></span>
+            <div class="m-text min0">
+              <div class="m-n">Password</div>
+              <div class="small muted">{{ methods.password ? `Sign in with ${u.email} and your password` : 'Not set: you sign in with Google' }}</div>
+            </div>
+            <Badge v-if="methods.password" size="sm" tone="success">Set</Badge>
+            <Button v-else variant="secondary" size="sm" :loading="busy === 'setup'" @click="sendSetup">Set a password</Button>
+          </li>
+        </ul>
+        <p v-if="methods?.google && !methods.password" class="small muted m-note">Set a password before you disconnect Google, so you can still sign in.</p>
+      </SettingsSection>
+
+      <SettingsSection v-if="methods?.password !== false" title="Password" description="At least 10 characters. Other sessions stay signed in.">
         <form class="grid-2" @submit.prevent="changePassword">
           <div class="span-2"><div class="half"><Input v-model="pw.currentPassword" type="password" label="Current password" autocomplete="current-password" required :error="we.currentPassword" /></div></div>
           <Input v-model="pw.newPassword" type="password" label="New password" autocomplete="new-password" required :error="we.newPassword" />
@@ -74,6 +129,13 @@ const themes: { value: ThemePref; label: string; icon: typeof Sun }[] = [{ value
 </template>
 
 <style scoped>
+.methods { list-style: none; margin: 0; padding: 0; border: 1px solid var(--border-soft); border-radius: var(--radius-lg); }
+.m-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; min-height: 60px; }
+.m-row + .m-row { border-top: 1px solid var(--border-soft); }
+.m-ico { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border: 1px solid var(--border-soft); border-radius: 999px; background: var(--bg); color: var(--text-muted); }
+.m-text { flex: 1; }
+.m-n { font-size: var(--fs-14); font-weight: 500; line-height: 20px; }
+.m-note { margin: 10px 0 0; }
 .who { display: flex; align-items: center; gap: 14px; padding-bottom: 20px; margin-bottom: 20px; border-bottom: 1px solid var(--border-soft); }
 .who-n { font-size: var(--fs-16); font-weight: 600; line-height: 24px; }
 .half { max-width: calc(50% - 8px); }
