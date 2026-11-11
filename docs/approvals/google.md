@@ -34,6 +34,10 @@ including tampered ID tokens: aud, azp, iss, nonce, exp, signature, unknown key,
   email or from settings (pre-account-takeover: a squatter's account, keys and members are never inherited); the
   inbox owner recovers it with "Forgot password?". Connecting and disconnecting Google need the current password.
   Invitations accept with Google only for the invited address and only where Google is authoritative.
+- **Welcome email** (878b698): new Google sign-ups get "Welcome to Siar" (no confirm step); invitees and linked
+  accounts don't (invite / security notice instead).
+- **Live 2026-11-12**: releases 2a47722 (sign-in + audit) and 878b698 (welcome). Real-Google check passed:
+  hello@ffdev.studio signed up with Google → staff account + "FF Dev's organization".
 - **Audit 2026-11-12** (two independent reviews, all findings fixed): real client IP behind Cloudflare
   (nginx real_ip from Cloudflare ranges, `/etc/nginx/siar-cloudflare-ips.conf` refreshed by deploy-shared.sh;
   Fastify trusts loopback only), OAuth codes/state/invite tokens redacted in API and nginx logs, no mock Google

@@ -1,6 +1,8 @@
 # TikTok — Login Kit + Content Posting API (Direct Post)
 
-**Status: SUBMITTED, in review since 2026-10-13 22:21 MYT.** Production keys arrive when TikTok approves.
+**Status: NOT APPROVED 2026-10-20.** Reviewer: demo videos must not be recorded with AI agents, automated tools or
+screen simulation; walk the whole flow by hand (every click, interaction and transition), and show the full website
+URL. Next: Fakhrul re-records K1/K2 by hand, then resubmit (Production → Return to Draft). Was submitted 2026-10-13 22:21 MYT.
 Until then production runs on the **sandbox** keys and only the sandbox target user can connect.
 
 ## Identifiers

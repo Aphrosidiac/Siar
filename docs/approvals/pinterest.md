@@ -1,5 +1,9 @@
 # Pinterest — trial → standard access
 
+**Status (2026-11-12): Trial access APPROVED 2026-10-21.** App secret on prod (`NETWORK_PINTEREST_*`), Pinterest
+available in health. Trial = connect and read; publishing Pins needs **Standard** access (developers.pinterest.com →
+app 1622986 → Upgrade access; needs a demo film recorded by hand).
+
 ## [F]
 1. Convert/create a Pinterest **business account** (FF's).
 2. developers.pinterest.com → Connect app: name **Siar**, description below, redirect

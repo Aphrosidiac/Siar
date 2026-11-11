@@ -38,7 +38,11 @@ packages/sdk|cli|mcp  TypeScript SDK, JSON-first CLI, MCP server.
 - **Quotas are atomic** (`domain/quota.ts`): consume inside the same transaction as the write.
 - **X credit** is a ledger (`domain/credits.ts`): hold → capture | release. Never write balances directly.
 - **Never post twice:** publishing claims a target with a conditional UPDATE (engine/publisher.ts).
-- **Tokens are encrypted** (`platform/crypto.ts`); never log or return them.
+- **Tokens are encrypted** (`platform/crypto.ts`); never log or return them. Secret query values (OAuth
+  code/state, invite/reset/connect tokens) are redacted from request logs (`platform/logger.ts`); keep it so.
+- **Dashboard sign-in** is email/password or Google (`modules/google-signin.ts`, OIDC + PKCE). Never link Google
+  to an unconfirmed account, never link by email unless Google is authoritative (gmail.com or `hd`), and keep the
+  password step-up for connecting/disconnecting Google. `e2e:google` must stay green.
 - **Adapters** use the network's real URLs through `ctx.fetch`; mock mode rewrites them. Follow
   `src/adapters/mastodon.ts` (the reference adapter) for shape and style.
 - Money: integer minor units in the payment's currency (sen for MYR, cents for USD; plans are priced in both, see `docs/pricing.md`) / micro-USD (X credit). Time: UTC, timestamptz.

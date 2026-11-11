@@ -27,6 +27,11 @@ Siar runs on the shared Tencent box next to ~25 other apps, so nothing is instal
   `/srv/siar/current` at the release, restarts `siar-api` (pm2 as user `siar`), health-checks with
   rollback, and swaps the nginx vhost only if `nginx -t` passes.
 - One process: `RUN_JOBS_IN_API=true` (no separate worker) to save memory; it also serves the dashboard.
+- Client IPs (2026-11-12): nginx takes `CF-Connecting-IP` only from Cloudflare's ranges
+  (`/etc/nginx/siar-cloudflare-ips.conf`, written by deploy-shared.sh when missing or a week old) and SETS
+  `X-Forwarded-For`; the API trusts proxy headers from loopback only. Rate limits and session IPs use the real client.
+- Logs: nginx writes `/var/log/nginx/siar.access.log` without query strings; the API redacts code/state/token-style
+  query values (`platform/logger.ts`). OAuth codes and invite/reset tokens never reach a log.
 - One-time setup done 2026-10-12: user `siar`, `/srv/siar/{releases,shared}`, Postgres role + db `siar`,
   Redis db 11, `/srv/siar/shared/.env` (secrets generated on the box, mode 600), `pm2-siar.service`,
   origin certificate `/etc/ssl/cloudflare/siaran.my.{pem,key}`.

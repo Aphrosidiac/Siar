@@ -1,5 +1,8 @@
 # Meta — Facebook Pages, Instagram, Threads, Messenger / Instagram DMs
 
+**Status: App Review APPROVED 2026-10-27** (resubmission of 2026-10-27; all 27 permissions incl. Business Asset User
+Profile Access). Data Use Checkup completed 2026-10-27; business FF Dev Studio verified; app Live.
+
 One Meta app ("Siar") with three use cases: **Manage everything on your Page**, **Manage messaging
 & content on Instagram** (Instagram API with Facebook Login *and* with Instagram Login), and
 **Access the Threads API**. Until App Review passes the app runs in Development mode: it works

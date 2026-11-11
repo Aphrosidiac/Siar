@@ -3,6 +3,10 @@
 Personal-profile posting (`w_member_social`) works as soon as the app exists. Company **Pages**
 need the Community Management API, which LinkedIn grants to registered legal entities.
 
+## Status (2026-11-12)
+- **"Siar Pages"**: Community Management API Development tier shows **Access denied** in the developer portal; no
+  email with a reason arrived. Company-page posting stays unavailable; personal posting via "Siar" is unaffected.
+
 ## Status (2026-10-14)
 - **"Siar"** (client 86eizozqekvoht, created 2026-10-12, verified by the FF Dev Studio page): Share on LinkedIn +
   Sign In with OpenID Connect. Live in production — personal-profile posting only.

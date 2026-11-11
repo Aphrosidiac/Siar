@@ -53,7 +53,7 @@ that already speaks that API switches by changing its base URL.
 | **Reply** | Comments and DMs from every network in one inbox; reply as the account. |
 | **Measure** | Followers, impressions, views, likes and comments per network over time. |
 | **Build on it** | REST API (OpenAPI 3.1), TypeScript SDK, JSON-first CLI, MCP server for AI agents, HMAC-signed webhooks with a delivery log and replay. |
-| **Run it** | Teams, roles, API keys, quotas, Stripe / CHIP billing with invoices, link-in-bio pages, Google Business locations, Discord and Slack bots. |
+| **Run it** | Sign in with email or Google, teams, roles, API keys, quotas, Stripe / CHIP billing with invoices, link-in-bio pages, Google Business locations, Discord and Slack bots. |
 
 ## See it
 
@@ -237,16 +237,18 @@ mode, so nothing reaches a real network or card.
 | `pnpm contract` | Rebuild the OpenAPI document and types after an overlay edit |
 | `pnpm db:migrate` / `pnpm db:seed` | Apply migrations / reset the demo org |
 | `pnpm --filter @siar/api e2e` | End-to-end checks against the running API and mocks |
+| `pnpm --filter @siar/api e2e:google` | Continue with Google: every sign-in, link and invite path against the mock Google |
 | `cd apps/api && npx tsx --env-file=.env scripts/coverage.ts` | Operations with a handler, per tag |
 | `bash scripts/check-type.sh` | Type scale check: whole pixels, nothing under 11px |
 
 ## Testing
 
-| Suite | Result (2026-10-12) |
+| Suite | Result (2026-11-12) |
 | --- | --- |
-| API operations implemented | 262 / 262 |
-| End-to-end checks (`apps/api/scripts/e2e.ts`) | 38 / 38 |
-| Network adapter tests (against in-process mocks) | 52 / 52 |
+| API operations implemented | 262 / 262 (2026-10-12) + sign-in methods |
+| End-to-end checks (`apps/api/scripts/e2e.ts`) | 63 / 63 |
+| Continue with Google (`apps/api/scripts/e2e-google.ts`) | 87 / 87 |
+| Network adapter tests (against in-process mocks) | 59 / 59 |
 | SDK tests | 31 / 31 |
 | Typecheck (`pnpm typecheck`) | every package, clean |
 | Site build | 88 pages + the share card, clean |
@@ -277,15 +279,17 @@ Each network needs its developer app approved before real accounts can connect. 
 
 ## Status
 
-**Built end to end against mock networks. Not deployed.**
+**LIVE at siaran.my since 2026-10-12** (shared box, `deploy/deploy-shared.sh`). Release 878b698 (2026-11-12).
 
 - [x] API: all 262 operations, quotas, credits, webhooks, billing, invoices
-- [x] 15 network adapters with mocks and tests
+- [x] 15 network adapters with mocks and tests; 12 networks live (Pinterest, Reddit, Snapchat, Google Business show "Opening soon")
 - [x] Dashboard, hosted connect, link-in-bio, notifications, ⌘K palette
+- [x] Sign in with email or Google (OpenID Connect, 2026-11-12; [`docs/approvals/google.md`](docs/approvals/google.md))
 - [x] Marketing site and docs: home, product tour, networks, pricing, use cases, API reference
 - [x] SDK, CLI, MCP server
-- [ ] Network app approvals (Track B, [`docs/approvals`](docs/approvals/README.md))
-- [ ] DNS for siaran.my, VPS, deploy
+- [x] DNS for siaran.my, VPS, deploy
+- [ ] Network app approvals: Meta approved; TikTok, LinkedIn Pages, YouTube quota still open ([`docs/approvals`](docs/approvals/README.md))
+- [ ] CHIP cards (FPX/DuitNow live; card review pending)
 - [ ] Legal review of terms and privacy
 - [x] Final plan prices (localized, 2026-10-13: docs/pricing.md)
 

@@ -23,6 +23,19 @@ Values used everywhere (change in one place if the name/domain changes):
 | App icon | 1024×1024 PNG from the site's brand kit |
 | Reviewer login | a seeded organization (apps/api/prisma/seed-reviewer.ts) — email/password given only inside each platform's private reviewer field |
 
+## Status (checked 2026-11-12)
+
+| Platform | Where it stands |
+|---|---|
+| Meta | **Approved 2026-10-27**: all 27 permissions (Advanced Access), Data Use Checkup done, business verified |
+| TikTok | **Rejected 2026-10-20**: films must be recorded by hand (no AI/automation) with the full website URL visible. Re-record K1/K2, resubmit. Sandbox keys still live |
+| Google | OAuth verified 2026-10-15; YouTube API audit + quota in review (acknowledged 2026-10-16, nothing since); "Siar sign-in" client for dashboard sign-in live 2026-11-12 |
+| Pinterest | **Trial access approved 2026-10-21**; keys live on prod 2026-11-12 (connect + read work; publishing needs Standard access → "Upgrade access") |
+| LinkedIn | "Siar" (personal posting) live; "Siar Pages" Community Management dev tier **Access denied** (no reason given) |
+| X | Live; $20 balance (free credits), no usage yet |
+| Discord, Slack, Bluesky, Mastodon | Live |
+| Reddit, Snapchat, Google Business | Parked ("Opening soon") |
+
 ## Tracker
 
 | # | Platform | Gate | Needs live app? | [F] steps | File |
