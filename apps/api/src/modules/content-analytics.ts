@@ -196,7 +196,7 @@ async function sweepable(socialAccountId: string, posts: boolean) {
 
 async function jobFailure(err: unknown, socialAccountId: string, what: string) {
   if (isNetworkError(err) && err.code === 'TOKEN_INVALID') await markNeedsReconnect(prisma, socialAccountId, err.message);
-  else if (!isNetworkError(err) || err.code !== 'NOT_FOUND') logger.warn({ err, socialAccountId }, `${what} analytics refresh failed`);
+  else if (!isNetworkError(err) || (err.code !== 'NOT_FOUND' && err.code !== 'NOT_SUPPORTED')) logger.warn({ err, socialAccountId }, `${what} analytics refresh failed`);
   return 'error';
 }
 

@@ -44,6 +44,8 @@ describe('tiktok (Content Posting API)', () => {
     const id = (r as any).externalPostId;
     const m = await tiktok.postAnalytics!(ctx(), acc, id);
     expect(m.views).toBe(1200);
+    // A private post keeps its publish id as the handle: no network call, NOT_SUPPORTED.
+    await expect(tiktok.postAnalytics!(ctx(), acc, 'v_pub_file~v2-1.7696115943042222081')).rejects.toMatchObject({ code: 'NOT_SUPPORTED' });
     const hist = await tiktok.importHistory!(ctx(), acc, { limit: 10 });
     expect(hist.items[0].externalId).toBe(id);
     const acct = await tiktok.accountAnalytics!(ctx(), acc);

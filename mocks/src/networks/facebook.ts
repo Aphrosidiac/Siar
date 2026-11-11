@@ -100,6 +100,8 @@ export default function facebook(m: MockRegistry) {
     if (p) return { json: { id: p.id, message: p.message, created_time: p.created_time, permalink_url: p.permalink_url, reactions: summary(p.reactions), comments: summary(s().comments.filter((c: any) => c.parentId === p.id && !c.deleted).length), shares: { count: p.shares } } };
     const c = s().comments.find((x: any) => x.id === oid);
     if (c) return { json: c };
+    // A deleted Page post: production Graph answers #10, not #100/33 (seen on prod 2026-11-12).
+    if (/^\d+_\d+$/.test(oid) && pageById(oid.split('_')[0])) return gerr(400, 10, "(#10) Object does not exist, cannot be loaded due to missing permission or reviewable feature, or does not support this operation. This endpoint requires the 'pages_read_engagement' permission or the 'Page Public Content Access' feature.");
     return notFound();
   });
 

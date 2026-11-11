@@ -71,6 +71,17 @@ async function pg<T = any>(ctx: NetworkContext, a: AccountRuntime, path: string,
   return graph<T>(ctx, `${FB_GRAPH}${path}`, await pageToken(ctx, a), opts);
 }
 
+/**
+ * Graph answers a post deleted on Facebook with "(#10) Object does not exist, cannot be loaded due to
+ * missing permission…" (PERMISSION), not #100/33. When the Page itself still reads with the same token,
+ * the permission is fine and the post is gone: report NOT_FOUND so it is marked deleted, not retried.
+ */
+async function goneOr(ctx: NetworkContext, a: AccountRuntime, err: unknown): Promise<unknown> {
+  if (!(err instanceof NetworkError) || err.code !== 'PERMISSION' || !/object does not exist/i.test(err.message)) return err;
+  const pageReads = await pg(ctx, a, `/${pageIdOf(a)}`, { query: { fields: 'id' } }).then(() => true, () => false);
+  return pageReads ? new NetworkError('NOT_FOUND', err.message, { httpStatus: err.httpStatus, meta: err.meta }) : err;
+}
+
 const channelOf = (p: any): Channel => ({
   id: String(p.id), name: p.name ?? null, username: p.username ?? null, avatarUrl: p.picture?.data?.url ?? null, address: p.link ?? null,
   metadata: { category: p.category ?? null, tasks: p.tasks ?? [], instagramBusinessAccountId: p.instagram_business_account?.id ?? null },
@@ -499,20 +510,24 @@ export const facebook: NetworkAdapter = {
   },
 
   async postAnalytics(ctx, a, id) {
-    const isVideo = !String(id).includes('_');
-    if (isVideo) {
-      const [v, ins] = await Promise.all([
-        pg(ctx, a, `/${id}`, { query: { fields: 'likes.summary(true).limit(0),comments.summary(true).limit(0)' } }),
-        pg(ctx, a, `/${id}/video_insights`, { query: { metric: 'blue_reels_play_count,total_video_views,post_video_likes_by_reaction_type' } }).catch(() => ({ data: [] })),
+    try {
+      const isVideo = !String(id).includes('_');
+      if (isVideo) {
+        const [v, ins] = await Promise.all([
+          pg(ctx, a, `/${id}`, { query: { fields: 'likes.summary(true).limit(0),comments.summary(true).limit(0)' } }),
+          pg(ctx, a, `/${id}/video_insights`, { query: { metric: 'blue_reels_play_count,total_video_views,post_video_likes_by_reaction_type' } }).catch(() => ({ data: [] })),
+        ]);
+        const vals = insightValues(ins);
+        return { ...metricsOf(v, vals), likes: v?.likes?.summary?.total_count ?? vals.post_video_likes_by_reaction_type ?? 0 };
+      }
+      const [p, ins] = await Promise.all([
+        pg(ctx, a, `/${id}`, { query: { fields: 'reactions.summary(total_count).limit(0),comments.summary(total_count).limit(0),shares' } }),
+        pg(ctx, a, `/${id}/insights`, { query: { metric: 'post_media_view,post_total_media_view_unique,post_clicks' } }).catch(() => ({ data: [] })),
       ]);
-      const vals = insightValues(ins);
-      return { ...metricsOf(v, vals), likes: v?.likes?.summary?.total_count ?? vals.post_video_likes_by_reaction_type ?? 0 };
+      return metricsOf(p, insightValues(ins));
+    } catch (err) {
+      throw await goneOr(ctx, a, err);
     }
-    const [p, ins] = await Promise.all([
-      pg(ctx, a, `/${id}`, { query: { fields: 'reactions.summary(total_count).limit(0),comments.summary(total_count).limit(0),shares' } }),
-      pg(ctx, a, `/${id}/insights`, { query: { metric: 'post_media_view,post_total_media_view_unique,post_clicks' } }).catch(() => ({ data: [] })),
-    ]);
-    return metricsOf(p, insightValues(ins));
   },
 
   async importHistory(ctx, a, input) {

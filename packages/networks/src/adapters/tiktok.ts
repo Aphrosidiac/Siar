@@ -482,6 +482,9 @@ export const tiktok: NetworkAdapter = {
   },
 
   async postAnalytics(ctx, a, id) {
+    // A private (SELF_ONLY) post never gets a public video id, so its handle stays the publish id; TikTok
+    // rejects that id on every read ("Video ID v_pub_file~… is invalid") and returns no metrics for it.
+    if (String(id).startsWith('v_pub_')) throw new NetworkError('NOT_SUPPORTED', 'TikTok returns no analytics for private (SELF_ONLY) posts: they have no public video id.');
     if (isBiz(a)) {
       const r = await biz(ctx, a.token.accessToken, '/business/video/list/', { query: { business_id: businessId(a), fields: JSON.stringify(BIZ_VIDEO_FIELDS), filters: JSON.stringify({ video_ids: [id] }) } });
       const v = r.videos?.[0];

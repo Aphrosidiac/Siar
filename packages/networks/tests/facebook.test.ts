@@ -111,6 +111,8 @@ describe('facebook', () => {
     expect(sent.externalMessageId).toBeTruthy();
     await facebook.deletePost!(ctx(), acc, textId);
     expect(st.posts.some((x: any) => x.id === textId)).toBe(false);
+    // Graph answers a deleted post with #10 "Object does not exist"; the Page still reads, so it is NOT_FOUND.
+    await expect(facebook.postAnalytics!(ctx(), acc, textId)).rejects.toMatchObject({ code: 'NOT_FOUND' });
   });
 
   it('validates and maps Meta errors (duplicate, Page permission, expired token)', async () => {
