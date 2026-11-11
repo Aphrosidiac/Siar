@@ -6,7 +6,10 @@ interface Props { op: Op }
 const { op } = Astro.props;
 const params = op.parameters;
 const bodyFields = op.body && !op.body.contentType.startsWith('multipart/') ? toFields(op.body.schema) : op.body ? toFields(op.body.schema) : [];
-const respFields = op.response?.schema ? toFields(op.response.schema) : [];
+/** Very deep response schemas (automation) are cut at four levels so a reference page stays under 1 MB of HTML
+ * (docs/seo/ACCEPTANCE.md); the full shape is always in /openapi.json. */
+const respFull = op.response?.schema ? toFields(op.response.schema) : [];
+const respFields = countFields(respFull) > 250 ? toFields(op.response!.schema, 0, 4) : respFull;
 const statusText: Record<string, string> = { '400': 'Validation failed', '401': 'Missing or invalid API key', '403': 'Plan limit or permission', '404': 'Not found', '409': 'Conflict', '429': 'Rate limited', '500': 'Server error', '502': 'Network error', '503': 'Unavailable' };
 const sample = curl(op);
 ---

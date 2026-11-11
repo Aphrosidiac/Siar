@@ -1,7 +1,8 @@
 ---
 layout: ../layouts/Page.astro
 title: Changelog
-description: "What changed in the Siar API and SDKs, newest first. Version 1.0 is the first release."
+metaTitle: Siar changelog: API and dashboard releases
+description: "What changed in Siar, the unified social media API and dashboard, newest first: networks, pricing, webhooks and tooling. Version 1.0 is the first release."
 eyebrow: Changelog
 updated: false
 ---
@@ -24,7 +25,7 @@ The first release of the Siar API.
 - **Built for {NETWORKS.length} networks:** {NETWORKS.map((n) => n.name).join(', ')}. Each opens as the network approves Siar; see [what is open today](/platforms).
 - **Publishing and scheduling** with per-network payloads validated against each network's limits, atomic claiming so a post is never sent twice, retries and first comments.
 - **Media:** simple, from-URL, large and multipart uploads, with conversion and per-network checks.
-- **Accounts and teams:** OAuth for every network behind one endpoint, hosted connect links, channel selection and reconnect detection.
+- **Accounts and teams:** OAuth for each network behind one endpoint, hosted connect links, channel selection and reconnect detection.
 - **Comments, analytics and imports:** comment publishing and import, normalised post and account analytics with raw payloads, post history import and CSV import.
 - **Webhooks:** {WEBHOOK_EVENTS.length} signed event types with retries, a delivery log and resend.
 - **X credit:** prepaid balance with a hold, capture and release ledger, and a quote endpoint.

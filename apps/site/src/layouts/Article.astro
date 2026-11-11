@@ -1,13 +1,13 @@
 ---
 /**
  * Long-form marketing and reference pages (guides, compare, proof hubs, network topic pages).
- * One H1, a visible "Updated" date that matches dateModified, one BreadcrumbList, TechArticle, and
- * FAQPage only when `faq` is given (and then the Q&A is rendered on the page, so markup = visible).
+ * One H1, a visible "Updated" date that matches dateModified, one BreadcrumbList and TechArticle. A `faq` is
+ * rendered as visible question headings only: no FAQPage markup (docs/seo/ACCEPTANCE.md).
  */
 import Base from './Base.astro';
 import Faq from '../components/Faq.astro';
 import Cta from '../components/Cta.astro';
-import { articleLd, breadcrumbLd, faqLd } from '../lib/seo';
+import { articleLd, breadcrumbLd } from '../lib/seo';
 import { SIGNUP_URL } from '../config';
 
 interface Props {
@@ -34,7 +34,7 @@ interface Props {
 const { metaTitle, h1, description, kicker, updated, crumbs, lead, faq, jsonLd = [], actions = 'signup', cta = true, wide = false } = Astro.props;
 const path = crumbs[crumbs.length - 1].href;
 const human = new Date(`${updated}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
-const ld = [breadcrumbLd(crumbs), articleLd({ title: h1, description, date: updated, path }), ...(faq?.length ? [faqLd(faq)] : []), ...jsonLd];
+const ld = [breadcrumbLd(crumbs), articleLd({ title: h1, description, date: updated, path }), ...jsonLd];
 ---
 <Base title={metaTitle} description={description} jsonLd={ld} ogType="article">
   <section class="ah m-hero">

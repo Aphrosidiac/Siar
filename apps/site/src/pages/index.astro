@@ -11,7 +11,7 @@ import { NETWORKS } from '../lib/networks';
 import { OP_COUNT } from '../lib/openapi';
 import { PLANS, money, PRICE_LOCK } from '../lib/plans';
 import { postTabs } from '../lib/snippets';
-import { softwareLd, faqLd } from '../lib/seo';
+import { softwareLd } from '../lib/seo';
 import { NETWORK_STATUS, CANONICAL, CANONICAL_LEAD, OPEN_LIST, OPEN_ORDER } from '../lib/status';
 import { SIGNUP_URL, LEGAL_NAME, LEGAL_REG } from '../config';
 
@@ -124,7 +124,7 @@ const notYet = [
   ['No client logins, approval step or report export,', 'and the dashboard is in English.'],
 ];
 ---
-<Base title="Unified social media API, every post accounted for | Siar" description={`Siar is a unified social media API: each post checked before it's sent, sent once, and its result in a signed webhook. From ${usd('STARTER')} a month (${rm('STARTER')} in Malaysia).`} jsonLd={[softwareLd({ offers: 'free' }), faqLd(faq)]}>
+<Base title="Unified social media API, every post accounted for | Siar" description={`Siar is a unified social media API: each post checked before it's sent, sent once, and its result in a signed webhook. From ${usd('STARTER')} a month (${rm('STARTER')} in Malaysia).`} jsonLd={[softwareLd({ offers: 'free' })]}>
   <section class="m-hero">
     <div class="m-wide">
       <div class="hero-top" data-reveal>

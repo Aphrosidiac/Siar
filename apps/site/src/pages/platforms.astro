@@ -6,7 +6,7 @@ import Cta from '../components/Cta.astro';
 import { NETWORKS } from '../lib/networks';
 import { NETWORK_STATUS, OPEN_LIST, STATUS_CHECKED, DM_LINE, type Status } from '../lib/status';
 import { PLANS, money, PRICE_LOCK } from '../lib/plans';
-import { breadcrumbLd, faqLd } from '../lib/seo';
+import { breadcrumbLd } from '../lib/seo';
 import { SIGNUP_URL, LEGAL_NAME, LEGAL_REG } from '../config';
 import type { NetworkType } from '../../../../packages/networks/src/index.ts';
 
@@ -73,7 +73,7 @@ const faq = [
   { q: 'How will I know when a network opens?', a: "This table changes in the release that opens the network, and so do the network's reference page and Siar's <code>llms.txt</code>. The change is also listed in the changelog. Siar does not change a status before the network has approved its app and a post has gone through on production." },
 ];
 ---
-<Base title="Social media API networks: what is open today | Siar" description={`Siar's social media API posts to ${OPEN_LIST} today. The rest, with dates.`} jsonLd={[breadcrumbLd([{ name: 'Networks', href: '/platforms' }]), faqLd(faq)]}>
+<Base title="Social media API networks: what is open today | Siar" description={`Siar's social media API posts to ${OPEN_LIST} today. The rest, with dates.`} jsonLd={[breadcrumbLd([{ name: 'Networks', href: '/platforms' }])]}>
   <section class="ph m-hero">
     <div class="m-wide">
       <p class="m-kicker" data-reveal><span class="n">Networks</span><span class="rule"></span>Updated <time datetime={STATUS_CHECKED}>{checked}</time></p>

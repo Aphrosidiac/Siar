@@ -15,13 +15,15 @@ interface Props {
   bare?: boolean;
 }
 const { title, description = DESCRIPTION, jsonLd = [], noindex = false, ogType = 'website', bare = false } = Astro.props;
+/** Malay pages are not translations (docs/seo/ACCEPTANCE.md): lang ms, og:locale ms_MY, no hreflang. */
+const ms = Astro.url.pathname.startsWith('/ms/');
 const fullTitle = /siar/i.test(title) ? title : `${title} | ${SITE_NAME}`;
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 const canonical = `${SITE_URL}${path === '/' ? '/' : path}`;
 const ld = [orgLd(), ...(path === '/' ? [websiteLd()] : []), ...jsonLd];
 ---
 <!doctype html>
-<html lang="en">
+<html lang={ms ? 'ms' : 'en'}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -29,6 +31,7 @@ const ld = [orgLd(), ...(path === '/' ? [websiteLd()] : []), ...jsonLd];
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex" />}
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
     <link rel="sitemap" href="/sitemap-index.xml" />
@@ -38,11 +41,11 @@ const ld = [orgLd(), ...(path === '/' ? [websiteLd()] : []), ...jsonLd];
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale" content={ms ? 'ms_MY' : 'en_US'} />
     <meta property="og:image" content={`${SITE_URL}/og.png`} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Siar: write it once, Siar it everywhere. One API for 15 social networks." />
+    <meta property="og:image:alt" content="Siar: write it once, Siar it everywhere. The unified social media API where every post is accounted for." />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={`${SITE_URL}/og.png`} />
     <meta name="twitter:title" content={fullTitle} />

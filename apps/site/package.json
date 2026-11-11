@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "astro dev --port 4290",
     "build": "astro build",
-    "preview": "astro preview --port 4290"
+    "preview": "astro preview --port 4290",
+    "seo-gate": "node scripts/seo-gate.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.0",
@@ -15,6 +16,9 @@
     "astro": "^5.15.0"
   },
   "devDependencies": {
+    "cheerio": "1.2.0",
+    "chrome-launcher": "1.2.2",
+    "lighthouse": "12.6.1",
     "playwright": "1.63.0",
     "typescript": "^6.0.3"
   }

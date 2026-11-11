@@ -45,3 +45,19 @@ Branch `feat/seo-landing` in the worktree `/Users/fakhrul/Desktop/dev/Siar-seo-r
 Several builders share this worktree. Create or edit only the files your brief names. Do not commit, do not run
 `git` commands that change state, and build into your own folder:
 `pnpm --filter @siar/site exec astro build --outDir /private/tmp/siar-build-<you>`.
+
+## Acceptance rules (docs/seo/ACCEPTANCE.md, added 12 Nov): these decide "done"
+
+- **No FAQPage, HowTo or QAPage JSON-LD anywhere.** Keep visible FAQs as question headings. Article.astro no longer
+  emits FAQPage; don't call `faqLd` in new code.
+- `<title>` 25–60 characters; meta description 120–160 characters; both unique site-wide.
+- Exactly one `<h1>`; no heading level skipped inside `<main>` (h1 → h2 → h3, never h1 → h3).
+- Every page except `/` has a BreadcrumbList whose last item is the canonical URL.
+- Links: canonical form (no trailing slash, no `.html`, lowercase); every `#fragment` exists on the target page;
+  descriptive anchor text (never "click here", "learn more", empty). Only link to pages that exist.
+- Images: `alt` (or `alt=""` if decorative), `width` and `height`.
+- Banned words (messaging.md §6) outside rival tables: e.g. "every network", "all networks", "free plan",
+  "seamless", "powerful", "reliable", "only", "cheapest", "fast", "in minutes", "unlimited accounts".
+- No `{{`, TODO, TBD, lorem, `undefined`, `NaN` in output. Raw HTML under 1 MB per page.
+- Colour contrast must pass WCAG AA (Lighthouse accessibility 100): don't put `--text-subtle`/`--text-faint` text
+  on tinted backgrounds or below 14px without checking.
