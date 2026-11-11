@@ -53,6 +53,13 @@ async function ensureTeam(userId: string, organizationId: string) {
   });
 }
 
+/** The three first steps every welcome email shows (password and Google sign-ups alike). */
+export const WELCOME_STEPS: [string, string][] = [
+  ['Connect an account', 'Instagram, LinkedIn, Bluesky or any of the 15 networks, or send your customer a connect link.'],
+  ['Write it once', 'Pick the accounts, write the post, then tailor it for each network.'],
+  ['Schedule it, or use the API', 'Publish from the dashboard, or create an API key and post from your own app.'],
+];
+
 async function sendVerification(userId: string, email: string, welcome = false) {
   const token = randomToken();
   await prisma.authToken.create({ data: { id: sha256(token), kind: 'VERIFY_EMAIL', userId, expiresAt: new Date(Date.now() + 3 * 86400_000) } });
@@ -63,7 +70,7 @@ async function sendVerification(userId: string, email: string, welcome = false) 
       preheader: 'Confirm your email, then connect your first account.',
       paragraphs: ['Your account is ready. Confirm this address so publishing alerts, invoices and password resets reach you.'],
       cta: { label: 'Confirm email', url },
-      steps: [['Connect an account', 'Instagram, LinkedIn, Bluesky or any of the 15 networks, or send your customer a connect link.'], ['Write it once', 'Pick the accounts, write the post, then tailor it for each network.'], ['Schedule it, or use the API', 'Publish from the dashboard, or create an API key and post from your own app.']],
+      steps: WELCOME_STEPS,
       footnote: 'The link works for 3 days. If you did not create a Siar account, ignore this email and nothing happens.',
       reason: 'You received this email because this address was used to create a Siar account.',
     }

@@ -13,6 +13,8 @@ export interface MailBody {
   heading: string;
   paragraphs: string[];
   cta?: { label: string; url: string };
+  /** The "paste this link" line under the button: for one-time links (confirm, reset). Default on. */
+  linkFallback?: boolean;
   footnote?: string;
   /** Mono eyebrow above the heading, like the dashboard's "/ SECTION" heads. */
   kicker?: string;
@@ -63,8 +65,8 @@ export function renderMail(m: MailBody) {
     ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:30px 0 0">${m.steps.map(([t, d], i) => `<tr><td style="padding:0 14px ${i === m.steps!.length - 1 ? 0 : 18}px 0;vertical-align:top;width:28px"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td class="num" align="center" style="width:28px;height:28px;border-radius:50%;background:${C.ink};font-family:${MONO};font-size:12px;line-height:28px;font-weight:600;color:${C.paper}">${i + 1}</td></tr></table></td><td style="padding:3px 0 ${i === m.steps!.length - 1 ? 0 : 18}px;vertical-align:top"><p class="t" style="margin:0;font-size:15px;line-height:22px;font-weight:600;color:${C.text}">${esc(t)}</p><p class="m" style="margin:2px 0 0;font-size:14px;line-height:21px;color:${C.muted}">${esc(d)}</p></td></tr>`).join('')}</table>`
     : '';
   const cta = m.cta
-    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0 0"><tr><td class="btn" align="center" style="border-radius:14px;background:${C.ink}"><a class="btnt" href="${esc(m.cta.url)}" style="display:block;padding:17px 24px;font-family:${FONT};font-size:16px;line-height:20px;font-weight:600;color:${C.paper};text-decoration:none;border-radius:14px;text-align:center">${esc(m.cta.label)}&nbsp;&nbsp;&rarr;</a></td></tr></table>
-<p class="m" style="margin:14px 0 0;font-size:12px;line-height:18px;color:${C.faint};text-align:center">Or paste this link into your browser:<br><a class="b" href="${esc(m.cta.url)}" style="font-family:${MONO};font-size:11px;color:${C.muted};word-break:break-all;text-decoration:underline">${esc(m.cta.url)}</a></p>`
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0 0"><tr><td class="btn" align="center" style="border-radius:14px;background:${C.ink}"><a class="btnt" href="${esc(m.cta.url)}" style="display:block;padding:17px 24px;font-family:${FONT};font-size:16px;line-height:20px;font-weight:600;color:${C.paper};text-decoration:none;border-radius:14px;text-align:center">${esc(m.cta.label)}&nbsp;&nbsp;&rarr;</a></td></tr></table>${m.linkFallback === false ? '' : `
+<p class="m" style="margin:14px 0 0;font-size:12px;line-height:18px;color:${C.faint};text-align:center">Or paste this link into your browser:<br><a class="b" href="${esc(m.cta.url)}" style="font-family:${MONO};font-size:11px;color:${C.muted};word-break:break-all;text-decoration:underline">${esc(m.cta.url)}</a></p>`}`
     : '';
   const footnote = m.footnote ? `<p class="m ln" style="margin:30px 0 0;padding-top:20px;border-top:1px solid ${C.line};font-size:13px;line-height:20px;color:${C.muted}">${esc(m.footnote)}</p>` : '';
   const link = (href: string, label: string) => `<a class="m" href="${esc(href)}" style="color:${C.muted};text-decoration:none">${label}</a>`;

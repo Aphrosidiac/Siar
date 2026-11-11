@@ -83,6 +83,8 @@ async function main() {
   const m1 = await call('GET', '/api/v1/user/me/sign-in-methods', s1.session);
   ok(m1.json.password === false && m1.json.google?.email === alice.email, 'sign-in methods: Google, no password');
   ok(!(await prisma.emailOutbox.findFirst({ where: { to: alice.email, subject: { contains: 'onfirm' } } })), 'no confirm-your-email mail for a Google sign-up');
+  const welcome = await prisma.emailOutbox.findMany({ where: { to: alice.email, subject: 'Welcome to Siar' } });
+  ok(welcome.length === 1 && welcome[0].html.includes('Welcome to Siar, Alice.') && welcome[0].html.includes('/welcome') && !welcome[0].html.includes('Or paste this link') && !/verify-email|token=/.test(welcome[0].html), '…a welcome email instead: by name, to the dashboard, no confirm link');
   const str = await google({ who: { sub: sub('s'), email: `stringy.${RUN}@gmail.com`, email_verified: 'true' } });
   ok(str.landed.pathname === '/welcome', 'email_verified sent as the string "true" is accepted');
 
@@ -132,6 +134,7 @@ async function main() {
   const bob = `bob.${RUN}@gmail.com`; const bobSignup = await mk(bob, true);
   const sb = await google({ who: { sub: sub('b'), email: bob, given_name: 'Robert' } });
   ok(sb.landed.pathname === '/posts' && sb.session, 'confirmed password account + gmail: linked and signed in');
+  ok(!(await prisma.emailOutbox.findFirst({ where: { to: bob, subject: 'Welcome to Siar' } })), '…no second welcome for an existing account');
   const bobRow = await prisma.user.findUniqueOrThrow({ where: { email: bob } });
   ok(bobRow.googleSub === sub('b') && bobRow.passwordHash && bobRow.firstName === 'Pat', '…keeps its password and its own name');
   ok((await call('POST', '/api/v1/auth/login', null, { email: bob, password: 'password-1234' })).status === 200 && (await call('GET', '/api/v1/auth/me', bobSignup.session)).status === 200, '…password and existing sessions still work');
@@ -223,6 +226,7 @@ async function main() {
   const erinMe = await call('GET', '/api/v1/auth/me', ei.session);
   ok(ei.landed.pathname === '/posts' && erinMe.json.memberships.length === 1 && erinMe.json.memberships[0].organizationId === orgA && erinMe.json.currentOrganizationId === orgA, 'invite with Google: joins the inviting organization only');
   ok(erinMe.json.user.onboardedAt && erinMe.json.memberships[0].role === 'MEMBER', '…as a member, skipping the welcome');
+  ok(!(await prisma.emailOutbox.findFirst({ where: { to: erin, subject: 'Welcome to Siar' } })), '…and no welcome email (the invitation was it)');
   const again = await google({ intent: 'invite', invite: inv, who: { sub: sub('e'), email: erin } });
   ok(errorOf(again.landed) === 'invite_invalid', 'a used invitation cannot be used again');
   ok(errorOf((await google({ intent: 'invite', invite: 'nope' })).landed) === 'invite_invalid', 'an unknown invitation stops before Google');

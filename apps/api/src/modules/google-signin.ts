@@ -12,7 +12,7 @@ import { redis } from '../platform/redis.js';
 import { logger } from '../platform/logger.js';
 import { queueMail } from '../platform/mail.js';
 import { define } from '../platform/routes.js';
-import { createOrganization, isStaffEmail, norm, signInMethods } from './identity.js';
+import { WELCOME_STEPS, createOrganization, isStaffEmail, norm, signInMethods } from './identity.js';
 
 /**
  * "Continue with Google": OpenID Connect authorization code flow with PKCE (S256), state and nonce,
@@ -139,6 +139,21 @@ const linkedNotice = (db: Db, to: string, googleEmail: string) => queueMail(db, 
   reason: 'You received this email because the sign-in methods of this Siar account changed.',
 });
 
+/**
+ * The welcome for a Google sign-up: the password sign-up's welcome without the confirm step (Google
+ * already confirmed the address), in the same transaction as the account. Invited people get none:
+ * their invitation was the welcome, as with a password.
+ */
+const welcomeMail = (db: Db, to: string, givenName: string | null) => queueMail(db, {
+  to, subject: 'Welcome to Siar', kicker: 'Welcome', heading: givenName ? `Welcome to Siar, ${givenName}.` : 'Welcome to Siar.',
+  preheader: 'Your account is ready. Here is how to get your first post out.',
+  paragraphs: ['Your account is ready, and Google has already confirmed your email. Here is how to get your first post out.'],
+  cta: { label: 'Open your dashboard', url: appUrl('/welcome') }, linkFallback: false,
+  steps: WELCOME_STEPS,
+  footnote: 'Want a password too? Set one in Your account, and you can sign in either way.',
+  reason: 'You received this email because this address was used to create a Siar account with Google.',
+});
+
 async function joinOrganization(tx: Db, inv: Invitation, userId: string) {
   // acceptedAt: null in the filter: a second acceptance of the same link is a no-op, not a double join
   const claimed = await tx.invitation.updateMany({ where: { id: inv.id, acceptedAt: null, revokedAt: null }, data: { acceptedAt: new Date() } });
@@ -195,6 +210,7 @@ export async function resolveGoogleUser(id: GoogleIdentity, opts: { invite?: Inv
       }
       const org = await createOrganization(tx, user.id, `${user.firstName}'s organization`);
       await audit(tx, { kind: 'USER', organizationId: org.id, name: user.email, userId: user.id }, 'organization.create', 'Organization', org.id, `Created organization ${org.name} (signed up with Google)`);
+      await welcomeMail(tx, user.email, id.givenName);
       return { user, organizationId: org.id as string, created: true, joined: false };
     });
   } catch (e) {
