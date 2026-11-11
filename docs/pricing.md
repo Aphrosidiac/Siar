@@ -119,8 +119,9 @@ Social ads are colloquial Malaysian BM (English trade words are fine), never bah
 
 - Inbox and comment-to-DM: say "Facebook and Instagram, opening after Meta approval" until App Review passes.
 - TikTok, YouTube, Google Business Profile, Pinterest, Reddit, Snapchat: not until their apps are approved.
-- DuitNow: not until CHIP opens it for the brand. The customer-facing method list is one constant,
-  `ONCE_METHODS` in `plans.ts` ("FPX or GrabPay"); change it there and on the site when CHIP is live.
+- DuitNow: CHIP opened FPX, FPX B2B and DuitNow QR for the brand, so since 12 Nov 2026 the pay-once
+  label is "FPX or DuitNow" (`ONCE_METHODS` in `plans.ts`, the Billing button, the site pages). No GrabPay
+  claim: CHIP doesn't offer it here (Stripe's FPX/GrabPay is only the fallback when CHIP has nothing open).
 - Timing: agencies and developers can be pitched as soon as this is live. The Malaysian SME ads (BM)
   wait for Meta (inbox, automation) and TikTok approval, because Starter's strongest pitch needs them.
 

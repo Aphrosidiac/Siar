@@ -15,13 +15,13 @@ const N = NETWORKS.length;
 const claims = [
   { h: 'Pay by business, not by channel.', p: 'Every plan connects unlimited social accounts. You pay for the brands you run, never per channel.' },
   { h: 'One post counts once.', p: "A post that goes to every network you've connected counts as one post on your plan." },
-  { h: 'Priced for Malaysia.', p: `Organizations billed in Malaysia pay in ringgit, by card or, yearly, once with FPX or GrabPay. Everywhere else: ${paidList('usd').replace(/ \/ /g, ', ').replace(/, ([^,]*)$/, ' and $1')} a month by card.` },
+  { h: 'Priced for Malaysia.', p: `Organizations billed in Malaysia pay in ringgit, by card or, yearly, once with FPX or DuitNow. Everywhere else: ${paidList('usd').replace(/ \/ /g, ', ').replace(/, ([^,]*)$/, ' and $1')} a month by card.` },
 ];
 const faq = [
   { q: 'Why is pricing by brand and not by account?', a: 'What costs us money is the work your organization does (posts published, comments, uploads), not the number of accounts that exist. So every plan connects unlimited social accounts, and the plans differ in the brands you can run and the posts, comments and uploads you create.' },
   { q: 'What counts as a post?', a: `A post counts once, no matter how many networks it targets. On paid plans it counts in the UTC month you create it or move it out of draft. On Free it counts against the one-time allowance of ${PLANS.FREE.posts} posts. Drafts are free and retries of a failed post do not count again.` },
   { q: 'What happens at my quota?', a: 'Creating or scheduling another post returns a 403 that names the limit. Anything already scheduled still publishes: quotas are checked once, when you create the post. The Free allowance never resets, so when it is used up, choose a paid plan to carry on.' },
-  { q: 'How do I pay?', a: 'Organizations billed in Malaysia pay in ringgit by card or, for a year at a time, once with FPX or GrabPay. Everywhere else pays in US dollars by card.' },
+  { q: 'How do I pay?', a: 'Organizations billed in Malaysia pay in ringgit by card or, for a year at a time, once with FPX or DuitNow. Everywhere else pays in US dollars by card.' },
   { q: 'Is there a free trial?', a: `Yes, ${TRIAL_DAYS} days on ${PLANS[TRIAL_TIER].name}. The Free plan is separate: ${PLANS.FREE.posts} posts to try, no card and no time limit.` },
   { q: 'Is the inbox included?', a: `Direct messages and comment-to-DM automations have allowances on every paid plan. They are for ${INBOX_NOTE}.` },
   { q: 'Why do daily caps exist?', a: 'Networks throttle or flag accounts that publish too often. Caps keep a single account inside what each network tolerates. They follow the underlying network identity, so reconnecting an account does not reset them. Enterprise organizations can have them raised.' },

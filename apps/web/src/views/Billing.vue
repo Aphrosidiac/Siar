@@ -156,7 +156,7 @@ async function resume() {
   try { await api.post('/billing/resume'); await Promise.all([sub.reload(), loadOrg()]); toast.success('Subscription resumed'); } catch (e) { toast.fail(e); } finally { busy.value = null; }
 }
 
-// a plan paid once (FPX or GrabPay) is renewed from a link: "Renew now" pays the next period at the locked price
+// a plan paid once (FPX or DuitNow) is renewed from a link: "Renew now" pays the next period at the locked price
 const isLink = computed(() => sub.data.value?.renewal === 'LINK');
 const DAY = 86_400_000;
 const periodEnd = computed(() => (sub.data.value?.currentPeriodEnd ? new Date(sub.data.value.currentPeriodEnd).getTime() : null));
@@ -288,7 +288,7 @@ void session;
                 <template v-else-if="!paid && bankOffered">
                   <div class="stack">
                     <Button block variant="primary" :loading="busy === `${p.tier}:card`" :disabled="!!busy" @click="checkout(p, 'card')">{{ p.trial ? `Start ${plansQ.data.value.trialDays}-day trial` : 'Pay by card' }}</Button>
-                    <Button block variant="secondary" :loading="busy === `${p.tier}:bank`" :disabled="!!busy" @click="checkout(p, 'bank')">Pay once: FPX or GrabPay</Button>
+                    <Button block variant="secondary" :loading="busy === `${p.tier}:bank`" :disabled="!!busy" @click="checkout(p, 'bank')">Pay once: FPX or DuitNow</Button>
                   </div>
                   <div class="tiny muted mt-8">A card renews by itself<template v-if="p.trial"> after the trial</template>. Paying once covers the year; we email a link to renew before it ends.</div>
                 </template>

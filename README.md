@@ -154,7 +154,7 @@ Prices are set in ringgit for organizations billed in Malaysia and in US dollars
 | Connected accounts | Unlimited | Unlimited | Unlimited | Unlimited | Unlimited |
 
 A subscription renews at the price it started at (price lock). Malaysian yearly plans can be paid
-once by FPX or GrabPay and are renewed from a link. Free is a one-time allowance, also counted per
+once by FPX or DuitNow and are renewed from a link. Free is a one-time allowance, also counted per
 social account so a new organization does not reset it.
 
 ## Repository layout

@@ -51,7 +51,7 @@ export const PLANS: Record<Tier, PlanDef> = {
  * How a yearly plan can be paid once, as customers read it. Only methods that work today: add DuitNow
  * here (and on the site) when CHIP opens it for the brand.
  */
-export const ONCE_METHODS = 'FPX or GrabPay';
+export const ONCE_METHODS = 'FPX or DuitNow';
 
 /** A yearly plan paid once (renewal LINK) stays active this many days after its end date while unpaid. */
 export const LINK_GRACE_DAYS = 3;

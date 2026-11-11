@@ -45,7 +45,7 @@ const xGroups = (Object.keys(X_PRICES) as (keyof typeof X_PRICES)[]);
       <thead><tr><th>Plan</th>{TIERS.map((t) => <th class="num">{PLANS[t].name}</th>)}</tr></thead>
       <tbody>{prices.map((r) => <tr><td>{r.label}</td>{r.cells.map((c) => <td class="num">{c}</td>)}</tr>)}</tbody>
     </table></div>
-    <p class="xs muted">Yearly is {monthsFree('PRO')} months free. {PRICE_LOCK} In Malaysia you pay by card or, for a year at a time, once with FPX or GrabPay. Elsewhere you pay by card. Enterprise is quoted per organization.</p>
+    <p class="xs muted">Yearly is {monthsFree('PRO')} months free. {PRICE_LOCK} In Malaysia you pay by card or, for a year at a time, once with FPX or DuitNow. Elsewhere you pay by card. Enterprise is quoted per organization.</p>
   </>
 )}
 {has('quotas') && (
