@@ -27,22 +27,25 @@ const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
 const pick = <T>(a: T[]) => a[Math.floor(rnd() * a.length)];
 const int = (lo: number, hi: number) => Math.floor(lo + rnd() * (hi - lo + 1));
 
+// Only networks that are open today (apps/site/src/lib/status.ts): the marketing shots and clips are taken
+// from this org, so a network that is not open must not appear in it. LinkedIn is a personal profile.
 const TEAMS = [
-  { name: 'Kopi Senja', networks: ['INSTAGRAM', 'FACEBOOK', 'TIKTOK', 'THREADS', 'GOOGLE_BUSINESS'] },
-  { name: 'Northwind Labs', networks: ['LINKEDIN', 'TWITTER', 'BLUESKY', 'MASTODON', 'YOUTUBE', 'REDDIT'] },
-  { name: 'Halo Fitness', networks: ['INSTAGRAM', 'TIKTOK', 'YOUTUBE', 'PINTEREST', 'SNAPCHAT', 'FACEBOOK'] },
+  { name: 'Kopi Senja', networks: ['INSTAGRAM', 'FACEBOOK', 'THREADS', 'TWITTER', 'BLUESKY'] },
+  { name: 'Northwind Labs', networks: ['LINKEDIN', 'TWITTER', 'BLUESKY', 'MASTODON', 'THREADS'] },
+  { name: 'Halo Fitness', networks: ['INSTAGRAM', 'FACEBOOK', 'TWITTER'] },
   { name: 'Ops Alerts', networks: ['DISCORD', 'SLACK'] },
 ] as { name: string; networks: NetworkType[] }[];
 
 const HANDLES: Record<string, (t: string) => { username: string; displayName: string }> = {
   default: t => ({ username: t.toLowerCase().replace(/[^a-z]/g, ''), displayName: t }),
+  // a member's own profile, not a company page
+  LINKEDIN: () => ({ username: 'nadia-karim', displayName: 'Nadia Karim' }),
 };
 /** What a login can publish to, per network (pages, locations, channels…), as the network lists them. */
 function channelsFor(type: string, name: string, user: string): { id?: string; name: string; username?: string; address?: string; metadata?: object }[] {
   switch (type) {
     case 'FACEBOOK': return [{ name: `${name} Official`, username: `${user}official` }, { name: `${name} Catering`, username: `${user}catering` }];
     case 'INSTAGRAM': return [{ name: `${name} Catering`, username: `${user}.catering` }, { name: `${name} Roastery`, username: `${user}.roastery` }];
-    case 'LINKEDIN': return [{ name: `${name} Sdn Bhd`, username: `${user}-sdn-bhd` }];
     case 'YOUTUBE': return [{ name, username: `@${user}` }];
     case 'GOOGLE_BUSINESS': return [
       { name: `${name} Bangsar`, address: '12 Jalan Telawi 3, Bangsar Baru, 59100 Kuala Lumpur' },
@@ -109,6 +112,8 @@ const DMS: [string, string, string | null][] = [
   ['hafiz.runs', 'Do you sell the house blend in 1kg bags?', null],
 ];
 
+/** The one account the demo shows as needing a reconnect. */
+const stale = (team: string, type: string) => team === 'Northwind Labs' && type === 'MASTODON';
 const MEDIA_REQUIRED = new Set(['TIKTOK', 'YOUTUBE', 'INSTAGRAM', 'PINTEREST', 'SNAPCHAT']);
 
 /** Six months on Pro in ringgit (one paid invoice per period) and the X credit top-up the ledger shows. */
@@ -161,15 +166,20 @@ async function main() {
     if (t.networks.includes('DISCORD')) await prisma.bot.create({ data: { teamId: team.id, name: 'Release Bot' } });
     const accounts = [];
     for (const type of t.networks) {
-      const h = HANDLES.default(`${t.name}`);
+      const h = (HANDLES[type] ?? HANDLES.default)(`${t.name}`);
       const ext = `${type.toLowerCase()}-${team.id.slice(-6)}`;
       const channels = channelsFor(type, t.name, h.username).map((c, i) => ({ id: type === 'GOOGLE_BUSINESS' ? `accounts/${team.id.slice(-6)}/locations/${i + 1}` : `${ext}-ch${i + 1}`, ...c }));
+      // Kopi Senja's first Page and its Instagram account (Instagram Login) are the mock networks' own
+      // (mocks/src/networks/facebook.ts, instagram.ts), so its Facebook and Instagram posts publish in mock mode, like Discord's.
+      const live = t.name === 'Kopi Senja' && (type === 'FACEBOOK' || type === 'INSTAGRAM');
+      if (live && type === 'FACEBOOK') channels[0] = { ...channels[0], id: '1090000000000001' };
+      if (live && type === 'INSTAGRAM') channels.length = 0;
       const providerPageId = type === 'DISCORD' ? '1001' : ext;
       accounts.push(await prisma.socialAccount.create({ data: {
-        type, teamId: team.id, username: h.username, displayName: h.displayName, externalId: channels[0]?.id ?? ext, providerPageId,
+        type, teamId: team.id, username: h.username, displayName: h.displayName, externalId: live && type === 'INSTAGRAM' ? '17841400000000001' : channels[0]?.id ?? ext, providerPageId,
         userUsername: h.username, userDisplayName: h.displayName, channels, channelId: type === 'INSTAGRAM' || type === 'LINKEDIN' ? null : channels[0]?.id ?? null,
-        instagramConnectionMethod: type === 'INSTAGRAM' ? 'FACEBOOK' : null, state: type === 'REDDIT' ? 'NEEDS_RECONNECT' : 'CONNECTED',
-        stateReason: type === 'REDDIT' ? 'The Reddit token was revoked.' : null, deleteOn: type === 'REDDIT' ? new Date(Date.now() + 2 * DAY) : null,
+        instagramConnectionMethod: type === 'INSTAGRAM' ? (live ? 'INSTAGRAM' : 'FACEBOOK') : null, state: stale(t.name, type) ? 'NEEDS_RECONNECT' : 'CONNECTED',
+        stateReason: stale(t.name, type) ? 'The Mastodon token was revoked.' : null, deleteOn: stale(t.name, type) ? new Date(Date.now() + 2 * DAY) : null,
         messagingStatus: type === 'INSTAGRAM' ? 'ENABLED' : 'DISABLED',
         ...tokenColumns({ accessToken: `seed-${ext}`, refreshToken: `seed-r-${ext}`, expiresAt: new Date(Date.now() + 30 * DAY) }),
       } }));
@@ -241,16 +251,16 @@ async function main() {
       const events = [];
       for (let d = 29; d >= 0; d--) for (let v = int(30, 90); v > 0; v--) {
         const at = new Date(Date.now() - d * DAY - int(0, 20) * 3600_000);
-        events.push({ bioId: bio.id, kind: 'VIEW', country: pick(['MY', 'MY', 'MY', 'SG']), referrer: pick(['instagram.com', 'tiktok.com', null]), createdAt: at });
+        events.push({ bioId: bio.id, kind: 'VIEW', country: pick(['MY', 'MY', 'MY', 'SG']), referrer: pick(['instagram.com', 'threads.net', null]), createdAt: at });
         if (rnd() > 0.55) events.push({ bioId: bio.id, kind: 'CLICK', itemId: pick(clickable).id, country: 'MY', createdAt: at });
       }
       await prisma.bioEvent.createMany({ data: events });
     }
   }
-  const hook = await prisma.webhook.create({ data: { organizationId: org.id, url: 'https://api.demostudio.example/hooks/siar', events: ['post.published', 'comment.received', 'social-account.updated', 'conversation.message.created'], secretEnc: encrypt(`whsec_${randomToken(24)}`) } });
+  const hook = await prisma.webhook.create({ data: { organizationId: org.id, url: 'https://api.demostudio.example/hooks/siar', events: ['post.published', 'comment.received', 'social-account.updated'], secretEnc: encrypt(`whsec_${randomToken(24)}`) } });
   const deliveries = [];
   for (let k = 0; k < 24; k++) {
-    const event = pick(['post.published', 'post.published', 'post.published', 'comment.received', 'conversation.message.created', 'social-account.updated']);
+    const event = pick(['post.published', 'post.published', 'post.published', 'comment.received', 'comment.received', 'social-account.updated']);
     const failed = k === 5;
     deliveries.push({ webhookId: hook.id, eventId: `evt_${randomToken(9)}`, event, payload: { type: event, data: {} }, attempt: failed ? 3 : 1, status: failed ? 'FAILED' : 'SUCCESS', responseCode: failed ? 502 : 200, responseBody: failed ? 'Bad gateway' : '{"ok":true}', durationMs: failed ? 10_000 : int(60, 420), createdAt: new Date(Date.now() - k * int(40, 140) * 60_000) });
   }
@@ -261,7 +271,7 @@ async function main() {
   }
   await prisma.notification.createMany({ data: [
     { userId: user.id, organizationId: org.id, kind: 'post.error', title: 'A post failed to publish', body: 'Instagram: The media aspect ratio is not supported.', link: '/posts' },
-    { userId: user.id, organizationId: org.id, kind: 'account', title: 'Reddit needs to be reconnected', body: 'Northwind Labs · The Reddit token was revoked.', link: '/social-accounts' },
+    { userId: user.id, organizationId: org.id, kind: 'account', title: 'Mastodon needs to be reconnected', body: 'Northwind Labs · The Mastodon token was revoked.', link: '/social-accounts' },
   ] });
   const posts = await prisma.post.count({ where: { organizationId: org.id } });
   console.log(`seeded ${EMAIL} / ${PASSWORD} → org "Demo Studio" with ${TEAMS.length} teams and ${posts} posts`);

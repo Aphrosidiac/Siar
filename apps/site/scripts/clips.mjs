@@ -2,9 +2,12 @@
  * Screen recordings of the real dashboard for the home walkthrough: public/clips/<step>.mp4 plus a
  * poster (<step>.webp, first frame). Recorded with the demo seed, a drawn cursor and real typing.
  *
- *   node apps/site/scripts/clips.mjs [clip…]   # dashboard on :5290, API on :3290, mocks on :3299
+ *   node apps/site/scripts/clips.mjs [clip…]   # dashboard on :5290 (APP_URL), API on :3290, mocks on :3299
  *
- * Writes demo data (connects LinkedIn for Halo Fitness, schedules a post for Kopi Senja): reseed after.
+ * Clips show only networks that are open today (apps/site/src/lib/status.ts); the Google Business nav item,
+ * listed for every organization, is hidden at capture time.
+ *
+ * Writes demo data (connects Threads for Halo Fitness, schedules a post for Kopi Senja): reseed after.
  * Frames come from the CDP screencast, which sends a frame only when something changes; they are sorted
  * (they can arrive out of order) and resampled to 30 fps, each capture held until the next one.
  */
@@ -12,14 +15,15 @@ import { chromium } from 'playwright';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 
-const APP = 'http://localhost:5290';
+const APP = process.env.APP_URL ?? 'http://localhost:5290';
 const OUT = new URL('../public/clips/', import.meta.url).pathname;
 const TMP = new URL('../.clips-tmp/', import.meta.url).pathname;
 const W = 1200, H = 750; // 16:10, a little narrower than a laptop so the UI reads larger in the frame
 mkdirSync(OUT, { recursive: true });
 const only = new Set(process.argv.slice(2));
 const want = (n) => !only.size || only.has(n);
-const browser = await chromium.launch();
+// PW_CHANNEL=chrome uses the installed Chrome when Playwright's own browser isn't downloaded
+const browser = await chromium.launch(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {});
 
 // a drawn pointer (headless captures have none) with a ring on each click
 const CURSOR = () => {
@@ -48,6 +52,7 @@ async function context(size = { width: W, height: H }) {
   const ctx = await browser.newContext({ extraHTTPHeaders: { 'x-siar': '1' }, viewport: size, deviceScaleFactor: 2, colorScheme: 'light', locale: 'en-GB', timezoneId: 'Asia/Kuala_Lumpur' });
   await ctx.addInitScript(() => { try { localStorage.setItem('siar.theme', 'light'); } catch {} });
   await ctx.addInitScript(CURSOR);
+  await ctx.addInitScript(() => addEventListener('DOMContentLoaded', () => { const st = document.createElement('style'); st.textContent = 'a[href="/google-business"] { display: none !important }'; document.head.appendChild(st); }));
   const res = await ctx.request.post(`${APP}/api/v1/auth/login`, { data: { email: 'demo@siaran.my', password: 'demo-password-123' } });
   if (!res.ok()) throw new Error(`login failed: ${res.status()}`);
   return ctx;
@@ -116,17 +121,17 @@ async function record(page, name, run) {
   console.log('clip', name, `${dur.toFixed(1)}s`, `${frames.length} frames`);
 }
 
-// 01 Connect: the hosted link a customer opens; they connect LinkedIn and land back on the page
+// 01 Connect: the hosted link a customer opens; they connect Threads and land back on the page
 if (want('connect')) {
   const ctx = await context({ width: 1000, height: 625 }); // the portal is a narrow column: a smaller window shows it larger
   const teams = await (await ctx.request.get(`${APP}/api/v1/team?limit=20`)).json();
   const team = teams.items.find((t) => t.name === 'Halo Fitness') ?? teams.items[0];
-  const r = await ctx.request.post(`${APP}/api/v1/social-account/create-portal-link`, { data: { teamId: team.id, socialAccountTypes: ['INSTAGRAM', 'TIKTOK', 'FACEBOOK', 'LINKEDIN'], expiresIn: 24, redirectUrl: `${APP}/social-accounts` } });
+  const r = await ctx.request.post(`${APP}/api/v1/social-account/create-portal-link`, { data: { teamId: team.id, socialAccountTypes: ['INSTAGRAM', 'FACEBOOK', 'TWITTER', 'THREADS'], expiresIn: 24, redirectUrl: `${APP}/social-accounts` } });
   const { url } = await r.json();
   const page = await ctx.newPage();
   // the mock network's test profile is named after the brand, as a real one would be
   await page.addInitScript(() => {
-    const fix = () => document.querySelectorAll('body *').forEach((el) => { for (const n of el.childNodes) if (n.nodeType === 3 && n.nodeValue.includes('Siar Test')) n.nodeValue = n.nodeValue.replace('Siar Test', '@halofitness'); });
+    const fix = () => document.querySelectorAll('body *').forEach((el) => { for (const n of el.childNodes) if (n.nodeType === 3 && /Siar Test|siar\.test/.test(n.nodeValue)) n.nodeValue = n.nodeValue.replace('Siar Test', '@halofitness').replace(/@?siar\.test/, '@halofitness'); });
     addEventListener('DOMContentLoaded', () => { new MutationObserver(fix).observe(document.body, { childList: true, subtree: true, characterData: true }); fix(); });
   });
   await page.goto(url.replace(/^https?:\/\/[^/]+/, APP));
@@ -135,7 +140,7 @@ if (want('connect')) {
   await record(page, 'connect', async () => {
     await page.waitForTimeout(400);
     await click(page, page.getByRole('button', { name: 'Connect', exact: true }).first(), { ms: 700 });
-    await page.getByText('LinkedIn connected.').waitFor({ timeout: 8_000 });
+    await page.getByText('Threads connected.').waitFor({ timeout: 8_000 });
     await settle(page);
     await page.waitForTimeout(500);
   });
@@ -151,7 +156,7 @@ if (want('write') || want('tailor') || want('schedule')) {
   await page.mouse.move(at.x, at.y);
   const tile = (n) => page.locator('button').filter({ hasText: new RegExp(`^\\s*${n}`) }).first();
   await record(page, 'write', async () => {
-    for (const n of ['Facebook', 'Threads', 'Google Business']) await click(page, tile(n), { ms: 420 });
+    for (const n of ['Facebook', 'Threads', 'X']) await click(page, tile(n), { ms: 420 });
     const box = page.locator('textarea').first();
     await click(page, box, { dx: 0.3, dy: 0.3, ms: 500 });
     await box.pressSequentially('Pandan latte is back from Friday at Bangsar, Uptown and Mont Kiara. Iced or hot?', { delay: 16 });
@@ -185,7 +190,7 @@ if (want('measure')) {
   await settle(page);
   await page.mouse.move(at.x, at.y);
   await record(page, 'measure', async () => {
-    for (const n of ['Facebook', 'TikTok', 'Threads']) {
+    for (const n of ['Facebook', 'X', 'Threads']) {
       await click(page, page.locator('button.nchip').filter({ hasText: new RegExp(`^\\s*${n}\\s*$`) }).first(), { ms: 480 });
       await page.waitForTimeout(500);
     }
