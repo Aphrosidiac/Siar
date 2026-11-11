@@ -1,0 +1,77 @@
+---
+/**
+ * Long-form marketing and reference pages (guides, compare, proof hubs, network topic pages).
+ * One H1, a visible "Updated" date that matches dateModified, one BreadcrumbList, TechArticle, and
+ * FAQPage only when `faq` is given (and then the Q&A is rendered on the page, so markup = visible).
+ */
+import Base from './Base.astro';
+import Faq from '../components/Faq.astro';
+import Cta from '../components/Cta.astro';
+import { articleLd, breadcrumbLd, faqLd } from '../lib/seo';
+import { SIGNUP_URL } from '../config';
+
+interface Props {
+  /** The <title>. Must carry the category (never "Siar" alone). */
+  metaTitle: string;
+  /** The visible H1. */
+  h1: string;
+  description: string;
+  /** Plain kicker naming the section, e.g. "Compare", "Guide", "Networks". */
+  kicker: string;
+  /** ISO date this page's content was last checked or changed. */
+  updated: string;
+  /** Breadcrumb trail after Home, last item is this page. */
+  crumbs: { name: string; href: string }[];
+  /** Answer-first lead, HTML allowed. */
+  lead?: string;
+  faq?: { q: string; a: string }[];
+  jsonLd?: object[];
+  /** 'signup' shows the primary CTA under the lead. */
+  actions?: 'signup' | 'quickstart' | 'none';
+  cta?: boolean;
+  wide?: boolean;
+}
+const { metaTitle, h1, description, kicker, updated, crumbs, lead, faq, jsonLd = [], actions = 'signup', cta = true, wide = false } = Astro.props;
+const path = crumbs[crumbs.length - 1].href;
+const human = new Date(`${updated}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+const ld = [breadcrumbLd(crumbs), articleLd({ title: h1, description, date: updated, path }), ...(faq?.length ? [faqLd(faq)] : []), ...jsonLd];
+---
+<Base title={metaTitle} description={description} jsonLd={ld} ogType="article">
+  <section class="ah m-hero">
+    <div class="m-wide">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a>{crumbs.slice(0, -1).map((c) => <> / <a href={c.href}>{c.name}</a></>)}</nav>
+      <p class="m-kicker" data-reveal><span class="n">{kicker}</span><span class="rule"></span>Updated <time datetime={updated}>{human}</time></p>
+      <h1 class="m-h2" data-lines><span class="ln"><span>{h1}</span></span></h1>
+      {lead && <p class="m-lead" data-reveal style="--d:2" set:html={lead} />}
+      {actions !== 'none' && (
+        <div class="m-actions" data-reveal style="--d:3">
+          {actions === 'signup' ? <><a class="pill ink" href={SIGNUP_URL}>Start with 20 free posts</a><a class="pill" href="/docs/quickstart">Read the quickstart</a></> : <><a class="pill ink" href="/docs/quickstart">Read the quickstart</a><a class="pill" href={SIGNUP_URL}>Get an API key</a></>}
+        </div>
+      )}
+    </div>
+  </section>
+  <section class="ab">
+    <div class={wide ? 'm-wide' : 'm-wide'}>
+      <div class:list={['prose', 'art', { wide }]}>
+        <slot />
+        {faq?.length ? <div class="faqw"><Faq items={faq} /></div> : null}
+      </div>
+    </div>
+  </section>
+  {cta && <Cta />}
+</Base>
+<style>
+  .ah { padding: clamp(32px, 6vw, 88px) 0 clamp(32px, 4vw, 56px); border-bottom: 1px solid var(--border); }
+  .ah h1 { max-width: 18em; }
+  .ah .m-actions { margin-top: 28px; }
+  .crumbs { font-size: var(--fs-13); color: var(--text-subtle); margin: 0 0 20px; }
+  .crumbs a { color: inherit; text-decoration: none; }
+  .crumbs a:hover { color: var(--text); text-decoration: underline; }
+  .ab { padding: clamp(32px, 5vw, 64px) 0 clamp(56px, 8vw, 112px); }
+  .art { max-width: 780px; }
+  .art.wide { max-width: none; }
+  .art.wide > :global(:not(.table-wrap):not(.wide-ok)) { max-width: 780px; }
+  .art :global(h2) { margin-top: 48px; scroll-margin-top: 96px; }
+  .art :global(h3) { scroll-margin-top: 96px; }
+  .faqw { margin-top: 56px; }
+</style>

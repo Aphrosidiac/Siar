@@ -19,5 +19,5 @@ export const LEGAL_REG = '202603234793';
 export const COMPANY_URL = 'https://ffdev.studio';
 export const TAGLINE = 'One unified social media API';
 export const DESCRIPTION =
-  'Siar is one REST API to publish, schedule, comment on and measure social media across 15 networks. Unlimited connected accounts on every plan, billed per organization, never per account.';
+  "Siar is a unified social media API and dashboard. Each post is checked before it's sent, sent to each account once, and reported by a signed webhook. Priced per organization, from $19 a month (RM39 in Malaysia).";
 export const LAST_UPDATED = '2026-10-12';

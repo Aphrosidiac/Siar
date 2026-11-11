@@ -3,15 +3,15 @@ import { SIGNUP_URL } from '../config';
 import { PLANS } from '../lib/plans';
 interface Props { title?: string; dim?: string; text?: string }
 const free = PLANS.FREE;
-const { title = 'Your first post is', dim = 'one request away.', text = `The Free plan gives you ${free.posts} posts and ${free.uploads} uploads to try. No card and no time limit.` } = Astro.props;
+const { title = 'Your first post is', dim = 'one request away.', text = `Start with ${free.posts} free posts to try. No card. A one-time allowance, with no time limit.` } = Astro.props;
 ---
 <section class="m-sec cta">
   <div class="m-wide">
     <div class="wrap">
-      <h2 class="m-h2" data-lines><span class="ln"><span>{title}</span></span><span class="ln"><span class="m-dim" style="--d:1">{dim}</span></span></h2>
+      <h2 class="m-h2" data-lines><span class="ln"><span>{title}</span></span> <span class="ln"><span class="m-dim" style="--d:1">{dim}</span></span></h2>
       <div class="side" data-reveal style="--d:2">
         <p class="m-lead">{text}</p>
-        <div class="m-actions"><a class="pill ink" href={SIGNUP_URL}>Start free <span class="arr" aria-hidden="true">→</span></a><a class="pill" href="/docs/quickstart">Read the quickstart</a></div>
+        <div class="m-actions"><a class="pill ink" href={SIGNUP_URL}>Start with 20 free posts</a><a class="pill" href="/docs/quickstart">Read the quickstart</a></div>
       </div>
     </div>
   </div>

@@ -1,43 +1,216 @@
 ---
 import Base from '../layouts/Base.astro';
-import PageHero from '../components/PageHero.astro';
 import NetIcon from '../components/NetIcon.astro';
+import Faq from '../components/Faq.astro';
 import Cta from '../components/Cta.astro';
-import { NETWORKS, CONNECT_LABEL } from '../lib/networks';
-import { breadcrumbLd } from '../lib/seo';
-const cols = ['comments', 'editPost', 'postAnalytics', 'accountAnalytics', 'messaging'] as const;
+import { NETWORKS } from '../lib/networks';
+import { NETWORK_STATUS, OPEN_LIST, STATUS_CHECKED, DM_LINE, type Status } from '../lib/status';
+import { PLANS, money, PRICE_LOCK } from '../lib/plans';
+import { breadcrumbLd, faqLd } from '../lib/seo';
+import { SIGNUP_URL, LEGAL_NAME, LEGAL_REG } from '../config';
+import type { NetworkType } from '../../../../packages/networks/src/index.ts';
+
+const human = (iso: string) => new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+const checked = human(STATUS_CHECKED);
+
+/** Table labels (messaging §9): four values. YouTube is the only "Not confirmed" row. */
+const LABEL: Record<Status, string> = { open: 'Open', partial: 'Open', waiting: 'Opening after approval', 'not-open': 'Not open' };
+interface Row { id: string; name: string; type: NetworkType; status: string; since: string; why: string; today: string; approval?: string }
+const S = NETWORK_STATUS;
+const rows: Row[] = [
+  { id: 'facebook', name: 'Facebook', type: 'FACEBOOK', status: 'Open', since: '2026-10-27', why: "Siar's Meta app passed Meta's App Review on 27 October 2026, with all 27 permissions it asked for.", today: `${S.FACEBOOK.line} Publish, schedule, edit and delete Page posts, reels and stories. Read, reply to, hide and delete comments. Page and post insights on paid plans.`, approval: 'facebook' },
+  { id: 'instagram', name: 'Instagram', type: 'INSTAGRAM', status: 'Open', since: '2026-10-27', why: 'Same Meta App Review, passed 27 October 2026.', today: `${S.INSTAGRAM.line} Feed posts, carousels, reels and stories, a first comment, comments and insights on paid plans.`, approval: 'instagram' },
+  { id: 'threads', name: 'Threads', type: 'THREADS', status: 'Open', since: '2026-10-27', why: 'Same Meta App Review, passed 27 October 2026.', today: `${S.THREADS.line} Text, image, video and carousel posts, replies, insights and deletes.`, approval: 'threads' },
+  { id: 'x', name: 'X', type: 'TWITTER', status: 'Open', since: '2026-10-12', why: 'X has no app review. It charges for every API call instead.', today: `${S.TWITTER.line} Posts, threads, polls, quotes and replies.`, approval: 'x' },
+  { id: 'linkedin', name: 'LinkedIn (personal profiles)', type: 'LINKEDIN', status: 'Open', since: '2026-10-12', why: "Posting to your own profile uses LinkedIn's self-serve Share on LinkedIn product. Siar's LinkedIn app is live.", today: 'LinkedIn: personal profiles today. Posts with text, images, video, documents and links.', approval: 'linkedin' },
+  { id: 'bluesky', name: 'Bluesky', type: 'BLUESKY', status: 'Open', since: '2026-10-12', why: 'Bluesky has no app review.', today: `${S.BLUESKY.line} Posts with images, video, link cards, quotes, tags and labels.` },
+  { id: 'mastodon', name: 'Mastodon', type: 'MASTODON', status: 'Open', since: '2026-10-12', why: 'Mastodon has no app review. Siar registers itself on each server the first time someone connects from it.', today: `${S.MASTODON.line} Statuses with visibility, content warnings and media.` },
+  { id: 'discord', name: 'Discord', type: 'DISCORD', status: 'Open', since: '2026-10-12', why: 'Discord asks for no review at Siar\'s current size (Siar\'s own records).', today: `${S.DISCORD.line} The bot can post replies and delete them; it does not import comments.` },
+  { id: 'slack', name: 'Slack', type: 'SLACK', status: 'Open', since: '2026-10-12', why: 'Slack asks for no review for public distribution.', today: `${S.SLACK.line} Channel messages with files and a custom bot name.` },
+  { id: 'youtube', name: 'YouTube', type: 'YOUTUBE', status: 'Not confirmed', since: 'Connect and upload: 2026-10-15', why: "Google verified Siar's YouTube sign-in on 15 October 2026. On 2 November 2026 Google stopped forcing uploads from unaudited projects to private. Siar lists YouTube as open after one public upload is confirmed on production.", today: `${S.YOUTUBE.line} Connect a channel, upload videos and Shorts, read comments and analytics.`, approval: 'youtube' },
+  { id: 'tiktok', name: 'TikTok', type: 'TIKTOK', status: 'Opening after approval', since: 'Applied 2026-10-13', why: "TikTok's audit of Siar's app has not passed yet. Until it does, TikTok keeps any app's posts private, so Siar keeps TikTok closed.", today: `${S.TIKTOK.line} Nothing to connect yet. Read the reference to see what Siar checks before a TikTok post.`, approval: 'tiktok' },
+  { id: 'pinterest', name: 'Pinterest', type: 'PINTEREST', status: 'Opening after approval', since: 'Connect: 2026-11-12', why: 'Pinterest granted Siar Trial access on 21 October 2026. Trial apps can connect and read, but the Pins they create are visible only to their creator. Public Pins need Standard access.', today: S.PINTEREST.line, approval: 'pinterest' },
+  { id: 'linkedin-pages', name: 'LinkedIn (company pages)', type: 'LINKEDIN', status: 'Opening after approval', since: 'Applied 2026-10-14', why: "Company pages need LinkedIn's Community Management API, which LinkedIn vets by hand. Siar's request was denied without a reason.", today: `${S.LINKEDIN.line} Post from a personal profile in the meantime.`, approval: 'linkedin' },
+  { id: 'reddit', name: 'Reddit', type: 'REDDIT', status: 'Not open', since: 'No date', why: 'Siar has not applied for Reddit API access yet.', today: S.REDDIT.line },
+  { id: 'snapchat', name: 'Snapchat', type: 'SNAPCHAT', status: 'Not open', since: 'No date', why: "Snapchat's Public Profile API is invite-only, through a Snap contact. Siar is not on the list.", today: S.SNAPCHAT.line },
+  { id: 'google-business-profile', name: 'Google Business Profile', type: 'GOOGLE_BUSINESS', status: 'Not open', since: 'No date', why: "Google gives Business Profile API access to businesses whose own profile has been verified and active for at least 60 days. Siar's request is on hold.", today: S.GOOGLE_BUSINESS.line, approval: 'google-business-profile' },
+];
+const hub = (t: NetworkType) => NETWORKS.find((n) => n.type === t)!;
+
+const gates: [string, string, [string, string][]][] = [
+  ['Facebook, Instagram, Threads', "Meta App Review for the publishing permissions, plus business verification. Siar's review: submitted 14 October 2026, passed 27 October 2026.", [['/platforms/approvals#facebook', "Siar's approval record"], ['https://developers.facebook.com/docs/instagram-platform/content-publishing', 'Instagram content publishing'], ['https://developers.facebook.com/docs/threads/overview', 'Threads overview']]],
+  ['X', 'No review. Pay per use: for example, $0.015 to create a post and $0.20 for a post with a URL.', [['https://docs.x.com/x-api/getting-started/pricing', 'docs.x.com pricing']]],
+  ['LinkedIn profiles', '"Share on LinkedIn" is self-serve.', [['https://learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/share-on-linkedin', 'Share on LinkedIn']]],
+  ['LinkedIn company pages', 'The Community Management API is a vetted product with Development and Standard tiers, requested on a separate app.', [['https://learn.microsoft.com/en-us/linkedin/marketing/community-management/community-management-overview', 'Community Management overview']]],
+  ['TikTok', 'An audit. Until an app passes, TikTok restricts its posts to private viewing, and at most 5 users can post through it in 24 hours.', [['https://developers.tiktok.com/doc/content-posting-api-get-started', 'Content Posting API'], ['https://developers.tiktok.com/doc/content-sharing-guidelines', 'Content sharing guidelines']]],
+  ['YouTube', 'Google OAuth verification for the upload scopes, then an API audit for more quota. Since 2 November 2026, uploads from unaudited projects are no longer forced to private.', [['https://developers.google.com/youtube/v3/revision_history', 'YouTube API revision history']]],
+  ['Pinterest', 'Trial access first, where Pins are visible only to their creator. Standard access needs a demo video and a live integration.', [['https://developers.pinterest.com/docs/key-concepts/access-tiers/', 'Pinterest access tiers']]],
+  ['Google Business Profile', "An access request. The applicant's own profile must be verified and active for 60+ days; quota is 0 until approved.", [['https://developers.google.com/my-business/content/prereqs', 'Business Profile API prerequisites']]],
+  ['Snapchat', "The Public Profile API is allowlist-only: you send your app's client ID to a Snap contact.", [['https://developers.snap.com/api/marketing-api/Public-Profile-API/GetStarted', 'Public Profile API']]],
+  ['Slack', 'No review for public distribution. Apps outside the Slack Marketplace (installed since 29 May 2025) can read message history once a minute.', [['https://docs.slack.dev/changelog/2025/05/29/rate-limit-changes-for-non-marketplace-apps', 'Slack changelog, 29 May 2025']]],
+  ['Bluesky, Mastodon', 'No app review.', []],
+];
+
+const groups: [string, Status[]][] = [['Open today', ['open', 'partial']], ['Not confirmed, or opening after approval', ['waiting']], ['Not open yet', ['not-open']]];
+const inGroup = (ss: Status[]) => NETWORKS.filter((n) => ss.includes(S[n.type].status) && !(n.type === 'YOUTUBE' && ss.includes('open'))).concat(ss.includes('waiting') ? NETWORKS.filter((n) => n.type === 'YOUTUBE') : []);
+
+const usd = (t: 'STARTER' | 'PRO' | 'BUSINESS') => money(t, 'MONTHLY', 'usd');
+const rm = (t: 'STARTER' | 'PRO' | 'BUSINESS') => money(t, 'MONTHLY', 'myr');
+const n0 = (v: number) => v.toLocaleString('en-US');
+
+const faq = [
+  { q: 'Which social networks does Siar support?', a: 'Siar publishes today to Facebook Pages, Instagram professional accounts, Threads, X, LinkedIn personal profiles, Bluesky, Mastodon, Discord and Slack. YouTube connects and uploads now; public uploads are not yet confirmed. TikTok, Pinterest publishing and LinkedIn company pages open after each network approves Siar. Reddit, Snapchat and Google Business Profile are built, not open yet.' },
+  { q: 'Can I post to TikTok with Siar?', a: `Not yet. TikTok's audit of Siar's app has not passed, and until it does TikTok keeps an app's posts private, so Siar keeps TikTok closed. The integration is built. Open today: ${OPEN_LIST}.` },
+  { q: 'Can I upload public YouTube videos through Siar?', a: 'You can connect a channel and upload videos and Shorts now. Since 2 November 2026, Google no longer forces uploads from unaudited projects to private, so public uploads may work. Siar lists YouTube as open once a public upload is confirmed on production. Until then, treat public visibility as unconfirmed.' },
+  { q: 'Can I post to a LinkedIn company page?', a: "Not yet. Posting to your own LinkedIn profile works today. Company pages need LinkedIn's Community Management API, which LinkedIn vets by hand; Siar applied on 14 October 2026 and was denied without a reason. Company pages open if LinkedIn grants page access." },
+  { q: 'Can I create Pins on Pinterest?', a: "Not yet. You can connect a Pinterest account today. Pinterest granted Siar Trial access on 21 October 2026, and Pins created under Trial access are visible only to their creator. Publishing Pins opens after Pinterest grants Standard access, which needs a demo of Siar's live Pinterest integration." },
+  { q: 'Do I need my own Meta developer app and App Review?', a: "No, for Facebook, Instagram and Threads. Your accounts connect through Siar's Meta app, which passed Meta's App Review on 27 October 2026 with all 27 permissions it asked for. Your customers sign in to Meta themselves through Siar's connect link, and you never see their password or token." },
+  { q: "Why does the API's health endpoint list TikTok and Pinterest as available?", a: "<code>GET /api/v1/</code> reports a network as available when its keys are on Siar's server. That is not the same as open: TikTok runs on sandbox keys and Pinterest on Trial access. Use this page, not the health endpoint, to decide what you can sell to your own customers." },
+  { q: 'Do Reddit, Snapchat and Google Business Profile have a date?', a: "No. The integrations are built, but Siar has not opened them and gives no date. Snapchat's Public Profile API is invite-only, Google Business Profile needs a profile verified for 60 days, and Siar has not applied to Reddit yet. Changes appear in this table and the changelog." },
+  { q: 'How many accounts can I connect?', a: `There are no per-account fees on any plan. Each brand connects one account on every open network: Starter has 1 brand, Pro 10, and Business unlimited. Plans are capped by posts instead: ${n0(PLANS.STARTER.posts)} a month on Starter, ${n0(PLANS.PRO.posts)} on Pro, ${n0(PLANS.BUSINESS.posts)} on Business. A post to several networks counts as one.` },
+  { q: 'Can I post to personal Facebook profiles, groups or personal Instagram accounts?', a: "No. Facebook's API publishes to Pages only, not personal profiles or groups. Instagram's API publishes to professional accounts only, business or creator, which you can connect with Facebook Login or Instagram Login." },
+  { q: 'Are Facebook and Instagram DMs included?', a: `They are in beta. ${DM_LINE.replace(/^Facebook and Instagram DMs and comment-to-DM automations: in beta, /, 'They are turned on ')} Meta approved the messaging permissions with Siar's App Review on 27 October 2026. No other network has DMs in Siar.` },
+  { q: 'How will I know when a network opens?', a: "This table changes in the release that opens the network, and so do the network's reference page and Siar's <code>llms.txt</code>. The change is also listed in the changelog. Siar does not change a status before the network has approved its app and a post has gone through on production." },
+];
 ---
-<Base title="Supported platforms" description={`The ${NETWORKS.length} social networks the Siar API publishes to: post types, connection method and what each supports.`} jsonLd={[breadcrumbLd([{ name: 'Platforms', href: '/platforms' }])]}>
-  <PageHero kicker="Networks" note={`${NETWORKS.length} supported`} title={`${NETWORKS.length} networks.`} dim="One integration." lead="Every network has its own page with post types, media rules, daily caps, requested permissions and an error reference, generated from the code that enforces them." />
-  <section class="section tight">
-    <div class="container">
-      <div class="grid g3">
-        {NETWORKS.map((n) => (
-          <a class="card" href={`/${n.apiSlug}`}>
-            <div class="h"><NetIcon type={n.type} size={36} /><h3>{n.name}</h3></div>
-            <p>{n.about}</p>
-            <span class="more">{n.name} API</span>
-          </a>
-        ))}
-      </div>
+<Base title="Social media API networks: what is open today | Siar" description={`Siar's social media API posts to ${OPEN_LIST} today. The rest, with dates.`} jsonLd={[breadcrumbLd([{ name: 'Networks', href: '/platforms' }]), faqLd(faq)]}>
+  <section class="ph m-hero">
+    <div class="m-wide">
+      <p class="m-kicker" data-reveal><span class="n">Networks</span><span class="rule"></span>Updated <time datetime={STATUS_CHECKED}>{checked}</time></p>
+      <h1 class="m-h2" data-reveal>Supported networks: what the Siar API can post to today</h1>
+      <p class="m-lead" data-reveal style="--d:2">Siar, a unified social media API, publishes today to Facebook Pages, Instagram professional accounts, Threads, X, LinkedIn personal profiles, Bluesky, Mastodon, Discord and Slack. YouTube: connect and upload now; public uploads not yet confirmed. TikTok, Pinterest publishing and LinkedIn company pages open after each network approves Siar. Reddit, Snapchat and Google Business Profile are built, not open yet.</p>
+      <p class="second" data-reveal style="--d:2">This page is the one place Siar records what is open. Every other page, the docs and <code>llms.txt</code> read their network status from the same source, so they can't disagree.</p>
+      <div class="m-actions" data-reveal style="--d:3"><a class="pill ink" href={SIGNUP_URL}>Start with 20 free posts</a><a class="pill" href="/docs/quickstart">Read the quickstart</a></div>
+      <p class="small muted under">20 free posts to try, once. No card.</p>
     </div>
   </section>
-  <section class="section alt">
-    <div class="container">
-      <h2>Compare networks</h2>
-      <div class="table-wrap"><table>
-        <thead><tr><th>Network</th><th>Post types</th><th>Connection</th><th>Comments</th><th>Edit post</th><th>Post analytics</th><th>Account analytics</th><th>Messages</th></tr></thead>
-        <tbody>{NETWORKS.map((n) => {
-          const c = n.adapter.capabilities;
-          return <tr><td><a href={`/${n.apiSlug}`}>{n.name}</a></td><td>{n.postTypes.map((t) => t.toLowerCase().replace(/_/g, ' ')).join(', ')}</td><td>{CONNECT_LABEL[c.connect]}</td>{cols.map((k) => <td class={c[k] ? 'yes' : 'no'}>{c[k] ? 'Yes' : 'No'}</td>)}</tr>;
-        })}</tbody>
+
+  <section class="section tight">
+    <div class="m-wide">
+      <h2 id="status">Status of every network, checked {checked}</h2>
+      <p class="intro">One row per network, open ones first. "Since" is the date the current status began, from Siar's own approval records.</p>
+      <div class="table-wrap st"><table>
+        <thead><tr><th>Network</th><th>Status</th><th>Since</th><th>Why</th><th>What you can do today</th><th>Links</th></tr></thead>
+        <tbody>{rows.map((r) => (
+          <tr id={r.id}>
+            <th scope="row"><span class="nn"><NetIcon type={r.type} size={24} />{r.name}</span></th>
+            <td><span class="pillst">{r.status}</span></td>
+            <td class="since">{r.since}</td>
+            <td>{r.why}</td>
+            <td>{r.today}</td>
+            <td class="links"><a href={`/${hub(r.type).apiSlug}`}>{r.name.replace(/ \(.*\)/, '')} API reference</a>{r.approval && <a href={`/platforms/approvals#${r.approval}`}>Approval record</a>}</td>
+          </tr>
+        ))}</tbody>
       </table></div>
       <p class="small muted">Network names are trademarks of their owners. Siar is not affiliated with or endorsed by any of them.</p>
+
+      <h2>What each status means</h2>
+      <dl class="defs">
+        <dt>Open</dt><dd>You can connect accounts and publish today, on every plan, Free included.</dd>
+        <dt>Not confirmed</dt><dd>Connecting and uploading work, but one part (public YouTube visibility) has not been confirmed on production yet. Siar changes the row when it is.</dd>
+        <dt>Opening after approval</dt><dd>The integration is built and tested. The network has to approve Siar's app first, and Siar can't set the date.</dd>
+        <dt>Not open</dt><dd>The integration is built, but Siar hasn't opened it and gives no date.</dd>
+      </dl>
+      <p>When a status changes, this table, the network's reference page and Siar's <code>llms.txt</code> change in the same release, and the change is listed in the <a href="/changelog">changelog</a> and on <a href="/network-changes">network changes</a>.</p>
+
+      <h2>Why some networks are closed: each network's own gate</h2>
+      <p>Every network decides which apps may post for other people. Some ask nothing. Some review your app, your company and a screen recording of your product. Siar goes through the same gates you would. The difference is that Meta's is already cleared: Facebook, Instagram and Threads connect through Siar's Meta app, which passed App Review on 27 October 2026, so you don't need your own. Here is what each network asks for, from its own developer pages (checked {checked}).</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Network</th><th>What the network requires</th><th>Source</th></tr></thead>
+        <tbody>{gates.map(([n, r, src]) => <tr><th scope="row">{n}</th><td>{r}</td><td class="links">{src.length ? src.map(([h, l]) => <a href={h} rel={h.startsWith('http') ? 'noopener' : undefined}>{l}</a>) : <span class="muted">No review is published</span>}</td></tr>)}</tbody>
+      </table></div>
+      <p>The full dated record of Siar's own applications, including the ones that went badly, is on the <a href="/platforms/approvals">approval record</a>.</p>
+
+      <h2>Comments, analytics and DMs on the open networks</h2>
+      <p>Publishing is the same request on every open network: one post, with per-network text and media where you want them. The rest varies by network, because the networks' own APIs do.</p>
+      <ul class="plain">
+        <li><strong>Comments and replies.</strong> Read, reply and moderate on Facebook, Instagram, Threads, X (within X's reply rules), Bluesky, Mastodon and YouTube. On Slack, replies import slowly because of Slack's limit on apps outside its Marketplace. On Discord, the bot can post and delete replies but does not import comments.</li>
+        <li><strong>Analytics.</strong> Account and post metrics on every paid plan (not Free), put into one shape across networks, with the network's raw numbers kept.</li>
+        <li><strong>LinkedIn comments and analytics.</strong> Not confirmed on personal profiles yet.</li>
+        <li><strong>DMs.</strong> {DM_LINE}</li>
+      </ul>
+      <p>Each network's reference page lists its post types, media rules, daily caps, requested permissions and error codes, generated from the code that enforces them. Daily caps for every plan are on <a href="/platforms/limits">limits by network</a>.</p>
     </div>
   </section>
-  <Cta />
+
+  <section class="section alt">
+    <div class="m-wide">
+      <h2>Reference pages for all {NETWORKS.length} integrations</h2>
+      <p class="intro">Every network Siar is built for has a reference page and an error page, open or not. Use them to plan an integration before a network opens.</p>
+      {groups.map(([h, ss]) => (
+        <>
+          <h3 class="gh">{h}</h3>
+          <div class="grid g3">
+            {inGroup(ss).map((n) => (
+              <a class="card" href={`/${n.apiSlug}`}>
+                <div class="h"><NetIcon type={n.type} size={32} /><span class="cn">{n.name}</span></div>
+                <p>{S[n.type].line}</p>
+                <span class="more">{n.name} API reference</span>
+              </a>
+            ))}
+          </div>
+        </>
+      ))}
+    </div>
+  </section>
+
+  <section class="section tight">
+    <div class="m-wide">
+      <h2>One price for your organization, not for each account</h2>
+      <p>No per-account fees. Each brand connects one account on every open network: Starter 1 brand, Pro 10, Business unlimited. A post sent to every connected network counts as one post.</p>
+      <p>Start with {PLANS.FREE.posts} free posts to try. Then {usd('STARTER')} a month ({rm('STARTER')} in Malaysia) for one brand and {n0(PLANS.STARTER.posts)} posts a month, {usd('PRO')} ({rm('PRO')}) for 10 brands, or {usd('BUSINESS')} ({rm('BUSINESS')}) for unlimited brands. {PRICE_LOCK} <a href="/pricing">See the pricing</a>.</p>
+      <p class="small muted">{LEGAL_NAME} (SSM {LEGAL_REG}), Malaysia. Meta App Review passed on 27 October 2026.</p>
+
+      <h2>What you can't do with Siar today</h2>
+      <ul class="plain">
+        <li>Post to TikTok.</li>
+        <li>Confirm that a YouTube upload goes public. It may; Siar hasn't recorded one on production yet.</li>
+        <li>Create Pins on Pinterest.</li>
+        <li>Post to a LinkedIn company page, or read LinkedIn analytics.</li>
+        <li>Post to Reddit, Snapchat or Google Business Profile.</li>
+        <li>Post to a personal Facebook profile or a Facebook group. Facebook's API allows Pages only.</li>
+        <li>Post to a personal Instagram account. Instagram's API allows professional (business or creator) accounts only.</li>
+      </ul>
+      <p>If one of these is the reason you're here, the table above tells you whether it depends on a network's approval or on Siar.</p>
+
+      <div class="faqw"><Faq items={faq} title="Questions about networks" /></div>
+    </div>
+  </section>
+  <Cta title="Write it once. Siar it everywhere." dim="Everywhere that's open today." text={`${OPEN_LIST}, from one request. Start with ${PLANS.FREE.posts} free posts to try. No card.`} />
 </Base>
 <style>
-  .h { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-  .h h3 { margin: 0; }
+  .ph { padding: clamp(40px, 7vw, 96px) 0 clamp(32px, 4vw, 56px); border-bottom: 1px solid var(--border); }
+  .ph h1 { max-width: 18em; }
+  .second { max-width: 720px; font-size: var(--fs-15); line-height: 24px; color: var(--text-muted); margin: 12px 0 0; }
+  .ph .m-actions { margin-top: 28px; }
+  .under { margin: 12px 0 0; }
+  h2 { margin-top: 56px; max-width: 760px; }
+  h2:first-child { margin-top: 0; }
+  .intro, .section p, .plain, .defs { max-width: 780px; }
+  .st th[scope='row'] { white-space: nowrap; }
+  .nn { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; }
+  .pillst { display: inline-block; white-space: nowrap; font-size: var(--fs-13); line-height: 20px; padding: 1px 10px; border: 1px solid var(--border-strong); border-radius: 999px; }
+  .since { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  td { vertical-align: top; }
+  .links { display: flex; flex-direction: column; gap: 6px; min-width: 150px; }
+  tr:target { background: var(--bg-elevated); }
+  tr { scroll-margin-top: 96px; }
+  .defs { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 10px 24px; margin: 0 0 16px; }
+  .defs dt { font-weight: 600; }
+  .defs dd { margin: 0; color: var(--text-muted); }
+  .plain { padding-left: 20px; }
+  .plain li { margin: 0 0 10px; }
+  .gh { margin: 36px 0 4px; font-size: var(--fs-18); }
+  .h { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .cn { font-weight: 600; font-size: var(--fs-18); }
+  .faqw { margin-top: 56px; }
+  @media (max-width: 760px) {
+    .defs { grid-template-columns: minmax(0, 1fr); }
+    .st table, .st thead, .st tbody, .st tr, .st th, .st td { display: block; }
+    .st thead { display: none; }
+    .st tr { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    .st td, .st th { border: 0; padding: 4px 0; }
+    .st td.since::before { content: 'Since: '; color: var(--text-subtle); }
+    .links { flex-direction: row; flex-wrap: wrap; gap: 6px 16px; }
+  }
 </style>

@@ -6,6 +6,7 @@ const links = [
   { href: '/features', label: 'Product' },
   { href: '/platforms', label: 'Networks' },
   { href: '/pricing', label: 'Pricing' },
+  { href: '/compare', label: 'Compare' },
   { href: '/docs', label: 'Docs' },
   { href: '/docs/api', label: 'API' },
 ];
@@ -23,16 +24,16 @@ const active = (h: string) => (h === '/docs' ? path === '/docs' || (path.startsW
         <svg class="moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
       </button>
       <a href={DASHBOARD_URL} class="signin">Sign in</a>
-      <a href={SIGNUP_URL} class="pill ink sm cta">Start free <span class="arr" aria-hidden="true">→</span></a>
+      <a href={SIGNUP_URL} class="pill ink sm cta">Start with 20 free posts</a>
       <button class="menu" type="button" aria-expanded="false" aria-controls="m-menu" data-menu-btn><span class="bars" aria-hidden="true"><i></i><i></i></span><span class="lbl">Menu</span></button>
     </div>
   </div>
   <div class="sheet" id="m-menu" data-menu hidden>
     <nav aria-label="Mobile">
-      {links.map((l, i) => <a href={l.href} style={`--d:${i}`}><span class="i">0{i + 1}</span>{l.label}</a>)}
+      {links.map((l, i) => <a href={l.href} style={`--d:${i}`}>{l.label}</a>)}
     </nav>
     <div class="sheet-foot">
-      <a href={SIGNUP_URL} class="pill ink">Start free <span class="arr" aria-hidden="true">→</span></a>
+      <a href={SIGNUP_URL} class="pill ink">Start with 20 free posts</a>
       <a href={DASHBOARD_URL} class="pill">Sign in</a>
     </div>
   </div>

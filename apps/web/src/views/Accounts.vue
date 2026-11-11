@@ -28,7 +28,11 @@ const route = useRoute(); const router = useRouter();
 const accounts = computed(() => new Map((currentTeam.value?.socialAccounts ?? []).map((a) => [a.type, a])));
 const connected = computed(() => NETWORKS.filter((n) => accounts.value.has(n.type)));
 const rows = computed(() => connected.value.map((n) => ({ n, a: accounts.value.get(n.type)! })));
-const ready = (t: NetworkType) => platforms.value?.[t]?.available !== false;
+/** Keys on the server are not approval (docs/approvals): networks a customer can't use yet stay closed here,
+ * and the ones that are only partly open say so. Keep in step with apps/site/src/lib/status.ts. */
+const NOT_OPEN: Partial<Record<NetworkType, string>> = { TIKTOK: 'Opening after TikTok approves Siar', REDDIT: 'Not open yet', SNAPCHAT: 'Not open yet', GOOGLE_BUSINESS: 'Not open yet' };
+const PARTIAL: Partial<Record<NetworkType, string>> = { PINTEREST: 'Connect today; publishing Pins opens after Standard access', YOUTUBE: 'Upload now; public uploads not yet confirmed', LINKEDIN: 'Personal profiles; company pages after LinkedIn approval' };
+const ready = (t: NetworkType) => !NOT_OPEN[t] && platforms.value?.[t]?.available !== false;
 // networks still waiting on their app review sort last and can't be started
 const available = computed(() => NETWORKS.filter((n) => !accounts.value.has(n.type)).sort((a, b) => Number(!ready(a.type)) - Number(!ready(b.type))));
 const busy = ref<string | null>(null);
@@ -251,9 +255,9 @@ const connectedCount = computed(() => currentTeam.value?.socialAccounts.length ?
       <section class="sec">
         <div class="label sec-h">{{ connected.length ? 'Add a network' : 'Networks' }} <span class="num">{{ available.length }}</span></div>
         <div class="list avail">
-          <button v-for="n in available" :key="n.type" type="button" class="av-row" :class="{ soon: !ready(n.type) }" :disabled="busy === n.type || !ready(n.type)" :title="ready(n.type) ? undefined : `${n.name} is reviewing Siar's app. It switches on here once approved.`" @click="startConnect(n.type)">
+          <button v-for="n in available" :key="n.type" type="button" class="av-row" :class="{ soon: !ready(n.type) }" :disabled="busy === n.type || !ready(n.type)" :title="ready(n.type) ? undefined : `${n.name} is not open yet. It switches on here once ${n.name} approves Siar's app.`" @click="startConnect(n.type)">
             <NetworkIcon :type="n.type" :size="28" :title="false" />
-            <span class="grow"><span class="net d-block">{{ n.name }}</span><span class="tiny muted truncate d-block">{{ ready(n.type) ? n.blurb : 'Opening soon' }}</span></span>
+            <span class="grow"><span class="net d-block">{{ n.name }}</span><span class="tiny muted truncate d-block">{{ ready(n.type) ? (PARTIAL[n.type] ?? n.blurb) : (NOT_OPEN[n.type] ?? 'Opening soon') }}</span></span>
             <Plus v-if="ready(n.type)" :size="16" class="plus" />
           </button>
         </div>

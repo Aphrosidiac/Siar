@@ -6,7 +6,7 @@ import { LAST_UPDATED } from '../config';
 import { updatedAt } from '../lib/updated.mjs';
 
 const fm = Astro.props.frontmatter ?? Astro.props;
-const { title, description, nav = 'guide', toc = true } = fm;
+const { title, metaTitle, description, nav = 'guide', toc = true } = fm;
 const groups = nav === 'api' ? API_NAV : GUIDE_NAV;
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 const flat = flatGuide();
@@ -17,7 +17,7 @@ const headings: { depth: number; slug: string; text: string }[] = (Astro.props.h
 const updated = updatedAt(path) ?? LAST_UPDATED;
 const crumbs = [{ name: 'Docs', href: '/docs' }, { name: title, href: path }];
 ---
-<Base title={`${title} | Siar docs`} description={description} jsonLd={[breadcrumbLd(crumbs), articleLd({ title, description: description ?? title, date: updated, path })]}>
+<Base title={metaTitle ?? `${title} · Siar API docs`} description={description} jsonLd={[breadcrumbLd(crumbs), articleLd({ title, description: description ?? title, date: updated, path })]}>
   <div class:list={['container', 'dl', { notoc: !(toc && headings.length > 2) }]}>
     <aside class="side">
       <details class="sidewrap" open>

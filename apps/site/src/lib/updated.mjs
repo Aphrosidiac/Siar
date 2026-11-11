@@ -23,7 +23,7 @@ function sources(p) {
     const a = ADAPTER[net[1]] ?? net[1].replace(/-api$/, '');
     return [s(`pages/[api]/${net[2] ? 'errors' : 'index'}.astro`), s('lib/networks.ts'), s('components/NetworkFacts.astro'), path.join(REPO, `packages/networks/src/adapters/${a}.ts`)];
   }
-  for (const ext of ['.astro', '.mdx', '/index.astro', '/index.mdx']) if (existsSync(s(`pages${p}${ext}`))) return [s(`pages${p}${ext}`)];
+  for (const ext of ['.astro', '.mdx', '.ts', '/index.astro', '/index.mdx']) if (existsSync(s(`pages${p}${ext}`))) return [s(`pages${p}${ext}`)];
   return [];
 }
 

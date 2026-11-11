@@ -32,8 +32,8 @@ export async function gate(actor: Actor, plan?: 'dms' | 'automationRuns') {
   const org = await prisma.organization.findUniqueOrThrow({ where: { id: actor.organizationId } });
   if (!org.messagingEnabled) throw forbidden(BETA_MESSAGE);
   const l = limitsFor(org);
-  if (plan === 'dms' && l.dmsPerAccount <= 0) throw forbidden(`Direct messages are not included in the ${l.plan.name} plan. Upgrade to Pro or higher to send DMs.`);
-  if (plan === 'automationRuns' && l.automationRunsPerAccount <= 0) throw forbidden(`Automations are not included in the ${l.plan.name} plan. Upgrade to Pro or higher to run automations.`);
+  if (plan === 'dms' && l.dmsPerAccount <= 0) throw forbidden(`Direct messages are not included in the ${l.plan.name} plan. Upgrade to Starter or higher to send DMs.`);
+  if (plan === 'automationRuns' && l.automationRunsPerAccount <= 0) throw forbidden(`Automations are not included in the ${l.plan.name} plan. Upgrade to Starter or higher to run automations.`);
   return { org, limits: l };
 }
 

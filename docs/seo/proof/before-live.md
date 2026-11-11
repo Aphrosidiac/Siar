@@ -1,0 +1,9 @@
+| `/` | Siar | Write it once. Siar it everywhere. | Write it once.Siar it everywhere. | Siar is one REST API to publish, schedule, comment on and measure social media across 15 networks. Unlimited connected accounts on every plan, billed per organization, never per account. |
+| `/pricing` | Pricing: pay by business, not by channel | Siar | One price per business.Every account included. | Siar pricing: Free with 20 posts to try, paid plans from RM39 a month in Malaysia and $19 elsewhere. Unlimited social accounts on every plan. X usage passed through at cost. |
+| `/platforms` | Supported platforms | Siar | 15 networks.One integration. | The 15 social networks the Siar API publishes to: post types, connection method and what each supports. |
+| `/features` | Product tour | Siar | One dashboard.15 networks. No tab juggling. | A tour of Siar: composer, calendar, inbox, analytics, hosted connect, link in bio, API keys and webhooks, across 15 social networks. |
+| `/about` | About Siar, the unified social media API | About Siar | Siar is a unified social media API built by FF Dev Studio, a software studio in Malaysia. |
+| `/use-cases` | Use cases | Siar | What people buildwith Siar. | What teams build with the Siar social media API: posting, scheduling, multi-tenant products, analytics, comments, webhooks, hosted connect and AI agents. |
+| `/instagram-api` | Instagram API: post, schedule and analyze | Siar | Instagram APIthrough Siar. | Publish and schedule Instagram posts through one REST API. 3 post types, limits, scopes, daily caps and a full error reference. |
+| `/linkedin-api/errors` | LinkedIn API errors and how to fix them | Siar | LinkedIn API errorsand how to fix them. | 10 LinkedIn API errors: what each rejection means and the fix, as relayed by Siar. |
+| `/llms.txt` |  |  |  |

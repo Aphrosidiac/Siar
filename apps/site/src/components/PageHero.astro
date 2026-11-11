@@ -6,7 +6,7 @@ const { kicker, title, dim, lead, note } = Astro.props;
 <section class="ph m-hero">
   <div class="m-wide">
     <p class="m-kicker" data-reveal><span class="n">{kicker}</span>{note && <><span class="rule"></span>{note}</>}</p>
-    <h1 class="m-h2" data-lines><span class="ln"><span>{title}</span></span>{dim && <span class="ln"><span class="m-dim" style="--d:1">{dim}</span></span>}</h1>
+    <h1 class="m-h2" data-lines><span class="ln"><span>{title}</span></span>{dim && <> <span class="ln"><span class="m-dim" style="--d:1">{dim}</span></span></>}</h1>
     {lead && <p class="m-lead" data-reveal style="--d:2" set:html={lead} />}
     <div data-reveal style="--d:3"><slot /></div>
   </div>

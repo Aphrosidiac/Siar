@@ -300,7 +300,7 @@ void session;
               </div>
             </article>
           </div>
-          <p class="small muted mt-16">* Inbox and comment-to-DM: Facebook and Instagram, opening after Meta approval.</p>
+          <p class="small muted mt-16">* Facebook and Instagram DMs and comment-to-DM automations are in beta, turned on per organization on request (paid plans).</p>
           <p class="small muted mt-8">Your price never goes up while you stay subscribed. Prices are in {{ currency === 'myr' ? 'ringgit for Malaysia' : 'US dollars' }}; yearly is ten months' price. <Button variant="link" @click="tab = 'details'">Set your country</Button></p>
         </section>
       </QueryState>

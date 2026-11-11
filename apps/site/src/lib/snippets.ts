@@ -3,7 +3,7 @@ import { API_BASE } from '../config';
 export const POST_BODY = {
   teamId: 'TEAM_ID',
   title: 'Launch day',
-  postDate: '2026-11-02T09:00:00.000Z',
+  postDate: '2026-12-01T01:00:00.000Z',
   status: 'SCHEDULED',
   socialAccountTypes: ['INSTAGRAM', 'LINKEDIN', 'BLUESKY'],
   data: {
@@ -187,8 +187,7 @@ export const mcpConfig = `{
 
 export const mcpClaudeCode = `claude mcp add siar -e SIAR_API_KEY=sk_live_... -- npx -y @siar/mcp`;
 
-export const cliSample = `npm i -g @siar/cli
-export SIAR_API_KEY=sk_live_...
+export const cliSample = `export SIAR_API_KEY=sk_live_...
 
 siar teams:list
 siar accounts:list --team TEAM_ID
@@ -199,15 +198,13 @@ siar help`;
 export const cliCall = `# Any operation by its operationId
 siar call analytics.getPostAnalytics --query '{"postId":"POST_ID","platformType":"INSTAGRAM"}'`;
 
-export const sdkSample = `npm install @siar/sdk
-
-import { Siar } from '@siar/sdk';
+export const sdkSample = `import { Siar } from '@siar/sdk';
 
 const siar = new Siar({ apiKey: process.env.SIAR_API_KEY });
 const post = await siar.post.create({
   teamId: 'TEAM_ID',
   title: 'Launch day',
-  postDate: '2026-11-02T09:00:00.000Z',
+  postDate: '2026-12-01T01:00:00.000Z',
   status: 'SCHEDULED',
   socialAccountTypes: ['BLUESKY'],
   data: { BLUESKY: { text: 'We shipped today.' } },

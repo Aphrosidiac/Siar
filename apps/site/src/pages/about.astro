@@ -1,0 +1,116 @@
+---
+import Article from '../layouts/Article.astro';
+import { LEGAL_NAME, LEGAL_REG, CONTACT_EMAIL, CONTACT_PHONE, COMPANY_URL, ADDRESS, DOMAIN } from '../config';
+import { PLANS, money, PRICE_LOCK } from '../lib/plans';
+import { OP_COUNT } from '../lib/openapi';
+import { WEBHOOK_EVENTS } from '../lib/events';
+import { CANONICAL, NETWORK_STATUS, TOOLING_LINE, STATUS_CHECKED } from '../lib/status';
+
+const LIVE_SINCE = '12 October 2026';
+const usd = (t: 'STARTER' | 'PRO' | 'BUSINESS') => money(t, 'MONTHLY', 'usd');
+const rm = (t: 'STARTER' | 'PRO' | 'BUSINESS') => money(t, 'MONTHLY', 'myr');
+const n0 = (v: number) => v.toLocaleString('en-US');
+
+const facts: [string, string][] = [
+  ['Product', 'Siar: one REST API to publish, schedule, reply to and measure social media posts, with a dashboard built on the same API'],
+  ['Website', `${DOMAIN} (dashboard at app.${DOMAIN}, API at api.${DOMAIN})`],
+  ['Made and operated by', `${LEGAL_NAME} (FF Dev Studio)`],
+  ['Registration', `SSM (Companies Commission of Malaysia) registration number ${LEGAL_REG}`],
+  ['Address', ADDRESS],
+  ['Contact', `${CONTACT_EMAIL} · ${CONTACT_PHONE}`],
+  ['Support', 'Email support on every plan'],
+  ['Live since', `${LIVE_SINCE} (${DOMAIN}, app., api. and media.)`],
+  ['Meta App Review', "Siar's Meta app passed App Review on 27 October 2026, with all 27 permissions it asked for"],
+  ['Google OAuth verification', "Approved for Siar's YouTube connection on 15 October 2026"],
+  ['Open today', 'Facebook Pages, Instagram professional accounts, Threads, X, LinkedIn personal profiles, Bluesky, Mastodon, Discord, Slack'],
+  ['YouTube', 'Connect and upload now; public uploads not yet confirmed'],
+  ['Waiting on approval', 'TikTok (opening after TikTok approves Siar) · Pinterest (connect today; publishing Pins opens after Pinterest grants Standard access) · LinkedIn company pages (open after LinkedIn grants page access)'],
+  ['Built, not open yet', 'Reddit, Snapchat, Google Business Profile'],
+  ['Pricing unit', 'Per organization, never per connected account. No per-account fees: each brand connects one account on every open network'],
+  ['Free start', `${PLANS.FREE.posts} free posts to try, one-time, no card`],
+  ['Plans, outside Malaysia', `Starter ${usd('STARTER')} a month (1 brand, ${n0(PLANS.STARTER.posts)} posts a month) · Pro ${usd('PRO')} (10 brands, ${n0(PLANS.PRO.posts)} posts, 14-day trial) · Business ${usd('BUSINESS')} (unlimited brands, ${n0(PLANS.BUSINESS.posts)} posts) · Enterprise custom`],
+  ['Plans, in Malaysia', `Starter ${rm('STARTER')} a month · Pro ${rm('PRO')} · Business ${rm('BUSINESS')} · Enterprise custom. Billed in ringgit for organizations billed in Malaysia`],
+  ['Yearly', '10 times the monthly price (2 months free). In Malaysia, a year can be paid once by FPX or DuitNow'],
+  ['Price lock', PRICE_LOCK],
+  ['X usage', "Billed from a prepaid credit at X's own USD prices"],
+  ['API', `One REST API, described by a public OpenAPI 3.0 file (${OP_COUNT()} operations) at /openapi.json`],
+  ['Authentication', 'Organization API key in the x-api-key header'],
+  ['Webhooks', `${WEBHOOK_EVENTS.length} HMAC-signed event types, retried 7 times over about 45 hours, with a delivery log and resend`],
+  ['SDK, CLI, MCP', TOOLING_LINE],
+  ['Tokens', 'Encrypted at rest and never returned by the API'],
+  ['Affiliation', 'Network names are trademarks of their owners. Siar is not affiliated with or endorsed by any of them'],
+  ['Not to be confused with', 'siar.my (a film-streaming service) or SiAR (an irrigation API)'],
+];
+
+const faq = [
+  { q: 'Who makes Siar?', a: `Siar is made and run by FF Dev Studio, a software studio in Setiu, Terengganu, Malaysia. The business is registered with SSM as ${LEGAL_NAME}, number ${LEGAL_REG}. The same studio builds web and mobile software for clients. You reach the team that builds Siar at ${CONTACT_EMAIL}.` },
+  { q: 'Is Siar legit?', a: `Siar is a live product of ${LEGAL_NAME}, SSM ${LEGAL_REG}, a registered Malaysian business. It launched on ${LIVE_SINCE}, so there are no reviews or case studies yet. You can check its passed Meta App Review, its public OpenAPI file, its network status page and its price list, then try ${PLANS.FREE.posts} free posts with no card.` },
+  { q: 'What is Siar?', a: `Siar (siaran.my) is a social media API and dashboard. One REST API publishes, schedules, replies to and measures posts, and the dashboard runs on the same API. It is priced per organization, not per connected account: ${PLANS.FREE.posts} free posts to try, then from ${usd('STARTER')} a month (${rm('STARTER')} in Malaysia).` },
+  { q: 'When did Siar launch?', a: `Siar went live on ${LIVE_SINCE} at siaran.my, with the dashboard at app.siaran.my and the API at api.siaran.my. Siar's Meta app passed App Review on 27 October 2026, and Google approved its OAuth verification for YouTube on 15 October 2026. What changed since launch is listed in the changelog.` },
+  { q: 'Is Siar affiliated with Meta, Google or TikTok?', a: "No. Siar is not affiliated with or endorsed by any social network. Siar's Meta app passed Meta's App Review on 27 October 2026, and Google approved its OAuth verification on 15 October 2026. Those are reviews of Siar's own apps, not partnerships. TikTok has not approved Siar yet." },
+  { q: 'Which networks can Siar post to today?', a: 'Facebook Pages, Instagram professional accounts, Threads, X, LinkedIn personal profiles, Bluesky, Mastodon, Discord and Slack are open today. YouTube uploads work; public uploads are not yet confirmed. TikTok, Pinterest publishing and LinkedIn company pages wait on those networks\' approval. Reddit, Snapchat and Google Business Profile are built, not open yet.' },
+  { q: 'How much does Siar cost?', a: `Siar starts with ${PLANS.FREE.posts} free posts to try, once, with no card. Then Starter is ${usd('STARTER')} a month (${rm('STARTER')} in Malaysia) for 1 brand, Pro ${usd('PRO')} (${rm('PRO')}) for 10 brands, and Business ${usd('BUSINESS')} (${rm('BUSINESS')}) for unlimited brands. Yearly is 10 times monthly. There are no per-account fees, and your price never goes up while you stay subscribed.` },
+  { q: 'How do I contact Siar?', a: `Email ${CONTACT_EMAIL} for support, sales, partnerships, security reports or data requests. Support is by email on every plan. The contact number and the street address in Setiu, Terengganu are in the footer of every page. Include your organization name and any post or request id.` },
+  { q: 'Is Siar the same as siar.my or the SiAR API?', a: 'No. Siar (siaran.my) is a social media API and dashboard made by FF Dev Studio in Malaysia. siar.my is a separate film-streaming service, and SiAR is an unrelated irrigation API. They share a name and nothing else. Look for the siaran.my domain to be sure you have the right Siar.' },
+  { q: 'What does the name Siar mean?', a: 'Siar is Malay for "to broadcast", and siaran, the word in the domain siaran.my, means a broadcast. The idea is in the line "Write it once. Siar it everywhere.": you write a post once, and Siar sends it to each connected account on every open network, then tells you how it went.' },
+];
+---
+<Article
+  metaTitle="About Siar (siaran.my) and FF Dev Studio"
+  h1="Siar is made by FF Dev Studio, in Malaysia"
+  description={`Siar (siaran.my) is a social media API and dashboard made by ${LEGAL_NAME}, SSM ${LEGAL_REG}, in Setiu, Terengganu, Malaysia. Live since ${LIVE_SINCE}.`}
+  kicker="About"
+  updated={STATUS_CHECKED}
+  crumbs={[{ name: 'About', href: '/about' }]}
+  lead={`Siar (siaran.my), a social media API and dashboard, is made and run by FF Dev Studio, a software studio in Setiu, Terengganu, Malaysia. The business is registered with SSM as ${LEGAL_NAME}, number ${LEGAL_REG}. Siar has been live since ${LIVE_SINCE}. The facts on this page are generated from the code that runs Siar.`}
+  faq={faq}
+  wide
+>
+  <p class="small muted">No card for the free start. Questions first? Write to <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>
+
+  <h2 id="who">Who makes Siar</h2>
+  <p>Siar is built and operated by FF Dev Studio, a software studio in Malaysia. The same studio builds web and mobile software for clients at <a href={COMPANY_URL} rel="noopener">ffdev.studio</a>. When you pay for Siar, you pay {LEGAL_NAME}, and every payment gets a numbered receipt.</p>
+  <p>The studio is in Setiu, Terengganu. Email reaches the people who build Siar directly: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. Support is by email on every plan.</p>
+
+  <h2 id="facts">Siar facts</h2>
+  <p>One list for anyone checking Siar, people and AI engines alike. Each line is generated from the constant that runs the site, so it is never out of step with the product.</p>
+  <blockquote class="canon"><p>{CANONICAL}</p></blockquote>
+  <div class="table-wrap"><table>
+    <tbody>{facts.map(([k, v]) => <tr><th scope="row">{k}</th><td>{v}</td></tr>)}</tbody>
+  </table></div>
+  <p class="small muted">Something here disagrees with another page? Tell us at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> and we fix the source, not just the page. Network status is detailed on <a href="/platforms">the networks page</a>.</p>
+
+  <h2 id="why">Why Siar exists</h2>
+  <p>Every product that posts to social media ends up building the same layer. OAuth for each network, token refresh, media that one network accepts and the next rejects, retries that must not post twice, and a way for customers to connect their own accounts. None of it is the product you are selling.</p>
+  <p>Then come the gates. Siar's Meta app review ran from 14 to 27 October 2026. LinkedIn denied page access without giving a reason, and TikTok's audit has not passed yet. Siar takes that work on once, so your team doesn't repeat it for every network. The dated record is on the <a href="/platforms/approvals">approval record</a>.</p>
+
+  <h2 id="how">How Siar is built</h2>
+  <p><strong>One contract.</strong> The OpenAPI document is the source of truth. The server mounts its routes from it and checks every request against it. The SDK, CLI, MCP server and the API reference on this site are generated from it.</p>
+  <p><strong><a href="/how-publishing-works">Every post accounted for</a>.</strong> Each post is checked against each network's rules when you create it, so a bad request fails with a <code>400</code> you can fix. Each account gets the post once. If a network says no, you get its own code and message, plus a plain-English fix. A signed webhook tells your server how it went.</p>
+  <p><strong>Real network behavior.</strong> Each network adapter is tested against a mock server written from that network's own documentation. The limits and error references on this site are generated from the code that enforces them.</p>
+  <p><strong>One price for the organization.</strong> Plans are fenced by brands and posts, not by the accounts you connect. {PRICE_LOCK}</p>
+
+  <h2 id="check">What you can check before you trust Siar</h2>
+  <p>Siar is new: it has been live since {LIVE_SINCE}. So there are no case studies, reviews or uptime record to show yet, and this page will not invent any. Here is what you can check today.</p>
+  <ul>
+    <li><strong>Who you pay.</strong> {LEGAL_NAME}, SSM registration number {LEGAL_REG}, with a street address in Setiu, Terengganu.</li>
+    <li><strong>The network reviews Siar has passed.</strong> Meta's App Review on 27 October 2026, and Google's OAuth verification for YouTube on 15 October 2026. Where a network has not approved Siar, the <a href="/platforms">networks page</a> says so.</li>
+    <li><strong>The whole API.</strong> The <a href="/openapi.json">OpenAPI file</a> is public, and so is every network's error reference: <a href="/errors">social media API error codes</a>.</li>
+    <li><strong>The price list.</strong> Every plan, in ringgit and US dollars, on <a href="/pricing">pricing</a>, with a price lock.</li>
+    <li><strong>The rules.</strong> <a href="/terms">Terms</a>, <a href="/privacy">privacy</a>, <a href="/refunds">refunds and cancellation</a> and <a href="/data-deletion">data deletion</a>.</li>
+  </ul>
+  <p>Then try it with {PLANS.FREE.posts} free posts, no card. You can cancel a paid plan any time from the dashboard. Nothing is deleted.</p>
+
+  <h2 id="name">The name</h2>
+  <p><em>siar</em> /ˈsi.ar/ is Malay for "to broadcast". Write it once. Siar it everywhere.</p>
+  <p>Siar (siaran.my) is not siar.my, a film-streaming service, or SiAR, an irrigation API.</p>
+
+  <h2 id="contact">Talk to the people who build it</h2>
+  <p>Questions, partnerships or press: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. For support, include your organization name and the request or post id; the <a href="/contact">contact page</a> lists what helps. Enterprise plans with higher limits, invoices and an SLA by contract: <a href={`mailto:${CONTACT_EMAIL}?subject=Enterprise`}>Talk to us</a>.</p>
+</Article>
+<style>
+  .canon { margin: 16px 0 24px; padding: 16px 20px; border-left: 2px solid var(--text); background: var(--bg-elevated); }
+  .canon p { margin: 0; font-size: var(--fs-15); line-height: 24px; }
+  th[scope='row'] { white-space: nowrap; vertical-align: top; width: 1%; }
+  @media (max-width: 640px) { th[scope='row'] { white-space: normal; } }
+</style>

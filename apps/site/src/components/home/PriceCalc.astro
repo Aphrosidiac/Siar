@@ -1,32 +1,47 @@
 ---
-/** "Per organization, not per account", made tangible: grow the accounts, watch the bill not move. */
-import { PLANS, TIERS, PAID_TIERS, paidList, priceOf } from '../../lib/plans';
+/** "Per organization, not per account", made tangible: grow the accounts, watch the bill not move.
+ * The server-rendered numbers come from the same plan function the script uses, so the HTML engines read is
+ * always a true pairing (strike-plan 0.9). One brand holds one account per open network. */
+import { PLANS, TIERS, PAID_TIERS, priceOf, formatPrice } from '../../lib/plans';
+import { OPEN_ORDER, NETWORK_STATUS } from '../../lib/status';
 /** Free is a one-time allowance, so the calculator only ever picks among the plans billed monthly, cheapest first. */
-const plans = TIERS.filter((t) => PAID_TIERS.includes(t) || PLANS[t].prices === null).map((t) => ({ tier: t, name: PLANS[t].name, posts: PLANS[t].posts, teams: PLANS[t].teams, myr: priceOf(t, 'MONTHLY', 'myr') }));
+const plans = TIERS.filter((t) => PAID_TIERS.includes(t) || PLANS[t].prices === null).map((t) => ({ tier: t, name: PLANS[t].name, posts: PLANS[t].posts, teams: PLANS[t].teams, myr: priceOf(t, 'MONTHLY', 'myr'), usd: priceOf(t, 'MONTHLY', 'usd') }));
 const POSTS = [20, 200, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000];
+const OPEN = OPEN_ORDER.filter((t) => NETWORK_STATUS[t].status === 'open' || NETWORK_STATUS[t].status === 'partial').length;
+const D = { brands: 8, nets: 5, postsIdx: 2 };
+const n = (v: number) => v.toLocaleString('en-US');
+const pick = (brands: number, posts: number) => plans.find((p) => posts <= p.posts && (p.teams === null || brands <= p.teams)) ?? plans[plans.length - 1];
+const p0 = pick(D.brands, POSTS[D.postsIdx]);
+const acc0 = D.brands * D.nets;
+const brandsNote = (t: number | null) => (t === null ? 'unlimited brands' : t === 1 ? '1 brand' : `${t} brands`);
+const plan0 = p0.usd === null ? `${p0.name}: quoted for your volume` : `${p0.name}: ${brandsNote(p0.teams)}, up to ${n(p0.posts)} posts a month`;
+const price0 = p0.usd === null ? 'Custom' : formatPrice(p0.usd, 'usd');
+const rm0 = p0.myr === null ? '' : `RM${n(p0.myr / 100)} in Malaysia`;
+const each0 = p0.usd === null ? '-' : '$' + (p0.usd / 100 / acc0).toFixed(2);
+const eachRm0 = p0.myr === null ? '' : `RM${(p0.myr / 100 / acc0).toFixed(2)}`;
 ---
 <div class="calc" data-calc data-plans={JSON.stringify(plans)} data-posts={JSON.stringify(POSTS)}>
   <div class="ctl">
-    <label><span class="lab">Brands you look after</span><output data-o="brands">40</output></label>
-    <input type="range" min="1" max="500" value="40" data-i="brands" aria-label="Brands you look after" />
+    <label><span class="lab">Brands you run</span><output data-o="brands">{D.brands}</output></label>
+    <input type="range" min="1" max="500" value={D.brands} data-i="brands" aria-label="Brands you run" />
   </div>
   <div class="ctl">
-    <label><span class="lab">Networks per brand</span><output data-o="nets">6</output></label>
-    <input type="range" min="1" max="15" value="6" data-i="nets" aria-label="Networks per brand" />
+    <label><span class="lab">Networks per brand (open today)</span><output data-o="nets">{D.nets}</output></label>
+    <input type="range" min="1" max={OPEN} value={D.nets} data-i="nets" aria-label="Networks per brand, open today" />
   </div>
   <div class="ctl">
-    <label><span class="lab">Posts a month</span><output data-o="posts">2,500</output></label>
-    <input type="range" min="0" max={POSTS.length - 1} value="3" data-i="posts" aria-label="Posts a month" />
+    <label><span class="lab">Posts a month</span><output data-o="posts">{n(POSTS[D.postsIdx])}</output></label>
+    <input type="range" min="0" max={POSTS.length - 1} value={D.postsIdx} data-i="posts" aria-label="Posts a month" />
   </div>
   <div class="out">
-    <div class="cell"><span class="lab">Connected accounts</span><span class="big" data-o="accounts">240</span></div>
-    <div class="cell"><span class="lab">Your plan, billed monthly</span><span class="big"><span data-o="price">RM99</span><small data-o="per">/mo</small></span><span class="sub" data-o="plan">Pro</span></div>
-    <div class="cell"><span class="lab">Per account</span><span class="big" data-o="each">RM0.41</span><span class="sub">and falling as you grow</span></div>
+    <div class="cell"><span class="lab">Connected accounts</span><span class="big" data-o="accounts">{n(acc0)}</span></div>
+    <div class="cell"><span class="lab">Your plan, billed monthly</span><span class="big"><span data-o="price">{price0}</span><small data-o="per">{p0.usd === null ? '' : '/mo'}</small></span><span class="sub" data-o="rm">{rm0}</span><span class="sub" data-o="plan">{plan0}</span></div>
+    <div class="cell"><span class="lab">Per connected account</span><span class="big" data-o="each">{each0}</span><span class="sub" data-o="eachrm">{eachRm0}</span></div>
   </div>
-  <p class="note">Prices in ringgit for Malaysia; {paidList('usd')} elsewhere.</p>
+  <p class="note">In this example: {D.brands} brands with {D.nets} networks each. Drag the networks slider and the price stays the same.</p>
 </div>
 <script>
-  type Plan = { tier: string; name: string; posts: number; teams: number | null; myr: number | null };
+  type Plan = { tier: string; name: string; posts: number; teams: number | null; myr: number | null; usd: number | null };
   document.querySelectorAll<HTMLElement>('[data-calc]').forEach((root) => {
     const plans: Plan[] = JSON.parse(root.dataset.plans!);
     const POSTS: number[] = JSON.parse(root.dataset.posts!);
@@ -41,9 +56,11 @@ const POSTS = [20, 200, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000];
       o('accounts').textContent = n(accounts);
       const brandsNote = plan.teams === null ? 'unlimited brands' : plan.teams === 1 ? '1 brand' : `${plan.teams} brands`;
       o('plan').textContent = plan.myr === null ? `${plan.name}: quoted for your volume` : `${plan.name}: ${brandsNote}, up to ${n(plan.posts)} posts a month`;
-      o('price').textContent = plan.myr === null ? 'Custom' : `RM${n(plan.myr / 100)}`;
-      o('per').textContent = plan.myr === null ? '' : '/mo';
-      o('each').textContent = plan.myr === null ? '—' : `RM${(plan.myr / 100 / accounts).toFixed(accounts > 999 ? 3 : 2)}`;
+      o('price').textContent = plan.usd === null ? 'Custom' : '$' + n(plan.usd / 100);
+      o('per').textContent = plan.usd === null ? '' : '/mo';
+      o('rm').textContent = plan.myr === null ? '' : 'RM' + n(plan.myr / 100) + ' in Malaysia';
+      o('each').textContent = plan.usd === null ? '-' : '$' + (plan.usd / 100 / accounts).toFixed(accounts > 999 ? 3 : 2);
+      o('eachrm').textContent = plan.myr === null ? '' : 'RM' + (plan.myr / 100 / accounts).toFixed(accounts > 999 ? 3 : 2);
       root.querySelectorAll<HTMLInputElement>('input').forEach((r) => r.style.setProperty('--p', `${((+r.value - +r.min) / (+r.max - +r.min)) * 100}%`));
     };
     root.addEventListener('input', update);

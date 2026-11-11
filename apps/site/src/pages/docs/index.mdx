@@ -1,14 +1,16 @@
 ---
 layout: ../../layouts/Doc.astro
 title: Documentation
+metaTitle: "Social media API documentation · Siar"
 description: "Guides and reference for the Siar API. Start with the quickstart, then read the guides for connecting accounts, posting, media and webhooks."
 toc: false
 ---
+import { OPEN_LIST } from '../../lib/status';
 import { NETWORKS } from '../../lib/networks';
 import { operations } from '../../lib/openapi';
 import { API_BASE } from '../../config';
 
-Siar is one REST API for publishing, scheduling, commenting on and measuring social media across {NETWORKS.length} networks. The base URL is <code>{API_BASE}</code>, requests and responses are JSON, and every request authenticates with an organization API key.
+Siar is a unified social media API for publishing, scheduling, commenting on and measuring social media, built for {NETWORKS.length} networks. Publishing is open today on {OPEN_LIST} ([status of every network](/platforms)). The base URL is <code>{API_BASE}</code>, requests and responses are JSON, and every request authenticates with an organization API key.
 
 <div class="grid g2">
   <a class="card" href="/docs/quickstart"><h3>Quickstart</h3><p>Get a key, create a team, connect an account and publish a post in five requests.</p><span class="more">Start here</span></a>

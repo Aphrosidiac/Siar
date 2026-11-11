@@ -1,11 +1,15 @@
 ---
 layout: ../../layouts/Doc.astro
 title: SDK, CLI and MCP
+metaTitle: "SDK, CLI and MCP server · Siar API docs"
 description: "The TypeScript SDK, the JSON-first CLI and the MCP server: install, authenticate and the commands each provides."
 ---
 import CodeBlock from '../../components/CodeBlock.astro';
-import { sdkSample, cliSample, cliCall, mcpConfig, mcpClaudeCode } from '../../lib/snippets';
+import { sdkSample, cliSample, cliCall } from '../../lib/snippets';
+import { TOOLING_LINE } from '../../lib/status';
 import { operations } from '../../lib/openapi';
+
+**Status:** {TOOLING_LINE} Until they are published, call the REST API directly with curl, `fetch` or `requests`; every example in these docs works that way. The usage below is what the packages will look like.
 
 All three are generated from or built on the same OpenAPI contract as the API, so they cover the same {operations().length} operations and stay in step with it. They read the API key from `SIAR_API_KEY` and the API origin from `SIAR_API_URL` when set.
 
@@ -35,13 +39,7 @@ The package ships a `SKILL.md` that describes the CLI to agent runtimes.
 
 ## MCP server
 
-`@siar/mcp` lets Claude, Cursor or any MCP client publish, schedule and read analytics.
-
-<CodeBlock lang="json" code={mcpConfig} />
-
-For Claude Code:
-
-<CodeBlock lang="bash" code={mcpClaudeCode} />
+`@siar/mcp` is a local (stdio) MCP server that lets Claude, Cursor or any MCP client publish, schedule and read analytics with your API key. It is not on npm yet and there is no hosted MCP endpoint, so there is no install command to give here.
 
 Tools: `list_teams`, `create_team`, `list_social_accounts`, `get_connect_url`, `upload_media`, `create_post`, `schedule_post`, `list_posts`, `get_post`, `retry_post`, `delete_post`, `list_comments`, `reply_to_comment`, `get_post_analytics`, `get_account_analytics`, `get_usage`, `get_credit_balance`, `quote_x_cost` and `call_operation` for everything else.
 

@@ -11,13 +11,17 @@ import { WEBHOOK_EVENTS } from '../lib/events';
 
 ## November 2026
 
+- **Starter plan:** $19 a month (RM39 in Malaysia) for one brand and 300 posts a month, with analytics.
+- **Network status, everywhere from one source:** every page, `llms.txt` and `pricing.md` read each network's status from one record. See [networks](/platforms) and the dated [approval record](/platforms/approvals).
+- **Facebook and Instagram DMs** and comment-to-DM automations: in beta, turned on per organization on request (paid plans). Meta approved the messaging permissions on 27 October 2026.
+
 - **Sign in with Google:** create an account, sign in or accept an invitation with Google, next to email and password. Connect or disconnect Google, and set a password, under Your account in the dashboard.
 
 ## v1.0 · October 2026
 
 The first release of the Siar API.
 
-- **{NETWORKS.length} networks:** {NETWORKS.map((n) => n.name).join(', ')}.
+- **Built for {NETWORKS.length} networks:** {NETWORKS.map((n) => n.name).join(', ')}. Each opens as the network approves Siar; see [what is open today](/platforms).
 - **Publishing and scheduling** with per-network payloads validated against each network's limits, atomic claiming so a post is never sent twice, retries and first comments.
 - **Media:** simple, from-URL, large and multipart uploads, with conversion and per-network checks.
 - **Accounts and teams:** OAuth for every network behind one endpoint, hosted connect links, channel selection and reconnect detection.
@@ -25,5 +29,5 @@ The first release of the Siar API.
 - **Webhooks:** {WEBHOOK_EVENTS.length} signed event types with retries, a delivery log and resend.
 - **X credit:** prepaid balance with a hold, capture and release ledger, and a quote endpoint.
 - **{operations().length} operations** in one OpenAPI document, served at [/openapi.json](/openapi.json).
-- **Tooling:** TypeScript SDK, JSON-first CLI and MCP server (all version 0.1.0).
-- **Pricing:** Free, Pro, Business and Enterprise plans per organization; see [pricing](/pricing).
+- **Tooling:** TypeScript SDK, JSON-first CLI and MCP server (all version 0.1.0), built from the same OpenAPI contract. Not on npm yet.
+- **Pricing:** Free (20 posts to try), Pro, Business and Enterprise plans per organization; see [pricing](/pricing).

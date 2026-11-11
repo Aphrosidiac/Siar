@@ -3,9 +3,9 @@ import { NETWORKS } from '../lib/networks';
 import { LEGAL_ENTITY, CONTACT_EMAIL, CONTACT_PHONE, CONTACT_PHONE_TEL, ADDRESS, COMPANY_URL, SIGNUP_URL } from '../config';
 const year = 2026;
 const cols = [
-  { h: 'Product', l: [['/features', 'Product tour'], ['/pricing', 'Pricing'], ['/platforms', 'Networks'], ['/use-cases', 'Use cases'], ['/changelog', 'Changelog']] },
-  { h: 'Build', l: [['/docs/quickstart', 'Quickstart'], ['/docs', 'Documentation'], ['/docs/api', 'API reference'], ['/docs/webhooks', 'Webhooks'], ['/docs/sdk-cli-mcp', 'SDK, CLI and MCP'], ['/openapi.json', 'OpenAPI']] },
-  { h: 'Use cases', l: [['/use-cases/social-media-posting-api', 'Posting API'], ['/use-cases/social-media-scheduling-api', 'Scheduling API'], ['/use-cases/multi-tenant-social-media-api', 'Multi-tenant'], ['/use-cases/social-media-api-for-ai-agents', 'For AI agents']] },
+  { h: 'Product', l: [['/features', 'Product tour'], ['/pricing', 'Pricing'], ['/platforms', 'Networks'], ['/how-publishing-works', 'How publishing works'], ['/use-cases', 'Use cases'], ['/for-agencies', 'For agencies'], ['/malaysia', 'Siar in Malaysia'], ['/changelog', 'Changelog']] },
+  { h: 'Build', l: [['/docs/quickstart', 'Quickstart'], ['/docs', 'Documentation'], ['/docs/api', 'API reference'], ['/errors', 'Error codes'], ['/docs/webhooks', 'Webhooks'], ['/platforms/limits', 'Limits by network'], ['/openapi.json', 'OpenAPI']] },
+  { h: 'Research', l: [['/compare', 'Compare social media APIs'], ['/guides', 'Guides'], ['/guides/social-media-api-pricing', 'Social media API pricing'], ['/platforms/approvals', 'Approval record'], ['/network-changes', 'Network API changes']] },
   { h: 'Company', l: [['/about', 'About'], ['/contact', 'Contact'], ['/terms', 'Terms'], ['/privacy', 'Privacy'], ['/refunds', 'Refunds'], ['/delivery', 'Delivery'], ['/data-deletion', 'Data deletion']] },
 ];
 ---
@@ -14,7 +14,7 @@ const cols = [
     <div class="top">
       <div class="lead-col">
         <p class="say">Write it once.<br /><span class="m-dim">Siar it everywhere.</span></p>
-        <div class="m-actions"><a class="pill ink" href={SIGNUP_URL}>Start free <span class="arr" aria-hidden="true">→</span></a><a class="pill" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></div>
+        <div class="m-actions"><a class="pill ink" href={SIGNUP_URL}>Start with 20 free posts</a><a class="pill" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></div>
       </div>
       {cols.map((c) => (
         <div class="col">

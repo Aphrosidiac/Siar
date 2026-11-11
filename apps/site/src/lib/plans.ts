@@ -52,7 +52,7 @@ export const paidProse = (currency: Currency, interval: Interval = 'MONTHLY') =>
 export const brandsLabel = (n: number | null) => (n === null ? 'Unlimited brands' : n === 1 ? '1 brand' : `${n} brands`);
 
 export const PRICE_LOCK = 'Your price never goes up while you stay subscribed.';
-export const INBOX_NOTE = 'Facebook and Instagram, opening after Meta approval';
+export const INBOX_NOTE = 'Facebook and Instagram, in beta, turned on per organization on request (paid plans)';
 export const X_CREDIT_NOTE = 'Organizations billed in Malaysia buy credit in ringgit; the rate is shown before you pay.';
 
 export const X_PRICE_LABELS: Record<keyof typeof X_PRICES, { label: string; unit: string }> = {

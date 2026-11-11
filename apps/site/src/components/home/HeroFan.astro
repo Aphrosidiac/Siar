@@ -1,11 +1,13 @@
 ---
 /**
- * The unified API in one picture: the Siar mark (one post) fans out along 15 lines to the 15
- * network marks, the same gesture as the logo. A pulse sweeps down the lines and each mark turns ink
+ * The unified API in one picture: the Siar mark (one post) fans out to the marks of the networks that are
+ * open today (lib/status.ts), the same gesture as the logo. A pulse sweeps down the lines and each mark turns ink
  * as its pulse lands. Pure CSS, loops; still under reduced motion. `side` opens to the right (desktop
  * hero), `down` opens downward (narrow screens).
  */
-import { NETWORKS } from '../../lib/networks';
+import { NETWORKS as ALL } from '../../lib/networks';
+import { OPEN_ORDER, isOpen } from '../../lib/status';
+const NETWORKS = OPEN_ORDER.filter(isOpen).map((t) => ALL.find((n) => n.type === t)!);
 import { GLYPHS } from '../../lib/glyphs';
 interface Props { dir: 'side' | 'down'; class?: string }
 const { dir, class: cls = '' } = Astro.props;
@@ -36,7 +38,7 @@ const nodes = NETWORKS.map((n, i) => {
 });
 const S = 1.22; // mark scale inside the hub
 ---
-<figure class={`fan ${dir} ${cls}`} aria-label={`One Siar request fanning out to ${NETWORKS.length} networks`}>
+<figure class={`fan ${dir} ${cls}`} aria-label={`One Siar request fanning out to the ${NETWORKS.length} networks open today`}>
   <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-hidden="true">
     <g class="lines">
       {nodes.map((p) => <path d={p.d} pathLength="100" />)}

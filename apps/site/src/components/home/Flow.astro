@@ -8,11 +8,11 @@
  */
 interface Step { n: string; tag: string; short: string; title: string; body: string; clip: string; url: string }
 const steps: Step[] = [
-  { n: '01', tag: 'Connect', short: 'Connect', title: 'Customers connect their own accounts.', body: 'Send a hosted link with your name on it. They sign in to each network themselves and land back in your app. You never touch a password or a token.', clip: 'connect', url: 'app.siaran.my/connect' },
-  { n: '02', tag: 'Write once', short: 'Write', title: 'One post, every network.', body: 'Pick the accounts and write it once. Every network\'s character limit updates as you type.', clip: 'write', url: 'app.siaran.my/compose' },
-  { n: '03', tag: 'Tailor', short: 'Tailor', title: 'Then make each one fit.', body: 'Give Threads a shorter line, Instagram a first comment, Pinterest a board. Each network\'s own fields, checked before anything is sent.', clip: 'tailor', url: 'app.siaran.my/compose' },
-  { n: '04', tag: 'Schedule', short: 'Schedule', title: 'Schedule it and move on.', body: 'Siar publishes on time in your timezone, retries what a network bounces, and shows you each network\'s result.', clip: 'schedule', url: 'app.siaran.my/posts' },
-  { n: '05', tag: 'Measure', short: 'Measure', title: 'See what landed.', body: 'Followers, reach and engagement for every network on one screen, with comments and DMs in a shared inbox.', clip: 'measure', url: 'app.siaran.my/analytics' },
+  { n: '01', tag: 'Connect', short: 'Connect', title: 'Customers connect their own accounts.', body: 'Send a branded link with your name, logo and color. They sign in to each network themselves and come back to your app. You never touch a password or a token.', clip: 'connect', url: 'app.siaran.my/connect' },
+  { n: '02', tag: 'Write', short: 'Write', title: 'One post, every connected network.', body: 'Pick the accounts and write it once. Each network\'s character limit updates as you type.', clip: 'write', url: 'app.siaran.my/compose' },
+  { n: '03', tag: 'Tailor', short: 'Tailor', title: 'Then make each one fit.', body: 'Give Threads a shorter line, Instagram a first comment, X a thread. Each network\'s own fields are checked before anything is sent.', clip: 'tailor', url: 'app.siaran.my/compose' },
+  { n: '04', tag: 'Schedule', short: 'Schedule', title: 'Schedule it and move on.', body: 'Siar publishes on time in your timezone, retries temporary network errors on its own, and shows you each network\'s result.', clip: 'schedule', url: 'app.siaran.my/posts' },
+  { n: '05', tag: 'Measure', short: 'Measure', title: 'See what landed.', body: 'Account and post analytics on every paid plan. Comments from the open networks in one inbox. Facebook and Instagram DMs are in beta, turned on per organization on request.', clip: 'measure', url: 'app.siaran.my/analytics' },
 ];
 const src = (s: Step) => `/clips/${s.clip}.mp4`;
 const poster = (s: Step) => `/clips/${s.clip}.webp`;
@@ -22,7 +22,7 @@ const poster = (s: Step) => `/clips/${s.clip}.webp`;
     {steps.map((s, i) => (
       <button type="button" role="tab" id={`pt-${i}`} aria-controls="pp" aria-selected={i === 0 ? 'true' : 'false'} data-tab={i}>
         <span class="bar"><i></i></span>
-        <span class="lbl"><span class="n">{s.n}</span><span class="full">{s.tag}</span><span class="short">{s.short}</span></span>
+        <span class="lbl"><span class="full">{s.tag}</span><span class="short">{s.short}</span></span>
       </button>
     ))}
   </div>
@@ -30,7 +30,6 @@ const poster = (s: Step) => `/clips/${s.clip}.webp`;
     <div class="copy">
       {steps.map((s, i) => (
         <div class:list={['txt', { on: i === 0 }]} data-txt={i}>
-          <p class="step"><span>{s.n}</span> / 05</p>
           <h3 class="m-h3">{s.title}</h3>
           <p class="body">{s.body}</p>
         </div>
