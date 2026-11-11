@@ -1,82 +1,264 @@
 ---
 import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
-import Cta from '../components/Cta.astro';
-import { NETWORKS } from '../lib/networks';
+import Faq from '../components/Faq.astro';
+import { NETWORKS, NETWORK_COUNT } from '../lib/networks';
 import { operations } from '../lib/openapi';
 import { WEBHOOK_EVENTS } from '../lib/events';
-import { RESOURCE_LIMITS, fmtInt } from '../lib/plans';
-import { breadcrumbLd } from '../lib/seo';
-import { SIGNUP_URL } from '../config';
+import { PLANS, RESOURCE_LIMITS, TRIAL_DAYS, PRICE_LOCK, money, brandsLabel, fmtInt } from '../lib/plans';
+import { NETWORK_STATUS, OPEN_ORDER, STATUS_SUMMARY, STATUS_CHECKED, DM_LINE, TOOLING_LINE, BUILT_FOR } from '../lib/status';
+import { WEBHOOK_RETRIES, WEBHOOK_HOURS, human } from '../components/proof/facts';
+import { breadcrumbLd, APP_ID } from '../lib/seo';
+import { SIGNUP_URL, SITE_URL } from '../config';
+import type { NetworkType } from '../../../../packages/networks/src/index.ts';
 
-const N = NETWORKS.length;
-interface Part { focus: [number, number, number]; id: string; kicker: string; h: string; p: string; items: string[]; shot: string; url: string; alt: string; link?: [string, string] }
+const usd = (t: keyof typeof PLANS) => money(t, 'MONTHLY', 'usd');
+const myr = (t: keyof typeof PLANS) => money(t, 'MONTHLY', 'myr');
+const posts = (t: keyof typeof PLANS) => fmtInt(PLANS[t].posts);
+const metaDate = human(NETWORK_STATUS.FACEBOOK.since!);
+const trialCta = `Start the ${TRIAL_DAYS}-day ${PLANS.PRO.name} trial`;
+const freeCta = `Start with ${PLANS.FREE.posts} free posts`;
+const brandCaps = `${PLANS.STARTER.name} ${PLANS.STARTER.teams} brand, ${PLANS.PRO.name} ${PLANS.PRO.teams}, ${PLANS.BUSINESS.name} unlimited`;
+const postCaps = `${posts('STARTER')} a month on ${PLANS.STARTER.name}, ${posts('PRO')} on ${PLANS.PRO.name}, ${posts('BUSINESS')} on ${PLANS.BUSINESS.name}`;
+
+/** Network rows: the open list first, then the rest, statuses from lib/status.ts only. */
+const REST: NetworkType[] = ['YOUTUBE', 'TIKTOK', 'PINTEREST', 'REDDIT', 'SNAPCHAT', 'GOOGLE_BUSINESS'];
+const netRows = [...OPEN_ORDER, ...REST].map((t) => ({ net: NETWORKS.find((n) => n.type === t)!, s: NETWORK_STATUS[t] }));
+const WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen'];
+const openCount = OPEN_ORDER.filter((t) => NETWORK_STATUS[t].status === 'open' || NETWORK_STATUS[t].status === 'partial').length;
+
+interface Part { id: string; nav: string; h: string; p: string[]; items: string[]; shot?: string; url?: string; alt?: string; link?: [string, string] }
 const parts: Part[] = [
-  { id: 'publishing', kicker: 'Composer', h: 'Write once. Tailor where it matters.', p: 'Pick the accounts, write the post, then open any network\'s tab to give it its own text, media or options. Every field is checked against that network\'s rules before the post is accepted, so problems show up while you are still writing.', items: ['Per-network text, media, first comment and options in one post', 'Live character limits for every selected network', `Drafts that do not count against your quota; up to ${RESOURCE_LIMITS.maxRetries} retries on failure`], focus: [0.42, 0.42, 1.4], shot: 'flow-3', url: 'app.siaran.my/compose', alt: 'The composer with a Threads-specific version of the post', link: ['/use-cases/social-media-posting-api', 'Posting API'] },
-  { id: 'calendar', kicker: 'Calendar', h: 'The month, at a glance.', p: 'Every scheduled, published, failed and draft post on one calendar, in your team\'s timezone. Drag a scheduled post to another day to move it; open a day to see exactly what goes out and where.', items: ['Status colours for scheduled, published, failed and draft', 'Drag to reschedule, click to edit', 'A day panel with times and networks'], focus: [0.42, 0.45, 1.3], shot: 'calendar', url: 'app.siaran.my/calendar', alt: 'The calendar with a month of scheduled and published posts', link: ['/use-cases/social-media-scheduling-api', 'Scheduling API'] },
-  { id: 'inbox', kicker: 'Inbox', h: 'Every reply, one inbox.', p: 'Comments on your posts and direct messages from every connected network, side by side. Reply as the account, like, hide or delete, without opening five apps.', items: ['Comments imported from the networks that expose them', 'Direct messages and automations where the network permits', 'Reply, like, hide and delete from one place'], focus: [0.45, 0.4, 1.35], shot: 'inbox', url: 'app.siaran.my/inbox', alt: 'The inbox with customer comments from Threads, Facebook and TikTok', link: ['/use-cases/social-media-comments-api', 'Comments API'] },
-  { id: 'analytics', kicker: 'Analytics', h: 'What landed, and where.', p: 'Followers, impressions, views, likes and comments per network over time, normalised so you can compare them, with each network\'s raw numbers kept alongside.', items: ['Account and post metrics for every network that reports them', 'Normalised fields plus the raw network payload', 'Refresh on demand within each network\'s limits'], focus: [0.55, 0.32, 1.28], shot: 'analytics', url: 'app.siaran.my/analytics', alt: 'Analytics for an Instagram account over 30 days', link: ['/use-cases/social-media-analytics-api', 'Analytics API'] },
-  { id: 'connect', kicker: 'Hosted connect', h: 'Your clients connect themselves.', p: 'Send a link with your name and logo. Your client signs in to each network in their own browser and lands back in your app. You never handle a password or a token, and expired grants are flagged before they cause a failed post.', items: ['One link for any set of networks, in your client\'s language', 'Channel picking after sign-in: Pages, company pages, channels, locations', 'Reconnect alerts in the dashboard and by webhook'], focus: [0.5, 0.3, 1.55], shot: 'portal', url: 'app.siaran.my/connect', alt: 'The hosted connect page a client sees', link: ['/use-cases/hosted-connect-oauth', 'Hosted connect'] },
-  { id: 'bio', kicker: 'Link in bio', h: 'A link page, included.', p: 'Each team gets a public page of links for its profiles, with views and clicks counted per link. No extra tool, no extra bill.', items: ['Headers, links and social icons, in any order', 'Your own accent colour and avatar', 'Views and clicks per link, per day'], focus: [0.62, 0.5, 1.3], shot: 'bio', url: 'app.siaran.my/bio', alt: 'Editing a link-in-bio page with a live preview' },
+  {
+    id: 'publishing', nav: 'Composer', h: 'Write it once. Siar it everywhere.',
+    p: [
+      "Pick the brand's accounts and write the post once. Open any network's tab to give it its own text, media, first comment or options, or leave it on the main text. A character count for each network updates as you type.",
+      "Each network's rules are checked when you save: length, media type, file size, video duration and aspect ratio. A problem is pinned to the field that caused it, so the post fails while you are still writing, not at 9 a.m.",
+    ],
+    items: ['Per-network text, media, first comment and options in one post', "Schedule it, publish now, or save a draft. Drafts don't count against your posts", "An account that needs reconnecting is greyed out with the reason, so you can't schedule into a dead connection"],
+    shot: 'flow-3', url: 'app.siaran.my/compose', alt: "The Siar composer with a Threads-specific version of a café's post, going to Facebook, Instagram and Threads",
+    link: ['/use-cases/social-media-posting-api', 'Social media posting API'],
+  },
+  {
+    id: 'calendar', nav: 'Calendar', h: "Each client's month, in your time zone.",
+    p: ["Every scheduled, published, failed and draft post for the brand sits on one calendar, in your team's time zone. Drag a scheduled post to another day to move it. Click a day to write a post for it, or open it to see what goes out, at what time, and where."],
+    items: ['A color for each state: scheduled, published, failed, draft', 'Drag to reschedule, click to edit', 'A day panel with times and networks'],
+    shot: 'calendar', url: 'app.siaran.my/calendar', alt: "A month of a café's scheduled and published posts in the Siar calendar, in Kuala Lumpur time",
+    link: ['/use-cases/social-media-scheduling-api', 'Social media scheduling API'],
+  },
+  {
+    id: 'results', nav: 'Post results', h: 'See what happened to every post, on every network.',
+    p: [
+      "Open any post and each network gets its own line: published, with a link to the live post, failed, or still waiting. When a network says no, the line shows a plain-English explanation, then what the network said, with its error code and HTTP status. The full network response is one click away.",
+      "If one network fails, the others still publish. Fix the cause and press Retry: only the networks that failed are sent again, and the retry doesn't use another post from your plan.",
+    ],
+    items: [
+      "Each network's result on one screen, with the network's own error when it refuses",
+      "Each network gets your post once. Retries, restarts and double clicks can't publish it again",
+      'If a send is interrupted, Siar looks for the post on the account before sending again. Where a network gives no way to look, Siar marks it "could not be confirmed" instead of risking a second post',
+      'Likes, comments and views for each network on the same screen, on paid plans',
+    ],
+    shot: 'post-detail', url: 'app.siaran.my/posts', alt: "A post's detail in Siar: published on Facebook and Instagram, failed on X with X's own error message and code",
+    link: ['/how-publishing-works#errors', 'How Siar handles a failed post'],
+  },
+  {
+    id: 'bulk', nav: 'Bulk CSV', h: "Plan a client's month in one spreadsheet.",
+    p: [
+      "Download a CSV template for the networks you need, already filled in with the brand's ID. Each row is one post: its text, date, status, networks, and, for each network, its own text, media links and first comment. Upload the file and watch every row turn into a post.",
+      'Rows that fail show the reason, and you can filter to failed rows only. Rows that worked link straight to their post.',
+    ],
+    items: ['One template per brand, with columns for the networks you tick', 'Files up to 10 MB; dates in ISO 8601; each row scheduled or saved as a draft', 'A result for every row, and a link to every post it created'],
+    shot: 'bulk', url: 'app.siaran.my/bulk', alt: "A finished CSV import in Siar with each row's result and one failed row's reason",
+    link: ['/docs/api/post-csv-import', 'CSV import API reference'],
+  },
+  {
+    id: 'inbox', nav: 'Inbox', h: 'Answer comments without opening six apps.',
+    p: [
+      "Pick a published post and import its comments into the brand's inbox. Reply as the account, and like, hide or delete where the network allows it. Comments come in from Facebook, Instagram, Threads, X, Bluesky and Mastodon.",
+      DM_LINE,
+    ],
+    items: [
+      'One inbox per brand, every comment next to the post it belongs to',
+      "Reply on every network listed above (X's own reply limits apply); hide on Facebook, Instagram, Threads and X; like on Facebook, X, Bluesky and Mastodon; delete on all six",
+      "Imported comments are other people's words, so Siar deletes them after 30 days",
+    ],
+    shot: 'inbox', url: 'app.siaran.my/inbox', alt: 'The Siar inbox with customer comments from Threads and Instagram, each with Reply, Like and Hide',
+    link: ['/use-cases/social-media-comments-api', 'Social media comments API'],
+  },
+  {
+    id: 'analytics', nav: 'Analytics', h: 'Show each client what landed.',
+    p: [
+      "Followers, impressions, views, likes and comments for each network, over time, so you can compare a brand's networks side by side. Numbers are collected daily and are the network's own totals; Facebook, Instagram and Threads count the last 28 days. Each network's raw numbers are kept alongside.",
+      `Analytics come with every paid plan, from ${PLANS.STARTER.name}.`,
+    ],
+    items: ['Account growth and post performance for Facebook, Instagram, Threads, Bluesky and Mastodon', 'X is left out of the daily collection, because X bills every read', "Refresh a post's figures on demand, within each network's limits"],
+    shot: 'analytics', url: 'app.siaran.my/analytics', alt: "Siar analytics for a café's Instagram account over 30 days",
+    link: ['/use-cases/social-media-analytics-api', 'Social media analytics API'],
+  },
+  {
+    id: 'connect', nav: 'Connect link', h: 'Clients connect their own accounts. You never ask for a password.',
+    p: [
+      'Make a connect link for the networks you need, set it to expire after anything from an hour to 30 days, and send it. Your client sees your name and logo, signs in to each network in their own browser and picks the Page or channel to post to. They don\'t need a Siar login.',
+      'Tokens are encrypted at rest and never returned by the API. When a connection is revoked or about to expire, Siar flags it in the dashboard and sends a <code>social-account.updated</code> webhook, and your client reconnects through a new link.',
+    ],
+    items: ['One link for any set of open networks', `Facebook, Instagram and Threads connect through Siar's Meta app, which passed Meta's App Review on ${metaDate}`, 'The page says "Powered by Siar", runs on app.siaran.my and is in English'],
+    shot: 'portal', url: 'app.siaran.my/connect', alt: 'The branded connect page a client sees, with Instagram and Facebook connected and Threads ready to connect',
+    link: ['/use-cases/hosted-connect-oauth', 'Social media OAuth API: a branded connect link'],
+  },
+  {
+    id: 'bio', nav: 'Link in bio', h: 'A link-in-bio page for every brand, included.',
+    p: ["Each brand gets one public page of links for its profiles. Add headings, text, link buttons and social icons in any order, with the brand's own avatar and accent color. Views and clicks are counted per link, per day.", 'No extra tool and no extra bill.'],
+    items: ['One page per brand, on every plan', 'Your order, your accent color, your avatar', 'Views and clicks per link for the last 30 days'],
+    shot: 'bio', url: 'app.siaran.my/bio', alt: "Editing a café's link-in-bio page in Siar, with a live preview",
+  },
+  {
+    id: 'brands', nav: 'Brands and roles', h: 'One login for every client.',
+    p: [
+      "A brand holds one client's accounts, posts, media and link-in-bio page. (A brand is a team in the API.) Switch between brands from the top bar. If you already connected a login for one brand, copy it into another without signing in to the network again.",
+      'Invite your team as owners, admins or members. The audit log records who did what.',
+    ],
+    items: [brandCaps, 'No per-account fees. Each brand connects one account on every open network', 'Owners, admins and members, with an audit log'],
+  },
 ];
+
 const more = [
-  ['Media library', `Upload once and reuse anywhere. Files are kept for ${RESOURCE_LIMITS.mediaRetentionDays} days after their last use.`],
-  ['Bulk post', 'Schedule hundreds of posts from one CSV, with a result for every row.'],
-  ['Google Business', 'Reviews, replies, hours, offers and events for every location, next to your posts.'],
-  ['Bots', 'Post to Discord and Slack channels with your own bot name and avatar per team.'],
-  ['Teams and roles', 'A team per brand or client. Owners, admins and members, with an audit log of who did what.'],
-  ['X credit', 'X bills per call, so X actions draw from a prepaid balance at X\'s own price. No markup.'],
+  ['Media library', `Upload once and reuse it in any post. Files are kept for ${RESOURCE_LIMITS.mediaRetentionDays} days after their last use.`],
+  ['Bots for Discord and Slack', 'Post to channels under a bot name and avatar you choose, per brand.'],
+  ['X credit', "X bills every API call, so X actions draw from a prepaid balance at X's own USD prices."],
 ];
+
+const limits = [
+  ['Client logins and approvals.', 'Members see the whole organization. There is no client login, no approval step and no PDF report export today.'],
+  ['Two accounts on one network for one client.', `Each brand holds one account per network. A client with two Facebook Pages uses two brands; ${PLANS.PRO.name} has ${PLANS.PRO.teams}.`],
+  ['TikTok and LinkedIn company pages.', 'Not open yet; see the table above.'],
+  ['A white-label connect page.', 'The link carries your name and logo, but says "Powered by Siar", runs on app.siaran.my and is in English.'],
+  ['Unlimited posts.', `Posts are capped: ${postCaps}. A post sent to every connected network counts as one, and drafts and retries don't count.`],
+  ['Support by chat.', 'Email support on every plan. The dashboard is in English.'],
+];
+
+const faq = [
+  { q: 'Is there a social media scheduler with an API?', a: `Yes. Siar is a social media scheduler and inbox whose dashboard runs on the same public REST API you get on every plan, including the ${PLANS.FREE.posts} free posts to try. Schedule from the calendar, a CSV or your own code, and a signed webhook tells your server how each post went on each network.` },
+  { q: 'Can I bulk schedule social media posts from a CSV?', a: "Yes. Download Siar's CSV template for the networks you need, with one row per post: text, date, networks, and each network's own text, media links and first comment. Upload a file of up to 10 MB. Every row gets a result, and failed rows show the reason." },
+  { q: 'Which networks can I schedule to today?', a: `${STATUS_SUMMARY} See <a href="/platforms">every network's status</a>.` },
+  { q: 'Does the inbox include direct messages?', a: "Comments, yes: import a post's comments from Facebook, Instagram, Threads, X, Bluesky or Mastodon, then reply, and like, hide or delete where the network allows. Facebook and Instagram DMs and comment-to-DM automations are in beta, turned on per organization on request, on paid plans. Other networks' DMs aren't available." },
+  { q: 'What happens if a post fails on one network?', a: `The other networks still publish. The failed network's line shows a plain-English explanation and the network's own error, code and HTTP status. Fix the cause and press Retry: only the failed networks are sent again, and the retry doesn't use another post from your plan. Up to ${RESOURCE_LIMITS.maxRetries} retries per post.` },
+  { q: 'Can clients connect their accounts without giving me their passwords?', a: 'Yes. Send a connect link with your name and logo. Your client signs in to each network in their own browser and picks the Page or channel, with no Siar login. You never see a password or token. The page says "Powered by Siar" and is in English, so it isn\'t white-label.' },
+  { q: 'How much does Siar cost for an agency with 10 clients?', a: `${PLANS.PRO.name} covers ${brandsLabel(PLANS.PRO.teams)} for ${usd('PRO')} a month (${myr('PRO')} in Malaysia), with ${posts('PRO')} posts and analytics, and a ${TRIAL_DAYS}-day trial. There are no per-account fees: each brand connects one account on every open network. Above ${PLANS.PRO.teams} clients, ${PLANS.BUSINESS.name} is ${usd('BUSINESS')} (${myr('BUSINESS')}) for unlimited brands. ${PRICE_LOCK}` },
+  { q: 'Can my clients log in and approve posts?', a: "Not today. Siar has owners, admins and members per organization, with an audit log, but members see the whole organization and there is no client login, approval step or report export. If you need client approvals now, build the step in your own portal on Siar's API, or wait for the feature." },
+  { q: 'Are analytics included on every plan?', a: `On every paid plan, from ${PLANS.STARTER.name} at ${usd('STARTER')} a month (${myr('STARTER')} in Malaysia). The ${PLANS.FREE.posts} free posts to try have no analytics. Analytics show followers, impressions, views, likes and comments for Facebook, Instagram, Threads, Bluesky and Mastodon, collected daily from each network's own totals. X is left out because X bills every read.` },
+  { q: 'Do I need to write code to use Siar?', a: 'No. The dashboard covers scheduling, the calendar, CSV import, the inbox, analytics, connect links and link-in-bio pages without code. The API is there when you want it: the dashboard itself runs on it, so anything you do by hand you can later automate with an API key.' },
+];
+
+const title = 'Social media scheduler and inbox on the same API | Siar';
+const description = "Schedule posts, plan a client's month in one CSV and answer comments in one inbox. Each post shows every network's result and its own error.";
+const webPageLd = { '@context': 'https://schema.org', '@type': 'WebPage', '@id': `${SITE_URL}/features#webpage`, url: `${SITE_URL}/features`, name: 'Social media scheduler and inbox, built on the same API', description, about: { '@id': APP_ID }, inLanguage: 'en' };
 ---
-<Base title="Product tour" description={`A tour of Siar: composer, calendar, inbox, analytics, hosted connect, link in bio, API keys and webhooks, across ${N} social networks.`} jsonLd={[breadcrumbLd([{ name: 'Product', href: '/features' }])]}>
-  <PageHero kicker="Product tour" note="the real dashboard" title="One dashboard." dim={`${N} networks. No tab juggling.`} lead="Everything below is the Siar dashboard running on demo data: one café with three outlets, posting where its customers are.">
-    <div class="m-actions"><a class="pill ink" href={SIGNUP_URL}>Start free <span class="arr" aria-hidden="true">→</span></a><a class="pill" href="#developers">Skip to the API</a></div>
+<Base title={title} description={description} jsonLd={[webPageLd, breadcrumbLd([{ name: 'Dashboard', href: '/features' }])]}>
+  <PageHero kicker="Dashboard" title="Social media scheduler and inbox," dim="built on the same API" lead={`Siar is a social media scheduler with an API underneath, for agencies and freelancers who run several brands. Plan each client's month in the calendar or one CSV, answer comments in one inbox, and see what happened to every post on every network, in the network's own words when one says no. The same REST API is on every plan.`}>
+    <div class="m-actions"><a class="pill ink" href={SIGNUP_URL}>{trialCta}</a><a class="pill" href={SIGNUP_URL}>{freeCta}</a><a class="skip-api" href="#developers">Skip to the API</a></div>
+    <p class="demo small muted">Every screen on this page is the real Siar dashboard running on demo data: one café with three outlets, posting where its customers are.</p>
   </PageHero>
 
   <nav class="jump m-wide" aria-label="On this page">
-    {parts.map((p) => <a href={`#${p.id}`}>{p.kicker}</a>)}<a href="#developers">Developers</a>
+    {parts.map((p) => <a href={`#${p.id}`}>{p.nav}</a>)}<a href="#developers">API</a>
   </nav>
 
   {parts.map((p, i) => (
-    <section class:list={['part', { flip: i % 2 === 1 }]} id={p.id}>
+    <section class:list={['part', { flip: i % 2 === 1 && p.shot, solo: !p.shot }]} id={p.id}>
       <div class="m-wide grid">
         <div class="copy" data-reveal>
-          <p class="m-kicker"><span class="n">{String(i + 1).padStart(2, '0')}</span><span class="rule"></span>{p.kicker}</p>
           <h2 class="m-h3">{p.h}</h2>
-          <p class="body">{p.p}</p>
-          <ul>{p.items.map((x) => <li>{x}</li>)}</ul>
-          {p.link && <a class="more" href={p.link[0]}>{p.link[1]} <span aria-hidden="true">→</span></a>}
+          {p.p.map((x) => <p class="body" set:html={x} />)}
+          {!p.shot ? null : <ul>{p.items.map((x) => <li>{x}</li>)}</ul>}
+          {p.link && <a class="more" href={p.link[0]}>{p.link[1]}</a>}
         </div>
-        <figure class="frame" data-reveal style="--d:1">
-          <div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url">{p.url}</span></div>
-          <div class="crop"><img src={`/shots/${p.shot}.webp`} width="2880" height="1800" alt={p.alt} loading="lazy" decoding="async" style={`--fx:${p.focus[0] * 100}%;--fy:${p.focus[1] * 100}%;--z:${p.focus[2]}`} /></div>
-        </figure>
+        {p.shot ? (
+          <figure class="frame" data-reveal style="--d:1">
+            <div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url">{p.url}</span></div>
+            <img src={`/shots/${p.shot}.webp`} width="2880" height="1800" alt={p.alt} loading="lazy" decoding="async" />
+          </figure>
+        ) : (
+          <ul class="points" data-reveal style="--d:1">{p.items.map((x) => <li>{x}</li>)}</ul>
+        )}
       </div>
     </section>
   ))}
 
-  <section class="m-sec m-ink dev" id="developers">
+  <section class="m-sec rest" id="more">
     <div class="m-wide">
-      <p class="m-kicker" data-reveal><span class="n">Developers</span><span class="rule"></span>same engine, no dashboard</p>
-      <h2 class="m-h2" data-lines><span class="ln"><span>The dashboard is a client</span></span><span class="ln"><span class="m-dim" style="--d:1">of the same API you get.</span></span></h2>
-      <p class="m-lead" data-reveal>{fmtInt(operations().length)} operations in one OpenAPI document. Keys per organization, {WEBHOOK_EVENTS.length} signed webhook events with a delivery log, a TypeScript SDK, a JSON-first CLI and an MCP server.</p>
-      <div class="pair">
-        <figure class="frame" data-reveal><div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url">app.siaran.my/api-keys</span></div><div class="crop"><img style="--fx:50%;--fy:28%;--z:1.4" src="/shots/api-keys.webp" width="2880" height="1800" alt="API keys with when each was last used" loading="lazy" decoding="async" /></div></figure>
-        <figure class="frame" data-reveal style="--d:1"><div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url">app.siaran.my/webhooks</span></div><div class="crop"><img style="--fx:82%;--fy:35%;--z:1.4" src="/shots/webhooks.webp" width="2880" height="1800" alt="A webhook endpoint's delivery log" loading="lazy" decoding="async" /></div></figure>
-      </div>
-      <div class="m-actions" data-reveal><a class="pill ink" href="/docs/quickstart">Quickstart <span class="arr" aria-hidden="true">→</span></a><a class="pill" href="/docs/api">API reference</a><a class="pill" href="/docs/sdk-cli-mcp">SDK, CLI and MCP</a></div>
-    </div>
-  </section>
-
-  <section class="m-sec rest">
-    <div class="m-wide">
-      <h2 class="m-h2" data-lines><span class="ln"><span>And the rest</span></span><span class="ln"><span class="m-dim" style="--d:1">of the toolbox.</span></span></h2>
+      <h2 class="m-h2" data-lines><span class="ln"><span>The rest of the toolbox.</span></span></h2>
       <ul>{more.map(([h, p], i) => <li data-reveal style={`--d:${i % 3}`}><h3>{h}</h3><p>{p}</p></li>)}</ul>
     </div>
   </section>
-  <Cta />
+
+  <section class="m-sec m-ink dev" id="developers">
+    <div class="m-wide">
+      <h2 class="m-h2" data-lines><span class="ln"><span>The dashboard is a client</span></span> <span class="ln"><span class="m-dim" style="--d:1">of the same API you get.</span></span></h2>
+      <div class="m-lead" data-reveal>
+        <p>Everything above is a call to Siar's REST API, described in a public OpenAPI 3.0 file with {fmtInt(operations().length)} operations. Build your own client portal, push posts from your CMS, or let a script fill the calendar. Keys belong to the organization and work across all its brands.</p>
+        <p>A signed webhook tells your server how each post went. Failed deliveries are retried {WEBHOOK_RETRIES} times over about {WEBHOOK_HOURS} hours, with a log you can inspect and resend. The API is on every plan, including the {PLANS.FREE.posts} free posts to try.</p>
+      </div>
+      <div class="pair">
+        <figure class="frame" data-reveal><div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url">app.siaran.my/api-keys</span></div><img src="/shots/api-keys.webp" width="2880" height="1800" alt="API keys in Siar, with when each was last used" loading="lazy" decoding="async" /></figure>
+        <figure class="frame" data-reveal style="--d:1"><div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url">app.siaran.my/webhooks</span></div><img src="/shots/webhooks.webp" width="2880" height="1800" alt="A webhook endpoint's delivery log in Siar" loading="lazy" decoding="async" /></figure>
+      </div>
+      <ul class="dev-points" data-reveal>
+        <li>{WEBHOOK_EVENTS.length} HMAC-signed webhook events, with test events and secret rotation</li>
+        <li>An <code>x-api-key</code> header, up to {RESOURCE_LIMITS.apiKeys} keys per organization</li>
+        <li>{TOOLING_LINE}</li>
+      </ul>
+      <div class="m-actions" data-reveal><a class="pill ink" href="/docs/quickstart">Read the quickstart</a><a class="pill" href="/docs/api">API reference</a></div>
+    </div>
+  </section>
+
+  <section class="m-sec nets" id="networks">
+    <div class="m-wide narrow">
+      <h2 class="m-h2" data-lines><span class="ln"><span>{BUILT_FOR(NETWORK_COUNT).replace(/^b/, 'B')}.</span></span> <span class="ln"><span class="m-dim" style="--d:1">Here is what is open today.</span></span></h2>
+      <p class="body" data-reveal>Siar is {BUILT_FOR(NETWORK_COUNT)}. You can schedule and publish to {WORDS[openCount]} of them today. The rest wait on each network's own approval, and this table changes the day one opens.</p>
+      <div class="table-wrap" data-reveal><table>
+        <thead><tr><th>Network</th><th>Status</th><th>Today</th></tr></thead>
+        <tbody>{netRows.map(({ net, s }) => <tr><td><a href={`/${net.apiSlug}`}>{net.name}</a></td><td>{s.label}</td><td>{s.line}</td></tr>)}</tbody>
+      </table></div>
+      <p class="small muted">Checked <time datetime={STATUS_CHECKED}>{human(STATUS_CHECKED)}</time>. <a href="/platforms">Every network's status, with dates</a>.</p>
+    </div>
+  </section>
+
+  <section class="m-sec limits" id="limits">
+    <div class="m-wide narrow">
+      <h2 class="m-h2" data-lines><span class="ln"><span>What Siar doesn't do yet.</span></span></h2>
+      <p class="body" data-reveal>Better you read it here than find it in week two.</p>
+      <ul data-reveal>{limits.map(([h, p]) => <li><strong>{h}</strong> {p}</li>)}</ul>
+    </div>
+  </section>
+
+  <section class="m-sec price" id="price">
+    <div class="m-wide narrow">
+      <h2 class="m-h2" data-lines><span class="ln"><span>One price for the agency,</span></span> <span class="ln"><span class="m-dim" style="--d:1">not for each account.</span></span></h2>
+      <p class="body" data-reveal>{brandsLabel(PLANS.PRO.teams)} for {usd('PRO')} a month ({myr('PRO')} in Malaysia), with {posts('PRO')} posts and a {TRIAL_DAYS}-day trial. Unlimited brands and {posts('BUSINESS')} posts on {PLANS.BUSINESS.name}: {usd('BUSINESS')} a month ({myr('BUSINESS')}). {PLANS.STARTER.name} is {usd('STARTER')} ({myr('STARTER')}) for one brand and {posts('STARTER')} posts.</p>
+      <p class="body" data-reveal>{PRICE_LOCK}</p>
+      <div class="m-actions" data-reveal><a class="pill ink" href={SIGNUP_URL}>{trialCta}</a><a class="pill" href="/pricing">See pricing</a></div>
+    </div>
+  </section>
+
+  <section class="m-sec faqs" id="faq">
+    <div class="m-wide narrow"><Faq items={faq} /></div>
+  </section>
+
+  <section class="m-sec cta">
+    <div class="m-wide">
+      <div class="wrap">
+        <h2 class="m-h2" data-lines><span class="ln"><span>Plan next month for every client,</span></span> <span class="ln"><span class="m-dim" style="--d:1">today.</span></span></h2>
+        <div class="side" data-reveal style="--d:2">
+          <p class="m-lead">Start with {PLANS.FREE.posts} free posts to try, no card. Or start the {TRIAL_DAYS}-day {PLANS.PRO.name} trial and bring {PLANS.PRO.teams} brands.</p>
+          <div class="m-actions"><a class="pill ink" href={SIGNUP_URL}>{trialCta}</a><a class="pill" href={SIGNUP_URL}>{freeCta}</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
 </Base>
 <style>
+  .skip-api { font-size: var(--fs-15); font-weight: 500; margin-left: 8px; text-decoration: underline; text-underline-offset: 3px; }
+  .demo { margin: 20px 0 0; max-width: 640px; }
   .jump { display: flex; gap: 6px; flex-wrap: wrap; padding-bottom: 24px; }
   .jump a { font-size: var(--fs-14); font-weight: 500; text-decoration: none; color: var(--text-muted); padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border); transition: border-color var(--t-micro), color var(--t-micro); }
   .jump a:hover { color: var(--text); border-color: var(--text); }
@@ -84,20 +266,32 @@ const more = [
   .grid { display: grid; grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr); gap: 40px clamp(32px, 5vw, 80px); align-items: center; }
   .flip .grid { grid-template-columns: minmax(0, 1.28fr) minmax(0, 0.72fr); }
   .flip .copy { order: 2; }
+  .solo .grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
   .body { font-size: var(--fs-18); line-height: 28px; color: var(--text-muted); margin: 0 0 20px; }
-  .copy ul { list-style: none; padding: 0; margin: 0 0 20px; border-top: 1px solid var(--border); }
-  .copy li { padding: 10px 0; margin: 0; border-bottom: 1px solid var(--border); font-size: var(--fs-15); line-height: 22px; color: var(--text-muted); }
-  .more { font-size: var(--fs-15); font-weight: 500; text-decoration: none; }
-  .more:hover { text-decoration: underline; }
-  @media (max-width: 960px) { .grid, .flip .grid { grid-template-columns: minmax(0, 1fr); } .flip .copy { order: 0; } .body { font-size: var(--fs-16); line-height: 26px; } }
+  .copy ul, .points, .limits ul, .dev-points { list-style: none; padding: 0; margin: 0 0 20px; border-top: 1px solid var(--border); }
+  .copy li, .points li, .limits li, .dev-points li { padding: 10px 0; margin: 0; border-bottom: 1px solid var(--border); font-size: var(--fs-15); line-height: 22px; color: var(--text-muted); }
+  .points li { font-size: var(--fs-16); line-height: 24px; padding: 14px 0; }
+  .limits li strong { color: var(--text); font-weight: 600; }
+  .more { font-size: var(--fs-15); font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
+  @media (max-width: 960px) { .grid, .flip .grid, .solo .grid { grid-template-columns: minmax(0, 1fr); } .flip .copy { order: 0; } .body { font-size: var(--fs-16); line-height: 26px; } }
+  .narrow { max-width: 960px; }
+  .nets, .limits, .price, .faqs { border-top: 1px solid var(--border); scroll-margin-top: 68px; }
+  .nets .table-wrap { margin-top: 32px; }
   .dev { scroll-margin-top: 68px; }
   .dev .m-lead { margin-bottom: 48px; }
-  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px; }
+  .dev .m-lead p { margin: 0 0 16px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+  .dev-points { margin-bottom: 40px; }
   @media (max-width: 760px) { .pair { grid-template-columns: minmax(0, 1fr); } }
+  .rest { scroll-margin-top: 68px; }
   .rest ul { list-style: none; padding: 0; margin: 48px 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 48px; }
   .rest li { margin: 0; padding: 24px 0 36px; border-top: 1px solid var(--text); }
   .rest h3 { font-size: var(--fs-20); margin: 0 0 8px; }
   .rest p { margin: 0; font-size: var(--fs-15); line-height: 24px; }
-  @media (max-width: 900px) { .rest ul { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 560px) { .rest ul { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 900px) { .rest ul { grid-template-columns: minmax(0, 1fr); } }
+  .cta { border-top: 1px solid var(--border); }
+  .wrap { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 32px 64px; align-items: end; }
+  .wrap .m-h2 { margin: 0; }
+  .side { display: flex; flex-direction: column; gap: 24px; }
+  @media (max-width: 900px) { .wrap { grid-template-columns: minmax(0, 1fr); } }
 </style>

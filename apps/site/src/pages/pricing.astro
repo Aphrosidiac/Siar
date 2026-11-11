@@ -6,87 +6,152 @@ import PricingTables from '../components/PricingTables.astro';
 import QuotaRules from '../components/QuotaRules.astro';
 import Faq from '../components/Faq.astro';
 import Cta from '../components/Cta.astro';
-import { PLANS, TRIAL_DAYS, TRIAL_TIER, PRICE_LOCK, INBOX_NOTE, X_CREDIT_NOTE, paidFrom, paidList, fmtMicro, X_PRICES } from '../lib/plans';
-import { NETWORKS } from '../lib/networks';
-import { SIGNUP_URL } from '../config';
-import { faqLd, breadcrumbLd, softwareLd } from '../lib/seo';
+import { PLANS, TRIAL_DAYS, PRICE_LOCK, RESOURCE_LIMITS, X_CREDIT_NOTE, paidFrom, money, fmtInt, fmtMicro, X_PRICES, monthsFree, priceOf, formatPrice } from '../lib/plans';
+import { STATUS_SUMMARY, DM_LINE } from '../lib/status';
+import { SIGNUP_URL, DASHBOARD_URL, LEGAL_NAME, LEGAL_REG } from '../config';
+import { breadcrumbLd, softwareLd } from '../lib/seo';
 
-const N = NETWORKS.length;
-const claims = [
-  { h: 'Pay by business, not by channel.', p: 'Every plan connects unlimited social accounts. You pay for the brands you run, never per channel.' },
-  { h: 'One post counts once.', p: "A post that goes to every network you've connected counts as one post on your plan." },
-  { h: 'Priced for Malaysia.', p: `Organizations billed in Malaysia pay in ringgit, by card or, yearly, once with FPX or DuitNow. Everywhere else: ${paidList('usd').replace(/ \/ /g, ', ').replace(/, ([^,]*)$/, ' and $1')} a month by card.` },
-];
+type T = keyof typeof PLANS;
+const usd = (t: T) => money(t, 'MONTHLY', 'usd');
+const myr = (t: T) => money(t, 'MONTHLY', 'myr');
+const posts = (t: T) => fmtInt(PLANS[t].posts);
+const F = PLANS.FREE;
+const freeCta = `Start with ${F.posts} free posts`;
+const trialCta = `Start the ${TRIAL_DAYS}-day ${PLANS.PRO.name} trial`;
+const perBrand = (c: 'myr' | 'usd') => formatPrice(Math.round(priceOf('PRO', 'MONTHLY', c)! / PLANS.PRO.teams!), c);
+const brandCaps = `${PLANS.STARTER.name} ${PLANS.STARTER.teams} brand, ${PLANS.PRO.name} ${PLANS.PRO.teams}, ${PLANS.BUSINESS.name} unlimited`;
+const postCaps = `${posts('STARTER')} a month on ${PLANS.STARTER.name}, ${posts('PRO')} on ${PLANS.PRO.name}, ${posts('BUSINESS')} on ${PLANS.BUSINESS.name}`;
+const dmCaps = `${fmtInt(PLANS.STARTER.dmsPerAccount)} DMs on ${PLANS.STARTER.name}, ${fmtInt(PLANS.PRO.dmsPerAccount)} on ${PLANS.PRO.name}, ${fmtInt(PLANS.BUSINESS.dmsPerAccount)} on ${PLANS.BUSINESS.name}`;
+const xPost = fmtMicro(X_PRICES.TWITTER_CONTENT_CREATE).replace(/0+$/, '');
+const xLink = fmtMicro(X_PRICES.TWITTER_CONTENT_CREATE_WITH_URL).replace(/0$/, '');
+
+const lead = `Siar, a unified social media API and dashboard, is priced per organization: by the brands you run and the posts you create. No per-account fees. ${PLANS.STARTER.name} has ${PLANS.STARTER.teams} brand and ${posts('STARTER')} posts a month, ${PLANS.PRO.name} ${PLANS.PRO.teams} brands and ${posts('PRO')} posts, ${PLANS.BUSINESS.name} unlimited brands and ${posts('BUSINESS')} posts. Each brand connects one account on every open network. Start with ${F.posts} free posts to try, then pay from ${paidFrom('usd')} a month (${paidFrom('myr')} in Malaysia).`;
+
 const faq = [
-  { q: 'Why is pricing by brand and not by account?', a: 'What costs us money is the work your organization does (posts published, comments, uploads), not the number of accounts that exist. So every plan connects unlimited social accounts, and the plans differ in the brands you can run and the posts, comments and uploads you create.' },
-  { q: 'What counts as a post?', a: `A post counts once, no matter how many networks it targets. On paid plans it counts in the UTC month you create it or move it out of draft. On Free it counts against the one-time allowance of ${PLANS.FREE.posts} posts. Drafts are free and retries of a failed post do not count again.` },
-  { q: 'What happens at my quota?', a: 'Creating or scheduling another post returns a 403 that names the limit. Anything already scheduled still publishes: quotas are checked once, when you create the post. The Free allowance never resets, so when it is used up, choose a paid plan to carry on.' },
-  { q: 'How do I pay?', a: 'Organizations billed in Malaysia pay in ringgit by card or, for a year at a time, once with FPX or DuitNow. Everywhere else pays in US dollars by card.' },
-  { q: 'Is there a free trial?', a: `Yes, ${TRIAL_DAYS} days on ${PLANS[TRIAL_TIER].name}. The Free plan is separate: ${PLANS.FREE.posts} posts to try, no card and no time limit.` },
-  { q: 'Is the inbox included?', a: `Direct messages and comment-to-DM automations have allowances on every paid plan. They are for ${INBOX_NOTE}.` },
-  { q: 'Why do daily caps exist?', a: 'Networks throttle or flag accounts that publish too often. Caps keep a single account inside what each network tolerates. They follow the underlying network identity, so reconnecting an account does not reset them. Enterprise organizations can have them raised.' },
-  { q: 'How does X (Twitter) billing work?', a: `X charges per API call, so X actions are paid from a prepaid credit balance at X's own price in USD, with no markup from us. ${X_CREDIT_NOTE} Publishing a post costs ${fmtMicro(X_PRICES.TWITTER_CONTENT_CREATE)}; a post containing a link costs ${fmtMicro(X_PRICES.TWITTER_CONTENT_CREATE_WITH_URL)}. If the balance runs out, only X actions fail.` },
-  { q: 'Can I change plan or cancel?', a: `Yes, from the dashboard billing page. ${PRICE_LOCK} Paid quotas are per calendar month, so a change applies from the moment it takes effect.` },
-  { q: 'What does Enterprise add?', a: 'Higher quotas, daily caps and rate limits set per organization, and a quoted price. Contact us with your volumes.' },
+  { q: 'How much does Siar cost?', a: `Siar costs nothing to start: ${F.posts} free posts to try, once, with no card. Paid plans are ${PLANS.STARTER.name} at ${myr('STARTER')} a month (${usd('STARTER')} outside Malaysia) for ${PLANS.STARTER.teams} brand, ${PLANS.PRO.name} at ${myr('PRO')} (${usd('PRO')}) for ${PLANS.PRO.teams} brands, and ${PLANS.BUSINESS.name} at ${myr('BUSINESS')} (${usd('BUSINESS')}) for unlimited brands. Yearly is 10 times monthly, so ${monthsFree('PRO')} months free. ${PLANS.ENTERPRISE.name} is custom.` },
+  { q: 'Is there a free social media API?', a: `Siar's API is on every plan, Free included, but Siar has no free monthly plan. The free start is ${F.posts} free posts to try, once, with no card and no time limit. Some other APIs offer free tiers that reset each month, usually limited by accounts or uploads. Check which kind you are getting before you build on it.` },
+  { q: 'Does Siar charge per social account?', a: `No. Siar charges per organization, fenced by brands and posts, never per connected account. Each brand connects one account on every open network: ${PLANS.STARTER.name} has ${PLANS.STARTER.teams} brand, ${PLANS.PRO.name} ${PLANS.PRO.teams}, ${PLANS.BUSINESS.name} unlimited. Adding a network to a brand never changes your plan price. Posts, comments and uploads have monthly caps on each plan.` },
+  { q: 'What is a brand?', a: `A brand is one business or one client you post for. In the API it is a team. Each brand holds one account on each open network, so a brand can have a Facebook Page, an Instagram account, Threads, X and a LinkedIn profile. ${PLANS.STARTER.name} includes ${PLANS.STARTER.teams} brand, ${PLANS.PRO.name} ${PLANS.PRO.teams}, and ${PLANS.BUSINESS.name} and ${PLANS.ENTERPRISE.name} unlimited.` },
+  { q: 'Can I connect two Instagram accounts for one client?', a: `Not in one brand. Each brand holds one account per network, so a second Instagram account goes in a second brand. ${PLANS.PRO.name} includes ${PLANS.PRO.teams} brands for ${myr('PRO')} a month (${usd('PRO')} outside Malaysia), and ${PLANS.BUSINESS.name} has unlimited brands. There are no per-account fees on any plan, so the extra brand costs nothing on its own.` },
+  { q: 'What counts as a post?', a: `A post counts once, however many networks it goes to. It counts when it leaves draft, in the UTC month you create or schedule it. Drafts are free, and retrying a failed post, up to ${RESOURCE_LIMITS.maxRetries} times, does not count again. On Free, posts come from the one-time allowance of ${F.posts} free posts to try.` },
+  { q: 'What happens when I reach my limit?', a: 'Creating or scheduling another post returns a 403 that names the limit. Posts already scheduled still publish, because quotas are checked once, when a post is created. Paid quotas reset at the start of each UTC month. The free start never resets, so when it is used up, choose a paid plan to carry on.' },
+  { q: 'Is there a free trial?', a: `Yes, ${TRIAL_DAYS} days on ${PLANS.PRO.name}. It is offered once per organization, on its first paid plan, and needs a card. Nothing is charged while the trial runs, and if you cancel before it ends you are never charged. The free start is separate: ${F.posts} free posts to try, with no card and no time limit.` },
+  { q: 'Will my price go up?', a: "Not while you stay subscribed. Your subscription renews at the amount it started at, whatever happens to the list price. Changing plan locks in the new plan's price on the day you change. If you cancel and subscribe again later, you start at that day's list price. The lock covers card plans and yearly plans paid once." },
+  { q: 'Can I pay with FPX or DuitNow?', a: 'Yes, for yearly plans billed in Malaysia. Pay the year once by FPX or DuitNow, or by card. Monthly plans are paid by card. A yearly plan paid once renews by a link that opens 30 days before the end date, with email reminders 7 days and 1 day before and 3 days\' grace after.' },
+  { q: 'Which currency will I pay in?', a: 'Organizations billed in Malaysia pay in ringgit; everywhere else pays in US dollars by card. Your first checkout sets the billing country from where you are, and the owner can change it in Billing details for the next checkout. A running subscription keeps its currency and price. Ringgit prices are for organizations based in Malaysia.' },
+  { q: 'Is SST included?', a: `Prices are final. ${LEGAL_NAME}, the Malaysian company that runs Siar, is not registered for sales and service tax, so no tax is added at checkout. If that changes, you will be told before it applies. Every payment gets a numbered receipt from ${LEGAL_NAME}.` },
+  { q: 'How does X (Twitter) billing work?', a: `X charges per API call, so X actions are paid from a prepaid credit at X's own prices in US dollars: ${xPost} to publish a post and ${xLink} for a post with a link. Organizations billed in Malaysia buy credit in ringgit at a rate shown before paying. If the balance runs out, only X actions stop.` },
+  { q: 'Are DMs included?', a: `Facebook and Instagram DMs and comment-to-DM automations are in beta, turned on per organization on request, on paid plans. Each paid plan has a monthly allowance per account: ${dmCaps}. Comments from every open network that supports them come into one inbox on every plan.` },
+  { q: 'Which networks can I post to?', a: `Every plan reaches the same networks. ${STATUS_SUMMARY} See the <a href="/platforms">status of every network, with dates</a>.` },
+  { q: 'Can I cancel, and do I get a refund?', a: `Cancel any time from <a href="${DASHBOARD_URL}/billing">Billing in the dashboard</a>. Your plan runs to the end of the period you paid for, then the organization moves to Free, and nothing is deleted. Fees already paid are not refunded, except where the law requires it or we charged you in error. The <a href="/refunds">refunds page</a> has the details.` },
+  { q: 'Siar is new. Why trust it with billing?', a: `Siar has been live since 12 October 2026, so there are no case studies or uptime record yet. What you can check today: the public OpenAPI file, the network and error references, the dated status of every network, and this price list with its price lock. You pay ${LEGAL_NAME}, a Malaysian company, SSM ${LEGAL_REG}.` },
+  { q: `What does ${PLANS.ENTERPRISE.name} add?`, a: `Higher quotas, plus daily caps and rate limits set for your organization, invoices, and an SLA by contract. There is no list price: ${PLANS.ENTERPRISE.name} is quoted per organization from your volumes. <a href="/contact">Talk to us</a> with how many brands, posts and networks you need, and we will send a quote.` },
 ];
+
+const title = 'Siar pricing: social media API priced per organization';
+const description = `Siar pricing: ${F.posts} free posts to try, then from ${paidFrom('usd')} a month (${paidFrom('myr')} in Malaysia). One price per organization, never per connected account. Price locked.`;
 ---
-<Base title="Pricing: pay by business, not by channel" description={`Siar pricing: Free with ${PLANS.FREE.posts} posts to try, paid plans from ${paidFrom('myr')} a month in Malaysia and ${paidFrom('usd')} elsewhere. Unlimited social accounts on every plan. X usage passed through at cost.`} jsonLd={[softwareLd(), faqLd(faq), breadcrumbLd([{ name: 'Pricing', href: '/pricing' }])]}>
-  <PageHero kicker="Pricing" note="per organization" title="One price per business." dim="Every account included." lead={`Plans are per organization. Every plan connects unlimited social accounts across all ${N} networks. A plain-text version of this page is at <a href="/pricing.md">/pricing.md</a>.`} />
-  <section class="section tight">
+<Base title={title} description={description} jsonLd={[softwareLd(), breadcrumbLd([{ name: 'Pricing', href: '/pricing' }])]}>
+  <PageHero kicker="Pricing" title="One price per organization," dim="never per connected account." lead={lead}>
+    <div class="m-actions"><a class="pill ink" href={SIGNUP_URL}>{freeCta}</a><a class="pill" href={SIGNUP_URL}>{trialCta}</a></div>
+    <p class="hero-note small muted">No card for the free start. A <a href="/pricing.md">plain-text version</a> of this page is at /pricing.md.</p>
+  </PageHero>
+
+  <section class="section tight" id="plans">
     <div class="container">
-      <div class="claims">
-        {claims.map((c) => <div><h2>{c.h}</h2><p>{c.p}</p></div>)}
+      <PlanCards />
+      <p class="trust">Paid to {LEGAL_NAME} (SSM {LEGAL_REG}), a Malaysian company. In ringgit if your organization is billed in Malaysia, in US dollars by card everywhere else, with a numbered receipt for every payment. Cancel any time; nothing is deleted.</p>
+      <p class="pricing-note">{PRICE_LOCK}</p>
+      <p class="pricing-note">Building on the API? <a href={SIGNUP_URL}>{trialCta}.</a></p>
+      <p class="pricing-note">Email support on every plan. Prices are final.</p>
+      <p class="pricing-note muted">{DM_LINE}</p>
+    </div>
+  </section>
+
+  <section class="section alt">
+    <div class="container prose-wide blocks">
+      <div id="networks">
+        <h2>Which networks every plan reaches today</h2>
+        <p>Every plan, Free included, publishes to the same networks. {STATUS_SUMMARY}</p>
+        <p>See the <a href="/platforms">status of every network, with dates</a>.</p>
+      </div>
+      <div id="free">
+        <h2>Is there a free plan?</h2>
+        <p>Yes: {F.posts} free posts to try, once. No card and no time limit. You get one brand, {fmtInt(F.comments)} comments and {fmtInt(F.uploads)} uploads, and the same API and webhooks as every paid plan. Analytics are on paid plans only.</p>
+        <p>The free start is one-time, not monthly. It never resets, and it is counted on each social account across organizations, so connecting the same account in a new organization does not start another {F.posts}. When it runs out, anything already scheduled still publishes, and you choose a plan to carry on.</p>
+        <p>It is sized to answer one question: does "write it once, Siar it everywhere" work for you? Post to your own accounts, call the API, watch the webhook come back. Then decide.</p>
+        <p><a class="pill ink" href={SIGNUP_URL}>{freeCta}</a></p>
+      </div>
+      <div id="per-organization">
+        <h2>Per organization, not per account</h2>
+        <p>You pay for your organization, fenced by brands and posts. No per-account fees. Each brand connects one account on every open network: {brandCaps}.</p>
+        <p>A brand is one business or one client. In the API it is a team. Your Facebook Page, Instagram, Threads, X and LinkedIn profile for that brand sit in it, and adding a network to a brand never changes your plan price.</p>
+        <p>So adding a client is a brand, not a line item per channel. On {PLANS.PRO.name}, {PLANS.PRO.teams} clients cost {myr('PRO')} a month, {perBrand('myr')} a client ({usd('PRO')} outside Malaysia, {perBrand('usd')} a client). Past {PLANS.PRO.teams}, {PLANS.BUSINESS.name} is {myr('BUSINESS')} ({usd('BUSINESS')}) for as many brands as you run.</p>
+        <p class="small muted">One account per network per brand. A client with two Instagram accounts uses two brands.</p>
+      </div>
+      <div id="posts">
+        <h2>One post counts once. Drafts and retries don't.</h2>
+        <p>A post sent to every network you've connected counts as one post on your plan, not one per network. Drafts are free; a post counts when it leaves draft, in the month you create or schedule it. If a network rejects it, retrying the post (up to {RESOURCE_LIMITS.maxRetries} times) doesn't count again.</p>
+        <p>If one network fails, the others still publish. The failed one keeps the network's own error and a plain-English fix, and a retry re-sends only the networks that failed. Read <a href="/how-publishing-works">how a post is checked, sent once and reported</a>.</p>
+        <p>Posts are capped: {postCaps}. You can read your usage at any time from the API or the dashboard. At the limit, a new post gets a <code>403</code> that names the limit; posts already scheduled still go out.</p>
+      </div>
+      <div id="price-lock">
+        <h2>{PRICE_LOCK.replace(/\.$/, '')}</h2>
+        <p>Your subscription renews at the amount it started at. When the list price changes, running subscriptions keep theirs. Card plans and yearly plans paid once are both renewed at the price you locked in.</p>
+        <p>Changing plan locks the new plan's price on the day you change. If you cancel and come back later, you start at that day's list price.</p>
+      </div>
+      <div id="ringgit">
+        <h2>Pay in ringgit: card monthly, FPX or DuitNow yearly</h2>
+        <p>Organizations billed in Malaysia pay in ringgit. Monthly plans are paid by card and renew by themselves. Yearly plans can be paid by card, or once by FPX or DuitNow.</p>
+        <p>A yearly plan paid once does not renew on its own. A renewal link opens 30 days before the end date, and we email it 7 days and 1 day before. If it is still unpaid, the plan stays on for 3 days' grace, then the organization moves to Free. Nothing is deleted, and no payment is taken unless you pay the link.</p>
+        <p>Everywhere else pays in US dollars by card. Your first checkout sets the billing country from where you are; the owner can change it in Billing details for the next checkout. Prices are final.</p>
       </div>
     </div>
   </section>
-  <section class="section tight">
-    <div class="container">
-      <PlanCards />
-      <p class="pricing-note">{PRICE_LOCK}</p>
-      <p class="pricing-note">Building on the API? <a href={SIGNUP_URL}>Start the {TRIAL_DAYS}-day Pro trial.</a></p>
-      <p class="pricing-note muted">Inbox and comment-to-DM: {INBOX_NOTE}.</p>
-    </div>
-  </section>
-  <section class="section alt">
+
+  <section class="section">
     <div class="container prose-wide">
       <h2>How quotas work</h2>
       <QuotaRules />
     </div>
   </section>
-  <section class="section">
+  <section class="section alt">
     <div class="container prose-wide">
       <h2>Quotas and limits by plan</h2>
-      <p>Every figure below is read from the same constants the API enforces. The Free plan is a one-time allowance; paid plans count per month.</p>
+      <p>Every figure below is read from the same constants the API enforces. The free start is one-time; paid plans count per month.</p>
       <PricingTables show={['prices', 'quotas', 'imports', 'messaging', 'resources']} />
     </div>
   </section>
-  <section class="section alt">
+  <section class="section">
     <div class="container prose-wide">
       <h2>Per-network daily caps</h2>
+      <p>Networks throttle or flag accounts that post too often. Daily caps keep each account inside what its network tolerates. {PLANS.STARTER.name} and {PLANS.PRO.name} share the same caps; {PLANS.ENTERPRISE.name} caps can be raised.</p>
       <PricingTables show={['caps', 'comments', 'length']} />
     </div>
   </section>
-  <section class="section" id="x">
+  <section class="section alt" id="x">
     <div class="container prose-wide">
-      <h2>X (Twitter): prepaid credit at X's prices</h2>
+      <h2>X (Twitter): prepaid credit at X's own prices</h2>
+      <p>X charges per API call, so X actions are paid from a prepaid credit at X's own USD prices: {xPost} to publish a post, {xLink} for a post that contains a link. A failed publish is never charged: the amount is held, then taken only on success. If the balance runs out, only X actions stop.</p>
+      <p>{X_CREDIT_NOTE}</p>
       <PricingTables show={['x']} heading={false} />
-      <p class="small">Top up the balance from the dashboard. Balance changes use a ledger (hold, then capture or release) so a failed publish never charges you. Webhooks fire at <code>credit.low-balance</code> and <code>credit.exhausted</code>; quote an action before running it with the credit endpoints in the <a href="/docs/api/credit">API reference</a>.</p>
+      <p class="small">Top up the balance from the dashboard. Webhooks fire at <code>credit.low-balance</code> and <code>credit.exhausted</code>; quote an action before running it with the credit endpoints in the <a href="/docs/api/credit">API reference for credit</a>.</p>
     </div>
   </section>
-  <section class="section alt">
+  <section class="section">
     <div class="container prose-wide"><Faq items={faq} /></div>
   </section>
-  <Cta />
+  <Cta title="Write it once." dim="Siar it everywhere." text={`Start with ${F.posts} free posts to try. No card, no time limit. When you're ready, plans start at ${paidFrom('myr')} a month in Malaysia or ${paidFrom('usd')} elsewhere, and your price never goes up while you stay subscribed.`} />
 </Base>
 <style>
   .prose-wide { max-width: 960px; }
-  .hd { max-width: 820px; }
-  .claims { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px 40px; margin: 0 0 40px; }
-  .claims > div { border-top: 1px solid var(--text); padding-top: 16px; }
-  .claims h2 { font-size: var(--fs-18); line-height: 26px; letter-spacing: -0.02em; margin: 0 0 6px; }
-  .claims p { margin: 0; font-size: var(--fs-15); line-height: 24px; color: var(--text-muted); }
-  @media (max-width: 800px) { .claims { grid-template-columns: minmax(0, 1fr); gap: 20px; margin-bottom: 32px; } }
-  .pricing-note { margin: 16px 0 0; font-size: var(--fs-15); line-height: 24px; color: var(--text); }
+  .hero-note { margin: 20px 0 0; }
+  .hero-note a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+  .trust { margin: 20px 0 0; font-size: var(--fs-15); line-height: 24px; color: var(--text); max-width: 760px; }
+  .pricing-note { margin: 12px 0 0; font-size: var(--fs-15); line-height: 24px; color: var(--text); }
   .pricing-note.muted { font-size: var(--fs-13); line-height: 20px; color: var(--text-subtle); }
   .pricing-note a { text-decoration: underline; text-underline-offset: 3px; }
+  .blocks > div { padding: 0 0 40px; margin: 0 0 40px; border-bottom: 1px solid var(--border); scroll-margin-top: 68px; }
+  .blocks > div:last-child { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
+  .blocks .pill { text-decoration: none; }
 </style>
