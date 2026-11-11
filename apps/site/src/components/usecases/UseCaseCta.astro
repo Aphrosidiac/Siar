@@ -1,0 +1,42 @@
+---
+/**
+ * Closing call to action for the use-case pages. The shared Cta component still says "Start free" with an arrow
+ * and "Free plan"; this one follows messaging.md §6 (CTA in words, "20 free posts to try"). Swap back to Cta once it
+ * does. `band` renders the full-width marketing band (hub); without it, a compact block inside an Article body.
+ */
+import { SIGNUP_URL } from '../../config';
+import { PLANS } from '../../lib/plans';
+interface Props { band?: boolean }
+const { band = false } = Astro.props;
+const free = PLANS.FREE;
+const line = `Pick a use case, send one request, and see what happened on each network. ${free.posts} free posts to try, no card.`;
+---
+{band ? (
+  <section class="m-sec cta">
+    <div class="m-wide">
+      <div class="wrap">
+        <h2 class="m-h2" data-lines><span class="ln"><span>Write it once.</span></span><span class="ln"><span class="m-dim" style="--d:1">Siar it everywhere.</span></span></h2>
+        <div class="side" data-reveal style="--d:2">
+          <p class="m-lead">{line}</p>
+          <div class="m-actions"><a class="pill ink" href={SIGNUP_URL}>Start with {free.posts} free posts</a><a class="pill" href="/docs/quickstart">Read the quickstart</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+) : (
+  <div class="uc-cta">
+    <h2>Write it once. Siar it everywhere.</h2>
+    <p>{line}</p>
+    <div class="m-actions"><a class="pill ink" href={SIGNUP_URL}>Start with {free.posts} free posts</a><a class="pill" href="/docs/quickstart">Read the quickstart</a></div>
+  </div>
+)}
+<style>
+  .cta { border-top: 1px solid var(--border); }
+  .wrap { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 32px 64px; align-items: end; }
+  .wrap .m-h2 { margin: 0; }
+  .side { display: flex; flex-direction: column; gap: 24px; }
+  .uc-cta { margin-top: 56px; padding: 28px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-elevated); }
+  .uc-cta h2 { margin: 0 0 8px; }
+  .uc-cta .m-actions { margin-top: 20px; }
+  @media (max-width: 900px) { .wrap { grid-template-columns: minmax(0, 1fr); } }
+</style>

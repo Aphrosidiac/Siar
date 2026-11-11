@@ -1,15 +1,176 @@
 ---
+/**
+ * Use-case hub (docs/seo/landing-copy/use-cases.md). Cards, ItemList and the network table are generated from
+ * lib/usecases.ts and lib/status.ts, so a page that is not live never appears and no status is typed here.
+ */
 import Base from '../../layouts/Base.astro';
-import PageHero from '../../components/PageHero.astro';
-import Cta from '../../components/Cta.astro';
-import { USE_CASES } from '../../lib/usecases';
+import Faq from '../../components/Faq.astro';
+import NetworkTable from '../../components/usecases/NetworkTable.astro';
+import UseCaseCta from '../../components/usecases/UseCaseCta.astro';
+import { USE_CASES, GROUPS, COMMENT_IMPORT_NETS, OPEN, WORDS, netName, RETRY_LINE } from '../../lib/usecases';
+import { OPEN_LIST, STATUS_SUMMARY, DM_LINE, TOOLING_LINE } from '../../lib/status';
+import { PLANS, money, fmtInt, PRICE_LOCK, TRIAL_DAYS } from '../../lib/plans';
+import { breadcrumbLd, WEBSITE_ID, APP_ID } from '../../lib/seo';
+import { SIGNUP_URL, SITE_URL } from '../../config';
+import { updatedAt } from '../../lib/updated.mjs';
+
+const { FREE, STARTER, PRO, BUSINESS } = PLANS;
+const price = (t: 'STARTER' | 'PRO' | 'BUSINESS') => `${money(t, 'MONTHLY', 'usd')} a month (${money(t, 'MONTHLY', 'myr')} in Malaysia)`;
+const join = (xs: string[], w = 'and') => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} ${w} ${xs[xs.length - 1]}`);
+const brands = (n: number | null) => (n === null ? 'unlimited brands' : n === 1 ? '1 brand' : `${n} brands`);
+
+const PAGE_UPDATED = '2026-11-12';
+const git = updatedAt('/use-cases');
+const updated = git && git > PAGE_UPDATED ? git : PAGE_UPDATED;
+const human = new Date(`${updated}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+
+const h1 = 'What you can build with a social media API';
+const metaNets = join(OPEN.slice(0, 5).map((t) => (t === 'LINKEDIN' ? 'LinkedIn profiles' : netName(t))));
+const description = `Post and schedule to ${metaNets}, let customers connect accounts, answer comments and get results by webhook.`;
+const commentNets = join(COMMENT_IMPORT_NETS.map(netName));
+
+/** Card titles: the page's search name. */
+const cardTitle = (slug: string, nav: string) => (slug === 'hosted-connect-oauth' ? 'Social media OAuth API: a branded connect link' : slug === 'multi-tenant-social-media-api' ? 'Social media API for SaaS (multi-tenant)' : nav);
+const live = new Set(USE_CASES.map((u) => u.slug));
+const href = (slug: string) => `/use-cases/${slug}`;
+
+const routes = [
+  { who: 'You\'re adding social posting to your SaaS product.', text: 'Give each customer their own brand, let them connect through a link with your name on it, and keep one API key for all of them.', slug: 'multi-tenant-social-media-api', anchor: 'Social media API for SaaS' },
+  // Until /for-agencies ships, the agency row points at the connect-link page (use-cases.md routing note).
+  { who: 'You\'re an agency or freelancer running client accounts.', text: `${brands(PRO.teams)[0].toUpperCase()}${brands(PRO.teams).slice(1)} for ${price('PRO')}. Each client connects through a link with your name and logo, and you never ask for a password.`, slug: 'hosted-connect-oauth', anchor: 'Branded connect link for clients' },
+  { who: 'You\'re building an AI agent or an automation.', text: 'An agent needs to know whether its post went out: one REST call to publish, a signed webhook with the result.', slug: 'social-media-api-for-ai-agents', anchor: 'Social media API for AI agents' },
+  { who: 'You\'re posting from your own code, CI or workflow tool.', text: 'One HTTP call posts your release notes to Slack, Discord, your LinkedIn profile and X.', slug: 'social-media-posting-api', anchor: 'Social media posting API' },
+].filter((r) => live.has(r.slug));
+
+const faq = [
+  { q: 'What can you build with a social media API?', a: 'You can build anything that posts, schedules, replies or measures on social networks from your own code. Common examples: a scheduler inside your SaaS product, a client portal for an agency, an AI agent that publishes, release notes from CI, a comments inbox, an analytics report and a link-in-bio page.' },
+  { q: 'What is a social media API used for?', a: 'A social media API lets software do what a person does in each network\'s app. It can publish and schedule posts, connect accounts, read and answer comments, and pull metrics. A unified API like Siar does this for several networks through one set of requests, one key and one error format.' },
+  { q: 'Which networks can I publish to with Siar today?', a: STATUS_SUMMARY },
+  { q: 'Can my customers connect their own social accounts?', a: 'Yes. Send each customer a connect link with your name, logo and color. They sign in to each network in their own browser and return to your app. You never see a password or token, and tokens are encrypted at rest and never returned by the API.' },
+  { q: 'Do I need my own Meta app to post to Instagram and Facebook?', a: 'No. Facebook, Instagram and Threads connect through Siar\'s Meta app, which passed Meta\'s App Review on 27 October 2026 with all 27 permissions it asked for. Your customers connect through it, so you do not wait on your own review for those three networks.' },
+  { q: 'Is Siar a good fit for an agency with many clients?', a: `Yes, if your clients use the open networks. ${PRO.name} gives you ${brands(PRO.teams)} for ${price('PRO')}, and each client connects through your branded link. A brand holds one account per network, so a client with two Facebook Pages uses two brands. There are no client logins yet.` },
+  { q: 'Can an AI agent post to social media through Siar?', a: 'Yes, through the REST API. The agent publishes with one call and reads the result from a signed webhook or from the post\'s status, including the network\'s own error if it failed. An MCP server and CLI are built, but they are not on npm yet, so there is no install command today.' },
+  { q: 'Can I send DMs or auto-reply to comments with Siar?', a: `Partly. Comments and replies are live on ${commentNets}. ${DM_LINE} No other network has DMs in Siar.` },
+  { q: 'How much does a social media API cost with Siar?', a: `Siar charges per organization, not per account. You start with ${FREE.posts} free posts to try, with no card. Then it costs ${price('STARTER')} for ${brands(STARTER.teams)}, ${money('PRO', 'MONTHLY', 'usd')} (${money('PRO', 'MONTHLY', 'myr')}) for ${brands(PRO.teams)}, or ${money('BUSINESS', 'MONTHLY', 'usd')} (${money('BUSINESS', 'MONTHLY', 'myr')}) for ${brands(BUSINESS.teams)}. ${PRICE_LOCK}` },
+  { q: 'What happens if a post fails on one network?', a: 'The other networks still publish. The failed one keeps the network\'s own error and a plain-English fix, and the <code>post.published</code> webhook tells your server each network\'s result. Fix the cause and retry: only the failed networks are sent again, and the retry doesn\'t use another post from your plan.' },
+];
+
+const jsonLd = [
+  breadcrumbLd([{ name: 'Use cases', href: '/use-cases' }]),
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: h1,
+    url: `${SITE_URL}/use-cases`,
+    description,
+    dateModified: updated,
+    isPartOf: { '@id': WEBSITE_ID },
+    about: { '@id': APP_ID },
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: GROUPS.flatMap((g) => USE_CASES.filter((u) => u.group === g.id)).map((u, i) => ({ '@type': 'ListItem', position: i + 1, name: cardTitle(u.slug, u.nav), url: `${SITE_URL}${href(u.slug)}` })),
+    },
+  },
+];
 ---
-<Base title="Use cases" description="What teams build with the Siar social media API: posting, scheduling, multi-tenant products, analytics, comments, webhooks, hosted connect and AI agents.">
-  <PageHero kicker="Use cases" title="What people build" dim="with Siar." lead="Each page shows the requests, the limits and the questions that come up for one job." />
-  <section class="m-sec tight">
-    <div class="m-wide m-rows">
-      {USE_CASES.map((u, i) => <a class="m-row" href={`/use-cases/${u.slug}`}><span class="i">{String(i + 1).padStart(2, '0')}</span><span class="t">{u.title}</span><p class="d">{u.description}</p><span class="a" aria-hidden="true">→</span></a>)}
+<Base title={h1} description={description} jsonLd={jsonLd}>
+  <section class="uh m-hero">
+    <div class="m-wide">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a></nav>
+      <p class="m-kicker" data-reveal><span class="n">Use cases</span><span class="rule"></span>Updated <time datetime={updated}>{human}</time></p>
+      <h1 class="m-h2" data-lines><span class="ln"><span>{h1}</span></span></h1>
+      <p class="m-lead" data-reveal style="--d:2">A social media API lets your code publish, schedule, reply and measure. With Siar, a <a href="/">unified social media API</a>, you can post to {OPEN_LIST} in one request. You can also let customers connect through your branded link, answer comments, read analytics and get every result in a signed webhook.</p>
+      <p class="sub" data-reveal style="--d:2">Add social publishing without building {WORDS[OPEN.length] ?? OPEN.length} integrations or going through Meta's review yourself. Pick the job below. Each page shows the request, the limits and the questions that come up.</p>
+      <div class="m-actions" data-reveal style="--d:3"><a class="pill ink" href={SIGNUP_URL}>Start with {FREE.posts} free posts</a><a class="pill" href="/docs/quickstart">Read the quickstart</a></div>
+      <p class="small muted note">No card needed. The API is on every plan, including the {FREE.posts} free posts to try.</p>
     </div>
   </section>
-  <Cta />
+
+  <section class="ub">
+    <div class="m-wide">
+      <div class="prose art">
+        <h2 id="who">Start from who you are</h2>
+        <p>Most buyers fall into one of four groups. If one fits you, start with its page. Every other page below still applies.</p>
+        <ul class="rows">
+          {routes.map((r) => (
+            <li><strong>{r.who}</strong> <span>{r.text}</span> <a href={href(r.slug)}>{r.anchor}</a></li>
+          ))}
+        </ul>
+
+        {GROUPS.map((g) => {
+          const items = USE_CASES.filter((u) => u.group === g.id);
+          return items.length ? (
+            <>
+              <h2 id={g.id}>{g.h}</h2>
+              {g.intro && <p>{g.intro}</p>}
+              <div class="cards">
+                {items.map((u) => (
+                  <article class="card">
+                    <h3><a href={href(u.slug)}>{cardTitle(u.slug, u.nav)}</a></h3>
+                    <p set:html={u.card} />
+                  </article>
+                ))}
+              </div>
+            </>
+          ) : null;
+        })}
+
+        <h2 id="shared">What every use case shares</h2>
+        <p>The same publishing engine sits under every page above. It works the same from the API and from the dashboard, because the dashboard is a client of the same API.</p>
+        <ul>
+          <li><strong>Checked before it's sent.</strong> Each network's limits on text, media, size, duration and aspect ratio are checked when you create the post. A bad request fails then with a <code>400</code> you can fix, not at 9 a.m.</li>
+          <li><strong>Sent once.</strong> Each network target is claimed once. Retries, restarts and double clicks cannot publish the same post again.</li>
+          <li><strong>The network's own words.</strong> If a network says no, you get its own code and message, plus a plain-English fix.</li>
+          <li><strong>The others still go out.</strong> If one network fails, the rest still publish. A retry re-sends only the networks that failed, and it does not use another post from your plan.</li>
+          <li><strong>A signed result.</strong> The <code>post.published</code> webhook carries each network's result, {RETRY_LINE} if your server is down.</li>
+        </ul>
+        <p>Networks still reject posts. Siar tells you which network said no and why; it does not promise that every post publishes. See <a href="/docs/posting">how posting works</a>.</p>
+
+        <NetworkTable mode="overview" />
+
+        <h2 id="limits">What these use cases don't cover yet</h2>
+        <ul>
+          <li><strong>DMs and comment-to-DM.</strong> {DM_LINE}</li>
+          <li><strong>Your own connect page.</strong> The connect link carries your name, logo and color. The page still says "Powered by Siar", runs on app.siaran.my and is in English.</li>
+          <li><strong>Client logins and approvals.</strong> Members see the whole organization. There is no approval step and no report export today.</li>
+          <li><strong>SDK and MCP installs.</strong> {TOOLING_LINE} Today, call the REST API with curl, fetch or requests.</li>
+          <li><strong>Idempotency keys.</strong> Not on post creation. If you resend a create call, you create a second post, so check by your own reference first.</li>
+        </ul>
+
+        <h2 id="price">One price for your organization, whatever you build</h2>
+        <p>Siar is priced per organization, not per connected account. You start with {FREE.posts} free posts to try, no card needed. Then plans start at {price('STARTER')} for {brands(STARTER.teams)} and {fmtInt(STARTER.posts)} posts.</p>
+        <p>{PRO.name} is {price('PRO')} for {brands(PRO.teams)} and {fmtInt(PRO.posts)} posts, with a {TRIAL_DAYS}-day trial. {BUSINESS.name} is {price('BUSINESS')} for {brands(BUSINESS.teams)} and {fmtInt(BUSINESS.posts)} posts.</p>
+        <p>No per-account fees. Each brand connects one account on every open network. A post sent to every connected network counts as one post. {PRICE_LOCK} <a href="/pricing">See pricing and quotas</a>.</p>
+
+        <div class="faqw"><Faq items={faq} /></div>
+      </div>
+    </div>
+  </section>
+  <UseCaseCta band />
 </Base>
+<style>
+  .uh { padding: clamp(32px, 6vw, 88px) 0 clamp(32px, 4vw, 56px); border-bottom: 1px solid var(--border); }
+  .uh h1 { max-width: 18em; }
+  .uh .m-lead { max-width: 46em; }
+  .uh .m-lead a { color: inherit; }
+  .uh .sub { max-width: 46em; color: var(--text-subtle); font-size: var(--fs-16); margin: 16px 0 0; }
+  .uh .m-actions { margin-top: 28px; }
+  .uh .note { margin: 12px 0 0; }
+  .crumbs { font-size: var(--fs-13); color: var(--text-subtle); margin: 0 0 20px; }
+  .crumbs a { color: inherit; text-decoration: none; }
+  .crumbs a:hover { color: var(--text); text-decoration: underline; }
+  .ub { padding: clamp(32px, 5vw, 64px) 0 clamp(56px, 8vw, 112px); }
+  .art { max-width: 820px; }
+  .art h2 { margin-top: 56px; scroll-margin-top: 96px; }
+  .rows { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--border); }
+  .rows li { padding: 16px 0; margin: 0; border-bottom: 1px solid var(--border); }
+  .rows strong { display: block; }
+  .rows span { display: block; color: var(--text-subtle); margin: 4px 0; }
+  .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .card { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-elevated); padding: 20px; }
+  .card h3 { margin: 0 0 8px; font-size: var(--fs-18); }
+  .card h3 a { color: var(--text); }
+  .card p { margin: 0; color: var(--text); font-size: var(--fs-15); }
+  .faqw { margin-top: 56px; }
+  @media (max-width: 720px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+</style>

@@ -1,0 +1,67 @@
+---
+/**
+ * What works on each open network today, for one use case. Status comes only from lib/status.ts and capabilities
+ * only from the adapters (through lib/usecases.ts). Networks that are not open are listed by their exact status
+ * line, never linked as usable.
+ */
+import NetIcon from '../NetIcon.astro';
+import { META } from '../../lib/networks';
+import { NETWORK_STATUS, STATUS_CHECKED } from '../../lib/status';
+import { OPEN, NOT_OPEN, netName, networkCell, type NetworkMode } from '../../lib/usecases';
+
+interface Props { mode: NetworkMode | 'overview'; heading?: string; id?: string }
+const { mode, id = 'networks' } = Astro.props;
+
+const HEADINGS: Record<string, string> = {
+  publish: 'Networks open today',
+  connect: 'Networks your customers can connect and post to today',
+  comments: 'Comments on each network today',
+  analytics: 'Analytics on each network today',
+  overview: 'What works on each network today',
+};
+const heading = Astro.props.heading ?? HEADINGS[mode];
+
+const head =
+  mode === 'comments' ? ['Network', 'Status', 'Comments'] :
+  mode === 'analytics' ? ['Network', 'Status', 'Analytics'] :
+  mode === 'overview' ? ['Network', 'Publish and schedule', 'Comments', 'Analytics'] :
+  ['Network', 'Status', 'What you can do today'];
+
+const rows = OPEN.map((t) => {
+  const s = NETWORK_STATUS[t];
+  const cells =
+    mode === 'comments' ? [s.label, networkCell(t, 'comments')] :
+    mode === 'analytics' ? [s.label, networkCell(t, 'analytics')] :
+    mode === 'overview' ? [s.label, networkCell(t, 'comments'), networkCell(t, 'analytics')] :
+    [s.label, s.today];
+  return { t, name: netName(t), href: `/${META[t].apiSlug}`, cells };
+});
+const partial = OPEN.filter((t) => NETWORK_STATUS[t].status === 'partial').map((t) => NETWORK_STATUS[t].line);
+const waiting = NOT_OPEN.map((t) => NETWORK_STATUS[t].line);
+const checked = new Date(`${STATUS_CHECKED}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+---
+<h2 id={id}>{heading}</h2>
+<p>Each use case works only where the network has opened to Siar. Status checked <time datetime={STATUS_CHECKED}>{checked}</time>.</p>
+<div class="table-wrap">
+  <table>
+    <thead><tr>{head.map((h) => <th scope="col">{h}</th>)}</tr></thead>
+    <tbody>
+      {rows.map((r) => (
+        <tr>
+          <th scope="row"><a class="nt-net" href={r.href}><NetIcon type={r.t} size={24} /><span>{r.name}</span></a></th>
+          {r.cells.map((c) => <td>{c}</td>)}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+<ul class="nt-lines small">
+  {[...partial, ...waiting].map((l) => <li>{l}</li>)}
+</ul>
+<p class="small"><a href="/platforms">Each network's status</a></p>
+<style>
+  .nt-net { display: inline-flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; font-weight: 500; white-space: nowrap; }
+  .nt-net:hover span { text-decoration: underline; }
+  .nt-lines { margin: 0 0 8px; padding-left: 18px; }
+  .nt-lines li { margin: 4px 0; }
+</style>
