@@ -72,7 +72,8 @@ Tokens live in `apps/web/src/styles.css`; the site mirrors them.
 - Product screenshots in `apps/site/public/shots/` come from the real dashboard: reseed, then
   `node apps/site/scripts/shots.mjs [scene…]` (dashboard :5290 + API :3290). The `flow` scene schedules a
   real post in the demo org, so reseed again afterwards if the demo must be clean. The home hero's `posts` shot is
-  16:9 (1536×864) beside the request panel (`home/ApiPanel.astro`); the pair must fit one laptop screen.
+  16:9 (1536×864). Under the hero, the labelled "Example" section shows a real request, error, webhook and retry
+  (never a fake "Posted" or "Live" panel; docs/seo/messaging.md).
   Walkthrough clips: reseed, `node apps/site/scripts/clips.mjs [clip…]` (also needs mocks :3299) → `public/clips/*.mp4`
   + posters; it connects Threads and schedules a post, so reseed after. Share card: `src/pages/og-card.astro` (noindex, not in
   the sitemap) → `node apps/site/scripts/og.mjs` → `public/og.png`, used by every page's og/twitter image.
