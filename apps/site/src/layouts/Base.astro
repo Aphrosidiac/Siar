@@ -5,6 +5,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { SITE_NAME, SITE_URL, DESCRIPTION } from '../config';
 import { orgLd, websiteLd } from '../lib/seo';
+import { FONT_FACES } from '../lib/fonts';
 
 interface Props {
   title: string;
@@ -50,6 +51,20 @@ const ld = [orgLd(), ...(path === '/' ? [websiteLd()] : []), ...jsonLd];
     <meta name="twitter:image" content={`${SITE_URL}/og.png`} />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
+    <script is:inline define:vars={{ FONT_FACES }}>
+      (function () {
+        var done = false, seen = false;
+        function go() { if (done) return; done = true; var st = document.createElement('style'); st.textContent = FONT_FACES; document.head.appendChild(st); }
+        try { seen = sessionStorage.getItem('siar-fonts') === '1'; } catch (e) {}
+        if (seen) go();
+        else {
+          try { new PerformanceObserver(function (l, o) { if (l.getEntriesByName('first-contentful-paint').length) { o.disconnect(); setTimeout(go, 0); } }).observe({ type: 'paint', buffered: true }); } catch (e) {}
+          setTimeout(go, 3000);
+        }
+        addEventListener('load', function () { try { sessionStorage.setItem('siar-fonts', '1'); } catch (e) {} });
+      })();
+    </script>
+    <noscript><style set:html={FONT_FACES}></style></noscript>
     <script is:inline>
       document.documentElement.classList.add('js');
       document.documentElement.dataset.theme = 'light';

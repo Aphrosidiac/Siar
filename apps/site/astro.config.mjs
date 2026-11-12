@@ -8,7 +8,8 @@ const domain = process.env.SITE_DOMAIN || 'siaran.my';
 export default defineConfig({
   site: `https://${domain}`,
   trailingSlash: 'never',
-  build: { format: 'directory' },
+  // Inline CSS: no render-blocking stylesheet requests on first paint (gate B, mobile FCP).
+  build: { format: 'directory', inlineStylesheets: 'always' },
   integrations: [
     mdx(),
     sitemap({

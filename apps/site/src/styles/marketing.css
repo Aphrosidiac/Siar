@@ -84,6 +84,8 @@ a.m-row:hover .a { transform: translateX(4px); }
 .ln > span { display: block; }
 .js [data-lines] .ln > span { transform: translateY(105%); transition: transform 1100ms var(--ease-out); transition-delay: calc(var(--d, 0) * 90ms + 80ms); }
 .js [data-lines].in .ln > span { transform: none; }
+/* The first screen paints at once: no entrance on hero text, so LCP is the first paint (docs/seo/ACCEPTANCE.md gate B). */
+.js .m-hero [data-reveal], .js .m-hero [data-lines] .ln > span { opacity: 1; transform: none; transition: none; }
 @media (prefers-reduced-motion: reduce) {
   .js [data-reveal], .js [data-lines] .ln > span { opacity: 1 !important; transform: none !important; }
 }

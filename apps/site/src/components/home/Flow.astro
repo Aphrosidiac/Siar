@@ -39,7 +39,7 @@ const poster = (s: Step) => `/clips/${s.clip}.webp`;
       <div class="frame-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url" data-url>{steps[0].url}</span></div>
       <div class="view">
         {steps.map((s, i) => (
-          <video class:list={[{ on: i === 0 }]} data-clip={i} data-url={s.url} poster={poster(s)} muted playsinline preload={i === 0 ? 'auto' : 'metadata'} aria-label={`${s.tag}: a recording of the Siar dashboard`}>
+          <video class:list={[{ on: i === 0 }]} data-clip={i} data-url={s.url} data-poster={poster(s)} muted playsinline preload="none" aria-label={`${s.tag}: a recording of the Siar dashboard`}>
             <source src={src(s)} type="video/mp4" />
           </video>
         ))}
@@ -54,7 +54,10 @@ const poster = (s: Step) => `/clips/${s.clip}.webp`;
     const txts = [...root.querySelectorAll<HTMLElement>('[data-txt]')];
     const clips = [...root.querySelectorAll<HTMLVideoElement>('[data-clip]')];
     const url = root.querySelector<HTMLElement>('[data-url]')!;
-    let cur = 0, visible = false, held = false, raf = 0, next = 0;
+    let cur = 0, visible = false, held = false, raf = 0, next = 0, awake = false;
+    // Posters and clips load only when the player nears the viewport, so they never compete with the
+    // first paint (docs/seo/ACCEPTANCE.md gate B).
+    const wake = () => { if (awake) return; awake = true; clips.forEach((v) => { if (v.dataset.poster) v.poster = v.dataset.poster; }); clips[cur].preload = 'auto'; clips[cur].load(); };
     const running = () => visible && !still;
     // the active tab's line follows the clip
     const tick = () => {
@@ -74,7 +77,7 @@ const poster = (s: Step) => `/clips/${s.clip}.webp`;
       v.currentTime = 0;
       if (running()) v.play().catch(() => {});
       // warm the next clip
-      const n = clips[(cur + 1) % clips.length]; if (n.preload !== 'auto') { n.preload = 'auto'; n.load(); }
+      const n = clips[(cur + 1) % clips.length]; if (awake && n.preload !== 'auto') { n.preload = 'auto'; n.load(); }
     };
     const advance = () => { if (running() && !held) { show(cur + 1); sync(); } };
     clips.forEach((v, k) => v.addEventListener('ended', () => { if (k === cur) next = window.setTimeout(advance, 500); }));
@@ -93,13 +96,14 @@ const poster = (s: Step) => `/clips/${s.clip}.webp`;
     // only a mouse holds the step: a tap fires pointerenter with no pointerleave to follow
     root.querySelector('.panel')!.addEventListener('pointerenter', (e) => { if ((e as PointerEvent).pointerType === 'mouse') held = true; });
     root.querySelector('.panel')!.addEventListener('pointerleave', () => { if (!held) return; held = false; if (clips[cur].ended) advance(); });
-    new IntersectionObserver(([e]) => { visible = e.isIntersecting; sync(); }, { threshold: 0.35 }).observe(root);
+    new IntersectionObserver(([e], o) => { if (e.isIntersecting) { wake(); o.disconnect(); } }, { rootMargin: '600px 0px' }).observe(root);
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) wake(); sync(); }, { threshold: 0.35 }).observe(root);
     show(0);
   });
 </script>
 <style>
   .tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: clamp(28px, 3.5vw, 44px); }
-  .tabs button { display: flex; flex-direction: column; gap: 12px; padding: 0 0 4px; border: 0; background: none; font: inherit; text-align: left; cursor: pointer; color: var(--text-faint); transition: color 300ms; }
+  .tabs button { display: flex; flex-direction: column; gap: 12px; padding: 0 0 4px; border: 0; background: none; font: inherit; text-align: left; cursor: pointer; color: var(--text-subtle); transition: color 300ms; }
   .tabs button:hover, .tabs button[aria-selected='true'], .tabs button.done { color: var(--text); }
   .bar { position: relative; height: 2px; border-radius: 2px; background: var(--border); overflow: hidden; }
   .bar i { position: absolute; inset: 0; background: var(--text); transform: scaleX(var(--p, 0)); transform-origin: left; }
@@ -110,7 +114,7 @@ const poster = (s: Step) => `/clips/${s.clip}.webp`;
   .copy { display: grid; }
   .txt { grid-area: 1 / 1; opacity: 0; transform: translateY(10px); transition: opacity 250ms, transform 450ms var(--ease-out); visibility: hidden; }
   .txt.on { opacity: 1; transform: none; visibility: visible; transition-delay: 80ms; }
-  .step { font-family: var(--mono); font-size: var(--fs-12); line-height: 16px; letter-spacing: .06em; color: var(--text-faint); margin: 0 0 20px; }
+  .step { font-family: var(--mono); font-size: var(--fs-12); line-height: 16px; letter-spacing: .06em; color: var(--text-subtle); margin: 0 0 20px; }
   .step span { color: var(--text); }
   .copy .m-h3 { font-size: clamp(26px, 2.5vw, 36px); }
   .body { font-size: var(--fs-16); line-height: 26px; color: var(--text-muted); margin: 0; }
