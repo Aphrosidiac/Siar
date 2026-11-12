@@ -33,8 +33,13 @@ the live part.
     pages first (`/guides/social-media-api-pricing`, `/features`, the compare pages); the daily quota is about 10.
 - **IndexNow** (Bing, Yandex, Seznam, Naver; Bing also feeds ChatGPT search and Copilot):
   `node apps/site/scripts/indexnow.mjs` sent all 141 URLs and got 200. Run it after every site deploy.
-- **Bing Webmaster Tools:** not set up yet. It needs Fakhrul's sign-in (Google, rikaidrawings). Then import
-  siaran.my from Search Console, submit the sitemap, and turn on the AI Performance report.
+- **Bing Webmaster Tools:** set up on 12 Nov, under the rikaidrawings sign-in alongside the other sites.
+  - siaran.my was added by hand, not imported from Search Console, to avoid granting Bing access to the Google
+    account.
+  - It was verified by a DNS CNAME, `90dda2883698abe5f122475540e0b84c` → `verify.bing.com`, unproxied. Keep that
+    record.
+  - `https://siaran.my/sitemap-index.xml` is submitted (status: Processing).
+  - The AI Performance report (Copilot and partner citations) is on, with 0 citations so far.
 
 ## Still open
 
