@@ -1,0 +1,133 @@
+---
+import Article from '../../layouts/Article.astro';
+import ScenarioTable from '../../components/guides/ScenarioTable.astro';
+import Sourced from '../../components/guides/Sourced.astro';
+import Closing from '../../components/guides/Closing.astro';
+import Related from '../../components/guides/Related.astro';
+import { guide } from '../../components/guides/guides';
+import { SCENARIOS, VENDORS, siarCell, against, usd, FACTS, RIVALS_CHECKED_HUMAN, type VendorId } from '../../data/pricing-scenarios';
+import { PLANS, money, fmtInt, fmtMicro, RESOURCE_LIMITS, X_PRICES, PRICE_LOCK } from '../../lib/plans';
+
+const g = guide('social-media-api-pricing');
+const big = SCENARIOS[0];
+const bigSiar = siarCell(big);
+const perUnit = big.cells.filter((c) => c.usd !== null && ['profile', 'account'].includes(VENDORS[c.vendor].model) && c.vendor !== 'socialapi');
+const lo = Math.min(...perUnit.map((c) => c.usd!));
+const hi = Math.max(...perUnit.map((c) => c.usd!));
+const B = (t: 'STARTER' | 'PRO' | 'BUSINESS') => money(t, 'MONTHLY', 'usd');
+const R = (t: 'STARTER' | 'PRO' | 'BUSINESS') => money(t, 'MONTHLY', 'myr');
+
+const cheaper = (i: number) => {
+  const s = SCENARIOS[i];
+  const sp = siarCell(s).usd;
+  const names = (want: string) => s.cells.filter((c) => against(c, sp) === want).map((c) => VENDORS[c.vendor].name);
+  return { s, sp, cheaper: names('Cheaper than Siar'), same: [...names('Same as Siar'), ...names('About the same as Siar'), ...names('About the same as Siar, or more')], dearer: names('Costs more than Siar'), either: names('Either side of Siar') };
+};
+const comparePages = new Set(Object.keys(import.meta.glob('../compare/*.astro')).map((f) => `/compare/${f.split('/').pop()!.replace('.astro', '')}`));
+const compares = Object.values(VENDORS).filter((v) => v.page && comparePages.has(v.page));
+const list = (xs: string[]) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`);
+const models: { unit: string; vendors: VendorId[]; grows: string }[] = [
+  { unit: 'Per profile', vendors: ['ayrshare', 'uploadpost', 'postproxy'], grows: 'Each customer, brand or location you add. A profile holds one account per network.' },
+  { unit: 'Per connected account', vendors: ['zernio', 'woopsocial'], grows: 'Each social account connected, so a brand on four networks counts four times.' },
+  { unit: 'Per delivered post', vendors: ['outstand', 'postforme'], grows: 'Posting volume. Outstand counts one post to three accounts as three.' },
+  { unit: 'Per organization, fenced by brands', vendors: ['postwire', 'socialapi'], grows: 'Moving to a plan with more brands. Siar bills this way too.' },
+];
+const faq = [
+  { q: 'Which social media API costs least?', a: `It depends on the number of brands. In these scenarios (checked ${RIVALS_CHECKED_HUMAN}), Post for Me, Zernio and Postproxy cost least for one brand; Post for Me, Outstand, PostWire and SocialAPI.ai for 10 brands; Post for Me and Outstand for 50; and Siar Business (${B('BUSINESS')} a month) or Post for Me (from $150) for 500.` },
+  { q: 'Does Siar cost less than other social media APIs?', a: `Not at 1, 10 or 50 brands. Several vendors list lower prices there. At 500 brands, Siar Business is ${B('BUSINESS')} a month (${R('BUSINESS')} in Malaysia) for unlimited brands and ${fmtInt(PLANS.BUSINESS.posts)} posts, and only Post for Me lists a similar price.` },
+  { q: 'Do failed posts count against a Siar plan?', a: `A post counts once, when it is scheduled, however many networks it goes to. Retrying a failed post (up to ${RESOURCE_LIMITS.maxRetries} times) does not count again, and drafts do not count.` },
+  { q: 'Does Siar limit posts?', a: `Yes. Starter allows ${fmtInt(PLANS.STARTER.posts)} posts a month, Pro ${fmtInt(PLANS.PRO.posts)} and Business ${fmtInt(PLANS.BUSINESS.posts)}. Several per-profile and per-account APIs sell unlimited posts.` },
+];
+---
+<Article
+  metaTitle="Social media API pricing, compared at 500 brands | Siar"
+  h1={g.title}
+  description="How social media APIs bill: per profile, per account, per delivery or per organization. Dated price scenarios at 500, 50, 10 and 1 brands, with sources."
+  kicker="Guide"
+  updated="2026-11-12"
+  crumbs={[{ name: 'Guides', href: '/guides' }, { name: 'Social media API pricing', href: '/guides/social-media-api-pricing' }]}
+  lead={`Social media APIs bill per profile, per connected account, per delivered post or per organization, and the unit decides the bill more than the list price. At ${fmtInt(big.brands)} customer brands, Siar, a <a href="/">unified social media API</a> priced per organization, is ${bigSiar.price} a month. Per-profile and per-account APIs list ${usd(lo)} to ${usd(hi)}.`}
+  faq={faq}
+  wide
+  cta={false}
+>
+  <p>Below are four dated scenarios built from each vendor's own price list, starting with the largest. Every rival price links to its source and was checked on {RIVALS_CHECKED_HUMAN}. Siar's prices come from its <a href="/pricing">price list</a>: {B('STARTER')}, {B('PRO')} and {B('BUSINESS')} a month ({R('STARTER')}, {R('PRO')} and {R('BUSINESS')} in Malaysia). {PRICE_LOCK}</p>
+
+  <h2 id="units">The four billing units</h2>
+  <p>Every social media API sells the same thing: a request goes in, posts come out on the networks. What differs is what they count.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Unit</th><th>Who bills this way</th><th>What makes the bill grow</th></tr></thead>
+      <tbody>
+        {models.map((m) => (
+          <tr>
+            <td>{m.unit}</td>
+            <td>{m.vendors.map((v, i) => <>{i > 0 && ', '}<a href={VENDORS[v].url} rel="nofollow noopener" target="_blank">{VENDORS[v].name}</a></>)}</td>
+            <td class="small">{m.grows}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>Siar bills per organization. A brand is a team in the API; each brand connects one account on every open network. Starter has {PLANS.STARTER.teams} brand, Pro {PLANS.PRO.teams} and Business unlimited. A post sent to every connected network counts as one post.</p>
+
+  {SCENARIOS.map((s, i) => {
+    const c = cheaper(i);
+    const sc = siarCell(s);
+    return (
+      <>
+        <h2 id={s.id}>{fmtInt(s.brands)} {s.brands === 1 ? 'brand' : 'brands'}: {s.title.charAt(0).toLowerCase() + s.title.slice(1)}</h2>
+        <ScenarioTable s={s} />
+        <p>
+          Siar fits this on {sc.plan} at {sc.price} a month ({sc.myr} in Malaysia).{' '}
+          {c.cheaper.length ? <>Cheaper here: {list(c.cheaper)}.{' '}</> : <>No rival with a listed price is cheaper here.{' '}</>}
+          {c.either.length ? <>{list(c.either)} can land either side, because its page does not say whether a post to four accounts counts once or four times.{' '}</> : null}
+          {c.same.length ? <>About the same: {list(c.same)}.{' '}</> : null}
+          {c.dearer.length ? <>Costs more: {list(c.dearer)}.</> : null}
+        </p>
+      </>
+    );
+  })}
+
+  <h2 id="where-cheaper">Where each vendor is cheaper</h2>
+  <ul>
+    <li><strong>One brand:</strong> Post for Me, Zernio (free for 2 accounts) and Postproxy list less than Siar Starter at {B('STARTER')}.</li>
+    <li><strong>10 to 50 brands:</strong> per-delivery and per-brand APIs win. Outstand, PostWire, SocialAPI.ai, WoopSocial and Upload-Post all list less than Siar in both scenarios, because Siar Pro stops at {PLANS.PRO.teams} brands and the next step is Business at {B('BUSINESS')}.</li>
+    <li><strong>Above about 50 brands:</strong> Siar Business is a flat {B('BUSINESS')} for unlimited brands and {fmtInt(PLANS.BUSINESS.posts)} posts. Per-profile and per-account bills keep growing with each customer.</li>
+    <li><strong>Very high post volume:</strong> APIs with unlimited posts, such as Ayrshare, Zernio and Upload-Post, may suit you better than Siar's monthly post cap.</li>
+  </ul>
+
+  {compares.length ? <p>Side by side, with the network, webhook and connect differences: {compares.map((v, i) => <>{i > 0 && (i === compares.length - 1 ? ' and ' : ', ')}<a href={v.page}>Siar compared with {v.name}</a></>)}. All of them are on the <a href="/compare">social media API comparison page</a>.</p> : null}
+
+  <h2 id="retries">Do retries and failed posts cost you?</h2>
+  <p>On a per-delivery plan they can. Outstand's price list says {FACTS.outstandFailed.text} <Sourced url={FACTS.outstandFailed.url} label="Outstand pricing.md" /></p>
+  <p>On Siar a post counts once, when it is scheduled, however many networks it goes to. If one network fails, the others still publish. Retrying re-sends only the networks that failed, up to {RESOURCE_LIMITS.maxRetries} times, and the retry does not count again (<a href="/how-publishing-works#errors">what happens when a network says no</a>). Drafts do not count. How Siar keeps one post from being sent twice is in <a href="/guides/idempotent-social-media-posting">how to stop duplicate posts when retrying</a>.</p>
+
+  <h2 id="caps">What a low price can hide</h2>
+  <ul>
+    <li><strong>Post caps.</strong> Siar caps posts: {fmtInt(PLANS.STARTER.posts)} a month on Starter, {fmtInt(PLANS.PRO.posts)} on Pro, {fmtInt(PLANS.BUSINESS.posts)} on Business. {FACTS.ayrshareUnlimited.text} <Sourced url={FACTS.ayrshareUnlimited.url} label="Ayrshare pricing" /></li>
+    <li><strong>One account per network per brand.</strong> On Siar, a client with two Facebook Pages uses two brands. Upload-Post, Postproxy and SocialAPI.ai have the same rule for their profiles, groups and brands.</li>
+    <li><strong>Free starts.</strong> Siar gives {PLANS.FREE.posts} free posts to try, once, with no card. Zernio is free for 2 accounts and WoopSocial for 2 accounts, every month.</li>
+    <li><strong>Networks.</strong> A lower price for fewer open networks is not the same product. Check each vendor's list against the networks you need. Siar's are on <a href="/platforms">which networks are open today</a>.</li>
+  </ul>
+
+  <h2 id="x">What the networks charge</h2>
+  <p>Facebook, Instagram, Threads, LinkedIn, Bluesky, Mastodon, Discord and Slack charge nothing to publish through their APIs. X bills API usage per call (<a href={FACTS.xPricing.url} rel="nofollow noopener" target="_blank">X API pricing</a>), so every vendor passes that cost on in some way, and the scenarios above leave it out. On Siar, X usage runs through Siar's X app and is billed at X's own USD prices from a prepaid credit: {fmtMicro(X_PRICES.TWITTER_CONTENT_CREATE)} for a post and {fmtMicro(X_PRICES.TWITTER_CONTENT_CREATE_WITH_URL)} for a post that contains a link.</p>
+
+  <h2 id="method">How the scenarios were built</h2>
+  <ul>
+    <li>Each brand connects 4 accounts on 4 different networks, and every post goes to all 4.</li>
+    <li>Monthly billing, US dollar list prices, no discounts, no add-ons, X left out.</li>
+    <li>Where a vendor's page gives a formula, the price is that formula applied. Where its own worked example exists, it is quoted next to the result.</li>
+    <li>Where a page does not say whether a post to four accounts counts once or four times, both prices are shown.</li>
+  </ul>
+
+  <Closing kind="api" title="Price your own volume" text={`Try Siar with ${PLANS.FREE.posts} free posts, no card. The API is on every plan.`} />
+  <Related links={[
+    { href: '/pricing', text: 'Siar plans and prices', note: 'brands, posts and caps per plan' },
+    { href: '/use-cases/multi-tenant-social-media-api', text: 'Social media API for SaaS products', note: 'one brand per customer' },
+    { href: '/for-agencies', text: 'Social media tools for agencies, priced per organization' },
+    { href: '/guides/idempotent-social-media-posting', text: 'How to stop duplicate posts when retrying' },
+    { href: '/guides', text: 'All social media API guides' },
+  ]} />
+</Article>

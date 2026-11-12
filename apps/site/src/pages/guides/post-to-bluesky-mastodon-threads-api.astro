@@ -1,0 +1,141 @@
+---
+import Article from '../../layouts/Article.astro';
+import CodeBlock from '../../components/CodeBlock.astro';
+import CodeTabs from '../../components/CodeTabs.astro';
+import NetIcon from '../../components/NetIcon.astro';
+import Closing from '../../components/guides/Closing.astro';
+import Related from '../../components/guides/Related.astro';
+import { guide } from '../../components/guides/guides';
+import { createTabs, pretty } from '../../components/guides/requests';
+import { NETWORKS, mb, seconds, type NetworkType } from '../../lib/networks';
+import { NETWORK_STATUS, STATUS_CHECKED } from '../../lib/status';
+import { CAP_COLUMNS, dailyPostCaps } from '../../lib/plans';
+
+const g = guide('post-to-bluesky-mastodon-threads-api');
+const TYPES: NetworkType[] = ['BLUESKY', 'MASTODON', 'THREADS'];
+const nets = TYPES.map((t) => NETWORKS.find((n) => n.type === t)!);
+const lim = (t: NetworkType) => NETWORKS.find((n) => n.type === t)!.adapter.limits;
+const checked = new Date(`${STATUS_CHECKED}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+
+const body = {
+  teamId: 'TEAM_ID',
+  title: 'Docs update',
+  postDate: '2026-11-20T01:00:00.000Z',
+  status: 'SCHEDULED',
+  socialAccountTypes: ['BLUESKY', 'MASTODON', 'THREADS'],
+  data: {
+    BLUESKY: { text: 'The API docs now cover webhooks end to end.', externalUrl: 'https://example.com/docs/webhooks', externalTitle: 'Webhooks', tags: ['api'] },
+    MASTODON: { text: 'The API docs now cover webhooks end to end: https://example.com/docs/webhooks #api', privacy: 'PUBLIC' },
+    THREADS: { text: 'The API docs now cover webhooks end to end.', linkAttachment: 'https://example.com/docs/webhooks', topicTag: 'api' },
+  },
+};
+
+const posted = pretty({
+  id: 'POST_ID',
+  status: 'POSTED',
+  postedDate: '2026-11-20T01:00:06.000Z',
+  errors: null,
+  externalData: {
+    BLUESKY: { id: 'EXTERNAL_ID', permalink: 'PERMALINK', status: 'POSTED' },
+    MASTODON: { id: 'EXTERNAL_ID', permalink: 'PERMALINK', status: 'POSTED' },
+    THREADS: { id: 'EXTERNAL_ID', permalink: 'PERMALINK', status: 'POSTED' },
+  },
+});
+
+const fields: Record<string, { name: string; what: string }[]> = {
+  BLUESKY: [
+    { name: 'externalUrl, externalTitle, externalDescription', what: 'A link card under the post. A card and media cannot be combined.' },
+    { name: 'tags', what: 'Up to 8 tags, each up to 64 characters.' },
+    { name: 'quoteUri', what: 'Quote another post by its at:// URI.' },
+    { name: 'labels', what: 'Self-labels for adult or graphic content.' },
+    { name: 'videoAlt', what: 'Alt text for a video.' },
+  ],
+  MASTODON: [
+    { name: 'privacy', what: 'PUBLIC, UNLISTED, PRIVATE or DIRECT.' },
+    { name: 'spoiler', what: 'A content warning shown before the text, up to 500 characters.' },
+    { name: 'uploadIds', what: 'Images or video, uploaded once to Siar.' },
+  ],
+  THREADS: [
+    { name: 'replyControl', what: 'Who can reply: everyone, accounts you follow, mentioned only, and more.' },
+    { name: 'topicTag', what: 'One topic tag.' },
+    { name: 'linkAttachment', what: 'A link preview attached to a text post.' },
+    { name: 'poll', what: 'A poll with two to four options of up to 25 characters.' },
+    { name: 'mediaItems', what: 'Images or video, each with optional alt text.' },
+  ],
+};
+const connect: Record<string, string> = {
+  BLUESKY: 'Sign in with your handle and an app password made in Bluesky’s settings.',
+  MASTODON: 'Sign in on any Mastodon server. Siar registers itself on a server the first time someone connects from it.',
+  THREADS: 'Sign in with Threads through Siar’s Meta app, which passed Meta’s App Review on 27 October 2026.',
+};
+
+const faq = [
+  { q: 'Can I post to Bluesky, Mastodon and Threads with one API call?', a: 'Yes. Name all three in socialAccountTypes and give each an entry under data. Siar publishes to the brand’s connected account on each and reports each result.' },
+  { q: 'What are the character limits?', a: `Siar checks Bluesky at ${lim('BLUESKY').textMax} characters, Mastodon at ${lim('MASTODON').textMax} (the default; some servers allow more) and Threads at ${lim('THREADS').textMax}, where an emoji counts as its byte length.` },
+  { q: 'Does Mastodon work on any server?', a: 'Yes. Connect an account on any Mastodon server. Siar registers its app on that server the first time someone connects from it.' },
+];
+---
+<Article
+  metaTitle="Post to Bluesky, Mastodon and Threads by API | Siar"
+  h1={g.title}
+  description="Post to Bluesky, Mastodon and Threads with one API request: per-network text, link cards, content warnings and reply controls, checked before it is sent."
+  kicker="Guide"
+  updated="2026-11-12"
+  crumbs={[{ name: 'Guides', href: '/guides' }, { name: 'Bluesky, Mastodon and Threads', href: '/guides/post-to-bluesky-mastodon-threads-api' }]}
+  lead={`To post to Bluesky, Mastodon and Threads at once, send one request with an entry for each network. Siar, a <a href="/">unified social media API</a>, checks each network's limits before accepting it: ${lim('BLUESKY').textMax} characters on Bluesky, ${lim('MASTODON').textMax} on Mastodon's default server, ${lim('THREADS').textMax} on Threads. Then it publishes to each account and reports each result.`}
+  faq={faq}
+  actions="quickstart"
+  cta={false}
+>
+  <p>{nets.map((n) => NETWORK_STATUS[n.type].line).join(' ')} <span class="muted">Checked {checked}.</span></p>
+
+  <h2 id="request">One request, three networks</h2>
+  <p>Send <code>POST /api/v1/post/</code> with your key in the <code>x-api-key</code> header. Each network gets its own text, because the limits differ.</p>
+  <CodeTabs tabs={createTabs(body)} />
+  <CodeBlock title="Example: GET /api/v1/post/{id} once all three posted (fields trimmed)" lang="json" code={posted} />
+
+  <h2 id="fields">What each network takes</h2>
+  {nets.map((n) => {
+    const l = n.adapter.limits;
+    return (
+      <>
+        <h3 id={n.slug}><span class="nn"><NetIcon type={n.type} size={28} />{n.name}</span></h3>
+        <p>{connect[n.type]} Text up to {l.textMax} characters. Up to {l.media.maxItems} media items{l.media.image ? <>, images up to {mb(l.media.image.maxBytes)}</> : null}{l.media.video ? <>, video up to {seconds(l.media.video.maxSeconds)}</> : null}.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Field</th><th>What it does</th></tr></thead>
+            <tbody>{fields[n.type].map((f) => <tr><td><code>{f.name}</code></td><td class="small">{f.what}</td></tr>)}</tbody>
+          </table>
+        </div>
+        <p class="small">Every field, with types: <a href={`/${n.apiSlug}`}>{n.name} API reference on Siar</a>.</p>
+      </>
+    );
+  })}
+
+  <h2 id="media">Images and video</h2>
+  <p>Upload a file once with <code>POST /api/v1/upload/</code>, then put its id in each network's <code>uploadIds</code> or <code>mediaItems</code>. Siar checks type, size and count against each network before it accepts the post. A Bluesky post carries either images or one video, not both.</p>
+
+  <h2 id="caps">Daily posts per account</h2>
+  <p>Siar caps posts per connected account per day, to keep accounts in good standing with each network.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Network</th>{CAP_COLUMNS.map((c) => <th>{c.label}</th>)}</tr></thead>
+      <tbody>{nets.map((n) => <tr><td>{n.name}</td>{CAP_COLUMNS.map((c) => <td>{dailyPostCaps(c.tier)[n.type]}</td>)}</tr>)}</tbody>
+    </table>
+  </div>
+
+  <h2 id="failures">When a network says no</h2>
+  <p>The other two still publish. The failed one keeps the network's own code and message with a plain-English fix, and a retry re-sends only that network. The <a href="/guides/post-to-multiple-social-networks-api">multi-network posting guide</a> shows the response, and each network's error codes are listed on its page.</p>
+
+  <Closing kind="api" title="Post to all three today" text="Bluesky, Mastodon and Threads are open today. 20 free posts to try, no card." />
+  <Related links={[
+    { href: '/bluesky-api', text: 'Bluesky API on Siar' },
+    { href: '/mastodon-api', text: 'Mastodon API on Siar' },
+    { href: '/threads-api', text: 'Threads API on Siar' },
+    { href: '/guides/n8n-threads-posting', text: 'Post to Threads from n8n' },
+    { href: '/guides', text: 'All social media API guides' },
+  ]} />
+</Article>
+<style>
+  .nn { display: inline-flex; align-items: center; gap: 10px; }
+</style>

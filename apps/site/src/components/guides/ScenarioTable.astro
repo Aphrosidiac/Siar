@@ -1,0 +1,35 @@
+---
+/**
+ * One dated pricing scenario: Siar's price from the plan table, each rival's from its own price list,
+ * marked against Siar. Rows are alphabetical, so the table ranks no one (messaging.md §10).
+ */
+import { VENDORS, siarCell, cellLabel, against, RIVALS_CHECKED, RIVALS_CHECKED_HUMAN, type Scenario } from '../../data/pricing-scenarios';
+import { fmtInt, brandsLabel } from '../../lib/plans';
+interface Props { s: Scenario; heading?: boolean }
+const { s } = Astro.props;
+const siar = siarCell(s);
+type Row = { name: string; url: string; price: string; how: string; vs: string; siar?: boolean };
+const rows: Row[] = [
+  ...s.cells.map((c) => ({ name: VENDORS[c.vendor].name, url: VENDORS[c.vendor].url, price: cellLabel(c), how: c.how, vs: against(c, siar.usd) })),
+  { name: 'Siar', url: '/pricing', price: siar.price, how: `${siar.plan}: ${brandsLabel(siar.brands).toLowerCase()}, ${fmtInt(siar.posts)} posts a month.`, vs: '', siar: true },
+].sort((a, b) => a.name.localeCompare(b.name, 'en'));
+---
+<p class="small muted">Monthly list prices in US dollars, billed monthly. {fmtInt(s.brands)} {s.brands === 1 ? 'brand' : 'brands'}, {fmtInt(s.accounts)} connected accounts, {fmtInt(s.posts)} posts a month, each sent to all of its brand’s accounts ({fmtInt(s.posts * (s.accounts / s.brands))} deliveries). Rival prices checked <time datetime={RIVALS_CHECKED}>{RIVALS_CHECKED_HUMAN}</time>; X costs left out.</p>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Vendor</th><th>Monthly</th><th>How it adds up</th><th>Against Siar</th></tr></thead>
+    <tbody>
+      {rows.map((r) => (
+        <tr class:list={{ me: r.siar }}>
+          <td><a href={r.url} rel={r.siar ? undefined : 'nofollow noopener'} target={r.siar ? undefined : '_blank'}>{r.name}</a></td>
+          <td>{r.price}</td>
+          <td class="small">{r.how}</td>
+          <td class="small">{r.vs}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+<style>
+  tr.me td { font-weight: 600; }
+</style>

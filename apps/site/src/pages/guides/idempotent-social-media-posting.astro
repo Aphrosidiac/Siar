@@ -1,0 +1,147 @@
+---
+import Article from '../../layouts/Article.astro';
+import CodeBlock from '../../components/CodeBlock.astro';
+import Sourced from '../../components/guides/Sourced.astro';
+import Closing from '../../components/guides/Closing.astro';
+import Related from '../../components/guides/Related.astro';
+import { guide } from '../../components/guides/guides';
+import { RESOURCE_LIMITS } from '../../lib/plans';
+import { API_BASE } from '../../config';
+
+const g = guide('idempotent-social-media-posting');
+
+const lookFirst = `# Example: check by your own reference before creating a post.
+REF="release-v1.4.0"
+
+code=$(curl -s -o /dev/null -w '%{http_code}' \\
+  -H "x-api-key: $SIAR_API_KEY" \\
+  "${API_BASE}/post/reference-key/$REF")
+
+if [ "$code" = "404" ]; then
+  curl -s -X POST "${API_BASE}/post/" \\
+    -H "x-api-key: $SIAR_API_KEY" \\
+    -H "content-type: application/json" \\
+    -d '{
+      "teamId": "TEAM_ID",
+      "title": "Release v1.4.0",
+      "referenceKey": "'"$REF"'",
+      "postDate": "2026-11-12T09:00:00.000Z",
+      "status": "SCHEDULED",
+      "socialAccountTypes": ["MASTODON", "BLUESKY"],
+      "data": {
+        "MASTODON": { "text": "v1.4.0 is out." },
+        "BLUESKY": { "text": "v1.4.0 is out." }
+      }
+    }'
+fi`;
+
+const conflict = `HTTP/1.1 409 Conflict
+content-type: application/json
+
+{
+  "statusCode": 409,
+  "message": "A post with referenceKey \\"release-v1.4.0\\" already exists."
+}`;
+
+const interrupted = `{
+  "MASTODON": {
+    "code": "UNKNOWN",
+    "errorMessage": "Publishing was interrupted and the result could not be confirmed. Check the account before retrying.",
+    "retryability": "unknown"
+  }
+}`;
+
+const faq = [
+  { q: 'Does Siar support idempotency keys?', a: 'Not on post creation. There is no Idempotency-Key header, and resending a create call without a reference key creates a second post. Each network target in a post is claimed once, and an interrupted send is checked against the account before anything is re-sent.' },
+  { q: 'What does referenceKey do?', a: 'It is an optional key of up to 128 characters, unique in your organization. A second create with the same key is refused with 409 Conflict, and GET /api/v1/post/reference-key/{referenceKey} returns the post that has it. It does not replay the first response.' },
+  { q: 'Can retrying a failed post publish it twice?', a: `No. POST /api/v1/post/{id}/retry sends again only the networks that ended in error, up to ${RESOURCE_LIMITS.maxRetries} times. Networks that already posted are left alone.` },
+  { q: 'What happens if Siar stops in the middle of a send?', a: 'After 20 minutes, Siar reads the account’s recent posts and looks for one that starts with the same text. If it finds it, the target is marked posted. If the network gives no way to look, the target ends as “could not be confirmed” instead of being sent again.' },
+];
+---
+<Article
+  metaTitle="Duplicate posts when retrying a social media API | Siar"
+  h1={g.title}
+  description="Why social media APIs post twice on retry, how idempotency and reference keys help, and what Siar does: no client key on create, one claim per network target."
+  kicker="Guide"
+  updated="2026-11-12"
+  crumbs={[{ name: 'Guides', href: '/guides' }, { name: 'Duplicate posts on retry', href: '/guides/idempotent-social-media-posting' }]}
+  lead={`Duplicates come from retrying a create call whose answer you never saw, or from a worker that dies mid-send. Siar, a <a href="/">unified social media API</a>, has no client idempotency key on post creation: resend a create call and you make a second post. Check by your own reference first. After that, Siar claims each network target once.`}
+  faq={faq}
+  actions="quickstart"
+  cta={false}
+>
+  <h2 id="where">Where duplicate posts come from</h2>
+  <ol>
+    <li><strong>Your retry.</strong> The create request times out or the connection drops. You cannot tell whether the API stored the post, so you send it again.</li>
+    <li><strong>The API's retry.</strong> A worker sends the post to the network, then crashes before it saves the result. When the job runs again, it does not know the post is already live.</li>
+    <li><strong>Two senders.</strong> A double click, two cron jobs, or a queue that delivers the same job twice.</li>
+  </ol>
+  <p>The first is yours to guard. The second and third are the API's.</p>
+
+  <h2 id="approaches">Three ways an API can guard against them</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Approach</th><th>How it works</th><th>What it covers</th></tr></thead>
+      <tbody>
+        <tr><td>Client idempotency key</td><td class="small">You send a unique key with the create call, usually an <code>Idempotency-Key</code> header (<a href="https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/" rel="nofollow noopener" target="_blank">IETF draft</a>). A repeat with the same key gets the first answer back.</td><td class="small">Your retry</td></tr>
+        <tr><td>Unique reference key</td><td class="small">You store your own id on the post. The API refuses a second post with the same id and lets you look it up.</td><td class="small">Your retry, if you look before you resend</td></tr>
+        <tr><td>Server-side claim</td><td class="small">The API marks each send as taken before it calls the network, and checks the account when a send was cut off.</td><td class="small">The API's retry and two senders</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Some APIs offer a client key. PostWire, for example, says "An identical post is refused for two minutes, or 24 hours with your own idempotency_key" <Sourced url="https://postwire.io/" label="PostWire home page" />.</p>
+
+  <h2 id="siar-no-key">What Siar does not do</h2>
+  <ul>
+    <li>Siar has no client idempotency key on post creation, and no <code>Idempotency-Key</code> header.</li>
+    <li>Resending a create call without a reference key creates a second post.</li>
+    <li>Siar does not refuse a post because its text matches an earlier one.</li>
+  </ul>
+
+  <h2 id="reference-key">Check by your own reference first</h2>
+  <p><code>POST /api/v1/post/</code> takes an optional <code>referenceKey</code> of up to 128 characters, unique in your organization. Use your own id: a release tag, an order number, a row id.</p>
+  <ol>
+    <li>Before you create, call <code>GET /api/v1/post/reference-key/&#123;referenceKey&#125;</code>. A <code>404</code> means no post has that key yet.</li>
+    <li>Create the post with the key.</li>
+    <li>If the create call times out, do not resend it blind. Look the key up again.</li>
+    <li>If a create comes back <code>409 Conflict</code>, the post already exists. Read it by its key.</li>
+  </ol>
+  <CodeBlock title="Example: look before you create (bash)" lang="bash" code={lookFirst} />
+  <CodeBlock title="Example: a second create with the same referenceKey" lang="http" code={conflict} />
+  <p>A reference key is not an idempotency key. The repeat gets a <code>409</code>, not a copy of the first answer, so your code must handle both.</p>
+
+  <h2 id="sent-once">What Siar does once a post is accepted</h2>
+  <p>A post becomes one target per network: one account in one post. Each target is handled on its own. The <a href="/how-publishing-works#sent-once">sent-once design</a> is described with the rest of the publishing pipeline.</p>
+  <ul>
+    <li><strong>One claim per target.</strong> Before calling a network, Siar moves the target from pending to processing in one conditional database update, with a fresh attempt id. Only the worker whose update succeeds sends. A restart, a duplicate job or a second worker finds nothing to claim.</li>
+    <li><strong>The network's id is kept at once.</strong> The moment the network returns its post id, Siar saves it against that attempt.</li>
+    <li><strong>Short failures retry on their own.</strong> When a network says to try later, the target goes back to pending and is sent again, up to 3 attempts in all, after the network's reset time or a growing delay. These do not use your manual retries.</li>
+  </ul>
+
+  <h2 id="interrupted">When a send is interrupted</h2>
+  <p>If a target has been processing for more than 20 minutes with nothing left to poll, the worker stopped between the network call and the save. Siar does not resend straight away.</p>
+  <ol>
+    <li>It reads the account's recent posts, from a minute before the claim.</li>
+    <li>It looks for a post that starts with the same text, using the first 60 characters.</li>
+    <li>If it finds one, it marks the target posted and keeps that post's id.</li>
+    <li>If it finds none and the network can be checked, it sends again, within the same 3 attempts.</li>
+    <li>If the network gives no way to look, Siar stops. Today that is Discord and Slack. The target ends as failed, with a verdict of <code>unknown</code>:</li>
+  </ol>
+  <CodeBlock title="Example: errorsVerbose for a send that could not be confirmed" lang="json" code={interrupted} />
+  <p>Two limits to know. The match is on text, so a post with no text cannot be found this way and is sent again. And a network can take a moment to list a new post, so a very recent post may be missed.</p>
+
+  <h2 id="retry">Retrying a failed post</h2>
+  <p><code>POST /api/v1/post/&#123;id&#125;/retry</code> sends again only the networks that ended in error. Networks that posted are left alone. A post can be retried up to {RESOURCE_LIMITS.maxRetries} times, and a retry does not count as another post on your plan. Check the account first when the verdict was <code>unknown</code>.</p>
+
+  <h2 id="webhooks">Webhook handlers need the same care</h2>
+  <p>Siar retries a webhook delivery when your endpoint does not answer with a success, so your handler can see the same event twice. Deduplicate on the <code>x-siar-delivery</code> header or the event <code>id</code>, which stays the same across redeliveries. The <a href="/docs/webhooks">webhook docs</a> show signature checks in Node.js and Python.</p>
+
+  <Closing kind="api" title="Try it on an open network" text="Create a post with a referenceKey, then create it again and read the 409. Your first post is one request away." />
+  <Related links={[
+    { href: '/docs/posting', text: 'Posting guide in the Siar docs' },
+    { href: '/docs/api/post', text: 'Posts API reference' },
+    { href: '/use-cases/social-media-webhooks', text: 'Social media webhooks, signed and retried' },
+    { href: '/guides/post-to-multiple-social-networks-api', text: 'Post to multiple social networks with one API request' },
+    { href: '/guides', text: 'All social media API guides' },
+  ]} />
+</Article>

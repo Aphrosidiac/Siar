@@ -1,0 +1,12 @@
+---
+/** "How Siar handles this": at most three lines (strike-plan.md §6 rule 2). Content is passed as HTML lines. */
+interface Props { lines: string[]; title?: string }
+const { lines, title = 'How Siar handles this' } = Astro.props;
+---
+<div class="callout hs">
+  <p><strong>{title}</strong></p>
+  {lines.slice(0, 3).map((l) => <p set:html={l} />)}
+</div>
+<style>
+  .hs p { margin: 0 0 6px; }
+</style>

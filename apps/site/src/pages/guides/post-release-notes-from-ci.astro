@@ -1,0 +1,182 @@
+---
+import Article from '../../layouts/Article.astro';
+import CodeBlock from '../../components/CodeBlock.astro';
+import CodeTabs from '../../components/CodeTabs.astro';
+import Closing from '../../components/guides/Closing.astro';
+import Related from '../../components/guides/Related.astro';
+import { guide } from '../../components/guides/guides';
+import { NETWORKS, type NetworkType } from '../../lib/networks';
+import { NETWORK_STATUS } from '../../lib/status';
+import { X_PRICES, fmtMicro } from '../../lib/plans';
+import { API_BASE } from '../../config';
+
+const g = guide('post-release-notes-from-ci');
+const max = (t: NetworkType) => NETWORKS.find((n) => n.type === t)!.adapter.limits.textMax ?? 0;
+// Leave room for the release link after the trimmed notes.
+const cut = (t: NetworkType) => max(t) - 120;
+
+const script = `#!/bin/sh
+# Example: scripts/announce-release.sh
+# Needs: SIAR_API_KEY, SIAR_TEAM_ID, SLACK_CHANNEL, DISCORD_CHANNEL,
+#        TAG, NAME, URL, NOTES (set by the CI job below).
+set -eu
+API="${API_BASE}"
+
+# jq builds the JSON, so quotes and newlines in the notes are escaped safely.
+body=$(jq -n \\
+  --arg team "$SIAR_TEAM_ID" --arg tag "$TAG" --arg name "$NAME" \\
+  --arg url "$URL" --arg notes "$NOTES" \\
+  --arg slack "$SLACK_CHANNEL" --arg discord "$DISCORD_CHANNEL" \\
+  --arg now "$(date -u +%Y-%m-%dT%H:%M:%SZ)" '{
+    teamId: $team,
+    title: ("Release " + $tag),
+    referenceKey: ("release-" + $tag),
+    postDate: $now,
+    status: "SCHEDULED",
+    socialAccountTypes: ["SLACK", "DISCORD", "LINKEDIN", "TWITTER"],
+    data: {
+      SLACK:    { channelId: $slack,   text: ($name + "\\n" + $notes[0:${cut('SLACK')}] + "\\n" + $url) },
+      DISCORD:  { channelId: $discord, text: ($name + "\\n" + $notes[0:${cut('DISCORD')}] + "\\n" + $url) },
+      LINKEDIN: { text: ($name + " is out.\\n\\n" + $notes[0:${cut('LINKEDIN')}] + "\\n\\n" + $url) },
+      TWITTER:  { text: ($name + " is out: " + $url) }
+    }
+  }')
+
+# A 4xx or 5xx prints Siar's message and fails the job with exit code 22.
+if ! created=$(curl -sS --fail-with-body -X POST "$API/post/" \\
+  -H "x-api-key: $SIAR_API_KEY" \\
+  -H "content-type: application/json" \\
+  -d "$body"); then
+  printf '%s\\n' "$created"
+  exit 22
+fi
+id=$(printf '%s' "$created" | jq -r .id)
+echo "Created post $id"
+
+# Wait for each network's result, for up to 5 minutes.
+for i in $(seq 1 30); do
+  sleep 10
+  post=$(curl -sS --fail-with-body "$API/post/$id" -H "x-api-key: $SIAR_API_KEY")
+  status=$(printf '%s' "$post" | jq -r .status)
+  case "$status" in
+    POSTED) echo "Posted to each network."; exit 0 ;;
+    ERROR)  printf '%s' "$post" | jq '.errors'; exit 1 ;;
+  esac
+done
+echo "Still $status after 5 minutes."
+exit 1`;
+
+const github = `# Example: .github/workflows/announce-release.yml
+name: Announce release
+on:
+  release:
+    types: [published]
+
+jobs:
+  announce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Post release notes through Siar
+        env:
+          SIAR_API_KEY: \${{ secrets.SIAR_API_KEY }}
+          SIAR_TEAM_ID: \${{ vars.SIAR_TEAM_ID }}
+          SLACK_CHANNEL: \${{ vars.SIAR_SLACK_CHANNEL }}
+          DISCORD_CHANNEL: \${{ vars.SIAR_DISCORD_CHANNEL }}
+          TAG: \${{ github.event.release.tag_name }}
+          NAME: \${{ github.event.release.name }}
+          URL: \${{ github.event.release.html_url }}
+          NOTES: \${{ github.event.release.body }}
+        run: sh scripts/announce-release.sh`;
+
+const gitlab = `# Example: .gitlab-ci.yml
+announce-release:
+  stage: deploy
+  image: alpine:3.20
+  rules:
+    - if: $CI_COMMIT_TAG
+  variables:
+    TAG: $CI_COMMIT_TAG
+    NAME: "$CI_PROJECT_NAME $CI_COMMIT_TAG"
+    URL: "$CI_PROJECT_URL/-/releases/$CI_COMMIT_TAG"
+    NOTES: $CI_COMMIT_TAG_MESSAGE
+  before_script:
+    - apk add --no-cache curl jq
+  script:
+    - sh scripts/announce-release.sh
+  # Set SIAR_API_KEY (masked), SIAR_TEAM_ID, SLACK_CHANNEL and DISCORD_CHANNEL
+  # under Settings > CI/CD > Variables.`;
+
+const failed = `Created post POST_ID
+{
+  "LINKEDIN": "Reconnect this account, then retry the post."
+}
+Error: Process completed with exit code 1.`;
+
+const faq = [
+  { q: 'Can I post release notes to LinkedIn company pages?', a: `Not yet. ${NETWORK_STATUS.LINKEDIN.line}` },
+  { q: 'What if the CI job runs twice for the same release?', a: 'The script sets referenceKey to release-<tag>. A second run gets 409 Conflict from Siar, curl exits with an error, and nothing is posted twice.' },
+  { q: 'Do I need an SDK?', a: 'No. The script uses curl and jq, which most CI images have or can add in one line.' },
+];
+---
+<Article
+  metaTitle="Post release notes to Slack, Discord and X from CI | Siar"
+  h1={g.title}
+  description="A GitHub Actions and GitLab CI step that posts release notes to Slack, Discord, a LinkedIn profile and X with curl, and fails the job when a network refuses."
+  kicker="Guide"
+  updated="2026-11-12"
+  crumbs={[{ name: 'Guides', href: '/guides' }, { name: 'Release notes from CI', href: '/guides/post-release-notes-from-ci' }]}
+  lead={`One HTTP call posts your release notes to Slack, Discord, your LinkedIn profile and X. Siar, a <a href="/">unified social media API</a>, takes one request from your CI job, sends it to each network, and reports each result, so the job can fail when a network refuses the post. The recipe below uses curl and jq only.`}
+  faq={faq}
+  actions="quickstart"
+  cta={false}
+>
+  <h2 id="before">Before you start</h2>
+  <ol>
+    <li>In the Siar dashboard, make a brand for the project and connect Slack, Discord, your LinkedIn profile and X to it.</li>
+    <li>Create an API key and store it as a CI secret named <code>SIAR_API_KEY</code>.</li>
+    <li>Note the brand's id (<code>GET /api/v1/team/</code> lists them) and the Slack and Discord channel ids to post to.</li>
+    <li>Add credit for X. {NETWORK_STATUS.TWITTER.line} A post that contains a link is {fmtMicro(X_PRICES.TWITTER_CONTENT_CREATE_WITH_URL)} at X's price.</li>
+  </ol>
+  <p class="small muted">{NETWORK_STATUS.SLACK.line} {NETWORK_STATUS.DISCORD.line} {NETWORK_STATUS.LINKEDIN.line}</p>
+
+  <h2 id="script">The script</h2>
+  <p>Both CI systems run the same POSIX shell script. It builds the request with jq, creates the post, then reads the post until each network has an answer. Each network gets its own text: the notes are trimmed to fit {max('DISCORD').toLocaleString('en-US')} characters on Discord and {max('LINKEDIN').toLocaleString('en-US')} on LinkedIn, and X gets the name and link only.</p>
+  <CodeBlock title="Example: scripts/announce-release.sh" lang="bash" code={script} />
+
+  <h2 id="ci">The CI step</h2>
+  <CodeTabs tabs={[{ label: 'GitHub Actions', lang: 'yaml', code: github }, { label: 'GitLab CI', lang: 'yaml', code: gitlab }]} />
+  <p>Pass the release text through environment variables, never by pasting it into the command line. Release notes often hold quotes and backticks.</p>
+
+  <h2 id="exit-codes">How the job fails</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>What happened</th><th>Exit code</th><th>What you see</th></tr></thead>
+      <tbody>
+        <tr><td>Each network posted</td><td><code>0</code></td><td class="small">"Posted to each network."</td></tr>
+        <tr><td>Siar refused the request (a field over a limit, a network not connected, a used referenceKey)</td><td><code>22</code></td><td class="small">Siar's JSON message, printed by curl. Nothing was posted.</td></tr>
+        <tr><td>One or more networks failed</td><td><code>1</code></td><td class="small">Each failed network's message and fix. The others still posted.</td></tr>
+        <tr><td>Still sending after 5 minutes</td><td><code>1</code></td><td class="small">The last status. The post carries on; check it in the dashboard.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <CodeBlock title="Example: a run where LinkedIn needed reconnecting" lang="text" code={failed} />
+  <p>To send the failed network again, call <code>POST /api/v1/post/&#123;id&#125;/retry</code>. It re-sends only the networks that failed.</p>
+
+  <h2 id="variations">Variations</h2>
+  <ul>
+    <li><strong>Fewer networks.</strong> Remove a network from <code>socialAccountTypes</code> and from <code>data</code>. Both must match.</li>
+    <li><strong>Open networks only.</strong> Mastodon and Bluesky work the same way; see <a href="/guides/post-to-bluesky-mastodon-threads-api">posting to Bluesky, Mastodon and Threads</a>.</li>
+    <li><strong>A bot name per project.</strong> Discord and Slack entries take <code>username</code> and <code>avatarUrl</code>.</li>
+    <li><strong>Schedule for later.</strong> Set <code>postDate</code> to a future time; the job then only checks that the request was accepted.</li>
+  </ul>
+
+  <Closing kind="api" title="Wire it into your next release" text="Get an API key and run the script on a test tag. 20 free posts to try, no card." />
+  <Related links={[
+    { href: '/slack-api', text: 'Slack API on Siar' },
+    { href: '/discord-api', text: 'Discord API on Siar' },
+    { href: '/guides/post-to-multiple-social-networks-api', text: 'Post to multiple social networks with one API request' },
+    { href: '/guides/idempotent-social-media-posting', text: 'How to stop duplicate posts when retrying' },
+    { href: '/guides', text: 'All social media API guides' },
+  ]} />
+</Article>

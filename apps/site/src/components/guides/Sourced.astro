@@ -1,0 +1,7 @@
+---
+/** A rival fact's source: the vendor's own page, named, and the check date (strike-plan.md §5.0 rule 3). */
+import { RIVALS_CHECKED, RIVALS_CHECKED_HUMAN } from '../../data/pricing-scenarios';
+interface Props { url: string; label: string; date?: boolean }
+const { url, label, date = true } = Astro.props;
+---
+<span class="src">(<a href={url} rel="nofollow noopener" target="_blank">{label}</a>{date && <>, checked <time datetime={RIVALS_CHECKED}>{RIVALS_CHECKED_HUMAN}</time></>})</span>

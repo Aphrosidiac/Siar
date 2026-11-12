@@ -1,0 +1,146 @@
+---
+import Article from '../../layouts/Article.astro';
+import CodeBlock from '../../components/CodeBlock.astro';
+import Closing from '../../components/guides/Closing.astro';
+import Related from '../../components/guides/Related.astro';
+import { guide } from '../../components/guides/guides';
+import { POST_URL, pretty } from '../../components/guides/requests';
+import { NETWORKS } from '../../lib/networks';
+import { NETWORK_STATUS, TOOLING_LINE } from '../../lib/status';
+import { RESOURCE_LIMITS, dailyPostCaps } from '../../lib/plans';
+
+const g = guide('n8n-threads-posting');
+const threads = NETWORKS.find((n) => n.type === 'THREADS')!;
+
+const createBody = `={
+  "teamId": "TEAM_ID",
+  "title": "Posted from n8n",
+  "postDate": "{{ $now.toUTC().toISO() }}",
+  "status": "SCHEDULED",
+  "socialAccountTypes": ["THREADS"],
+  "data": {
+    "THREADS": { "text": {{ JSON.stringify($json.text ?? 'Posted from n8n through Siar.') }} }
+  }
+}`;
+
+const auth = { authentication: 'genericCredentialType', genericAuthType: 'httpHeaderAuth' };
+const workflow = {
+  name: 'Post to Threads through Siar',
+  nodes: [
+    { id: '1', name: 'Start', type: 'n8n-nodes-base.manualTrigger', typeVersion: 1, position: [0, 0], parameters: {} },
+    {
+      id: '2', name: 'Create Threads post', type: 'n8n-nodes-base.httpRequest', typeVersion: 4.2, position: [220, 0],
+      parameters: { method: 'POST', url: POST_URL, ...auth, sendBody: true, specifyBody: 'json', jsonBody: createBody, options: {} },
+    },
+    { id: '3', name: 'Wait 1 minute', type: 'n8n-nodes-base.wait', typeVersion: 1.1, position: [440, 0], parameters: { amount: 1, unit: 'minutes' } },
+    {
+      id: '4', name: 'Read result', type: 'n8n-nodes-base.httpRequest', typeVersion: 4.2, position: [660, 0],
+      parameters: { url: `=${POST_URL}{{ $('Create Threads post').item.json.id }}`, ...auth, options: {} },
+    },
+    {
+      id: '5', name: 'Posted?', type: 'n8n-nodes-base.if', typeVersion: 2, position: [880, 0],
+      parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'loose' }, combinator: 'and', conditions: [{ id: 'c1', leftValue: '={{ $json.status }}', rightValue: 'POSTED', operator: { type: 'string', operation: 'equals' } }] }, options: {} },
+    },
+    {
+      id: '6', name: 'Worth retrying?', type: 'n8n-nodes-base.if', typeVersion: 2, position: [1100, 120],
+      parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'loose' }, combinator: 'and', conditions: [{ id: 'c2', leftValue: '={{ $json.errorsVerbose?.THREADS?.retryability }}', rightValue: 'retryable', operator: { type: 'string', operation: 'equals' } }] }, options: {} },
+    },
+    {
+      id: '7', name: 'Retry failed networks', type: 'n8n-nodes-base.httpRequest', typeVersion: 4.2, position: [1320, 40],
+      parameters: { method: 'POST', url: `=${POST_URL}{{ $json.id }}/retry`, ...auth, options: {} },
+    },
+    { id: '8', name: 'Done', type: 'n8n-nodes-base.noOp', typeVersion: 1, position: [1100, -120], parameters: {} },
+    { id: '9', name: 'Needs a person', type: 'n8n-nodes-base.noOp', typeVersion: 1, position: [1320, 200], parameters: {} },
+  ],
+  connections: {
+    Start: { main: [[{ node: 'Create Threads post', type: 'main', index: 0 }]] },
+    'Create Threads post': { main: [[{ node: 'Wait 1 minute', type: 'main', index: 0 }]] },
+    'Wait 1 minute': { main: [[{ node: 'Read result', type: 'main', index: 0 }]] },
+    'Read result': { main: [[{ node: 'Posted?', type: 'main', index: 0 }]] },
+    'Posted?': { main: [[{ node: 'Done', type: 'main', index: 0 }], [{ node: 'Worth retrying?', type: 'main', index: 0 }]] },
+    'Worth retrying?': { main: [[{ node: 'Retry failed networks', type: 'main', index: 0 }], [{ node: 'Needs a person', type: 'main', index: 0 }]] },
+  },
+};
+
+const createResponse = pretty({
+  id: 'POST_ID',
+  teamId: 'TEAM_ID',
+  title: 'Posted from n8n',
+  postDate: '2026-11-12T09:00:00.000Z',
+  status: 'SCHEDULED',
+  data: { THREADS: { text: 'Posted from n8n through Siar.' } },
+  errors: null,
+  externalData: null,
+  retryCount: 0,
+});
+
+const failedRead = pretty({
+  id: 'POST_ID',
+  status: 'ERROR',
+  errors: { THREADS: 'MESSAGE_WITH_FIX' },
+  errorsVerbose: { THREADS: { code: 'CODE', errorMessage: 'THE_NETWORK_MESSAGE', retryability: 'retryable', userFacingMessage: 'MESSAGE_WITH_FIX' } },
+  retryCount: 0,
+});
+
+const faq = [
+  { q: 'Is there an n8n node for Siar?', a: 'No. Use n8n’s HTTP Request node with a Header Auth credential. Siar is one REST API, so every operation works the same way.' },
+  { q: 'Can n8n post to Threads without the Threads API?', a: `Siar posts through Threads’ own API, using Siar’s Meta app. ${NETWORK_STATUS.THREADS.line} You connect the Threads account once in Siar, and n8n only talks to Siar.` },
+  { q: 'Why branch on retryability?', a: `Some errors pass on their own, such as a network asking you to slow down. Others need a person, such as an expired login. The verdict tells the workflow which. Siar already retries short failures by itself before a post ends in error, and a post can be retried up to ${RESOURCE_LIMITS.maxRetries} times.` },
+];
+---
+<Article
+  metaTitle="Post to Threads from n8n with the HTTP Request node | Siar"
+  h1={g.title}
+  description="An n8n workflow that posts to Threads through the Siar API with the HTTP Request node, waits for the result and branches on the verdict. Importable JSON."
+  kicker="Guide"
+  updated="2026-11-12"
+  crumbs={[{ name: 'Guides', href: '/guides' }, { name: 'n8n to Threads', href: '/guides/n8n-threads-posting' }]}
+  lead={`To post to Threads from n8n, call Siar from n8n's HTTP Request node. Siar, a <a href="/">unified social media API</a>, holds the Threads connection, checks the post against Threads' limits, publishes it, and returns the result with a verdict your workflow can branch on. There is no Siar node to install; the workflow below uses built-in nodes only.`}
+  faq={faq}
+  actions="quickstart"
+  cta={false}
+>
+  <h2 id="setup">Set up once</h2>
+  <ol>
+    <li>In Siar, make a brand and connect a Threads account to it. {NETWORK_STATUS.THREADS.line}</li>
+    <li>Create an API key in Siar.</li>
+    <li>In n8n, add a credential of type <strong>Header Auth</strong>. Name: <code>x-api-key</code>. Value: your Siar key.</li>
+    <li>Find the brand's id with <code>GET /api/v1/team/</code>, or copy it from the dashboard.</li>
+  </ol>
+
+  <h2 id="create">Create the post</h2>
+  <p>Add an HTTP Request node: method <code>POST</code>, URL <code>{POST_URL}</code>, authentication <em>Generic credential type</em> then <em>Header Auth</em>, body <em>JSON</em>. Use this body, with expressions for the date and the text:</p>
+  <CodeBlock title="Example: JSON body of the HTTP Request node" lang="json" code={createBody.slice(1)} />
+  <p><code>JSON.stringify</code> escapes quotes and line breaks in the text. Threads takes up to {threads.adapter.limits.textMax} characters, and Siar refuses longer text with a <code>400</code> before anything is sent. A <code>postDate</code> of now publishes at once; a later time schedules it.</p>
+  <CodeBlock title="Example: the node's output" lang="json" code={createResponse} />
+
+  <h2 id="result">Read the result and branch on the verdict</h2>
+  <p>Add a Wait node, then a second HTTP Request node that calls <code>GET /api/v1/post/&#123;id&#125;</code> with the id from the first node. The post's <code>status</code> is <code>POSTED</code>, <code>ERROR</code>, or <code>PROCESSING</code> while Threads finishes.</p>
+  <p>For a failed post, <code>errorsVerbose.THREADS</code> carries Threads' own code and message, a plain-English fix, and a verdict: <code>retryable</code>, <code>non_retryable</code> or <code>unknown</code>. Turn on verbose errors in your Siar organization settings so the read includes it.</p>
+  <CodeBlock title="Example: a failed read, with placeholders for the network's values" lang="json" code={failedRead} />
+  <ul>
+    <li><strong>Retryable:</strong> call <code>POST /api/v1/post/&#123;id&#125;/retry</code>. Only failed networks are sent again.</li>
+    <li><strong>Not retryable or unknown:</strong> send it to a person. Unknown means Siar could not confirm whether Threads published, so check the account first.</li>
+  </ul>
+
+  <h2 id="workflow">The whole workflow</h2>
+  <p>Copy this, then paste it into an empty n8n canvas. Pick your Header Auth credential on the three HTTP Request nodes after you paste.</p>
+  <CodeBlock title="Example: n8n workflow JSON" lang="json" code={pretty(workflow)} />
+  <p>To wait for the result without polling, add Siar's <code>post.published</code> webhook in the dashboard and point it at an n8n Webhook node. It fires once the post has published or failed, signed with your secret; the <a href="/docs/webhooks">webhook docs</a> show how to check the signature.</p>
+
+  <h2 id="limits">Limits to plan for</h2>
+  <ul>
+    <li>Siar allows {dailyPostCaps('PRO').THREADS} Threads posts per account a day on Starter and Pro, and {dailyPostCaps('BUSINESS').THREADS} on Business.</li>
+    <li>Each post counts once on your plan, however many networks it goes to.</li>
+    <li>{TOOLING_LINE} The HTTP Request node needs none of them.</li>
+  </ul>
+
+  <Closing kind="api" title="Build it in n8n today" text="Get an API key, connect Threads, and import the workflow. 20 free posts to try, no card." />
+  <Related links={[
+    { href: '/threads-api', text: 'Threads API on Siar' },
+    { href: '/guides/post-to-bluesky-mastodon-threads-api', text: 'Post to Bluesky, Mastodon and Threads from one request' },
+    { href: '/use-cases/social-media-webhooks', text: 'Social media webhooks, signed and retried' },
+    { href: '/guides/post-release-notes-from-ci', text: 'Post release notes from CI' },
+    { href: '/guides', text: 'All social media API guides' },
+  ]} />
+</Article>

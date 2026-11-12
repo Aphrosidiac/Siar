@@ -1,0 +1,58 @@
+---
+import Article from '../../layouts/Article.astro';
+import Closing from '../../components/guides/Closing.astro';
+import { GUIDES, guideHref, type Guide } from '../../components/guides/guides';
+import { OPEN_LIST } from '../../lib/status';
+import { SITE_URL } from '../../config';
+
+const groups: Guide['group'][] = ['Pricing and reliability', 'Recipes'];
+const itemList = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'Social media API guides',
+  itemListElement: GUIDES.map((g, i) => ({ '@type': 'ListItem', position: i + 1, url: `${SITE_URL}${guideHref(g.slug)}`, name: g.title })),
+};
+---
+<Article
+  metaTitle="Social media API guides and recipes | Siar"
+  h1="Social media API guides"
+  description="Guides to social media API pricing, duplicate posts on retry, and posting to many networks from code, CI and n8n, with example requests for the Siar API."
+  kicker="Guides"
+  updated="2026-11-12"
+  crumbs={[{ name: 'Guides', href: '/guides' }]}
+  lead={`Practical guides for developers who publish to social networks from code. Each one uses Siar, a <a href="/">unified social media API</a>, with real request shapes from its public OpenAPI file, and says plainly what Siar does not do. Publishing is open today on ${OPEN_LIST}.`}
+  jsonLd={[itemList]}
+  actions="quickstart"
+  cta={false}
+>
+  {groups.map((grp) => (
+    <>
+      <h2>{grp}</h2>
+      <ul class="glist">
+        {GUIDES.filter((g) => g.group === grp).map((g) => (
+          <li>
+            <h3><a href={guideHref(g.slug)}>{g.title}</a></h3>
+            <p>{g.summary}</p>
+          </li>
+        ))}
+      </ul>
+    </>
+  ))}
+
+  <h2>Also useful</h2>
+  <ul>
+    <li><a href="/docs/quickstart">Siar API quickstart</a>: an API key and your first post.</li>
+    <li><a href="/how-publishing-works">How publishing works in Siar</a>: checks, sending once, errors and webhooks.</li>
+    <li><a href="/for-agencies">Siar for agencies</a>: one login for every client.</li>
+    <li><a href="/malaysia">Siar in Malaysia</a>: ringgit prices and the local tools compared.</li>
+  </ul>
+
+  <Closing kind="api" title="Try a guide on your own account" text="Every example runs against the live API. 20 free posts to try, no card." />
+</Article>
+<style>
+  .glist { list-style: none; padding: 0; margin: 0 0 8px; }
+  .glist li { padding: 20px 0; border-top: 1px solid var(--border); }
+  .glist li:last-child { border-bottom: 1px solid var(--border); }
+  .glist h3 { margin: 0 0 6px; font-size: var(--fs-18); }
+  .glist p { margin: 0; color: var(--text-muted); }
+</style>

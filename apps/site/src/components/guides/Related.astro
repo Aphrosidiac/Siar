@@ -1,0 +1,16 @@
+---
+/** "Read next": descriptive links to parents and siblings (strike-plan.md §6). */
+interface Props { title?: string; links: { href: string; text: string; note?: string }[] }
+const { title = 'Read next', links } = Astro.props;
+---
+<nav class="grel" aria-label={title}>
+  <h2>{title}</h2>
+  <ul>
+    {links.map((l) => <li><a href={l.href}>{l.text}</a>{l.note && <span class="muted">: {l.note}</span>}</li>)}
+  </ul>
+</nav>
+<style>
+  .grel { margin-top: 48px; }
+  .grel ul { margin: 0; padding-left: 20px; }
+  .grel li { margin: 0 0 8px; }
+</style>

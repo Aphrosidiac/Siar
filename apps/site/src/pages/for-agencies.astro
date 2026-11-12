@@ -1,0 +1,144 @@
+---
+import Article from '../layouts/Article.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import HowSiar from '../components/guides/HowSiar.astro';
+import Closing from '../components/guides/Closing.astro';
+import Related from '../components/guides/Related.astro';
+import { PLANS, money, fmtInt, brandsLabel, PRICE_LOCK, TRIAL_DAYS, PAID_TIERS } from '../lib/plans';
+import { ONCE_METHODS } from '../../../api/src/domain/plans.ts';
+import { NETWORK_STATUS, OPEN_LIST } from '../lib/status';
+import { RIVALS, SCENARIO, humanDate, CHECKED } from '../data/rivals';
+import { MY_TEN_CLIENTS } from '../data/pricing-scenarios';
+import { API_BASE, LEGAL_NAME, LEGAL_REG } from '../config';
+
+const pro = PLANS.PRO;
+const rm = (t: 'STARTER' | 'PRO' | 'BUSINESS') => money(t, 'MONTHLY', 'myr');
+const us = (t: 'STARTER' | 'PRO' | 'BUSINESS') => money(t, 'MONTHLY', 'usd');
+const checked = humanDate(CHECKED);
+
+const myRows = [...MY_TEN_CLIENTS.map((r) => ({ ...r, siar: false })), { name: 'Siar Pro', what: `${rm('PRO')} a month: ${brandsLabel(pro.teams)}, ${fmtInt(pro.posts)} posts`, url: '/pricing', siar: true }]
+  .sort((a, b) => a.name.localeCompare(b.name, 'en'));
+const dash = (['buffer', 'hootsuite', 'metricool', 'publer'] as const).map((k) => RIVALS[k]);
+const usRows = [...dash.map((r) => ({ name: r.name, what: r.cells.scenario!.value, url: r.cells.scenario!.url, page: r.page, siar: false })), { name: 'Siar Pro', what: `${us('PRO')} a month: ${brandsLabel(pro.teams)}, ${fmtInt(pro.posts)} posts`, url: '/pricing', page: undefined, siar: true }]
+  .sort((a, b) => a.name.localeCompare(b.name, 'en'));
+
+const portalReq = `curl -X POST "${API_BASE}/social-account/create-portal-link" \\
+  -H "x-api-key: $SIAR_API_KEY" \\
+  -H "content-type: application/json" \\
+  -d '{
+    "teamId": "TEAM_ID",
+    "socialAccountTypes": ["FACEBOOK", "INSTAGRAM", "THREADS", "LINKEDIN"],
+    "redirectUrl": "https://example.com/clients/connected",
+    "logoUrl": "https://example.com/logo.png"
+  }'`;
+const portalRes = `{
+  "url": "CONNECT_LINK_URL"
+}`;
+
+const faq = [
+  { q: 'Can my client log in to see their posts?', a: 'Not today. Members of your organization see every brand, and there is no client login or approval step. Clients connect their accounts through your branded link and never need a Siar login.' },
+  { q: 'My client has two Facebook Pages. What do I do?', a: 'Each brand holds one account per network. Put the second Page in a second brand. Pro has 10 brands; Business has no brand limit.' },
+  { q: 'Can I send clients a report?', a: 'Account and post analytics are in the dashboard on every paid plan. There is no PDF or report export today.' },
+  { q: 'Can I schedule TikTok for clients?', a: `Not yet. ${NETWORK_STATUS.TIKTOK.line}` },
+  { q: 'Is the dashboard in Bahasa Malaysia?', a: 'No. The dashboard and the connect page are in English. Support is by email.' },
+];
+---
+<Article
+  metaTitle="Social media API and dashboard for agencies | Siar"
+  h1="One login for every client."
+  description={`Run every client from one Siar organization: a brand per client, a branded connect link, one comment inbox. 10 brands for ${rm('PRO')} a month (${us('PRO')} outside Malaysia).`}
+  kicker="For agencies"
+  updated="2026-11-12"
+  crumbs={[{ name: 'For agencies', href: '/for-agencies' }]}
+  lead={`Siar, a <a href="/">unified social media API</a> and dashboard, gives an agency one login for every client. Each client is a brand, and each brand connects its own accounts through a link with your name and logo, so you never ask for a password. 10 brands cost ${rm('PRO')} a month in Malaysia, or ${us('PRO')} a month everywhere else.`}
+  faq={faq}
+  cta={false}
+>
+  <h2 id="price">10 brands for {rm('PRO')} a month ({us('PRO')} outside Malaysia)</h2>
+  <p>You pay for your organization, not for each client or account. <a href="/pricing">Siar's plans</a>:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Plan</th><th>Brands</th><th>Posts a month</th><th>Malaysia</th><th>Elsewhere</th></tr></thead>
+      <tbody>
+        {PAID_TIERS.filter((t) => PLANS[t].prices).map((t) => (
+          <tr><td>{PLANS[t].name}</td><td>{brandsLabel(PLANS[t].teams)}</td><td>{fmtInt(PLANS[t].posts)}</td><td>{money(t, 'MONTHLY', 'myr')}/mo</td><td>{money(t, 'MONTHLY', 'usd')}/mo</td></tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>A post sent to every connected network counts as one post. Pro comes with a {TRIAL_DAYS}-day trial. {PRICE_LOCK}</p>
+  <p class="small">Paid to {LEGAL_NAME} (SSM {LEGAL_REG}), a Malaysian company. Ringgit for Malaysian organizations, card monthly, or a year paid once by {ONCE_METHODS}. A numbered receipt for every payment. Cancel any time; nothing is deleted.</p>
+
+  <h2 id="networks">Which networks your clients can use</h2>
+  <p>Open today: {OPEN_LIST}.</p>
+  <ul>
+    <li>{NETWORK_STATUS.LINKEDIN.line}</li>
+    <li>{NETWORK_STATUS.TIKTOK.line}</li>
+    <li>{NETWORK_STATUS.YOUTUBE.line}</li>
+  </ul>
+  <p>Dates for each network are on <a href="/platforms/approvals">Siar's network approval record</a>.</p>
+
+  <h2 id="brands">A brand for each client</h2>
+  <p>A brand holds one client's accounts: one per open network. Posts, comments, analytics and the bio page all sit under the brand, so clients never mix. In the API a brand is called a team.</p>
+  <p>The limit to know: one account per network per brand. A client with two Instagram accounts uses two brands.</p>
+
+  <h2 id="connect">Clients connect their own accounts</h2>
+  <p>Send each client a connect link with your name, logo and color. They sign in to each network in their own browser and come back to you. You never see a password or a token, and tokens are encrypted at rest and never returned by the API.</p>
+  <p>The connect page still says "Powered by Siar", runs on app.siaran.my and is in English. More on the <a href="/use-cases/hosted-connect-oauth">branded connect link</a>.</p>
+
+  <h2 id="inbox">Comments from every client in one inbox</h2>
+  <p>Answer comments from Facebook, Instagram, Threads, X, Bluesky and Mastodon in one inbox. Switch between clients from the brand menu at the top. See the <a href="/use-cases/social-media-comments-api">social media comments API</a>.</p>
+
+  <h2 id="csv">Plan a month in a CSV</h2>
+  <p>Write a client's month in a spreadsheet, import the CSV, and every row becomes a scheduled post. Siar checks each row against each network's rules and shows the rows it could not accept. The <a href="/docs/api/post-csv-import">CSV import API reference</a> lists the columns.</p>
+
+  <h2 id="bio">A link-in-bio page for each brand</h2>
+  <p>Each brand gets a link-in-bio page, with views and clicks per link, at no extra cost.</p>
+
+  <h2 id="analytics">Analytics for each client</h2>
+  <p>Account and post analytics on every paid plan, per brand, in one format across networks. Reports stay in the dashboard; there is no export today. See the <a href="/use-cases/social-media-analytics-api">social media analytics API</a>.</p>
+
+  <h2 id="api">Social media API for agencies</h2>
+  <p>Building your own client portal? The same API is on every plan, Free included. Make a brand per client with <code>POST /api/v1/team/</code>, then create a connect link for it:</p>
+  <CodeBlock title="Example: create a connect link for a client's brand" lang="bash" code={portalReq} />
+  <CodeBlock title="Example: response" lang="json" code={portalRes} />
+  <p>Send the client the URL. When they finish, they land on your <code>redirectUrl</code> and their accounts are on the brand. From then on, post for them with one request; see <a href="/guides/post-to-multiple-social-networks-api">posting to several networks with one request</a>.</p>
+  <HowSiar lines={[
+    'Each post is <a href="/how-publishing-works#checked">checked against each network’s rules before it is sent</a>.',
+    'Each account gets your post once. If a network says no, you get its own code and message, plus the fix.',
+    'A <a href="/how-publishing-works#webhooks">signed webhook tells you how it went</a>, retried for about 45 hours.',
+  ]} />
+
+  <h2 id="compare">What 10 clients cost elsewhere</h2>
+  <p>In Malaysia, for 10 clients (alphabetical; each vendor's own pricing page, checked {checked}):</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tool</th><th>For 10 clients</th></tr></thead>
+      <tbody>{myRows.map((r) => <tr><td>{r.siar ? <a href={r.url}>{r.name}</a> : <a href={r.url} rel="nofollow noopener" target="_blank">{r.name}</a>}</td><td class="small">{r.what}</td></tr>)}</tbody>
+    </table>
+  </div>
+  <p>Outside Malaysia, in US dollars ({SCENARIO}; checked {checked}):</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tool</th><th>Price in this scenario</th></tr></thead>
+      <tbody>{usRows.map((r) => <tr><td>{r.siar ? <a href={r.url}>{r.name}</a> : <a href={r.url} rel="nofollow noopener" target="_blank">{r.name}</a>}</td><td class="small">{r.what}</td></tr>)}</tbody>
+    </table>
+  </div>
+  <p>Where they are the better choice: these tools have client logins, approval steps, report exports or listening that Siar does not, and several publish to TikTok and LinkedIn company pages today. Duta has no post cap except X. For the full API picture, read the <a href="/guides/social-media-api-pricing">social media API pricing guide</a> and the <a href="/compare">Siar comparison pages</a>.</p>
+
+  <h2 id="not-yet">What Siar does not do for agencies yet</h2>
+  <ul>
+    <li>No client logins, no approval step, no report export.</li>
+    <li>One account per network per brand.</li>
+    <li>TikTok and LinkedIn company pages are not open.</li>
+    <li>The dashboard is in English, and support is by email.</li>
+  </ul>
+
+  <Closing kind="trial" title="Set up your first clients" text={`Pro gives you ${brandsLabel(pro.teams).toLowerCase()} for ${rm('PRO')} a month (${us('PRO')} outside Malaysia), with a ${TRIAL_DAYS}-day trial.`} />
+  <Related links={[
+    { href: '/malaysia', text: 'Social media scheduler and API for Malaysia, in ringgit' },
+    { href: '/pricing', text: 'Siar plans and prices' },
+    { href: '/use-cases/multi-tenant-social-media-api', text: 'Social media API for SaaS products' },
+    { href: '/guides', text: 'Social media API guides' },
+  ]} />
+</Article>

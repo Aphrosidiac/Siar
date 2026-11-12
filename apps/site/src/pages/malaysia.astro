@@ -1,0 +1,138 @@
+---
+import Article from '../layouts/Article.astro';
+import NetIcon from '../components/NetIcon.astro';
+import Closing from '../components/guides/Closing.astro';
+import Related from '../components/guides/Related.astro';
+import { PLANS, money, fmtInt, brandsLabel, PRICE_LOCK, X_CREDIT_NOTE, TRIAL_DAYS } from '../lib/plans';
+import { ONCE_METHODS } from '../../../api/src/domain/plans.ts';
+import { NETWORK_STATUS, OPEN_LIST, STATUS_CHECKED, DM_LINE, OPENAPI_LINE } from '../lib/status';
+import { NETWORKS } from '../lib/networks';
+import { MY_TOOLS, sourcesOf, RIVALS_CHECKED_HUMAN, type MyField } from '../data/pricing-scenarios';
+import { LEGAL_NAME, LEGAL_REG, ADDRESS_LINES } from '../config';
+
+const rm = (t: 'STARTER' | 'PRO' | 'BUSINESS', i: 'MONTHLY' | 'YEARLY' = 'MONTHLY') => money(t, i, 'myr');
+const statusChecked = new Date(`${STATUS_CHECKED}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+
+const siarRow = {
+  name: 'Siar', home: '/pricing', siar: true,
+  cells: {
+    who: `${LEGAL_NAME} (SSM ${LEGAL_REG}), ${ADDRESS_LINES.city}, ${ADDRESS_LINES.region}`,
+    entry: `Starter ${rm('STARTER')} a month: ${brandsLabel(PLANS.STARTER.teams)}, ${fmtInt(PLANS.STARTER.posts)} posts. ${PLANS.FREE.posts} free posts to try, no card`,
+    unit: 'Per organization, fenced by brands and posts; one account per network per brand',
+    networks: `Open today: ${OPEN_LIST}. TikTok, Pinterest publishing and LinkedIn company pages wait on approval`,
+    api: 'Public docs and OpenAPI file; the API is on every plan',
+    pay: `Card monthly, or a year paid once by ${ONCE_METHODS}`,
+  } as Record<string, string>,
+  sources: [{ url: '/pricing', label: 'Siar pricing' }],
+};
+const rows = [
+  ...MY_TOOLS.map((t) => ({ name: t.name, home: t.home, siar: false, cells: Object.fromEntries(Object.entries(t.cells).map(([k, v]) => [k, v?.value ?? 'Not checked yet'])) as Record<string, string>, sources: sourcesOf(t) })),
+  siarRow,
+].sort((a, b) => a.name.localeCompare(b.name, 'en'));
+const COLS: { key: MyField; label: string }[] = [
+  { key: 'entry', label: 'Entry price' },
+  { key: 'unit', label: 'How it bills' },
+  { key: 'networks', label: 'Networks' },
+  { key: 'api', label: 'API' },
+  { key: 'pay', label: 'How you pay' },
+];
+
+const faq = [
+  { q: 'Is there a Malaysian social media scheduling tool?', a: 'Yes, several. Duta, MarketOS, PostLa, Siar and Synova are built in Malaysia, and Zoho Social shows ringgit prices to Malaysian visitors. They differ in what they bill for, which networks they publish to, and whether they have a public API.' },
+  { q: 'Can I pay for Siar by FPX or DuitNow?', a: `Yes, for a year paid once: ${rm('STARTER', 'YEARLY')}, ${rm('PRO', 'YEARLY')} or ${rm('BUSINESS', 'YEARLY')}. Monthly plans are paid by card.` },
+  { q: 'Is SST included in Siar’s prices?', a: 'Prices are final. There is no SST line.' },
+  { q: 'Is Siar the same as siar.my?', a: 'No. Siar (siaran.my) is a social media API and dashboard by FF Dev Studio.' },
+  { q: 'Can Siar post to Facebook groups or personal profiles?', a: 'No. Siar uses the networks’ official APIs, so it posts to Facebook Pages and Instagram professional accounts, not to groups or personal profiles.' },
+];
+---
+<Article
+  metaTitle="Social media scheduler and API for Malaysia | Siar"
+  h1="Social media scheduler and API for Malaysia, priced in ringgit"
+  description={`Siar is a social media scheduler and API from a Malaysian company: ${rm('STARTER')}, ${rm('PRO')} or ${rm('BUSINESS')} a month, a year by ${ONCE_METHODS}, and the local tools compared.`}
+  kicker="Malaysia"
+  updated="2026-11-12"
+  crumbs={[{ name: 'Malaysia', href: '/malaysia' }]}
+  lead={`Siar is a <a href="/">unified social media API</a> and dashboard by ${LEGAL_NAME} (SSM ${LEGAL_REG}), a Malaysian company. Plans are ${rm('STARTER')}, ${rm('PRO')} and ${rm('BUSINESS')} a month in ringgit, and a year can be paid once by ${ONCE_METHODS}. Publishing is open today on ${OPEN_LIST}.`}
+  faq={faq}
+  wide
+  cta={false}
+>
+  <p><a href="/pricing">Siar's price list</a>: Starter {rm('STARTER')} for {brandsLabel(PLANS.STARTER.teams)}, Pro {rm('PRO')} for {brandsLabel(PLANS.PRO.teams)}, Business {rm('BUSINESS')} for unlimited brands. {PLANS.FREE.posts} free posts to try, no card. {PRICE_LOCK}</p>
+
+  <h2 id="malaysian-tools">Is there a Malaysian social media scheduling tool?</h2>
+  <p>Yes, several. The table lists them alphabetically, from each tool's own pages, checked {RIVALS_CHECKED_HUMAN}. Prices are monthly in ringgit unless the cell says otherwise.</p>
+  <div class="table-wrap my">
+    <table>
+      <thead><tr><th>Tool</th>{COLS.map((c) => <th>{c.label}</th>)}<th>Sources</th></tr></thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr>
+            <td><a href={r.home} rel={r.siar ? undefined : 'nofollow noopener'} target={r.siar ? undefined : '_blank'}>{r.name}</a><br /><span class="small">{r.cells.who}</span></td>
+            {COLS.map((c) => <td class="small">{r.cells[c.key]}</td>)}
+            <td class="small">{r.sources.map((s, i) => <>{i > 0 && <br />}<a href={s.url} rel={r.siar ? undefined : 'nofollow noopener'} target={r.siar ? undefined : '_blank'}>{s.label}</a></>)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>Where the others fit better:</p>
+  <ul>
+    <li><strong>Duta</strong> has no post cap except on X, publishes to Telegram, and has a hosted MCP connector. Read <a href="/compare/duta">Siar compared with Duta</a>.</li>
+    <li><strong>MarketOS</strong> adds ads, SEO, a CRM and Shopee and Lazada in one suite.</li>
+    <li><strong>PostLa</strong> offers WhatsApp support in Bahasa Malaysia, which Siar does not.</li>
+    <li><strong>Synova</strong> lists Xiaohongshu, which Siar does not publish to.</li>
+    <li><strong>Zoho Social</strong> has a free tier with 6 channels and up to 14 channels per brand on Standard. Read <a href="/compare/zoho-social">Siar compared with Zoho Social</a>.</li>
+    <li>For Facebook and Instagram alone, Meta Business Suite is free. Read <a href="/compare/meta-business-suite">Siar compared with Meta Business Suite</a>.</li>
+  </ul>
+
+  <h2 id="networks">Which networks work today</h2>
+  <p>Status checked {statusChecked}.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Network</th><th>Status</th></tr></thead>
+      <tbody>
+        {NETWORKS.map((n) => (
+          <tr><td><span class="nn"><NetIcon type={n.type} size={24} /><a href={`/${n.apiSlug}`}>{n.name}</a></span></td><td class="small">{NETWORK_STATUS[n.type].line}</td></tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>Facebook, Instagram and Threads connect through Siar's Meta app, which passed Meta's App Review on 27 October 2026. Dates for each network are on <a href="/platforms/approvals">Siar's network approval record</a>.</p>
+
+  <h2 id="agencies">For freelancers and agencies</h2>
+  <p>Pro gives you {brandsLabel(PLANS.PRO.teams).toLowerCase()} for {rm('PRO')} a month, with a {TRIAL_DAYS}-day trial: one brand per client. Clients connect their own accounts through a link with your name and logo, so you never ask for a password. Comments from Facebook, Instagram, Threads, X, Bluesky and Mastodon come into one inbox. Business covers unlimited brands for {rm('BUSINESS')}. More in <a href="/for-agencies">Siar for agencies</a>.</p>
+
+  <h2 id="developers">For developers in Malaysia</h2>
+  <p>{OPENAPI_LINE()} The API is on every plan, the docs are public, and results arrive through signed webhooks retried for about 45 hours. Start with the <a href="/docs/quickstart">API quickstart</a> or the <a href="/guides">social media API guides</a>, such as <a href="/guides/post-release-notes-from-ci">posting release notes from CI</a>.</p>
+
+  <h2 id="pay">How you pay</h2>
+  <ul>
+    <li>Ringgit for organizations billed in Malaysia: {rm('STARTER')}, {rm('PRO')} or {rm('BUSINESS')} a month by card.</li>
+    <li>Or a year paid once by {ONCE_METHODS}: {rm('STARTER', 'YEARLY')}, {rm('PRO', 'YEARLY')} or {rm('BUSINESS', 'YEARLY')} (2 months free).</li>
+    <li>A numbered receipt for every payment. Prices are final; there is no SST line.</li>
+    <li>X is billed from a prepaid credit at X's own USD prices. {X_CREDIT_NOTE}</li>
+    <li>{PRICE_LOCK} Cancel any time from the dashboard; the plan runs to the end of the paid period, and nothing is deleted.</li>
+  </ul>
+  <p class="small">Paid to {LEGAL_NAME} (SSM {LEGAL_REG}), {ADDRESS_LINES.city}, {ADDRESS_LINES.region}, Malaysia.</p>
+
+  <h2 id="not-yet">What Siar does not do</h2>
+  <ul>
+    <li>No TikTok yet. {NETWORK_STATUS.TIKTOK.line}</li>
+    <li>No WhatsApp, and no Facebook groups or personal profiles: Pages and professional accounts only.</li>
+    <li>{DM_LINE}</li>
+    <li>The dashboard is in English. Support is by email, not WhatsApp.</li>
+    <li>No e-Invoice (MyInvois) today.</li>
+  </ul>
+
+  <Closing kind="signup" title="Try it in ringgit" text={`${PLANS.FREE.posts} free posts to try, no card. Then from ${rm('STARTER')} a month.`} />
+  <Related links={[
+    { href: '/for-agencies', text: 'Siar for agencies: one login for every client' },
+    { href: '/pricing', text: 'Siar plans and prices' },
+    { href: '/platforms', text: 'Which networks are open today' },
+    { href: '/compare', text: 'Siar compared with other social media tools' },
+  ]} />
+</Article>
+<style>
+  .nn { display: inline-flex; align-items: center; gap: 10px; }
+  .my table { min-width: 960px; }
+</style>

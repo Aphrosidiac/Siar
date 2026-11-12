@@ -1,0 +1,35 @@
+---
+/**
+ * The closing call to action for guides, /for-agencies and /malaysia. Labels in words, no arrow glyphs
+ * (messaging.md §6). Used with Article's `cta={false}` so the page keeps one closing block.
+ */
+import { SIGNUP_URL } from '../../config';
+interface Props {
+  title: string;
+  text: string;
+  /** 'api': Get an API key + Read the quickstart. 'trial': Start the 14-day Pro trial + Start with 20 free posts. 'signup': Start with 20 free posts + Read the quickstart. */
+  kind?: 'api' | 'trial' | 'signup';
+}
+const { title, text, kind = 'signup' } = Astro.props;
+const actions =
+  kind === 'api'
+    ? [{ label: 'Get an API key', href: SIGNUP_URL, ink: true }, { label: 'Read the quickstart', href: '/docs/quickstart', ink: false }]
+    : kind === 'trial'
+      ? [{ label: 'Start the 14-day Pro trial', href: SIGNUP_URL, ink: true }, { label: 'Start with 20 free posts', href: SIGNUP_URL, ink: false }]
+      : [{ label: 'Start with 20 free posts', href: SIGNUP_URL, ink: true }, { label: 'Read the quickstart', href: '/docs/quickstart', ink: false }];
+---
+<aside class="gclose" aria-label={title}>
+  <h2>{title}</h2>
+  <p>{text}</p>
+  <div class="acts">
+    {actions.map((a) => <a class:list={['pill', { ink: a.ink }]} href={a.href}>{a.label}</a>)}
+  </div>
+</aside>
+<style>
+  .gclose { margin: 56px 0 0; padding: 28px 28px 28px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-elevated); }
+  .gclose h2 { margin: 0 0 8px; }
+  .gclose p { margin: 0 0 20px; color: var(--text-subtle); }
+  .acts { display: flex; flex-wrap: wrap; gap: 12px; }
+  .acts a { text-decoration: none; }
+  @media (max-width: 520px) { .gclose { padding: 20px 16px; } .acts .pill { width: 100%; justify-content: center; } }
+</style>

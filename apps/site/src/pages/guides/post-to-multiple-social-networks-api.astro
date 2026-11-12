@@ -1,0 +1,165 @@
+---
+import Article from '../../layouts/Article.astro';
+import CodeBlock from '../../components/CodeBlock.astro';
+import CodeTabs from '../../components/CodeTabs.astro';
+import NetIcon from '../../components/NetIcon.astro';
+import HowSiar from '../../components/guides/HowSiar.astro';
+import Closing from '../../components/guides/Closing.astro';
+import Related from '../../components/guides/Related.astro';
+import { guide } from '../../components/guides/guides';
+import { createTabs, pretty } from '../../components/guides/requests';
+import { NETWORKS } from '../../lib/networks';
+import { NETWORK_STATUS, OPEN_LIST, STATUS_CHECKED, OPEN_ORDER } from '../../lib/status';
+import { RESOURCE_LIMITS } from '../../lib/plans';
+
+const g = guide('post-to-multiple-social-networks-api');
+
+const body = {
+  teamId: 'TEAM_ID',
+  title: 'Spring menu',
+  referenceKey: 'menu-2026-spring',
+  postDate: '2026-11-20T01:00:00.000Z',
+  status: 'SCHEDULED',
+  socialAccountTypes: ['FACEBOOK', 'THREADS', 'LINKEDIN', 'BLUESKY', 'MASTODON'],
+  data: {
+    FACEBOOK: { type: 'POST', text: 'Our spring menu starts Monday. Six new dishes, two of them vegan.', link: 'https://example.com/menu' },
+    THREADS: { text: 'Spring menu starts Monday. Six new dishes, two vegan.', replyControl: 'everyone' },
+    LINKEDIN: { text: 'Our spring menu starts Monday. Here is how the kitchen planned it.', link: 'https://example.com/menu', privacy: 'PUBLIC' },
+    BLUESKY: { text: 'Spring menu starts Monday.', externalUrl: 'https://example.com/menu', externalTitle: 'Spring menu' },
+    MASTODON: { text: 'Spring menu starts Monday. Six new dishes, two vegan. https://example.com/menu', privacy: 'PUBLIC' },
+  },
+};
+
+const invalid = `HTTP/1.1 400 Bad Request
+content-type: application/json
+
+${pretty({
+  statusCode: 400,
+  message: 'Validation failed: Text is 342 characters; the limit is 300.',
+  issues: [{ code: 'too_long', message: 'Text is 342 characters; the limit is 300.', path: ['data', 'BLUESKY', 'text'] }],
+})}`;
+
+const result = pretty({
+  id: 'POST_ID',
+  referenceKey: 'menu-2026-spring',
+  status: 'ERROR',
+  postDate: '2026-11-20T01:00:00.000Z',
+  error: 'LINKEDIN: Reconnect this account, then retry the post.',
+  errors: { LINKEDIN: 'Reconnect this account, then retry the post.' },
+  externalData: {
+    FACEBOOK: { id: 'EXTERNAL_ID', permalink: 'PERMALINK', status: 'POSTED' },
+    THREADS: { id: 'EXTERNAL_ID', permalink: 'PERMALINK', status: 'POSTED' },
+    BLUESKY: { id: 'EXTERNAL_ID', permalink: 'PERMALINK', status: 'POSTED' },
+    MASTODON: { id: 'EXTERNAL_ID', permalink: 'PERMALINK', status: 'POSTED' },
+  },
+  retryCount: 0,
+});
+
+const open = OPEN_ORDER.map((t) => NETWORKS.find((n) => n.type === t)!);
+const notOpen = NETWORKS.filter((n) => !OPEN_ORDER.includes(n.type));
+const checked = new Date(`${STATUS_CHECKED}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+
+const faq = [
+  { q: 'Can one API request post to several social networks?', a: `Yes. List the networks in socialAccountTypes and give each its own entry under data. Siar sends the post to the brand's connected account on each network. Open today: ${OPEN_LIST}.` },
+  { q: 'Does a post to five networks count as five posts?', a: 'No. On Siar a post sent to every connected network counts as one post on your plan.' },
+  { q: 'What happens if one network rejects the post?', a: `The other networks still publish. The failed network keeps its own error and a fix, and a retry re-sends only the networks that failed, up to ${RESOURCE_LIMITS.maxRetries} times.` },
+];
+---
+<Article
+  metaTitle="Post to multiple social networks with one API call | Siar"
+  h1={g.title}
+  description="Send one API request to Facebook, Threads, LinkedIn, Bluesky and Mastodon with per-network text, then read a result per network. Example request and response."
+  kicker="Guide"
+  updated="2026-11-12"
+  crumbs={[{ name: 'Guides', href: '/guides' }, { name: 'Post to multiple networks', href: '/guides/post-to-multiple-social-networks-api' }]}
+  lead={`To post to several social networks at once, send one request that names the networks and gives each its own text and settings. Siar, a <a href="/">unified social media API</a>, checks each network's limits before it accepts the post, sends it to each connected account once, and reports a result for each network.`}
+  faq={faq}
+  actions="quickstart"
+  cta={false}
+>
+  <h2 id="request">The request</h2>
+  <p>One <code>POST /api/v1/post/</code> carries the whole post. Authenticate with your key in the <code>x-api-key</code> header.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Field</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><code>teamId</code></td><td class="small">The brand to post as. A brand is a team in the API, with one connected account per network.</td></tr>
+        <tr><td><code>title</code></td><td class="small">Your name for the post. It is not published.</td></tr>
+        <tr><td><code>postDate</code></td><td class="small">When to publish, as an ISO 8601 date-time in UTC. A time now or in the past publishes at once.</td></tr>
+        <tr><td><code>status</code></td><td class="small"><code>SCHEDULED</code> to publish, or <code>DRAFT</code> to keep it without publishing.</td></tr>
+        <tr><td><code>socialAccountTypes</code></td><td class="small">The networks, such as <code>["FACEBOOK", "THREADS"]</code>. No repeats.</td></tr>
+        <tr><td><code>data</code></td><td class="small">One entry per listed network, each with that network's own fields. Every listed network needs an entry, and no entry may name a network that is not listed.</td></tr>
+        <tr><td><code>referenceKey</code></td><td class="small">Optional. Your own id, unique in your organization, so you can look the post up before you resend.</td></tr>
+        <tr><td><code>firstComment</code></td><td class="small">Optional. A comment Siar adds under the post on networks that support one.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Example: one post to five networks, each with its own text.</p>
+  <CodeTabs tabs={createTabs(body)} />
+
+  <h2 id="per-network">Per-network text and settings</h2>
+  <p>Each network has its own limits, so each gets its own entry. The text can differ, and each entry takes only the settings that network has.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Network</th><th>Status</th><th>Text limit Siar checks</th><th>Settings you can send</th></tr></thead>
+      <tbody>
+        {open.map((n) => (
+          <tr>
+            <td><a href={`/${n.apiSlug}`}>{n.name}</a></td>
+            <td class="small">{NETWORK_STATUS[n.type].label}</td>
+            <td class="small">{n.adapter.limits?.textMax ? `${n.adapter.limits.textMax.toLocaleString('en-US')} characters` : 'No fixed limit'}</td>
+            <td class="small">{Object.keys(n.fields?.properties ?? {}).filter((k) => k !== 'text').slice(0, 6).map((k, i) => <>{i > 0 && ', '}<code>{k}</code></>)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted">Network status checked {checked}. Each network page lists every field with its type.</p>
+
+  <h2 id="checked">Checked before it is accepted</h2>
+  <p>Siar <a href="/how-publishing-works#checked">checks each entry before it is sent</a>, against its network's rules: text length, media type and count, required fields. A post that would fail later fails now, with a <code>400</code> that names the field.</p>
+  <CodeBlock title="Example: 400 when the Bluesky text is too long" lang="http" code={invalid} />
+  <p>Fix the field and send the request again. Nothing was created, so this resend makes no duplicate.</p>
+
+  <h2 id="results">One result per network</h2>
+  <p>Each network is published on its own. Read the post with <code>GET /api/v1/post/&#123;id&#125;</code>, or let the <code>post.published</code> webhook tell you when the post reaches a final state.</p>
+  <ul>
+    <li><code>status</code> is <code>POSTED</code> when all the listed networks posted, <code>ERROR</code> when any network failed, and <code>PROCESSING</code> while any is still being sent.</li>
+    <li><code>externalData</code> holds each network's post id and link.</li>
+    <li><code>errors</code> holds each failed network's message with its fix. Turn on verbose errors in your organization settings to also get <code>errorsVerbose</code>: the network's own code and message, and a verdict of <code>retryable</code>, <code>non_retryable</code> or <code>unknown</code>.</li>
+  </ul>
+  <CodeBlock title="Example: GET /api/v1/post/{id} after four networks posted and one failed (fields trimmed)" lang="json" code={result} />
+
+  <h2 id="one-fails">If one network fails</h2>
+  <HowSiar lines={[
+    'The other networks still publish. One failure never holds back the rest (<a href="/how-publishing-works#errors">the network’s own error, plus a fix</a>).',
+    `<code>POST /api/v1/post/{id}/retry</code> re-sends only the networks that failed, up to ${RESOURCE_LIMITS.maxRetries} times, and does not count as another post.`,
+    'Each network target is claimed once, so a retry cannot publish twice where the post is already live. <a href="/guides/idempotent-social-media-posting">How duplicates are prevented</a>.',
+  ]} />
+
+  <h2 id="networks">Which networks you can post to today</h2>
+  <p>Open today: {OPEN_LIST}. The rest are built and wait on each network.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Network</th><th>Status</th></tr></thead>
+      <tbody>
+        {notOpen.map((n) => (
+          <tr><td><span class="nn"><NetIcon type={n.type} size={24} />{n.name}</span></td><td class="small">{NETWORK_STATUS[n.type].line}</td></tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>Only list networks the brand has connected. A network with no connected account is refused with a <code>400</code> before anything is created. The full table, with dates, is on <a href="/platforms">which networks are open today</a>.</p>
+
+  <Closing kind="api" title="Send your first multi-network post" text="Connect two open networks to a brand and send one request. 20 free posts to try, no card." />
+  <Related links={[
+    { href: '/use-cases/social-media-posting-api', text: 'Social media posting API' },
+    { href: '/use-cases/social-media-scheduling-api', text: 'Social media scheduling API' },
+    { href: '/guides/post-to-bluesky-mastodon-threads-api', text: 'Post to Bluesky, Mastodon and Threads from one request' },
+    { href: '/docs/posting', text: 'Posting guide in the Siar docs' },
+    { href: '/guides', text: 'All social media API guides' },
+  ]} />
+</Article>
+<style>
+  .nn { display: inline-flex; align-items: center; gap: 10px; }
+</style>
