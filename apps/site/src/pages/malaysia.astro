@@ -66,9 +66,9 @@ const faq = [
       <thead><tr><th>Tool</th>{COLS.map((c) => <th>{c.label}</th>)}<th>Sources</th></tr></thead>
       <tbody>
         {rows.map((r) => (
-          <tr>
+          <tr class={r.siar ? 'us' : undefined}>
             <td><a href={r.home} rel={r.siar ? undefined : 'nofollow noopener'} target={r.siar ? undefined : '_blank'}>{r.name}</a><br /><span class="small">{r.cells.who}</span></td>
-            {COLS.map((c) => <td class="small">{r.cells[c.key]}</td>)}
+            {COLS.map((c) => <td class="small">{r.cells[c.key] === 'Not checked yet' ? <span class="unk">Not checked yet</span> : r.cells[c.key]}</td>)}
             <td class="small">{r.sources.map((s, i) => <>{i > 0 && <br />}<a href={s.url} rel={r.siar ? undefined : 'nofollow noopener'} target={r.siar ? undefined : '_blank'}>{s.label}</a></>)}</td>
           </tr>
         ))}

@@ -36,6 +36,15 @@ const rows: Row[] = [
   { id: 'google-business-profile', name: 'Google Business Profile', type: 'GOOGLE_BUSINESS', status: 'Not open', since: 'No date', why: "Google gives Business Profile API access to businesses whose own profile has been verified and active for at least 60 days. Siar's request is on hold.", today: S.GOOGLE_BUSINESS.line, approval: 'google-business-profile' },
 ];
 const hub = (t: NetworkType) => NETWORKS.find((n) => n.type === t)!;
+/** Status tone: colour carries meaning only (open = success, waiting on a network = warn, closed = faint). */
+const TONE: Record<string, string> = { Open: 'ok', 'Not confirmed': 'wait', 'Opening after approval': 'wait', 'Not open': 'off' };
+/** "2026-10-27" reads "Since 2026-10-27"; a row that already says what the date is keeps its own words. */
+const sinceLabel = (v: string) => (/^[0-9]+-/.test(v) ? `Since ${v}` : v);
+const statusGroups: [string, Row[]][] = [
+  ['Open today', rows.filter((r) => r.status === 'Open')],
+  ['Not confirmed, or opening after approval', rows.filter((r) => TONE[r.status] === 'wait')],
+  ['Not open yet', rows.filter((r) => r.status === 'Not open')],
+];
 
 const gates: [string, string, [string, string][]][] = [
   ['Facebook, Instagram, Threads', "Meta App Review for the publishing permissions, plus business verification. Siar's review: submitted 14 October 2026, passed 27 October 2026.", [['/platforms/approvals#facebook', "Siar's approval record"], ['https://developers.facebook.com/docs/instagram-platform/content-publishing', 'Instagram content publishing'], ['https://developers.facebook.com/docs/threads/overview', 'Threads overview']]],
@@ -90,40 +99,48 @@ const faq = [
       <h2 id="status">Status of each network, checked {checked}</h2>
       <p class="intro">One row per network, open ones first. "Since" is the date the current status began, from Siar's own approval records.</p>
       <div class="table-wrap st"><table>
-        <thead><tr><th>Network</th><th>Status</th><th>Since</th><th>Why</th><th>What you can do today</th><th>Links</th></tr></thead>
-        <tbody>{rows.map((r) => (
-          <tr id={r.id}>
-            <th scope="row"><span class="nn"><NetIcon type={r.type} size={24} />{r.name}</span></th>
-            <td><span class="pillst">{r.status}</span></td>
-            <td class="since">{r.since}</td>
-            <td>{r.why}</td>
-            <td>{r.today}</td>
-            <td class="links"><a href={`/${hub(r.type).apiSlug}`}>{r.name.replace(/ \(.*\)/, '')} API reference</a>{r.approval && <a href={`/platforms/approvals#${r.approval}`}>Approval record</a>}</td>
-          </tr>
-        ))}</tbody>
+        <colgroup><col class="c-net" /><col /><col class="c-today" /><col class="c-links" /></colgroup>
+        <thead><tr><th>Network</th><th>Why</th><th>What you can do today</th><th>Links</th></tr></thead>
+        {statusGroups.map(([label, list]) => (
+          <tbody>
+            <tr class="grp"><th colspan="4" scope="colgroup"><span class={`tone ${TONE[list[0].status]}`}>{label}</span><span class="cnt">{list.length} {list.length === 1 ? 'network' : 'networks'}</span></th></tr>
+            {list.map((r) => (
+              <tr id={r.id}>
+                <th scope="row">
+                  <span class="nn"><NetIcon type={r.type} size={24} />{r.name}</span>
+                  <span class="meta"><span class={`tone ${TONE[r.status]}`}>{r.status}</span><span class="since">{sinceLabel(r.since)}</span></span>
+                </th>
+                <td>{r.why}</td>
+                <td>{r.today}</td>
+                <td><div class="links"><a href={`/${hub(r.type).apiSlug}`}>{r.name.replace(/ \(.*\)/, '')} API reference</a>{r.approval && <a href={`/platforms/approvals#${r.approval}`}>Approval record</a>}</div></td>
+              </tr>
+            ))}
+          </tbody>
+        ))}
       </table></div>
       <p class="small muted">Network names are trademarks of their owners. Siar is not affiliated with or endorsed by any of them.</p>
 
       <h2>What each status means</h2>
       <dl class="defs">
-        <dt>Open</dt><dd>You can connect accounts and publish today, on every plan, Free included.</dd>
-        <dt>Not confirmed</dt><dd>Connecting and uploading work, but one part (public YouTube visibility) has not been confirmed on production yet. Siar changes the row when it is.</dd>
-        <dt>Opening after approval</dt><dd>The integration is built and tested. The network has to approve Siar's app first, and Siar can't set the date.</dd>
-        <dt>Not open</dt><dd>The integration is built, but Siar hasn't opened it and gives no date.</dd>
+        <div><dt><span class="tone ok">Open</span></dt><dd>You can connect accounts and publish today, on every plan, Free included.</dd></div>
+        <div><dt><span class="tone wait">Not confirmed</span></dt><dd>Connecting and uploading work, but one part (public YouTube visibility) has not been confirmed on production yet. Siar changes the row when it is.</dd></div>
+        <div><dt><span class="tone wait">Opening after approval</span></dt><dd>The integration is built and tested. The network has to approve Siar's app first, and Siar can't set the date.</dd></div>
+        <div><dt><span class="tone off">Not open</span></dt><dd>The integration is built, but Siar hasn't opened it and gives no date.</dd></div>
       </dl>
       <p>When a status changes, this table, the network's reference page and Siar's <code>llms.txt</code> change in the same release, and the change is listed in the <a href="/changelog">changelog</a> and on <a href="/network-changes">network changes</a>.</p>
 
       <h2>Why some networks are closed: each network's own gate</h2>
       <p>Each network decides which apps may post for other people. Some ask nothing. Some review your app, your company and a screen recording of your product. Siar goes through the same gates you would. The difference is that Meta's is already cleared: Facebook, Instagram and Threads connect through Siar's Meta app, which passed App Review on 27 October 2026, so you don't need your own. Here is what each network asks for, from its own developer pages (checked {checked}).</p>
-      <div class="table-wrap"><table>
+      <div class="table-wrap gates"><table>
+        <colgroup><col class="c-gnet" /><col /><col class="c-links" /></colgroup>
         <thead><tr><th>Network</th><th>What the network requires</th><th>Source</th></tr></thead>
-        <tbody>{gates.map(([n, r, src]) => <tr><th scope="row">{n}</th><td>{r}</td><td class="links">{src.length ? src.map(([h, l]) => <a href={h} rel={h.startsWith('http') ? 'noopener' : undefined}>{l}</a>) : <span class="muted">No review is published</span>}</td></tr>)}</tbody>
+        <tbody>{gates.map(([n, r, src]) => <tr><th scope="row">{n}</th><td>{r}</td><td><div class="links">{src.length ? src.map(([h, l]) => <a href={h} rel={h.startsWith('http') ? 'noopener' : undefined}>{l}</a>) : <span class="muted">No review is published</span>}</div></td></tr>)}</tbody>
       </table></div>
       <p>The full dated record of Siar's own applications, including the ones that went badly, is on the <a href="/platforms/approvals">approval record</a>.</p>
 
       <h2>Comments, analytics and DMs on the open networks</h2>
       <p>Publishing is the same request on every open network: one post, with per-network text and media where you want them. The rest varies by network, because the networks' own APIs do.</p>
-      <ul class="plain">
+      <ul class="rules">
         <li><strong>Comments and replies.</strong> Read, reply and moderate on Facebook, Instagram, Threads, X (within X's reply rules), Bluesky, Mastodon and YouTube. On Slack, replies import slowly because of Slack's limit on apps outside its Marketplace. On Discord, the bot can post and delete replies but does not import comments.</li>
         <li><strong>Analytics.</strong> Account and post metrics on every paid plan (not Free), put into one shape across networks, with the network's raw numbers kept.</li>
         <li><strong>LinkedIn comments and analytics.</strong> Not confirmed on personal profiles yet.</li>
@@ -186,31 +203,48 @@ const faq = [
   .under { margin: 12px 0 0; }
   h2 { margin-top: 56px; max-width: 760px; }
   h2:first-child { margin-top: 0; }
-  .intro, .section p, .plain, .defs { max-width: 780px; }
-  .st th[scope='row'] { white-space: nowrap; }
-  .nn { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; }
-  .pillst { display: inline-block; white-space: nowrap; font-size: var(--fs-13); line-height: 20px; padding: 1px 10px; border: 1px solid var(--border-strong); border-radius: 999px; }
-  .since { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .intro, .section p, .plain { max-width: 780px; }
+  .st { margin-top: 24px; }
+  .st table { table-layout: fixed; }
+  .c-net { width: 260px; } .c-today { width: 31%; } .c-links { width: 190px; } .c-gnet { width: 200px; }
+  .st tbody th[scope='row'] { padding-top: 16px; padding-bottom: 16px; }
+  .st td { padding-top: 16px; padding-bottom: 16px; }
+  .nn { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: var(--fs-15); color: var(--text); }
+  .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 10px 0 0 34px; }
+  .since { font-family: var(--mono); font-size: var(--fs-12); line-height: 16px; color: var(--text-subtle); font-weight: 400; font-variant-numeric: tabular-nums; }
+  .grp th { background: var(--bg); padding-top: 14px; padding-bottom: 10px; border-bottom-color: var(--border); }
+  .grp .tone { font-size: var(--fs-13); }
+  .cnt { margin-left: 12px; font-family: var(--mono); font-size: var(--fs-12); font-weight: 400; color: var(--text-subtle); }
   td { vertical-align: top; }
-  .links { display: flex; flex-direction: column; gap: 6px; min-width: 150px; }
-  tr:target { background: var(--bg-elevated); }
+  .links { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+  tr:target > * { background: color-mix(in srgb, var(--text) 4%, var(--bg-elevated)); }
   tr { scroll-margin-top: 96px; }
-  .defs { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 10px 24px; margin: 0 0 16px; }
-  .defs dt { font-weight: 600; }
-  .defs dd { margin: 0; color: var(--text-muted); }
+  .defs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 24px; margin: 8px 0 24px; max-width: none; }
+  .defs > div { border-top: 1px solid var(--border); padding: 16px 0 4px; }
+  .defs dt { margin: 0 0 10px; }
+  .defs dd { margin: 0; color: var(--text-muted); font-size: var(--fs-15); line-height: 24px; }
+  .gates { margin-top: 20px; }
+  .gates table { table-layout: fixed; }
+  .gates tbody th[scope='row'] { font-weight: 600; }
   .plain { padding-left: 20px; }
   .plain li { margin: 0 0 10px; }
   .gh { margin: 36px 0 4px; font-size: var(--fs-18); }
   .h { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
   .cn { font-weight: 600; font-size: var(--fs-18); }
   .faqw { margin-top: 56px; }
+  @media (max-width: 1080px) { .defs { grid-template-columns: repeat(2, minmax(0, 1fr)); } .c-net { width: 220px; } .c-links { width: 160px; } }
   @media (max-width: 760px) {
     .defs { grid-template-columns: minmax(0, 1fr); }
-    .st table, .st thead, .st tbody, .st tr, .st th, .st td { display: block; }
-    .st thead { display: none; }
+    .st table, .st colgroup, .st thead, .st tbody, .st tr, .st th, .st td { display: block; }
+    .st table { min-width: 0 !important; }
+    .st :is(th, td):first-child { position: static; min-width: 0; box-shadow: none; }
+    .st colgroup, .st thead { display: none; }
     .st tr { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    .st tr.grp { padding: 12px 16px; }
     .st td, .st th { border: 0; padding: 4px 0; }
-    .st td.since::before { content: 'Since: '; color: var(--text-subtle); }
+    .st td:nth-of-type(2) { color: var(--text); }
+    .meta { margin-left: 0; }
     .links { flex-direction: row; flex-wrap: wrap; gap: 6px 16px; }
+    .gates table { table-layout: auto; min-width: 560px; }
   }
 </style>

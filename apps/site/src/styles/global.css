@@ -184,6 +184,26 @@ a.card:hover .more::after { margin-left: 3px; color: var(--text); }
 .yes { color: var(--text); font-weight: 500; }
 .no { color: var(--text-subtle); }
 
+/* status pill: a soft tint and a dot; colour carries meaning only (ok = open, wait = waiting on someone else, off = closed) */
+.tone { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; font-size: var(--fs-13); font-weight: 500; line-height: 20px; padding: 1px 10px 1px 9px; border-radius: 999px; color: var(--text-muted); background: var(--bg-muted); }
+.tone::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
+.tone.ok { color: var(--success); background: color-mix(in srgb, var(--success) 11%, transparent); }
+.tone.wait { color: color-mix(in srgb, var(--warn) 82%, var(--text)); background: color-mix(in srgb, var(--warn) 11%, transparent); }
+.tone.off { color: var(--text-subtle); background: var(--bg-muted); }
+/* a list of rules with a short bold lead-in: a two-column hairline grid instead of bullets */
+ul.rules { list-style: none; padding: 0; margin: 16px 0 24px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 40px; max-width: none; }
+ul.rules > li { margin: 0; padding: 16px 0 20px; border-top: 1px solid var(--border); font-size: var(--fs-15); line-height: 24px; }
+@media (max-width: 760px) { ul.rules { grid-template-columns: minmax(0, 1fr); } }
+/* table values: a "no" reads quieter than a number; a column can be highlighted */
+td.v-no { color: var(--text-subtle); }
+td.v-all { text-align: center; color: var(--text); }
+:is(td, th).hl { background: color-mix(in srgb, var(--text) 3.5%, var(--bg-elevated)); }
+thead th.hl { background: color-mix(in srgb, var(--text) 6%, var(--bg-subtle)); color: var(--text); }
+/* comparison tables: our own row reads as ours; an unread cell recedes */
+tr.us > * { background: color-mix(in srgb, var(--text) 4%, var(--bg-elevated)); color: var(--text); }
+tr.us > :first-child { box-shadow: inset 3px 0 0 var(--text); }
+.unk { color: var(--text-subtle); }
+.netcell { display: inline-flex; align-items: center; gap: 10px; }
 /* a hairline card like the dashboard's; the note's tone sits in a round icon chip */
 .callout { position: relative; border: 1px solid var(--border); background: var(--bg-elevated); border-radius: var(--radius-lg); padding: 12px 16px 12px 50px; margin: 0 0 20px; font-size: var(--fs-15); color: var(--text-muted); }
 .callout::before { content: ''; position: absolute; left: 14px; top: 13px; width: 22px; height: 22px; border-radius: 50%; background: var(--bg-muted); }

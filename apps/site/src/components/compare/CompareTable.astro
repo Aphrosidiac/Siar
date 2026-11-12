@@ -19,7 +19,7 @@ const scenario = market === 'my' ? SCENARIO_MY : SCENARIO;
 </p>
 <div class="table-wrap">
   <table>
-    <thead><tr><th scope="col"><span class="vh">Row</span></th><th scope="col">{rival.name}</th><th scope="col">Siar</th></tr></thead>
+    <thead><tr><th scope="col"><span class="vh">Row</span></th><th scope="col">{rival.name}</th><th scope="col" class="hl">Siar</th></tr></thead>
     <tbody>
       {rows.map((k) => {
         const c = rival.cells[k];
@@ -33,10 +33,10 @@ const scenario = market === 'my' ? SCENARIO_MY : SCENARIO;
                   <span class="src"><a href={c.url} rel="nofollow">{sourceLabel(c.url)}</a>{c.checked !== checked && <>, checked <time datetime={c.checked}>{humanDate(c.checked)}</time></>}</span>
                 </>
               ) : (
-                <span class="muted">Not checked yet</span>
+                <span class="unk">Not checked yet</span>
               )}
             </td>
-            <td set:html={siar[k]} />
+            <td class="hl" set:html={siar[k]} />
           </tr>
         );
       })}
@@ -45,6 +45,7 @@ const scenario = market === 'my' ? SCENARIO_MY : SCENARIO;
 </div>
 <style>
   .tnote { margin: 0 0 12px; }
+  tbody th[scope='row'] { width: 190px; }
   .src { display: block; margin-top: 4px; font-size: var(--fs-12); line-height: 16px; overflow-wrap: anywhere; }
   .src a { color: var(--text-subtle); }
   .src a:hover { color: var(--text); }

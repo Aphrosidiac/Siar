@@ -146,7 +146,9 @@ const description = `Siar pricing: ${F.posts} free posts to try, then from ${pai
 </Base>
 <style>
   .plans-h { margin: 0 0 24px; }
-  .prose-wide { max-width: 960px; }
+  /* every section shares the container's left edge; text keeps a reading width, tables use the room */
+  .prose-wide > p, .prose-wide > h2 + p { max-width: 780px; }
+  .prose-wide :global(.faq) { max-width: 960px; }
   .hero-note { margin: 20px 0 0; }
   .hero-note a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
   .trust { margin: 20px 0 0; font-size: var(--fs-15); line-height: 24px; color: var(--text); max-width: 760px; }
@@ -156,4 +158,11 @@ const description = `Siar pricing: ${F.posts} free posts to try, then from ${pai
   .blocks > div { padding: 0 0 40px; margin: 0 0 40px; border-bottom: 1px solid var(--border); scroll-margin-top: 68px; }
   .blocks > div:last-child { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
   .blocks .pill { text-decoration: none; }
+  /* wide screens: the question sits in a sticky left column, the answer reads on the right */
+  @media (min-width: 1024px) {
+    .blocks { max-width: var(--w); }
+    .blocks > div { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: 72px; }
+    .blocks > div > h2 { grid-column: 1; grid-row: 1 / span 12; align-self: start; position: sticky; top: 96px; margin: 0; }
+    .blocks > div > :not(h2) { grid-column: 2; }
+  }
 </style>

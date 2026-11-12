@@ -58,12 +58,12 @@ const pageName: Record<string, string> = {
             <th scope="row"><a href={r.home} rel="nofollow">{r.name}</a></th>
             {cols.map((k) => {
               const c = r.cells[k];
-              return <td>{c ? <>{c.value}<span class="src"><a href={c.url} rel="nofollow">{sourceLabel(c.url)}</a></span></> : <span class="muted">Not checked yet</span>}</td>;
+              return <td>{c ? <>{c.value}<span class="src"><a href={c.url} rel="nofollow">{sourceLabel(c.url)}</a></span></> : <span class="unk">Not checked yet</span>}</td>;
             })}
-            <td>{r.win ? <>{r.win.value}<span class="src"><a href={r.win.url} rel="nofollow">{sourceLabel(r.win.url)}</a></span></> : <span class="muted">Not checked yet</span>}</td>
+            <td>{r.win ? <>{r.win.value}<span class="src"><a href={r.win.url} rel="nofollow">{sourceLabel(r.win.url)}</a></span></> : <span class="unk">Not checked yet</span>}</td>
           </tr>
         ))}
-        <tr>
+        <tr class="us">
           <th scope="row">Siar</th>
           {cols.map((k) => <td set:html={siar[k]} />)}
           <td>Priced per organization, from {S.starterUsd} ({S.starterMyr} in Malaysia); {S.businessUsd} for {S.businessBrands}. Signed webhooks; a branded connect link on every plan.</td>

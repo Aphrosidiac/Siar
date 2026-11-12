@@ -2,6 +2,7 @@
 import { PLANS, TIERS, CAP_COLUMNS, TRIAL_DAYS, dailyPostCaps, dailyCommentCaps, COMMENT_LENGTH, RESOURCE_LIMITS, X_PRICES, X_PRICE_LABELS, X_CREDIT_NOTE, PRICE_LOCK, fmtQuota, fmtInt, fmtMicro, money, isFree, monthsFree } from '../lib/plans';
 import { NETWORKS } from '../lib/networks';
 import { DM_LINE } from '../lib/status';
+import NetIcon from './NetIcon.astro';
 interface Props { show?: ('prices' | 'quotas' | 'imports' | 'messaging' | 'caps' | 'comments' | 'length' | 'resources' | 'x')[]; heading?: boolean }
 const { show = ['prices', 'quotas', 'imports', 'messaging', 'caps', 'comments', 'length', 'resources', 'x'], heading = true } = Astro.props;
 const has = (k: string) => show.includes(k as any);
@@ -38,14 +39,18 @@ const messaging = [
 ];
 const pc = CAP_COLUMNS.map((c) => dailyPostCaps(c.tier));
 const cc = CAP_COLUMNS.map((c) => dailyCommentCaps(c.tier));
+/** A row whose value is the same on every plan is one cell across all plan columns. */
+const same = (cells: string[]) => cells.every((c) => c === cells[0]);
+const NO = new Set(['No', 'None', 'Not included']);
+const cls = (t: T | null, c: string, base = 'num') => [base, t === 'PRO' && 'hl', NO.has(c) && 'v-no'].filter(Boolean).join(' ');
 const xGroups = (Object.keys(X_PRICES) as (keyof typeof X_PRICES)[]);
 ---
 {has('prices') && (
   <>
     <h3 id="prices">Prices, per organization</h3>
     <div class="table-wrap"><table>
-      <thead><tr><th>Plan</th>{TIERS.map((t) => <th class="num">{PLANS[t].name}</th>)}</tr></thead>
-      <tbody>{prices.map((r) => <tr><td>{r.label}</td>{r.cells.map((c) => <td class="num">{c}</td>)}</tr>)}</tbody>
+      <thead><tr><th>Plan</th>{TIERS.map((t) => <th class={cls(t, '')}>{PLANS[t].name}</th>)}</tr></thead>
+      <tbody>{prices.map((r, ri) => <tr><th scope="row">{r.label}</th>{r.cells.map((c, i) => <td class={cls(TIERS[i], c, ri < 4 && c !== 'Free' && c !== 'Custom' ? 'num price' : 'num')}>{c}</td>)}</tr>)}</tbody>
     </table></div>
     <p class="xs muted">Yearly is {monthsFree('PRO')} months free. {PRICE_LOCK} In Malaysia you pay by card or, for a year at a time, once with FPX or DuitNow. Elsewhere you pay by card. Enterprise is quoted per organization.</p>
   </>
@@ -54,8 +59,8 @@ const xGroups = (Object.keys(X_PRICES) as (keyof typeof X_PRICES)[]);
   <>
     <h3 id="quotas">Quotas, per organization</h3>
     <div class="table-wrap"><table>
-      <thead><tr><th>Allowance</th>{TIERS.map((t) => <th class="num">{PLANS[t].name}<span class="sub">{period(t)}</span></th>)}</tr></thead>
-      <tbody>{quotas.map((r) => <tr><td>{r.label}</td>{r.cells.map((c) => <td class="num">{c}</td>)}</tr>)}</tbody>
+      <thead><tr><th>Allowance</th>{TIERS.map((t) => <th class={cls(t, '')}>{PLANS[t].name}<span class="sub">{period(t)}</span></th>)}</tr></thead>
+      <tbody>{quotas.map((r) => <tr><th scope="row">{r.label}</th>{same(r.cells) && TIERS.length > 2 ? <td class="v-all" colspan={TIERS.length}>{r.cells[0]}, on every plan</td> : r.cells.map((c, i) => <td class={cls(TIERS[i], c)}>{c}</td>)}</tr>)}</tbody>
     </table></div>
     <p class="xs muted">The free start is a one-time allowance to try Siar. It never resets and has no time limit. Paid plans count per UTC calendar month. Enterprise figures are starting points; each Enterprise organization can have its own quotas.</p>
   </>
@@ -64,8 +69,8 @@ const xGroups = (Object.keys(X_PRICES) as (keyof typeof X_PRICES)[]);
   <>
     <h3 id="imports">Import quotas</h3>
     <div class="table-wrap"><table>
-      <thead><tr><th>Per connected account</th>{TIERS.map((t) => <th class="num">{PLANS[t].name}<span class="sub">{period(t)}</span></th>)}</tr></thead>
-      <tbody>{imports.map((r) => <tr><td>{r.label}</td>{r.cells.map((c) => <td class="num">{c}</td>)}</tr>)}</tbody>
+      <thead><tr><th>Per connected account</th>{TIERS.map((t) => <th class={cls(t, '')}>{PLANS[t].name}<span class="sub">{period(t)}</span></th>)}</tr></thead>
+      <tbody>{imports.map((r) => <tr><th scope="row">{r.label}</th>{same(r.cells) && TIERS.length > 2 ? <td class="v-all" colspan={TIERS.length}>{r.cells[0]}, on every plan</td> : r.cells.map((c, i) => <td class={cls(TIERS[i], c)}>{c}</td>)}</tr>)}</tbody>
     </table></div>
     <p class="xs muted">Per request, on every plan: at most {fmtInt(RESOURCE_LIMITS.historyImportPerCall)} posts per history-import call and {fmtInt(RESOURCE_LIMITS.reviewImportPerCall)} reviews per review-import call.</p>
   </>
@@ -74,8 +79,8 @@ const xGroups = (Object.keys(X_PRICES) as (keyof typeof X_PRICES)[]);
   <>
     <h3 id="messaging">DMs and comment-to-DM automations</h3>
     <div class="table-wrap"><table>
-      <thead><tr><th>Per connected account</th>{TIERS.map((t) => <th class="num">{PLANS[t].name}<span class="sub">{period(t)}</span></th>)}</tr></thead>
-      <tbody>{messaging.map((r) => <tr><td>{r.label}</td>{r.cells.map((c) => <td class="num">{c}</td>)}</tr>)}</tbody>
+      <thead><tr><th>Per connected account</th>{TIERS.map((t) => <th class={cls(t, '')}>{PLANS[t].name}<span class="sub">{period(t)}</span></th>)}</tr></thead>
+      <tbody>{messaging.map((r) => <tr><th scope="row">{r.label}</th>{same(r.cells) && TIERS.length > 2 ? <td class="v-all" colspan={TIERS.length}>{r.cells[0]}, on every plan</td> : r.cells.map((c, i) => <td class={cls(TIERS[i], c)}>{c}</td>)}</tr>)}</tbody>
     </table></div>
     <p class="xs muted">{DM_LINE}</p>
   </>
@@ -84,18 +89,18 @@ const xGroups = (Object.keys(X_PRICES) as (keyof typeof X_PRICES)[]);
   <>
     <h3 id="daily-caps">Daily publishing caps, per account</h3>
     <p class="small">Each connected account can receive this many posts per UTC day. The caps protect accounts from being throttled or flagged by the network for publishing too often, so Starter shares Pro's. Enterprise uses the Business caps unless agreed otherwise.</p>
-    <div class="table-wrap"><table>
+    <div class="table-wrap mid"><table>
       <thead><tr><th>Network</th>{CAP_COLUMNS.map((c) => <th class="num">{c.label}</th>)}</tr></thead>
-      <tbody>{NETWORKS.map((n) => <tr><td><a href={`/${n.apiSlug}`}>{n.name}</a></td>{pc.map((c) => <td class="num">{fmtInt(c[n.type])}</td>)}</tr>)}</tbody>
+      <tbody>{NETWORKS.map((n) => <tr><th scope="row"><span class="netcell"><NetIcon type={n.type} size={20} /><a href={`/${n.apiSlug}`}>{n.name}</a></span></th>{pc.map((c) => <td class="num">{fmtInt(c[n.type])}</td>)}</tr>)}</tbody>
     </table></div>
   </>
 )}
 {has('comments') && (
   <>
     <h3 id="comment-caps">Daily comment caps, per account</h3>
-    <div class="table-wrap"><table>
+    <div class="table-wrap mid"><table>
       <thead><tr><th>Network</th>{CAP_COLUMNS.map((c) => <th class="num">{c.label}</th>)}</tr></thead>
-      <tbody>{NETWORKS.map((n) => <tr><td>{n.name}</td>{cc.map((c) => <td class="num">{fmtInt(c[n.type])}</td>)}</tr>)}</tbody>
+      <tbody>{NETWORKS.map((n) => <tr><th scope="row"><span class="netcell"><NetIcon type={n.type} size={20} />{n.name}</span></th>{cc.map((c) => <td class="num">{fmtInt(c[n.type])}</td>)}</tr>)}</tbody>
     </table></div>
   </>
 )}
@@ -103,16 +108,16 @@ const xGroups = (Object.keys(X_PRICES) as (keyof typeof X_PRICES)[]);
   <>
     <h3 id="comment-length">Comment length, per network</h3>
     <p class="small">Applies to comments, replies and a post's <code>firstComment</code>. Networks not listed do not take comments through Siar.</p>
-    <div class="table-wrap"><table>
+    <div class="table-wrap narrow"><table>
       <thead><tr><th>Network</th><th class="num">Max characters</th></tr></thead>
-      <tbody>{NETWORKS.filter((n) => COMMENT_LENGTH[n.type] !== undefined).map((n) => <tr><td>{n.name}</td><td class="num">{fmtInt(COMMENT_LENGTH[n.type]!)}</td></tr>)}</tbody>
+      <tbody>{NETWORKS.filter((n) => COMMENT_LENGTH[n.type] !== undefined).map((n) => <tr><th scope="row"><span class="netcell"><NetIcon type={n.type} size={20} />{n.name}</span></th><td class="num">{fmtInt(COMMENT_LENGTH[n.type]!)}</td></tr>)}</tbody>
     </table></div>
   </>
 )}
 {has('resources') && (
   <>
     <h3 id="resource-limits">Resource limits, every plan</h3>
-    <div class="table-wrap"><table>
+    <div class="table-wrap narrow"><table>
       <thead><tr><th>Resource</th><th>Scope</th><th class="num">Limit</th></tr></thead>
       <tbody>
         <tr><td>API keys</td><td>per organization</td><td class="num">{RESOURCE_LIMITS.apiKeys}</td></tr>
@@ -128,7 +133,7 @@ const xGroups = (Object.keys(X_PRICES) as (keyof typeof X_PRICES)[]);
   <>
     {heading && <h3 id="x-pricing">X (Twitter) pass-through prices</h3>}
     <p class="small">X charges developers for every API call, so X actions are paid from a prepaid credit balance at X's own prices in USD; anything not listed is free. A failed publish is never charged: the amount is held, then taken only on success. {X_CREDIT_NOTE} If the balance runs out, X actions fail with a top-up message and every other network in the same post still publishes.</p>
-    <div class="table-wrap"><table>
+    <div class="table-wrap mid"><table>
       <thead><tr><th>Action</th><th>Billed</th><th class="num">Price (USD)</th></tr></thead>
       <tbody>{xGroups.map((k) => <tr><td>{X_PRICE_LABELS[k].label}</td><td>{X_PRICE_LABELS[k].unit}</td><td class="num">{fmtMicro(X_PRICES[k])}</td></tr>)}</tbody>
     </table></div>
@@ -137,4 +142,13 @@ const xGroups = (Object.keys(X_PRICES) as (keyof typeof X_PRICES)[]);
 
 <style>
   .sub { display: block; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--text-subtle); }
+  table { table-layout: auto; }
+  tbody th[scope='row'] { min-width: 200px; font-weight: 500; }
+  td.price { color: var(--text); font-weight: 600; font-size: var(--fs-15); }
+  thead th.hl { box-shadow: inset 0 2px 0 var(--text); }
+  .narrow { max-width: 620px; }
+  .mid { max-width: 960px; }
+  p.small, p.xs { max-width: 780px; }
+  h3 { margin-top: 40px; }
+  h3:first-child { margin-top: 0; }
 </style>
