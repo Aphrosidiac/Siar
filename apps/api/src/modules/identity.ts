@@ -15,6 +15,16 @@ export const norm = (e: string) => e.trim().toLowerCase();
 const staff = new Set(config.STAFF_EMAILS.split(',').map(s => norm(s)).filter(Boolean));
 export const isStaffEmail = (email: string) => staff.has(norm(email));
 
+/**
+ * Staff (User.role ADMIN) can open every organization as its owner, so it is granted only to an address on
+ * STAFF_EMAILS whose owner has proven the mailbox: the confirmation link or a password reset (both are tokens
+ * sent to that address). Signing up with a password never grants it by itself. Google sign-up grants it in
+ * google-signin.ts only when Google is authoritative for the address. Nothing else ever changes a role.
+ */
+export function promoteIfStaff(userId: string) {
+  return prisma.user.updateMany({ where: { id: userId, role: 'CUSTOMER', emailVerified: { not: null }, deletedAt: null, email: { in: [...staff] } }, data: { role: 'ADMIN' } });
+}
+
 export async function sessionPayload(userId: string, currentOrganizationId: string | null) {
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
   const ms = await prisma.organizationMember.findMany({ where: { userId, organization: { deletedAt: null } }, include: { organization: true }, orderBy: { createdAt: 'asc' } });
@@ -90,7 +100,7 @@ define({
     const email = norm(body.email);
     if (await prisma.user.findUnique({ where: { email } })) throw conflict('An account with this email already exists. Sign in instead.');
     const out = await prisma.$transaction(async tx => {
-      const user = await tx.user.create({ data: { email, passwordHash: await hashPassword(body.password), firstName: body.firstName, lastName: body.lastName ?? null, role: staff.has(email) ? 'ADMIN' : 'CUSTOMER', ...signupFields(req) } });
+      const user = await tx.user.create({ data: { email, passwordHash: await hashPassword(body.password), firstName: body.firstName, lastName: body.lastName ?? null, role: 'CUSTOMER', ...signupFields(req) } });
       const orgName = body.organizationName?.trim();
       const org = await createOrganization(tx, user.id, orgName || `${body.firstName.trim().split(/\s+/)[0]}'s organization`, orgName || 'Main');
       await audit(tx, { kind: 'USER', organizationId: org.id, name: email, userId: user.id }, 'organization.create', 'Organization', org.id, `Created organization ${org.name}`);
@@ -121,7 +131,7 @@ define({
   'auth.verifyEmail': async ({ body }) => {
     const t = await prisma.authToken.findUnique({ where: { id: sha256(body.token) } });
     if (!t || t.kind !== 'VERIFY_EMAIL' || t.usedAt || t.expiresAt < new Date()) throw badRequest('This confirmation link has expired or was already used. Request a new one from your profile.');
-    await prisma.$transaction([prisma.authToken.update({ where: { id: t.id }, data: { usedAt: new Date() } }), prisma.user.update({ where: { id: t.userId }, data: { emailVerified: new Date() } })]);
+    await prisma.$transaction([prisma.authToken.update({ where: { id: t.id }, data: { usedAt: new Date() } }), prisma.user.update({ where: { id: t.userId }, data: { emailVerified: new Date() } }), promoteIfStaff(t.userId)]);
     return { success: true };
   },
 
@@ -143,6 +153,7 @@ define({
       prisma.authToken.update({ where: { id: t.id }, data: { usedAt: new Date() } }),
       prisma.user.update({ where: { id: t.userId }, data: { passwordHash: await hashPassword(body.password), emailVerified: new Date() } }),
       prisma.session.updateMany({ where: { userId: t.userId, revokedAt: null }, data: { revokedAt: new Date() } }),
+      promoteIfStaff(t.userId),
     ]);
     return { success: true };
   },

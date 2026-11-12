@@ -43,6 +43,9 @@ packages/sdk|cli|mcp  TypeScript SDK, JSON-first CLI, MCP server.
 - **Dashboard sign-in** is email/password or Google (`modules/google-signin.ts`, OIDC + PKCE). Never link Google
   to an unconfirmed account, never link by email unless Google is authoritative (gmail.com or `hd`), and keep the
   password step-up for connecting/disconnecting Google. `e2e:google` must stay green.
+- **Staff** (User.role ADMIN: can open every organization as owner, sees Staff → Metrics) is granted only to an address
+  on STAFF_EMAILS whose mailbox is proven: the confirmation link or a password reset (`promoteIfStaff`), or Google sign-up
+  when Google is authoritative. Password signup never grants it; nothing else changes a role. `e2e:staff` checks it.
 - **Adapters** use the network's real URLs through `ctx.fetch`; mock mode rewrites them. Follow
   `src/adapters/mastodon.ts` (the reference adapter) for shape and style.
 - Money: integer minor units in the payment's currency (sen for MYR, cents for USD; plans are priced in both, see `docs/pricing.md`) / micro-USD (X credit). Time: UTC, timestamptz.
