@@ -43,9 +43,10 @@ the live part.
 
 ## Still open
 
-1. **Cloudflare Email Obfuscation is on.** It turns the contact email into a `/cdn-cgi/l/email-protection` link that
-   crawlers get as a 404, and AI fetchers read `[email protected]`. Turn it off for siaran.my (Scrape Shield). It
-   protects nothing here, because the address is public.
+1. ~~Cloudflare Email Obfuscation~~ **turned off 12 Nov** (zone setting, by API). Pages now show
+   `siaran@ffdev.studio` as a plain `mailto:` link, with no `/cdn-cgi/l/email-protection` 404 for crawlers. Turning it
+   off showed that the email and phone links on six MDX pages (contact, terms, privacy, refunds, delivery,
+   data-deletion) pointed at the literal `{CONTACT_EMAIL}`. That is fixed in `961fee5`, which ships with the next deploy.
 2. **`http://www.siaran.my`** takes two hops. To make it one, add a Cloudflare redirect rule that sends `www` straight
    to `https://siaran.my` with the path. This is low priority: nothing links to www.
 3. **Uppercase paths** (`/Pricing`) return a 404 instead of a 301. nginx can't lowercase without a module. It's
