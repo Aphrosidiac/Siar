@@ -123,7 +123,7 @@ async function copyMarkdown() {
             <Card title="Impostors" subtitle="Claimed to be a known crawler from an IP its owner doesn't use." :padded="false"><Table :columns="[col('claimed', 'Claimed'), num('requests', 'Requests', '90px'), num('ips', 'IPs', '60px')]" :rows="rows(r.bots.impostors)" /></Card>
           </div>
           <Card title="Crawlers and automated clients" class="mt-16" :padded="false">
-            <Table :columns="[col('agent', 'Agent'), col('owner', 'Owner', { width: '110px', hideSm: true }), col('class', 'Class', { width: '100px' }), col('purpose', 'Purpose', { width: '90px', hideSm: true }), col('verified', 'Verified', { width: '110px' }), num('requests', 'Requests', '90px'), num('pages', 'Pages', '70px'), col('lastSeen', 'Last seen', { width: '110px', hideSm: true })]" :rows="rows(r.bots.agents)">
+            <Table :columns="[col('agent', 'Agent'), col('owner', 'Owner', { width: '110px', hideSm: true }), col('class', 'Class', { width: '100px' }), col('purpose', 'Purpose', { width: '90px', hideSm: true }), col('verified', 'Verified', { width: '110px' }), num('requests', 'Requests', '90px'), num('pages', 'Pages', '70px'), col('lastSeen', 'Last seen', { width: '140px', hideSm: true })]" :rows="rows(r.bots.agents)">
               <template #cell-lastSeen="{ row }">{{ row.lastSeen ? relative(row.lastSeen) : '—' }}</template>
             </Table>
           </Card>
@@ -176,6 +176,10 @@ async function copyMarkdown() {
 <style scoped>
 .grid-5 { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
 .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+/* tables inside unpadded cards line up with the card's own 24px edge (Table's 4px first column is for bare pages) */
+.card :deep(.t th:first-child), .card :deep(.t td:first-child) { padding-left: 24px; }
+.card :deep(.t th:last-child), .card :deep(.t td:last-child) { padding-right: 24px; }
+@media (max-width: 640px) { .card :deep(.t th:first-child), .card :deep(.t td:first-child) { padding-left: 16px; } .card :deep(.t th:last-child), .card :deep(.t td:last-child) { padding-right: 16px; } }
 @media (max-width: 1100px) { .grid-5 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .grid-3 { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 640px) { .grid-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 </style>
