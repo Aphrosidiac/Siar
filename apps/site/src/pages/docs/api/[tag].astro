@@ -10,10 +10,13 @@ const m = tagMeta(tag);
 const ops = opsForTag(tag);
 /** Titles 25–60 and descriptions 120–160 characters (docs/seo/ACCEPTANCE.md), built from the tag. */
 const metaTitle = `${m.title} API reference · Siar social media API`;
-const tail = `${ops.length} ${ops.length === 1 ? 'operation' : 'operations'} in the Siar social media API, with parameters, body fields, responses and curl examples.`;
-let description = m.text ? `${m.text.replace(/\.?$/, '.')} ${tail}` : `${m.title}: ${tail}`;
-if (description.length < 120) description = `${description} Generated from the OpenAPI contract.`;
-if (description.length > 160) description = `${m.title}: ${tail}`.length <= 160 ? `${m.title}: ${tail}` : `${m.title}: ${ops.length} operations in the Siar social media API, with curl examples.`;
+const n = `${ops.length} ${ops.length === 1 ? 'operation' : 'operations'}`;
+const fit = (xs: string[]) => xs.find((x) => x.length >= 120 && x.length <= 160) ?? xs[0];
+const description = fit([
+  `${m.title} in the Siar social media API: ${n} with parameters, request body fields, responses and curl examples, generated from the OpenAPI file.`,
+  `${m.title} in the Siar social media API: ${n} with parameters, body fields, responses and curl examples, generated from the OpenAPI file.`,
+  `${m.title}: ${n} in the Siar social media API, with parameters, body fields and curl examples, from the OpenAPI file.`,
+]);
 ---
 <Doc title={`${m.title} API`} metaTitle={metaTitle} description={description} nav="api" toc={false}>
   <h2 class="ops-h">Operations</h2>

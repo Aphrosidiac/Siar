@@ -87,7 +87,7 @@ const faq = [
 
   <section class="section tight">
     <div class="m-wide">
-      <h2 id="status">Status of every network, checked {checked}</h2>
+      <h2 id="status">Status of each network, checked {checked}</h2>
       <p class="intro">One row per network, open ones first. "Since" is the date the current status began, from Siar's own approval records.</p>
       <div class="table-wrap st"><table>
         <thead><tr><th>Network</th><th>Status</th><th>Since</th><th>Why</th><th>What you can do today</th><th>Links</th></tr></thead>
@@ -114,7 +114,7 @@ const faq = [
       <p>When a status changes, this table, the network's reference page and Siar's <code>llms.txt</code> change in the same release, and the change is listed in the <a href="/changelog">changelog</a> and on <a href="/network-changes">network changes</a>.</p>
 
       <h2>Why some networks are closed: each network's own gate</h2>
-      <p>Every network decides which apps may post for other people. Some ask nothing. Some review your app, your company and a screen recording of your product. Siar goes through the same gates you would. The difference is that Meta's is already cleared: Facebook, Instagram and Threads connect through Siar's Meta app, which passed App Review on 27 October 2026, so you don't need your own. Here is what each network asks for, from its own developer pages (checked {checked}).</p>
+      <p>Each network decides which apps may post for other people. Some ask nothing. Some review your app, your company and a screen recording of your product. Siar goes through the same gates you would. The difference is that Meta's is already cleared: Facebook, Instagram and Threads connect through Siar's Meta app, which passed App Review on 27 October 2026, so you don't need your own. Here is what each network asks for, from its own developer pages (checked {checked}).</p>
       <div class="table-wrap"><table>
         <thead><tr><th>Network</th><th>What the network requires</th><th>Source</th></tr></thead>
         <tbody>{gates.map(([n, r, src]) => <tr><th scope="row">{n}</th><td>{r}</td><td class="links">{src.length ? src.map(([h, l]) => <a href={h} rel={h.startsWith('http') ? 'noopener' : undefined}>{l}</a>) : <span class="muted">No review is published</span>}</td></tr>)}</tbody>
@@ -136,7 +136,7 @@ const faq = [
   <section class="section alt">
     <div class="m-wide">
       <h2>Reference pages for all {NETWORKS.length} integrations</h2>
-      <p class="intro">Every network Siar is built for has a reference page and an error page, open or not. Use them to plan an integration before a network opens.</p>
+      <p class="intro">Each network Siar is built for has a reference page and an error page, open or not. Use them to plan an integration before a network opens.</p>
       {groups.map(([h, ss]) => (
         <>
           <h3 class="gh">{h}</h3>

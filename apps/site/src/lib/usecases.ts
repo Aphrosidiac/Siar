@@ -1,7 +1,7 @@
 /**
  * Use-case pages (docs/seo/strike-plan.md §5.6, copy rules in docs/seo/messaging.md).
  *
- * Every network name, status and capability on these pages is generated: status from lib/status.ts, capabilities
+ * Each network name, status and capability on these pages is generated: status from lib/status.ts, capabilities
  * from the adapters, prices and caps from lib/plans.ts, the webhook retry schedule from the API's webhook engine.
  * Nothing here may say "every/all networks", name a network that is not open as usable, print an npm install line,
  * show a timing, or call the connect page anything but a branded connect link.

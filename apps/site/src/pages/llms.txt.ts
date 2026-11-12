@@ -41,7 +41,7 @@ export const GET = () => {
     ['/docs/webhooks', 'Webhooks', `${WEBHOOK_EVENTS.length} signed event types and signature verification.`],
     ['/docs/rate-limits', 'Rate limits', '100/s, 500/10s, 2000/min per key and endpoint.'],
     ['/docs/errors', 'Errors', 'Error envelope and status codes.'],
-    ['/errors', 'Network error codes', 'Every network error code Siar relays, with the fix and a retry verdict.'],
+    ['/errors', 'Network error codes', 'Each network error code Siar relays, with the fix and a retry verdict.'],
     ['/docs/pagination', 'Pagination', 'offset/limit with items and total.'],
     ['/docs/sdk-cli-mcp', 'SDK, CLI and MCP', 'TypeScript SDK, JSON-first CLI, MCP server (version 0.1.0, not on npm yet).'],
     ['/docs/api', 'API reference', 'Every operation with parameters, body fields and curl examples.'],

@@ -42,9 +42,9 @@ const faq = [
   { q: 'Is SST included?', a: `Prices are final. ${LEGAL_NAME}, the Malaysian company that runs Siar, is not registered for sales and service tax, so no tax is added at checkout. If that changes, you will be told before it applies. Every payment gets a numbered receipt from ${LEGAL_NAME}.` },
   { q: 'How does X (Twitter) billing work?', a: `X charges per API call, so X actions are paid from a prepaid credit at X's own prices in US dollars: ${xPost} to publish a post and ${xLink} for a post with a link. Organizations billed in Malaysia buy credit in ringgit at a rate shown before paying. If the balance runs out, only X actions stop.` },
   { q: 'Are DMs included?', a: `Facebook and Instagram DMs and comment-to-DM automations are in beta, turned on per organization on request, on paid plans. Each paid plan has a monthly allowance per account: ${dmCaps}. Comments from every open network that supports them come into one inbox on every plan.` },
-  { q: 'Which networks can I post to?', a: `Every plan reaches the same networks. ${STATUS_SUMMARY} See the <a href="/platforms">status of every network, with dates</a>.` },
+  { q: 'Which networks can I post to?', a: `Every plan reaches the same networks. ${STATUS_SUMMARY} See the <a href="/platforms">status of each network, with dates</a>.` },
   { q: 'Can I cancel, and do I get a refund?', a: `Cancel any time from <a href="${DASHBOARD_URL}/billing">Billing in the dashboard</a>. Your plan runs to the end of the period you paid for, then the organization moves to Free, and nothing is deleted. Fees already paid are not refunded, except where the law requires it or we charged you in error. The <a href="/refunds">refunds page</a> has the details.` },
-  { q: 'Siar is new. Why trust it with billing?', a: `Siar has been live since 12 October 2026, so there are no case studies or uptime record yet. What you can check today: the public OpenAPI file, the network and error references, the dated status of every network, and this price list with its price lock. You pay ${LEGAL_NAME}, a Malaysian company, SSM ${LEGAL_REG}.` },
+  { q: 'Siar is new. Why trust it with billing?', a: `Siar has been live since 12 October 2026, so there are no case studies or uptime record yet. What you can check today: the public OpenAPI file, the network and error references, the dated status of each network, and this price list with its price lock. You pay ${LEGAL_NAME}, a Malaysian company, SSM ${LEGAL_REG}.` },
   { q: `What does ${PLANS.ENTERPRISE.name} add?`, a: `Higher quotas, plus daily caps and rate limits set for your organization, invoices, and an SLA by contract. There is no list price: ${PLANS.ENTERPRISE.name} is quoted per organization from your volumes. <a href="/contact">Talk to us</a> with how many brands, posts and networks you need, and we will send a quote.` },
 ];
 
@@ -59,6 +59,7 @@ const description = `Siar pricing: ${F.posts} free posts to try, then from ${pai
 
   <section class="section tight" id="plans">
     <div class="container">
+      <h2 class="plans-h">Plans and prices</h2>
       <PlanCards />
       <p class="trust">Paid to {LEGAL_NAME} (SSM {LEGAL_REG}), a Malaysian company. In ringgit if your organization is billed in Malaysia, in US dollars by card everywhere else, with a numbered receipt for every payment. Cancel any time; nothing is deleted.</p>
       <p class="pricing-note">{PRICE_LOCK}</p>
@@ -73,10 +74,10 @@ const description = `Siar pricing: ${F.posts} free posts to try, then from ${pai
       <div id="networks">
         <h2>Which networks every plan reaches today</h2>
         <p>Every plan, Free included, publishes to the same networks. {STATUS_SUMMARY}</p>
-        <p>See the <a href="/platforms">status of every network, with dates</a>.</p>
+        <p>See the <a href="/platforms">status of each network, with dates</a>.</p>
       </div>
       <div id="free">
-        <h2>Is there a free plan?</h2>
+        <h2>Can I try Siar for free?</h2>
         <p>Yes: {F.posts} free posts to try, once. No card and no time limit. You get one brand, {fmtInt(F.comments)} comments and {fmtInt(F.uploads)} uploads, and the same API and webhooks as every paid plan. Analytics are on paid plans only.</p>
         <p>The free start is one-time, not monthly. It never resets, and it is counted on each social account across organizations, so connecting the same account in a new organization does not start another {F.posts}. When it runs out, anything already scheduled still publishes, and you choose a plan to carry on.</p>
         <p>It is sized to answer one question: does "write it once, Siar it everywhere" work for you? Post to your own accounts, call the API, watch the webhook come back. Then decide.</p>
@@ -91,7 +92,7 @@ const description = `Siar pricing: ${F.posts} free posts to try, then from ${pai
       </div>
       <div id="posts">
         <h2>One post counts once. Drafts and retries don't.</h2>
-        <p>A post sent to every network you've connected counts as one post on your plan, not one per network. Drafts are free; a post counts when it leaves draft, in the month you create or schedule it. If a network rejects it, retrying the post (up to {RESOURCE_LIMITS.maxRetries} times) doesn't count again.</p>
+        <p>A post sent to each network you've connected counts as one post on your plan, not one per network. Drafts are free; a post counts when it leaves draft, in the month you create or schedule it. If a network rejects it, retrying the post (up to {RESOURCE_LIMITS.maxRetries} times) doesn't count again.</p>
         <p>If one network fails, the others still publish. The failed one keeps the network's own error and a plain-English fix, and a retry re-sends only the networks that failed. Read <a href="/how-publishing-works">how a post is checked, sent once and reported</a>.</p>
         <p>Posts are capped: {postCaps}. You can read your usage at any time from the API or the dashboard. At the limit, a new post gets a <code>403</code> that names the limit; posts already scheduled still go out.</p>
       </div>
@@ -144,6 +145,7 @@ const description = `Siar pricing: ${F.posts} free posts to try, then from ${pai
   <Cta title="Write it once." dim="Siar it everywhere." text={`Start with ${F.posts} free posts to try. No card, no time limit. When you're ready, plans start at ${paidFrom('myr')} a month in Malaysia or ${paidFrom('usd')} elsewhere, and your price never goes up while you stay subscribed.`} />
 </Base>
 <style>
+  .plans-h { margin: 0 0 24px; }
   .prose-wide { max-width: 960px; }
   .hero-note { margin: 20px 0 0; }
   .hero-note a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }

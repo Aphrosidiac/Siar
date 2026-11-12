@@ -27,9 +27,9 @@ const tiles = TILE_ORDER.map((t) => NETWORKS.find((n) => n.type === t)!).filter(
 const faq = [
   { q: 'What is a unified social media API?', a: 'A unified social media API is one API that publishes to many social networks through a single request format, one key and one set of webhooks. You stop maintaining a separate integration, login flow and error handler for each network. Siar is one: it adds a check before sending and a signed result after.' },
   { q: 'What is Siar?', a: CANONICAL },
-  { q: 'Which social networks does Siar support?', a: `Publishing is open today on ${OPEN_LIST}. YouTube uploads work, and public visibility is not yet confirmed. TikTok, Pinterest publishing and LinkedIn company pages are waiting on those networks' approval. Reddit, Snapchat and Google Business Profile are built but not open yet. <a href="/platforms">Every network's status, with dates</a>.` },
+  { q: 'Which social networks does Siar support?', a: `Publishing is open today on ${OPEN_LIST}. YouTube uploads work, and public visibility is not yet confirmed. TikTok, Pinterest publishing and LinkedIn company pages are waiting on those networks' approval. Reddit, Snapchat and Google Business Profile are built but not open yet. <a href="/platforms">Each network's status, with dates</a>.` },
   { q: 'How is Siar priced?', a: `Per organization, never per connected account. Start with ${free} free posts to try. Then Starter is ${usd('STARTER')} a month (${rm('STARTER')} in Malaysia) for 1 brand, Pro ${usd('PRO')} (${rm('PRO')}) for 10 brands, and Business ${usd('BUSINESS')} (${rm('BUSINESS')}) for unlimited brands. Yearly is 10 times monthly. ${PRICE_LOCK} <a href="/pricing">See every plan</a>.` },
-  { q: 'Is there a free plan?', a: `Siar starts with ${free} free posts to try. It is a one-time allowance, not a monthly one: no card, no time limit, and it does not refill. Free includes the API, webhooks and comments, but no analytics. After that, Starter is ${usd('STARTER')} a month (${rm('STARTER')} in Malaysia).` },
+  { q: 'Can I try Siar for free?', a: `Siar starts with ${free} free posts to try. It is a one-time allowance, not a monthly one: no card, no time limit, and it does not refill. Free includes the API, webhooks and comments, but no analytics. After that, Starter is ${usd('STARTER')} a month (${rm('STARTER')} in Malaysia).` },
   { q: 'Can my customers connect their own accounts?', a: 'Yes. Create a brand for each customer and send them a branded connect link with your name, logo and color. They sign in to each network in their own browser and come back to your app. You never see a password or token. The page says "Powered by Siar" and is in English.' },
   { q: 'Do I need my own developer app on each network?', a: "Not for the networks that are open today. Facebook, Instagram and Threads connect through Siar's Meta app, which passed Meta's App Review on 27 October 2026. X, LinkedIn profiles, Bluesky, Mastodon, Discord and Slack connect through Siar's own live apps. Each network page lists what the account itself needs." },
   { q: 'What happens if a post fails on one network?', a: "The other networks still publish. The failed one keeps the network's own code and message, with a plain-English fix from Siar's error reference. A signed <code>post.published</code> webhook tells your server each network's result. Fix the cause and retry: only the failed networks are sent again, and the retry does not use another post." },
@@ -42,7 +42,7 @@ const faq = [
 
 const pillars = [
   { h: 'Every post accounted for', promise: 'You always know what happened to a post, and why.', body: "Each network's limits are checked when you create the post, so a bad request fails with a 400 you can fix, not at 9 a.m. Each account gets your post once. If a network says no, you get its own code and message, plus the fix. A signed webhook tells you how it went, retried for about 45 hours.", link: ['/how-publishing-works', 'How publishing works'] },
-  { h: "Your customers connect through Siar's live apps, under your brand", promise: "You don't build nine sign-in flows or sit through Meta's review.", body: "Facebook, Instagram and Threads connect through Siar's Meta app, which passed Meta's App Review on 27 October 2026. X, LinkedIn profiles, Bluesky, Mastodon, Discord and Slack connect through Siar's own apps, live today. Your customers sign in through a link with your name, logo and color, and you never see a password or token.", link: ['/platforms', 'What is open on every network'] },
+  { h: "Your customers connect through Siar's live apps, under your brand", promise: "You don't build nine sign-in flows or sit through Meta's review.", body: "Facebook, Instagram and Threads connect through Siar's Meta app, which passed Meta's App Review on 27 October 2026. X, LinkedIn profiles, Bluesky, Mastodon, Discord and Slack connect through Siar's own apps, live today. Your customers sign in through a link with your name, logo and color, and you never see a password or token.", link: ['/platforms', 'What is open on each network'] },
   { h: 'One price for the whole organization', promise: 'You pay for your organization, not for each account you connect.', body: `No per-account fees. Each brand connects one account on every open network: Starter 1 brand, Pro 10, Business unlimited. A post sent to every connected network counts as one post. ${PRICE_LOCK}`, link: ['/pricing', 'See every plan'] },
 ];
 
@@ -205,7 +205,7 @@ const notYet = [
           <div class="sc"><CodeBlock lang="http" code="POST /api/v1/post/POST_ID/retry" /></div>
         </li>
       </ol>
-      <p class="ex-close" data-reveal>The post's status is <code>ERROR</code> because one network failed. Each network's own result sits beside it. That is what "accounted for" means: posted, failed with the network's reason, or "could not be confirmed" when an interrupted send can't be checked. Siar promises that you'll know which. It can't promise that every network will say yes. <a href="/how-publishing-works">How publishing works</a></p>
+      <p class="ex-close" data-reveal>The post's status is <code>ERROR</code> because one network failed. Each network's own result sits beside it. That is what "accounted for" means: posted, failed with the network's reason, or "could not be confirmed" when an interrupted send can't be checked. Siar promises that you'll know which. It can't promise that each network will say yes. <a href="/how-publishing-works">How publishing works</a></p>
     </div>
   </section>
 
@@ -233,7 +233,7 @@ const notYet = [
           );
         })}
       </ul>
-      <p class="more-l" data-reveal><a class="pill" href="/platforms">Every network's status, with dates</a></p>
+      <p class="more-l" data-reveal><a class="pill" href="/platforms">Each network's status, with dates</a></p>
     </div>
   </section>
 
@@ -292,7 +292,7 @@ const notYet = [
       <div>
         <h2 class="m-h2" data-reveal>What Siar doesn't do yet</h2>
         <p class="m-lead" data-reveal>Better you read it here than find it after you've built on it.</p>
-        <p data-reveal><a class="pill" href="/platforms">Every network's status, with dates</a></p>
+        <p data-reveal><a class="pill" href="/platforms">Each network's status, with dates</a></p>
       </div>
       <ul class="ny">{notYet.map(([b, t]) => <li data-reveal><strong>{b}</strong> {t}</li>)}</ul>
     </div>

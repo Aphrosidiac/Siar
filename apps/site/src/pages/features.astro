@@ -47,7 +47,7 @@ const parts: Part[] = [
     link: ['/use-cases/social-media-scheduling-api', 'Social media scheduling API'],
   },
   {
-    id: 'results', nav: 'Post results', h: 'See what happened to every post, on every network.',
+    id: 'results', nav: 'Post results', h: 'See what happened to every post, on each network.',
     p: [
       "Open any post and each network gets its own line: published, with a link to the live post, failed, or still waiting. When a network says no, the line shows a plain-English explanation, then what the network said, with its error code and HTTP status. The full network response is one click away.",
       "If one network fails, the others still publish. Fix the cause and press Retry: only the networks that failed are sent again, and the retry doesn't use another post from your plan.",
@@ -79,7 +79,7 @@ const parts: Part[] = [
     ],
     items: [
       'One inbox per brand, every comment next to the post it belongs to',
-      "Reply on every network listed above (X's own reply limits apply); hide on Facebook, Instagram, Threads and X; like on Facebook, X, Bluesky and Mastodon; delete on all six",
+      "Reply on each network listed above (X's own reply limits apply); hide on Facebook, Instagram, Threads and X; like on Facebook, X, Bluesky and Mastodon; delete on all six",
       "Imported comments are other people's words, so Siar deletes them after 30 days",
     ],
     shot: 'inbox', url: 'app.siaran.my/inbox', alt: 'The Siar inbox with customer comments from Threads and Instagram, each with Reply, Like and Hide',
@@ -131,7 +131,7 @@ const limits = [
   ['Client logins and approvals.', 'Members see the whole organization. There is no client login, no approval step and no PDF report export today.'],
   ['Two accounts on one network for one client.', `Each brand holds one account per network. A client with two Facebook Pages uses two brands; ${PLANS.PRO.name} has ${PLANS.PRO.teams}.`],
   ['TikTok and LinkedIn company pages.', 'Not open yet; see the table above.'],
-  ['A white-label connect page.', 'The link carries your name and logo, but says "Powered by Siar", runs on app.siaran.my and is in English.'],
+  ['A connect page without Siar\'s name.', 'The link carries your name and logo, but says "Powered by Siar", runs on app.siaran.my and is in English.'],
   ['Unlimited posts.', `Posts are capped: ${postCaps}. A post sent to every connected network counts as one, and drafts and retries don't count.`],
   ['Support by chat.', 'Email support on every plan. The dashboard is in English.'],
 ];
@@ -139,10 +139,10 @@ const limits = [
 const faq = [
   { q: 'Is there a social media scheduler with an API?', a: `Yes. Siar is a social media scheduler and inbox whose dashboard runs on the same public REST API you get on every plan, including the ${PLANS.FREE.posts} free posts to try. Schedule from the calendar, a CSV or your own code, and a signed webhook tells your server how each post went on each network.` },
   { q: 'Can I bulk schedule social media posts from a CSV?', a: "Yes. Download Siar's CSV template for the networks you need, with one row per post: text, date, networks, and each network's own text, media links and first comment. Upload a file of up to 10 MB. Every row gets a result, and failed rows show the reason." },
-  { q: 'Which networks can I schedule to today?', a: `${STATUS_SUMMARY} See <a href="/platforms">every network's status</a>.` },
+  { q: 'Which networks can I schedule to today?', a: `${STATUS_SUMMARY} See <a href="/platforms">each network's status</a>.` },
   { q: 'Does the inbox include direct messages?', a: "Comments, yes: import a post's comments from Facebook, Instagram, Threads, X, Bluesky or Mastodon, then reply, and like, hide or delete where the network allows. Facebook and Instagram DMs and comment-to-DM automations are in beta, turned on per organization on request, on paid plans. Other networks' DMs aren't available." },
   { q: 'What happens if a post fails on one network?', a: `The other networks still publish. The failed network's line shows a plain-English explanation and the network's own error, code and HTTP status. Fix the cause and press Retry: only the failed networks are sent again, and the retry doesn't use another post from your plan. Up to ${RESOURCE_LIMITS.maxRetries} retries per post.` },
-  { q: 'Can clients connect their accounts without giving me their passwords?', a: 'Yes. Send a connect link with your name and logo. Your client signs in to each network in their own browser and picks the Page or channel, with no Siar login. You never see a password or token. The page says "Powered by Siar" and is in English, so it isn\'t white-label.' },
+  { q: 'Can clients connect their accounts without giving me their passwords?', a: 'Yes. Send a connect link with your name and logo. Your client signs in to each network in their own browser and picks the Page or channel, with no Siar login. You never see a password or token. The page says "Powered by Siar" and is in English, so it doesn\'t hide Siar.' },
   { q: 'How much does Siar cost for an agency with 10 clients?', a: `${PLANS.PRO.name} covers ${brandsLabel(PLANS.PRO.teams)} for ${usd('PRO')} a month (${myr('PRO')} in Malaysia), with ${posts('PRO')} posts and analytics, and a ${TRIAL_DAYS}-day trial. There are no per-account fees: each brand connects one account on every open network. Above ${PLANS.PRO.teams} clients, ${PLANS.BUSINESS.name} is ${usd('BUSINESS')} (${myr('BUSINESS')}) for unlimited brands. ${PRICE_LOCK}` },
   { q: 'Can my clients log in and approve posts?', a: "Not today. Siar has owners, admins and members per organization, with an audit log, but members see the whole organization and there is no client login, approval step or report export. If you need client approvals now, build the step in your own portal on Siar's API, or wait for the feature." },
   { q: 'Are analytics included on every plan?', a: `On every paid plan, from ${PLANS.STARTER.name} at ${usd('STARTER')} a month (${myr('STARTER')} in Malaysia). The ${PLANS.FREE.posts} free posts to try have no analytics. Analytics show followers, impressions, views, likes and comments for Facebook, Instagram, Threads, Bluesky and Mastodon, collected daily from each network's own totals. X is left out because X bills every read.` },
@@ -150,11 +150,11 @@ const faq = [
 ];
 
 const title = 'Social media scheduler and inbox on the same API | Siar';
-const description = "Schedule posts, plan a client's month in one CSV and answer comments in one inbox. Each post shows every network's result and its own error.";
+const description = "Schedule posts, plan a client's month in one CSV and answer comments in one inbox. Each post shows each network's result and its own error.";
 const webPageLd = { '@context': 'https://schema.org', '@type': 'WebPage', '@id': `${SITE_URL}/features#webpage`, url: `${SITE_URL}/features`, name: 'Social media scheduler and inbox, built on the same API', description, about: { '@id': APP_ID }, inLanguage: 'en' };
 ---
 <Base title={title} description={description} jsonLd={[webPageLd, breadcrumbLd([{ name: 'Dashboard', href: '/features' }])]}>
-  <PageHero kicker="Dashboard" title="Social media scheduler and inbox," dim="built on the same API" lead={`Siar is a social media scheduler with an API underneath, for agencies and freelancers who run several brands. Plan each client's month in the calendar or one CSV, answer comments in one inbox, and see what happened to every post on every network, in the network's own words when one says no. The same REST API is on every plan.`}>
+  <PageHero kicker="Dashboard" title="Social media scheduler and inbox," dim="built on the same API" lead={`Siar is a social media scheduler with an API underneath, for agencies and freelancers who run several brands. Plan each client's month in the calendar or one CSV, answer comments in one inbox, and see what happened to every post on each network, in the network's own words when one says no. The same REST API is on every plan.`}>
     <div class="m-actions"><a class="pill ink" href={SIGNUP_URL}>{trialCta}</a><a class="pill" href={SIGNUP_URL}>{freeCta}</a><a class="skip-api" href="#developers">Skip to the API</a></div>
     <p class="demo small muted">Every screen on this page is the real Siar dashboard running on demo data: one café with three outlets, posting where its customers are.</p>
   </PageHero>
@@ -219,7 +219,7 @@ const webPageLd = { '@context': 'https://schema.org', '@type': 'WebPage', '@id':
         <thead><tr><th>Network</th><th>Status</th><th>Today</th></tr></thead>
         <tbody>{netRows.map(({ net, s }) => <tr><td><a href={`/${net.apiSlug}`}>{net.name}</a></td><td>{s.label}</td><td>{s.line}</td></tr>)}</tbody>
       </table></div>
-      <p class="small muted">Checked <time datetime={STATUS_CHECKED}>{human(STATUS_CHECKED)}</time>. <a href="/platforms">Every network's status, with dates</a>.</p>
+      <p class="small muted">Checked <time datetime={STATUS_CHECKED}>{human(STATUS_CHECKED)}</time>. <a href="/platforms">Each network's status, with dates</a>.</p>
     </div>
   </section>
 

@@ -28,12 +28,12 @@ export const GET = () => {
     `- ${TRIAL_DAYS}-day free trial on ${P.name}, once per organization, by card.`,
     `- The free start is ${F.posts} free posts to try, one-time: no card, no time limit, it never resets.`,
     '- Malaysia pays by card monthly, or for a year at a time by card or once with FPX or DuitNow. Elsewhere pays by card.',
-    '- A post that goes to every network you have connected counts as one post. Drafts and retries do not count.',
+    '- A post that goes to each network you have connected counts as one post. Drafts and retries do not count.',
     '- No per-account fees. Each brand connects one account on every open network; a second account on the same network goes in a second brand.',
     '- Email support on every plan.',
     '',
   );
-  L.push('## Which networks every plan reaches today', '', `Every plan, Free included, publishes to the same networks. ${STATUS_SUMMARY} Checked ${STATUS_CHECKED}; the status of every network, with dates: ${SITE_URL}/platforms`, '');
+  L.push('## Which networks every plan reaches today', '', `Every plan, Free included, publishes to the same networks. ${STATUS_SUMMARY} Checked ${STATUS_CHECKED}; the status of each network, with dates: ${SITE_URL}/platforms`, '');
   L.push('## Quotas', '', 'The free start is one-time. Paid plans count per UTC calendar month.', '');
   table(heads, [
     ['Posts', ...TIERS.map((t) => fmtQuota(PLANS[t].posts))],

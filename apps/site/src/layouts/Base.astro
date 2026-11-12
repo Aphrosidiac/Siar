@@ -19,7 +19,7 @@ const { title, description = DESCRIPTION, jsonLd = [], noindex = false, ogType =
 const ms = Astro.url.pathname.startsWith('/ms/');
 const fullTitle = /siar/i.test(title) ? title : `${title} | ${SITE_NAME}`;
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
-const canonical = `${SITE_URL}${path === '/' ? '/' : path}`;
+const canonical = `${SITE_URL}${path === '/' ? '' : path}`;
 const ld = [orgLd(), ...(path === '/' ? [websiteLd()] : []), ...jsonLd];
 ---
 <!doctype html>

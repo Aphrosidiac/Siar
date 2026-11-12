@@ -22,7 +22,7 @@ function load(): string[] {
 export const WEBHOOK_EVENTS: string[] = load();
 
 export const EVENT_TEXT: Record<string, string> = {
-  'post.published': 'A post reached its final state: published on every network, or failed on at least one. Carries each network\'s result. Sent again if a retried post later reaches a new final state.',
+  'post.published': 'A post reached its final state: published on each network, or failed on at least one. Carries each network\'s result. Sent again if a retried post later reaches a new final state.',
   'comment.published': 'A comment or reply you created through Siar was published (or failed).',
   'comment.received': 'Someone commented on a post, and Siar picked it up from the network.',
   'team.created': 'A team was created.',

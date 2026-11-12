@@ -1,10 +1,11 @@
 ---
 import Base from './Base.astro';
 import { LAST_UPDATED } from '../config';
+import { breadcrumbLd } from '../lib/seo';
 const fm = Astro.props.frontmatter ?? Astro.props;
 const { title, metaTitle, description, updated, eyebrow } = fm;
 ---
-<Base title={metaTitle ?? title} description={description}>
+<Base title={metaTitle ?? title} description={description} jsonLd={[breadcrumbLd([{ name: title, href: Astro.url.pathname.replace(/\/$/, '') }])]}>
   <section class="m-hero ph">
     <div class="m-wide">
       <p class="m-kicker" data-reveal><span class="n">{eyebrow ?? 'Siar'}</span>{updated !== false && <><span class="rule"></span>updated {updated ?? LAST_UPDATED}</>}</p>
