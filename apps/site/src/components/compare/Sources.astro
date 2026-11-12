@@ -1,0 +1,17 @@
+---
+/** Every vendor page this compare page quotes, with the date it was read. */
+import { allFacts, sourceLabel, humanDate, type Rival } from '../../data/rivals';
+interface Props { rivals: Rival[] }
+const { rivals } = Astro.props;
+const seen = new Map<string, { label: string; checked: string; name: string }>();
+for (const r of rivals) for (const f of allFacts(r)) if (!seen.has(f.url)) seen.set(f.url, { label: sourceLabel(f.url), checked: f.checked, name: r.name });
+const list = [...seen.entries()];
+---
+<h2 id="sources">Sources</h2>
+<p>Every fact about another vendor on this page comes from that vendor's own page, read on the date shown. Prices and limits change; check the vendor's page before you decide.</p>
+<ul class="small srcs">
+  {list.map(([url, s]) => <li>{s.name}: <a href={url} rel="nofollow">{s.label}</a>, checked <time datetime={s.checked}>{humanDate(s.checked)}</time></li>)}
+</ul>
+<style>
+  .srcs li { overflow-wrap: anywhere; }
+</style>

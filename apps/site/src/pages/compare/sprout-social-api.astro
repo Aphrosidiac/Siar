@@ -1,0 +1,61 @@
+---
+import Article from '../../layouts/Article.astro';
+import CompareTable from '../../components/compare/CompareTable.astro';
+import Cite from '../../components/compare/Cite.astro';
+import MoveCode from '../../components/compare/MoveCode.astro';
+import Related from '../../components/compare/Related.astro';
+import Sources from '../../components/compare/Sources.astro';
+import { S } from '../../components/compare/siar';
+import { RIVALS, CHECKED, citeHtml } from '../../data/rivals';
+import { OPENAPI_LINE } from '../../lib/status';
+
+const r = RIVALS.sprout;
+const x = r.facts;
+const c = r.cells;
+
+const faq = [
+  { q: 'Can the Sprout Social API publish posts?', a: 'Not directly. Sprout Social\'s API documentation says creating a publishing post currently only supports posts in Draft status.' + citeHtml(x.drafts) },
+  { q: 'Which Sprout Social plan includes the API?', a: 'Advanced and Enterprise. Advanced is $399 per seat a month billed annually, or $499 billed monthly.' + citeHtml(c.scenario!) },
+];
+---
+<Article
+  metaTitle="Sprout Social API alternative that publishes | Siar"
+  h1="Sprout Social API alternative: an API that publishes, not drafts"
+  description="Sprout Social's API creates drafts only and starts at $399 a seat. Siar is a unified social media API that publishes and schedules, priced per organization."
+  kicker="Compare"
+  updated={CHECKED}
+  crumbs={[{ name: 'Compare', href: '/compare' }, { name: 'Sprout Social API alternative', href: '/compare/sprout-social-api' }]}
+  lead={`Sprout Social's API creates posts in Draft status only, and it needs the Advanced plan, from $399 per seat a month. Siar, a unified social media API, publishes and schedules on the networks that are open today, on every plan, from ${S.starterUsd} a month for the organization (${S.starterMyr} in Malaysia). Sprout is the better buy for analytics and listening.`}
+  actions="quickstart"
+  faq={faq}
+>
+  <CompareTable rival={r} />
+
+  <h2 id="where-sprout-wins">Where Sprout Social is the better choice</h2>
+  <ul>
+    <li><strong>You want reporting.</strong> Sprout's API exists to feed dashboards from your own profiles (<Cite f={c.connect!} />). Analytics, listening and enterprise reporting are its ground; Siar has no listening.</li>
+    <li><strong>You need TikTok, Pinterest, Reddit, Snapchat or LinkedIn pages in one app.</strong> Sprout lists them (<Cite f={c.networks!} />). On Siar: {S.tiktok} {S.pinterest} {S.linkedin}</li>
+    <li><strong>Your team needs seats, approvals and an enterprise contract.</strong> That is how Sprout is sold (<Cite f={c.unit!} />).</li>
+  </ul>
+
+  <h2 id="api-pricing">Sprout Social API pricing and limits</h2>
+  <p>{c.scenario!.value} (<Cite f={c.scenario!} />). Its documentation sets the limits: {x.drafts.value}, and {x.rate.value} (<Cite f={x.drafts} />).</p>
+  <p>Two more lines from the same page matter if you publish for customers. {x.readOnly.value}. {x.noError.value} (<Cite f={x.noError} />).</p>
+
+  <h2 id="what-siar-adds">What Siar adds for a product that publishes for its customers</h2>
+  <ul>
+    <li><strong>It publishes.</strong> Siar publishes and schedules on the open networks: {S.openList}.</li>
+    <li><strong>Errors you can see.</strong> When a network refuses a post, Siar returns the network's own error with a plain-English fix.</li>
+    <li><strong>Signed webhooks.</strong> Siar signs each webhook and retries it for about 45 hours. Sprout documents none (<Cite f={c.webhooks!} />).</li>
+    <li><strong>A connect link</strong> for your customers' own accounts, on every plan.</li>
+    <li><strong>One price for the organization.</strong> {S.unitLine} Pro is {S.proUsd} a month, or {S.proYearUsd} a year, for {S.proBrands}.</li>
+    <li><strong>REST and a public OpenAPI file.</strong> {OPENAPI_LINE()}</li>
+  </ul>
+
+  <MoveCode>
+    <p>Sprout's API reads your own profiles, so most migrations are new code rather than a port. Keep Sprout for reporting if you like it. Use Siar for the part that publishes: one brand per customer, a connect link per brand, one post per piece of content.</p>
+  </MoveCode>
+
+  <Related />
+  <Sources rivals={[r]} />
+</Article>

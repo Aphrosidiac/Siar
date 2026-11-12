@@ -1,0 +1,7 @@
+---
+/** An inline link to the vendor page a fact came from, labelled with that page's address. */
+import { sourceLabel, type Fact } from '../../data/rivals';
+interface Props { f: Fact; label?: string }
+const { f, label } = Astro.props;
+---
+<a href={f.url} rel="nofollow">{label ?? sourceLabel(f.url)}</a>

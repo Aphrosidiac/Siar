@@ -1,0 +1,56 @@
+---
+import Article from '../../layouts/Article.astro';
+import CompareTable from '../../components/compare/CompareTable.astro';
+import Cite from '../../components/compare/Cite.astro';
+import Related from '../../components/compare/Related.astro';
+import Sources from '../../components/compare/Sources.astro';
+import { S } from '../../components/compare/siar';
+import { RIVALS, CHECKED, citeHtml } from '../../data/rivals';
+
+const r = RIVALS.duta;
+const x = r.facts;
+const c = r.cells;
+
+const faq = [
+  { q: 'Do I need a card to try Duta or Siar?', a: `Duta's trial takes a card at sign-up. Siar starts with ${S.freeStart}.${citeHtml(x.card)}` },
+  { q: 'Can I run several brands on Siar?', a: `Yes. Starter covers ${S.starterBrands}, Pro ${S.proBrands} for ${S.proMyr} a month, and Business ${S.businessBrands} for ${S.businessMyr} a month.` },
+];
+---
+<Article
+  metaTitle="Duta alternative: social media scheduler and API | Siar"
+  h1={`Duta alternative: from ${S.starterMyr} a month, with comments and webhooks`}
+  description={`Duta and Siar both schedule posts from Malaysia in ringgit. Siar, a social media API and dashboard, starts at ${S.starterMyr} with ${S.freePosts} free posts to try and no card.`}
+  kicker="Compare"
+  updated={CHECKED}
+  crumbs={[{ name: 'Compare', href: '/compare' }, { name: 'Duta alternative', href: '/compare/duta' }]}
+  lead={`Duta is a Malaysian social media scheduler with one plan at RM99 a month, and a card to start. Siar, a unified social media API and dashboard from Malaysia, starts at ${S.starterMyr} a month with ${S.freeStart}, and adds comments, brands, webhooks and analytics on paid plans. Duta launched before Siar, and it has Telegram and a hosted MCP connector.`}
+  actions="signup"
+  faq={faq}
+>
+  <CompareTable rival={r} market="my" />
+
+  <h2 id="where-duta-wins">Where Duta is the better choice</h2>
+  <ul>
+    <li><strong>You post to Telegram.</strong> Duta publishes to Telegram (<Cite f={c.networks!} />). Siar has no Telegram connection.</li>
+    <li><strong>You want to post from Claude or ChatGPT today.</strong> Duta runs a hosted connector (<Cite f={c.mcp!} />), and says: {x.api.value} (<Cite f={x.api} />). Siar's is not hosted: {S.tooling}</li>
+    <li><strong>You post a lot from one brand.</strong> Duta has no post cap except X: {x.xCap.value.charAt(0).toLowerCase() + x.xCap.value.slice(1)} (<Cite f={x.xCap} />). Siar Starter allows {S.starterPosts} posts a month.</li>
+    <li><strong>You connect several accounts on the same network.</strong> Duta's plan connects each channel "as many times as you like" (<Cite f={c.unit!} />). On Siar each brand connects one account on every open network, so a second Facebook Page needs a second brand.</li>
+    <li><strong>You like a price that stays.</strong> {x.founding.value} (<Cite f={x.founding} />). Siar has the same promise: {S.priceLock.charAt(0).toLowerCase() + S.priceLock.slice(1)}</li>
+  </ul>
+  <p>Duta is open about which networks wait on approval, and so is Siar. Duta lists TikTok, Pinterest, YouTube and Google Business Profile as "Built, waiting for approval" (<Cite f={c.networks!} />). On Siar: {S.tiktok} {S.pinterest} {S.youtube}</p>
+
+  <h2 id="what-siar-adds">What Siar adds</h2>
+  <ul>
+    <li><strong>A lower entry price.</strong> Starter is {S.starterMyr} a month, or {S.starterYearMyr} a year. <a href="/pricing">Siar's prices in ringgit</a>, with yearly plans paid once by FPX or DuitNow.</li>
+    <li><strong>A free start with no card.</strong> {S.freeStart}. {x.card.value} on Duta (<Cite f={x.card} />).</li>
+    <li><strong>Brands.</strong> Pro covers {S.proBrands} for {S.proMyr} a month. Each client connects through a link with your brand.</li>
+    <li><strong>Comments.</strong> Read and answer comments from Facebook, Instagram, Threads, X, Bluesky and Mastodon in one inbox.</li>
+    <li><strong>Analytics</strong> for accounts and posts on paid plans.</li>
+    <li><strong>Webhooks and public API docs.</strong> Siar's API docs and OpenAPI file are public, and every webhook is signed. Duta lists no webhooks (<Cite f={c.webhooks!} />).</li>
+    <li><strong>Bluesky, Mastodon and Slack</strong> are open on Siar today.</li>
+  </ul>
+  <p>Siar's dashboard is in English.</p>
+
+  <Related market="my" extra={[{ href: '/malaysia', text: 'Siar in Malaysia: prices in ringgit, FPX and DuitNow' }]} />
+  <Sources rivals={[r]} />
+</Article>

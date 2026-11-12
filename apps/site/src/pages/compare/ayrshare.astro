@@ -1,0 +1,71 @@
+---
+import Article from '../../layouts/Article.astro';
+import CompareTable from '../../components/compare/CompareTable.astro';
+import Cite from '../../components/compare/Cite.astro';
+import MoveCode from '../../components/compare/MoveCode.astro';
+import Related from '../../components/compare/Related.astro';
+import Sources from '../../components/compare/Sources.astro';
+import { S } from '../../components/compare/siar';
+import { RIVALS, CHECKED, citeHtml } from '../../data/rivals';
+
+const r = RIVALS.ayrshare;
+const x = r.facts;
+const c = r.cells;
+
+const faq = [
+  { q: 'Can I try Ayrshare for free?', a: `Not without a trial. ${c.entry!.value}.${citeHtml(c.entry!)}` },
+  { q: 'How much do 100 Ayrshare profiles cost?', a: `${x.hundred.value}. On Siar, ${S.businessUsd} a month covers ${S.businessBrands}, with ${S.businessPosts} posts a month.${citeHtml(x.hundred)}` },
+];
+---
+<Article
+  metaTitle="Ayrshare alternative: social media API per business | Siar"
+  h1="Ayrshare alternative: pay per business, not per customer profile"
+  description="Ayrshare bills each customer profile, from $149 a month. Siar is a unified social media API billed per organization from $19 a month, with 20 free posts to try."
+  kicker="Compare"
+  updated={CHECKED}
+  crumbs={[{ name: 'Compare', href: '/compare' }, { name: 'Ayrshare alternative', href: '/compare/ayrshare' }]}
+  lead={`Ayrshare bills per social profile, so each customer, brand or location adds to the bill: ${x.p1.value.split(' ')[0]} a month for one, ${x.p10.value.split(' ')[0]} for up to ten. Siar, a unified social media API, bills your organization: ${S.starterUsd} for ${S.starterBrands}, ${S.proUsd} for ${S.proBrands}, ${S.businessUsd} for ${S.businessBrands}. Ayrshare is ahead on networks and has no post cap.`}
+  actions="quickstart"
+  faq={faq}
+>
+  <CompareTable rival={r} />
+
+  <h2 id="where-ayrshare-wins">Where Ayrshare is the better choice</h2>
+  <ul>
+    <li><strong>You need TikTok, YouTube, Pinterest, LinkedIn Pages, Reddit, Snapchat or Google Business Profile now.</strong> Ayrshare lists them (<Cite f={c.networks!} />). On Siar: {S.tiktok} {S.pinterest} {S.linkedin} {S.youtube}</li>
+    <li><strong>You post a lot.</strong> {x.unlimited.value} (<Cite f={x.unlimited} />). Siar caps posts per month: {S.starterPosts}, {S.proPosts} and {S.businessPosts} by plan.</li>
+    <li><strong>You want a hosted MCP server.</strong> Ayrshare runs one (<Cite f={c.mcp!} />). Siar's is not hosted: {S.tooling}</li>
+    <li><strong>You want more APIs around publishing.</strong> {x.extras.value} (<Cite f={x.extras} />).</li>
+    <li><strong>You want a fully styled connect page.</strong> {c.connect!.value.replace(/^Yes: a/, 'Ayrshare offers a')} (<Cite f={c.connect!} />). Siar's connect link carries your name and logo, and says "Powered by Siar".</li>
+  </ul>
+
+  <h2 id="pricing">Ayrshare pricing per profile</h2>
+  <p>Ayrshare's unit is the social profile: {c.unit!.value.replace(/^Per social profile: /, '')} (<Cite f={c.unit!} />). Its plans: {c.entry!.value} {x.business.value}. {x.hundred.value} (<Cite f={x.hundred} />).</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th scope="col">Brands</th><th scope="col">Ayrshare, monthly</th><th scope="col">Siar, monthly</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">1</th><td>{x.p1.value}</td><td>{S.starterUsd} (Starter, {S.starterPosts} posts)</td></tr>
+        <tr><th scope="row">10</th><td>{x.p10.value}</td><td>{S.proUsd} (Pro, {S.proPosts} posts)</td></tr>
+        <tr><th scope="row">30</th><td>{x.p30.value}</td><td>{S.businessUsd} (Business, {S.businessPosts} posts)</td></tr>
+        <tr><th scope="row">100</th><td>{x.p100.value}</td><td>{S.businessUsd} (Business, {S.businessPosts} posts)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted">Ayrshare prices from <Cite f={c.unit!} />, checked 12 November 2026. Siar's posts are per month; Ayrshare's are unlimited.</p>
+
+  <h2 id="what-siar-adds">What Siar adds</h2>
+  <ul>
+    <li><strong>A free start.</strong> {S.freeStart}, then from {S.starterUsd} a month ({S.starterMyr} in Malaysia). Pro has a {S.trialDays}-day trial.</li>
+    <li><strong>Mastodon, Discord and Slack</strong> are open on Siar today. {x.noMastodon.value} (<Cite f={x.noMastodon} />).</li>
+    <li><strong>Signed webhooks on every plan.</strong> Siar signs each webhook and retries it for about 45 hours. Ayrshare: {c.webhooks!.value.charAt(0).toLowerCase() + c.webhooks!.value.slice(1)} (<Cite f={c.webhooks!} />).</li>
+    <li><strong>A price that stays.</strong> {S.priceLock}</li>
+  </ul>
+
+  <MoveCode>
+    <p>Ayrshare profiles map to Siar brands, one to one. In the API a brand is a team. Replace each profile's linking page with a Siar connect link for that brand. Each customer connects again, because access tokens never move from one vendor to another. A post with several platforms becomes one Siar post with a payload per network, and it counts once against your plan.</p>
+  </MoveCode>
+
+  <Related />
+  <Sources rivals={[r]} />
+</Article>

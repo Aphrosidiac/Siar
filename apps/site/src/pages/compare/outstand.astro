@@ -1,0 +1,59 @@
+---
+import Article from '../../layouts/Article.astro';
+import CompareTable from '../../components/compare/CompareTable.astro';
+import Cite from '../../components/compare/Cite.astro';
+import MoveCode from '../../components/compare/MoveCode.astro';
+import Related from '../../components/compare/Related.astro';
+import Sources from '../../components/compare/Sources.astro';
+import { S } from '../../components/compare/siar';
+import { RIVALS, CHECKED, citeHtml } from '../../data/rivals';
+
+const r = RIVALS.outstand;
+const x = r.facts;
+const c = r.cells;
+
+const faq = [
+  { q: 'Does Outstand bill failed posts?', a: 'Yes. Its pricing page says pending, published and failed deliveries all count, and retries do not double-count.' + citeHtml(x.failed) },
+  { q: 'When is Outstand cheaper than Siar?', a: `Below about 7,300 deliveries a month, Outstand costs ${S.proUsd} or less. Siar Pro is ${S.proUsd} a month for ${S.proPosts} posts, however many networks each post goes to.` },
+];
+---
+<Article
+  metaTitle="Outstand alternative: one post counts once | Siar"
+  h1="Outstand alternative: one post to many networks counts once"
+  description={`Outstand bills each delivery, failed ones too. Siar is a unified social media API where a post to many networks counts once, with a dashboard and connect link.`}
+  kicker="Compare"
+  updated={CHECKED}
+  crumbs={[{ name: 'Compare', href: '/compare' }, { name: 'Outstand alternative', href: '/compare/outstand' }]}
+  lead={`Outstand bills every delivery: one post to three accounts counts as three, and failed deliveries count too. Siar, a unified social media API, counts a post once however many networks it goes to, and adds a dashboard and a branded connect link. Below about 7,300 deliveries a month, Outstand costs less.`}
+  actions="quickstart"
+  faq={faq}
+>
+  <CompareTable rival={r} />
+
+  <h2 id="where-outstand-wins">Where Outstand is the better choice</h2>
+  <ul>
+    <li><strong>Your volume is low.</strong> {c.entry!.value.split('. ')[0]} (<Cite f={c.entry!} />). {c.scenario!.value} and {x.tenK.value.charAt(0).toLowerCase() + x.tenK.value.slice(1)}. Siar Starter allows {S.starterPosts} posts a month; Pro is {S.proUsd}.</li>
+    <li><strong>You need more networks now.</strong> {c.networks!.value} (<Cite f={c.networks!} />). On Siar: {S.tiktok} {S.pinterest} {S.linkedin}</li>
+    <li><strong>You want a hosted MCP server.</strong> {c.mcp!.value} (<Cite f={c.mcp!} />). Siar's is not hosted: {S.tooling}</li>
+    <li><strong>You want no account or seat limits.</strong> {x.accounts.value} (<Cite f={x.accounts} />). Siar Pro covers {S.proBrands}; more needs Business at {S.businessUsd}.</li>
+  </ul>
+
+  <h2 id="billing-unit">Per delivery against per post</h2>
+  <p>Outstand: {c.unit!.value.replace(/^Per delivered post: /, '')}, and {x.failed.value} (<Cite f={x.failed} />).</p>
+  <p>Siar counts a post once, however many networks it goes to. Drafts and retries of a failed post don't count again. The break-even depends on how many accounts each post reaches.</p>
+
+  <h2 id="what-siar-adds">What Siar adds</h2>
+  <ul>
+    <li><strong>A dashboard and a connect link.</strong> Siar's dashboard runs on the same API, and your customers connect through a link with your name and logo. Outstand: {c.connect!.value.charAt(0).toLowerCase() + c.connect!.value.slice(1)} (<Cite f={c.connect!} />).</li>
+    <li><strong>Signed webhooks by default.</strong> Siar signs each webhook and retries it for about 45 hours. Outstand signs {c.webhooks!.value.replace(/^HMAC-signed only /, 'only ')} (<Cite f={c.webhooks!} />).</li>
+    <li><strong>A free start.</strong> {S.freeStart}.</li>
+    <li><strong>Mastodon, Discord and Slack</strong> are open on Siar today.</li>
+  </ul>
+
+  <MoveCode>
+    <p>An Outstand integration already has your own connect screens; point them at Siar's connect endpoint, or swap them for Siar's hosted connect link. Each customer connects again. A post to several accounts becomes one Siar post with a payload per network, and it counts once.</p>
+  </MoveCode>
+
+  <Related />
+  <Sources rivals={[r]} />
+</Article>

@@ -1,0 +1,52 @@
+---
+import Article from '../../layouts/Article.astro';
+import CompareTable from '../../components/compare/CompareTable.astro';
+import Cite from '../../components/compare/Cite.astro';
+import Related from '../../components/compare/Related.astro';
+import Sources from '../../components/compare/Sources.astro';
+import { S } from '../../components/compare/siar';
+import { RIVALS, CHECKED, citeHtml } from '../../data/rivals';
+
+const r = RIVALS.metaSuite;
+const c = r.cells;
+
+const faq = [
+  { q: 'Is Meta Business Suite free?', a: 'Yes. Meta Business Suite schedules posts to Facebook and Instagram at no cost.' + citeHtml(c.networks!) },
+  { q: 'Can Siar post to Facebook and Instagram too?', a: `Yes. Facebook Pages and Instagram professional accounts are open on Siar today, along with ${S.openList.replace('Facebook, Instagram, ', '')}.` },
+];
+---
+<Article
+  metaTitle="Meta Business Suite alternative for more networks | Siar"
+  h1="Meta Business Suite alternative: when one post goes beyond Facebook and Instagram"
+  description={`Meta Business Suite is free for Facebook and Instagram. Siar, a social media API and dashboard, posts once to Threads, X, LinkedIn and more, from ${S.starterMyr} a month.`}
+  kicker="Compare"
+  updated={CHECKED}
+  crumbs={[{ name: 'Compare', href: '/compare' }, { name: 'Meta Business Suite alternative', href: '/compare/meta-business-suite' }]}
+  lead={`Meta Business Suite is free for Facebook and Instagram, and if you post only there, it is the right tool. Use Siar, a unified social media API and dashboard, when the same post also goes to Threads, X, LinkedIn and more, or when you run several brands. Siar starts at ${S.starterMyr} a month, with ${S.freeStart}.`}
+  actions="signup"
+  faq={faq}
+>
+  <CompareTable rival={r} market="my" rows={['unit', 'entry', 'scenario', 'networks']} />
+
+  <h2 id="where-meta-wins">Where Meta Business Suite is the better choice</h2>
+  <ul>
+    <li><strong>You post to Facebook and Instagram, and nowhere else.</strong> It is free and built by Meta (<Cite f={c.networks!} />). Siar costs {S.starterMyr} a month after {S.freePosts} free posts.</li>
+    <li><strong>You run one business.</strong> Siar's brands matter when you post for several businesses or clients.</li>
+  </ul>
+
+  <h2 id="when-siar">When Siar is the better choice</h2>
+  <ul>
+    <li><strong>One post, more networks.</strong> Write once and send it to {S.openList}. {S.youtube}</li>
+    <li><strong>Several brands.</strong> Starter covers {S.starterBrands}; Pro covers {S.proBrands} for {S.proMyr} a month. Each client connects their own accounts through a link with your brand, so you never ask for a password.</li>
+    <li><strong>A month at once.</strong> Plan a month for a client in a CSV and schedule it in one go.</li>
+    <li><strong>Comments in one inbox</strong> from Facebook, Instagram, Threads, X, Bluesky and Mastodon.</li>
+    <li><strong>An API behind it,</strong> on every plan, if you build your own tools.</li>
+  </ul>
+  <p><a href="/pricing">Siar's prices are in ringgit</a> for Malaysian organizations, with yearly plans paid once by FPX or DuitNow. {S.priceLock} TikTok is not open yet: {S.tiktok} The dashboard is in English.</p>
+
+  <Related market="my" extra={[
+    { href: '/guides/meta-business-suite-scheduling', text: 'Meta Business Suite scheduling: fixes and limits' },
+    { href: '/malaysia', text: 'Siar in Malaysia: prices in ringgit, FPX and DuitNow' },
+  ]} />
+  <Sources rivals={[r]} />
+</Article>

@@ -1,0 +1,55 @@
+---
+import Article from '../../layouts/Article.astro';
+import CompareTable from '../../components/compare/CompareTable.astro';
+import Cite from '../../components/compare/Cite.astro';
+import Related from '../../components/compare/Related.astro';
+import Sources from '../../components/compare/Sources.astro';
+import { S } from '../../components/compare/siar';
+import { RIVALS, CHECKED, citeHtml } from '../../data/rivals';
+
+const r = RIVALS.zoho;
+const x = r.facts;
+const c = r.cells;
+
+const faq = [
+  { q: 'How much is Zoho Social in Malaysia?', a: 'Zoho Social shows ringgit prices in Malaysia. Standard is RM60 a month, or RM40 a month billed yearly, for one brand. Agency is RM1,280 a month, or RM920 a month billed yearly, for 10 clients. Local taxes are added.' + citeHtml(c.scenario!) },
+  { q: 'Is Siar cheaper than Zoho Social for one brand?', a: `Only a little. Siar Starter is ${S.starterYearMyr} a year; Zoho Social Standard billed yearly is RM40 a month, RM480 a year. The gap opens with more brands: Siar Pro is ${S.proMyr} a month for ${S.proBrands}.` },
+];
+---
+<Article
+  metaTitle="Zoho Social alternative: social media tool in ringgit | Siar"
+  h1={`Zoho Social alternative: ${S.proBrands} for ${S.proMyr} a month`}
+  description={`Zoho Social charges per brand and per member in ringgit. Siar, a social media API and dashboard, charges per organization: ${S.proMyr} a month for ${S.proBrands}.`}
+  kicker="Compare"
+  updated={CHECKED}
+  crumbs={[{ name: 'Compare', href: '/compare' }, { name: 'Zoho Social alternative', href: '/compare/zoho-social' }]}
+  lead={`Zoho Social prices each brand and each team member, in ringgit: its Agency plan is RM1,280 a month for 10 clients. Siar, a unified social media API and dashboard from Malaysia, prices the organization: ${S.proMyr} a month for ${S.proBrands}. For a single brand the two are close, and Zoho has a free tier.`}
+  actions="signup"
+  faq={faq}
+>
+  <CompareTable rival={r} market="my" />
+
+  <h2 id="where-zoho-wins">Where Zoho Social is the better choice</h2>
+  <ul>
+    <li><strong>You run one brand and want to start free.</strong> {c.entry!.value.split('. ').slice(1).join('. ')} (<Cite f={c.entry!} />). Siar gives {S.freeStart}, once.</li>
+    <li><strong>You want many channels in one brand.</strong> Standard includes 14 channels per brand (<Cite f={c.entry!} />). On Siar, each brand connects one account on every open network.</li>
+    <li><strong>The price for one brand is close.</strong> Zoho Standard billed yearly is RM40 a month, RM480 a year (<Cite f={c.entry!} />). Siar Starter is {S.starterYearMyr} a year.</li>
+    <li><strong>You need a shared inbox now.</strong> {x.premium.value} (<Cite f={x.premium} />). Siar's comments inbox is on every paid plan; DMs are a beta on request.</li>
+  </ul>
+
+  <h2 id="agencies">Ten clients: per brand against per organization</h2>
+  <p>Zoho Social: {c.scenario!.value} (<Cite f={c.scenario!} />). {x.extra.value} (<Cite f={x.extra} />). Zoho also notes: {x.tax.value} (<Cite f={x.tax} />).</p>
+  <p>Siar: {S.proMyr} a month for {S.proBrands} and {S.proPosts} posts, or {S.businessMyr} for {S.businessBrands}. Each client connects their own accounts through a link with your brand, so you never ask for a password. <a href="/pricing">Siar's prices</a> are in ringgit for Malaysian organizations, with yearly plans paid once by FPX or DuitNow.</p>
+  <p>{S.priceLock}</p>
+
+  <h2 id="what-siar-adds">What Siar adds</h2>
+  <ul>
+    <li><strong>An API behind the dashboard,</strong> on every plan, if you build your own client portal.</li>
+    <li><strong>Signed webhooks</strong>, retried for about 45 hours.</li>
+    <li><strong>Networks open today:</strong> {S.openList}. {S.youtube}</li>
+  </ul>
+  <p>The dashboard is in English. TikTok is not open yet: {S.tiktok}</p>
+
+  <Related market="my" extra={[{ href: '/malaysia', text: 'Siar in Malaysia: prices in ringgit, FPX and DuitNow' }]} />
+  <Sources rivals={[r]} />
+</Article>

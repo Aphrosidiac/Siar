@@ -1,0 +1,62 @@
+---
+import Article from '../../layouts/Article.astro';
+import CompareTable from '../../components/compare/CompareTable.astro';
+import Cite from '../../components/compare/Cite.astro';
+import MoveCode from '../../components/compare/MoveCode.astro';
+import Related from '../../components/compare/Related.astro';
+import Sources from '../../components/compare/Sources.astro';
+import { S } from '../../components/compare/siar';
+import { RIVALS, CHECKED, citeHtml } from '../../data/rivals';
+import { OPENAPI_LINE } from '../../lib/status';
+
+const r = RIVALS.publer;
+const x = r.facts;
+const c = r.cells;
+
+const faq = [
+  { q: 'Which Publer plan includes the API?', a: 'Business and Enterprise. Publer says it does not offer a public API that is available to everyone. Business with one social account is $10 a month.' + citeHtml(x.gate) },
+  { q: 'Is Siar cheaper than Publer for one account?', a: `No. Publer's API costs $10 a month for one account; Siar Starter is ${S.starterUsd}. Siar is cheaper when you run many accounts across brands: Pro is ${S.proUsd} a month for ${S.proBrands}.${citeHtml(x.oneAccount)}` },
+];
+---
+<Article
+  metaTitle="Publer API alternative with a connect link | Siar"
+  h1="Publer API alternative: let your customers connect their own accounts"
+  description="Publer's API starts on Business and cannot connect accounts. Siar is a unified social media API with a connect link, webhooks and the API on every plan."
+  kicker="Compare"
+  updated={CHECKED}
+  crumbs={[{ name: 'Compare', href: '/compare' }, { name: 'Publer API alternative', href: '/compare/publer-api' }]}
+  lead={`Publer's API starts on its Business plan and only reads the accounts you connected inside Publer. Siar, a unified social media API, includes the API on every plan and gives your customers a branded link to connect their own accounts. Siar also sends signed webhooks, which Publer does not document. For one account, Publer costs less.`}
+  actions="quickstart"
+  faq={faq}
+>
+  <CompareTable rival={r} />
+
+  <h2 id="where-publer-wins">Where Publer is the better choice</h2>
+  <ul>
+    <li><strong>You need the API for one account.</strong> {x.oneAccount.value} (<Cite f={x.oneAccount} />). Siar Starter is {S.starterUsd} a month.</li>
+    <li><strong>You want a hosted MCP server.</strong> Publer runs one on Business and Enterprise (<Cite f={c.mcp!} />). Siar's is not hosted: {S.tooling}</li>
+    <li><strong>You need TikTok, YouTube, Pinterest, LinkedIn pages, Google Business Profile, Telegram or WordPress.</strong> Publer lists them (<Cite f={c.networks!} />). On Siar: {S.tiktok} {S.pinterest} {S.linkedin}</li>
+  </ul>
+
+  <h2 id="api-pricing">Publer API pricing and access</h2>
+  <p>{x.gate.value} (<Cite f={x.gate} />). Publer bills per social account and per team member, so the bill grows with every account: {c.scenario!.value} (<Cite f={c.scenario!} />). Siar Pro is {S.proUsd} a month for {S.proBrands} and {S.proPosts} posts.</p>
+  <p>Publer's published rate limit is {x.rate.value} (<Cite f={x.rate} />).</p>
+
+  <h2 id="what-siar-adds">What Siar adds for a product that publishes for its customers</h2>
+  <ul>
+    <li><strong>A connect link.</strong> Your customers connect their own accounts through a link with your name and logo. Publer's Accounts API lists and reads accounts only (<Cite f={c.connect!} />).</li>
+    <li><strong>Signed webhooks.</strong> Siar signs each webhook and retries it for about 45 hours. Publer documents none (<Cite f={c.webhooks!} />).</li>
+    <li><strong>Comments in the API.</strong> Read and answer comments where the network allows.</li>
+    <li><strong>The API on every plan,</strong> Free included, with {S.freeStart}.</li>
+    <li><strong>Discord and Slack</strong> are open on Siar today.</li>
+    <li><strong>REST and a public OpenAPI file.</strong> {OPENAPI_LINE()}</li>
+  </ul>
+  <p>{S.priceLock}</p>
+
+  <MoveCode>
+    <p>Publer workspaces map to Siar brands. In the API a brand is a team. Replace "connect in Publer, then read the account" with a connect link per brand. A scheduled post becomes one Siar post with a payload per network. Polling a job's status becomes a webhook subscription.</p>
+  </MoveCode>
+
+  <Related />
+  <Sources rivals={[r]} />
+</Article>

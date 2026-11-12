@@ -1,0 +1,53 @@
+---
+/**
+ * The first-screen table on a compare page: six rows, the rival first, Siar second.
+ * Every rival cell links the vendor's own page; the check date shows once above the table, and again in a cell
+ * only when that cell was checked on another day.
+ */
+import { CELL_LABEL, SCENARIO, SCENARIO_MY, sourceLabel, humanDate, checkedOf, type Rival, type CellKey } from '../../data/rivals';
+import { siarCells } from './siar';
+
+interface Props { rival: Rival; market?: 'global' | 'my'; rows?: CellKey[] }
+const { rival, market = 'global', rows = ['unit', 'entry', 'scenario', 'networks', 'webhooks', 'connect'] } = Astro.props;
+const siar = siarCells(market);
+const checked = checkedOf(rival);
+const scenario = market === 'my' ? SCENARIO_MY : SCENARIO;
+---
+<p class="small muted tnote">
+  {rival.name} cells checked <time datetime={checked}>{humanDate(checked)}</time>; each links {rival.name}'s own page.
+  Siar's network status checked against Siar's approval records. Scenario: {scenario}.
+</p>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th scope="col"><span class="vh">Row</span></th><th scope="col">{rival.name}</th><th scope="col">Siar</th></tr></thead>
+    <tbody>
+      {rows.map((k) => {
+        const c = rival.cells[k];
+        return (
+          <tr>
+            <th scope="row">{k === 'scenario' ? (market === 'my' ? 'Price for 10 brands' : 'Price for 10 brands, 50 accounts') : CELL_LABEL[k]}</th>
+            <td>
+              {c ? (
+                <>
+                  {c.value}
+                  <span class="src"><a href={c.url} rel="nofollow">{sourceLabel(c.url)}</a>{c.checked !== checked && <>, checked <time datetime={c.checked}>{humanDate(c.checked)}</time></>}</span>
+                </>
+              ) : (
+                <span class="muted">Not checked yet</span>
+              )}
+            </td>
+            <td set:html={siar[k]} />
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+</div>
+<style>
+  .tnote { margin: 0 0 12px; }
+  .src { display: block; margin-top: 4px; font-size: var(--fs-12); line-height: 16px; overflow-wrap: anywhere; }
+  .src a { color: var(--text-subtle); }
+  .src a:hover { color: var(--text); }
+  .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  td :global(a) { color: inherit; }
+</style>

@@ -1,0 +1,43 @@
+---
+/**
+ * "Moving your code": the two calls every migration starts with, on open networks only, labelled Example.
+ * The page passes its own mapping notes in the slot.
+ */
+import CodeBlock from '../CodeBlock.astro';
+import { API_BASE } from '../../config';
+
+const connect = `curl -X POST "${API_BASE}/social-account/create-portal-link" \\
+  -H "x-api-key: $SIAR_API_KEY" \\
+  -H "content-type: application/json" \\
+  -d '{
+    "teamId": "TEAM_ID",
+    "socialAccountTypes": ["FACEBOOK", "INSTAGRAM", "LINKEDIN", "BLUESKY"],
+    "redirectUrl": "https://yourapp.example/settings/social",
+    "logoUrl": "https://yourapp.example/logo.png",
+    "userName": "Acme Bakery"
+  }'
+# Returns { "url": "..." }: a hosted page your customer opens to connect their accounts.`;
+
+const post = `curl -X POST "${API_BASE}/post" \\
+  -H "x-api-key: $SIAR_API_KEY" \\
+  -H "content-type: application/json" \\
+  -d '{
+    "teamId": "TEAM_ID",
+    "title": "Launch day",
+    "postDate": "2026-12-01T01:00:00.000Z",
+    "status": "SCHEDULED",
+    "socialAccountTypes": ["LINKEDIN", "BLUESKY", "THREADS"],
+    "data": {
+      "LINKEDIN": { "text": "We shipped today. Here is what changed and why." },
+      "BLUESKY": { "text": "We shipped today." },
+      "THREADS": { "text": "We shipped today." }
+    }
+  }'`;
+---
+<h2 id="moving-your-code">Moving your code</h2>
+<slot />
+<p>Example: create a connect link for one brand. A brand is a team in the API, so you pass its <code>teamId</code>.</p>
+<CodeBlock lang="bash" title="Example request" code={connect} />
+<p>Example: one post to three networks. It counts as one post against your plan.</p>
+<CodeBlock lang="bash" title="Example request" code={post} />
+<p>The <a href="/docs/quickstart">quickstart</a> covers keys and the first request. The <a href="/docs/connecting-accounts">connecting accounts guide</a> covers the connect link, and the <a href="/docs/webhooks">webhooks guide</a> covers signatures and retries.</p>

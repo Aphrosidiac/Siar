@@ -1,0 +1,58 @@
+---
+import Article from '../../layouts/Article.astro';
+import CompareTable from '../../components/compare/CompareTable.astro';
+import Cite from '../../components/compare/Cite.astro';
+import MoveCode from '../../components/compare/MoveCode.astro';
+import Related from '../../components/compare/Related.astro';
+import Sources from '../../components/compare/Sources.astro';
+import { S } from '../../components/compare/siar';
+import { RIVALS, CHECKED, citeHtml } from '../../data/rivals';
+
+const r = RIVALS.mixpost;
+const x = r.facts;
+const c = r.cells;
+
+const faq = [
+  { q: 'Can the Mixpost API connect social accounts?', a: 'No. Its API lists and reads the accounts connected in the Mixpost dashboard. There is no endpoint to start a connection.' + citeHtml(c.connect!) },
+  { q: 'Can I run Siar on my own server?', a: 'No. Siar is hosted only. If you must own the server, Mixpost is the better buy.' },
+];
+---
+<Article
+  metaTitle="Mixpost alternative: a hosted social media API | Siar"
+  h1="Mixpost alternative: an API to build on, not an app to install"
+  description={`Mixpost is a scheduler you install or rent per workspace. Siar is a hosted, unified social media API with a connect link, comments and signed webhooks.`}
+  kicker="Compare"
+  updated={CHECKED}
+  crumbs={[{ name: 'Compare', href: '/compare' }, { name: 'Mixpost alternative', href: '/compare/mixpost' }]}
+  lead={`Mixpost is a social media scheduler you install on your own server or rent per workspace. Siar, a unified social media API, is hosted: your customers connect their own accounts through your branded link, and comments and signed webhooks come over the API. If you must own the server, Mixpost is the better buy.`}
+  actions="quickstart"
+  faq={faq}
+>
+  <CompareTable rival={r} />
+
+  <h2 id="where-mixpost-wins">Where Mixpost is the better choice</h2>
+  <ul>
+    <li><strong>You must own the server and the code.</strong> {c.entry!.value.split('. ')[0]} (<Cite f={c.entry!} />). {x.lite.value} (<Cite f={x.lite} />). Siar is hosted only.</li>
+    <li><strong>You want to resell a scheduler as your own product.</strong> {x.enterprise.value} (<Cite f={x.enterprise} />).</li>
+    <li><strong>You need TikTok, YouTube, LinkedIn pages, Pinterest, Google Business Profile or Pixelfed, and can get your own approvals.</strong> Self-hosted Mixpost supports them (<Cite f={c.networks!} />). On Siar: {S.tiktok} {S.pinterest} {S.linkedin}</li>
+    <li><strong>You want an MCP server in the app.</strong> {c.mcp!.value} (<Cite f={c.mcp!} />). Siar's is not hosted: {S.tooling}</li>
+  </ul>
+
+  <h2 id="what-siar-adds">What Siar adds for a product that publishes for its customers</h2>
+  <ul>
+    <li><strong>A connect link.</strong> Your customers connect their own accounts through a link with your name and logo. Mixpost's API: {c.connect!.value.replace(/^No: the API /, '')} (<Cite f={c.connect!} />).</li>
+    <li><strong>Network apps already approved</strong> for the networks open today: {S.openList}. On self-hosted Mixpost you get your own app approved on each network, which Mixpost says "can take weeks per network" (<Cite f={x.approvals} />).</li>
+    <li><strong>Webhooks retried for about 45 hours.</strong> Siar signs each webhook and retries it for about 45 hours. Mixpost: {c.webhooks!.value} (<Cite f={c.webhooks!} />).</li>
+    <li><strong>Comments over the API,</strong> where the network allows.</li>
+    <li><strong>Discord and Slack</strong> are open on Siar today.</li>
+    <li><strong>Per organization, not per workspace or channel.</strong> {S.unitLine} Pro is {S.proUsd} a month for {S.proBrands}. Mixpost Cloud: {c.scenario!.value} (<Cite f={c.scenario!} />).</li>
+    <li><strong>A free start with no card.</strong> {S.freeStart}.</li>
+  </ul>
+
+  <MoveCode>
+    <p>Mixpost workspaces map to Siar brands. In the API a brand is a team. Accounts you connected in the Mixpost dashboard become accounts your customers connect through a Siar link, so each one connects again. A Mixpost post with several accounts becomes one Siar post with a payload per network.</p>
+  </MoveCode>
+
+  <Related />
+  <Sources rivals={[r]} />
+</Article>

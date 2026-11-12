@@ -1,0 +1,71 @@
+---
+import Article from '../../layouts/Article.astro';
+import CompareTable from '../../components/compare/CompareTable.astro';
+import Cite from '../../components/compare/Cite.astro';
+import MoveCode from '../../components/compare/MoveCode.astro';
+import Related from '../../components/compare/Related.astro';
+import Sources from '../../components/compare/Sources.astro';
+import { S } from '../../components/compare/siar';
+import { RIVALS, CHECKED, citeHtml } from '../../data/rivals';
+
+const r = RIVALS.zernio;
+const x = r.facts;
+const c = r.cells;
+
+const faq = [
+  { q: 'Is Zernio the same as Late?', a: `Yes. Zernio's own rebrand page says: ${x.rebrand.value}${citeHtml(x.rebrand)}` },
+  { q: 'When is Zernio cheaper than Siar?', a: `For one or two accounts, Zernio is free with unlimited posts. Siar starts with ${S.freeStart}, once, then ${S.starterUsd} a month.${citeHtml(c.entry!)}` },
+];
+---
+<Article
+  metaTitle="Zernio alternative priced per organization | Siar"
+  h1="Zernio alternative: one price for your organization, not per account"
+  description={`Zernio bills every connected account. Siar is a unified social media API priced per organization: ${S.proUsd} for ${S.proBrands}, ${S.businessUsd} for ${S.businessBrands}.`}
+  kicker="Compare"
+  updated={CHECKED}
+  crumbs={[{ name: 'Compare', href: '/compare' }, { name: 'Zernio alternative', href: '/compare/zernio' }]}
+  lead={`Zernio, formerly Late, bills every social account you connect, so the bill grows with each customer. Siar, a unified social media API, bills your organization: ${S.proUsd} a month for ${S.proBrands}, ${S.businessUsd} for ${S.businessBrands}, whatever the account count. Zernio is free for two accounts, never caps posts and covers more networks.`}
+  actions="quickstart"
+  faq={faq}
+>
+  <CompareTable rival={r} />
+
+  <h2 id="where-zernio-wins">Where Zernio is the better choice</h2>
+  <ul>
+    <li><strong>You run one or two accounts.</strong> {c.entry!.value} (<Cite f={c.entry!} />). Siar gives {S.freeStart}, once.</li>
+    <li><strong>You post a lot from each account.</strong> {x.included.value} (<Cite f={x.included} />). Siar caps posts per month: {S.starterPosts}, {S.proPosts} and {S.businessPosts} by plan.</li>
+    <li><strong>You need TikTok, YouTube, LinkedIn pages, Pinterest or Google Business now.</strong> Zernio lists them (<Cite f={c.networks!} />). On Siar: {S.tiktok} {S.pinterest} {S.linkedin}</li>
+    <li><strong>You want more webhook events and endpoints.</strong> {c.webhooks!.value} (<Cite f={c.webhooks!} />). Siar allows {S.webhookCap} endpoints per organization.</li>
+    <li><strong>You want your own OAuth app on the consent screen, or a headless connect flow.</strong> {c.connect!.value.replace(/^Yes: /, 'Zernio offers ')} (<Cite f={c.connect!} />). Siar's connect link carries your name and logo and says "Powered by Siar".</li>
+    <li><strong>You want a hosted MCP server.</strong> {c.mcp!.value} (<Cite f={c.mcp!} />). Siar's is not hosted: {S.tooling}</li>
+  </ul>
+
+  <h2 id="pricing">Zernio pricing per account, against one price</h2>
+  <p>Zernio's rebrand page says {x.rebrand.value} (<Cite f={x.rebrand} />). Its rate card: {c.unit!.value.replace(/^Per connected account, graduated: /, '')} (<Cite f={c.unit!} />). At scale, the gap is the unit.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th scope="col">Accounts</th><th scope="col">Zernio, monthly</th><th scope="col">Siar, monthly</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">40, across 10 brands</th><td>{x.forty.value.replace(/^40 accounts: /, '')}</td><td>{S.proUsd} (Pro, {S.proBrands}, {S.proPosts} posts)</td></tr>
+        <tr><th scope="row">100</th><td>{x.hundred.value.replace(/^100 accounts: /, '')}</td><td>{S.businessUsd} (Business, {S.businessBrands}, {S.businessPosts} posts)</td></tr>
+        <tr><th scope="row">1,000</th><td>{x.thousand.value.replace(/^1,000 accounts: /, '')}</td><td>{S.businessUsd} (Business, {S.businessBrands}, {S.businessPosts} posts)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted">Zernio prices from <Cite f={c.unit!} />, checked 12 November 2026. Siar counts posts per month; Zernio does not cap posts. On Siar each brand connects one account per network, so 100 accounts on 5 networks means 20 brands.</p>
+
+  <h2 id="what-siar-adds">What Siar adds</h2>
+  <ul>
+    <li><strong>A bill that stops growing with accounts.</strong> {S.unitLine}</li>
+    <li><strong>A price that stays.</strong> {S.priceLock}</li>
+    <li><strong>Mastodon</strong> is open on Siar today. Zernio does not list it (<Cite f={c.networks!} />).</li>
+    <li><strong>A focused social API.</strong> Publishing, scheduling, comments, analytics on paid plans and signed webhooks, with nothing else to learn.</li>
+  </ul>
+
+  <MoveCode>
+    <p>Zernio profiles map to Siar brands. In the API a brand is a team. Zernio's connect flow becomes a Siar connect link per brand, and each customer connects again. A post to several accounts becomes one Siar post with a payload per network. Zernio's webhook events map to Siar's post and account events; verify Siar's signature header before you trust a payload.</p>
+  </MoveCode>
+
+  <Related />
+  <Sources rivals={[r]} />
+</Article>

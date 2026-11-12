@@ -1,0 +1,28 @@
+---
+/**
+ * The up-links every compare page carries (strike-plan §6 rule 6): /compare, its pricing explainer, /platforms and
+ * the webhook table. Compare pages never link each other in body copy.
+ * A link is printed only when its page exists in this build, so a sibling page that has not landed yet is skipped
+ * and appears on the next build after it does.
+ */
+interface Props { market?: 'global' | 'my'; extra?: { href: string; text: string }[] }
+const { market = 'global', extra = [] } = Astro.props;
+
+const files = Object.keys(import.meta.glob('/src/pages/**/*.{astro,md,mdx}'));
+const routes = new Set(files.map((f) => f.replace(/^\/src\/pages/, '').replace(/\.(astro|mdx?)$/, '').replace(/\/index$/, '') || '/'));
+const exists = (href: string) => routes.has(href.split('#')[0]);
+
+const links = [
+  { href: '/compare', text: 'All social media API comparisons' },
+  market === 'my'
+    ? { href: '/guides/social-media-management-cost-malaysia', text: 'What social media management costs in Malaysia' }
+    : { href: '/guides/social-media-api-pricing', text: 'Social media API pricing, compared by scenario' },
+  { href: '/platforms', text: 'Which networks are open on Siar today' },
+  { href: '/use-cases/social-media-webhooks', text: 'Social media webhooks: how delivery compares' },
+  ...extra,
+].filter((l) => exists(l.href) && l.href !== Astro.url.pathname.replace(/\/$/, ''));
+---
+<h2 id="related">Related</h2>
+<ul>
+  {links.map((l) => <li><a href={l.href}>{l.text}</a></li>)}
+</ul>

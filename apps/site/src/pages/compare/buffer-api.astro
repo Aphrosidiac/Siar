@@ -1,0 +1,71 @@
+---
+import Article from '../../layouts/Article.astro';
+import CompareTable from '../../components/compare/CompareTable.astro';
+import Cite from '../../components/compare/Cite.astro';
+import MoveCode from '../../components/compare/MoveCode.astro';
+import Related from '../../components/compare/Related.astro';
+import Sources from '../../components/compare/Sources.astro';
+import { S } from '../../components/compare/siar';
+import { RIVALS, CHECKED, citeHtml } from '../../data/rivals';
+import { OPENAPI_LINE } from '../../lib/status';
+
+const r = RIVALS.buffer;
+const x = r.facts;
+
+const faq = [
+  { q: 'Does Buffer have an API?', a: 'Yes. Buffer\'s GraphQL API went public on 27 May 2026. It acts on your own Buffer account, and apps can act for other Buffer users through OAuth. Its legacy REST API retires on 1 February 2027.' + citeHtml(x.graphqlSince) },
+  { q: 'Can I move off Buffer\'s REST API without rewriting code?', a: 'No. Siar is not compatible with Buffer\'s REST API. Moving from Buffer\'s REST API means rewriting the calls, whether you move to Buffer\'s GraphQL API or to Siar.' },
+  { q: 'Do my customers need a Siar account?', a: 'No. You send them a connect link with your brand on it. They sign in to each network themselves, and the accounts land in the brand you created for them.' },
+];
+---
+<Article
+  metaTitle="Buffer API alternative before the REST shutdown | Siar"
+  h1="Buffer API alternative: your customers connect without a Buffer account"
+  description="Buffer's legacy REST API retires on 1 February 2027. Compare Buffer's API with Siar, a unified social media API your customers use without a Buffer account."
+  kicker="Compare"
+  updated={CHECKED}
+  crumbs={[{ name: 'Compare', href: '/compare' }, { name: 'Buffer API alternative', href: '/compare/buffer-api' }]}
+  lead={`Buffer's API acts on Buffer accounts, so every user of your app needs one. Siar, a unified social media API, lets your customers connect their own social accounts through your branded link, with no Buffer account, and bills your organization instead of each channel. Buffer retires its legacy REST API on 1 February 2027, with a brownout planned for 9 December 2026.`}
+  actions="quickstart"
+  faq={faq}
+>
+  <CompareTable rival={r} />
+
+  <h2 id="where-buffer-wins">Where Buffer is the better choice</h2>
+  <ul>
+    <li><strong>Your users already work in Buffer.</strong> Buffer's API is built for that: {x.ownAccount.value} (<Cite f={x.ownAccount} />).</li>
+    <li><strong>You want to stay on a free tier.</strong> {x.freePlan.value} (<Cite f={x.freePlan} />). Siar gives {S.freeStart}, once.</li>
+    <li><strong>You want a hosted MCP server today.</strong> Buffer's is hosted and free on every Buffer plan (<Cite f={r.cells.mcp!} />). Siar's is not hosted: {S.tooling}</li>
+    <li><strong>You need TikTok, YouTube Shorts, Pinterest, LinkedIn Pages or Google Business now.</strong> Buffer lists them (<Cite f={r.cells.networks!} />). On Siar: {S.tiktok} {S.pinterest} {S.linkedin}</li>
+    <li><strong>You post a lot from few accounts.</strong> {x.fairUse.value} (<Cite f={x.fairUse} />). Siar caps posts per month: {S.starterPosts} on Starter, {S.proPosts} on Pro, {S.businessPosts} on Business.</li>
+  </ul>
+  <p>Siar is not compatible with Buffer's REST API. If you leave the REST API, you rewrite your calls either way.</p>
+
+  <h2 id="shutdown">What changes on 9 December 2026 and 1 February 2027</h2>
+  <p>Buffer's own notice sets the dates: {x.brownouts.value}, and {x.retired.value} (<Cite f={x.brownouts} />). {x.replacement.value}.</p>
+  <p>{x.graphqlSince.value} (<Cite f={x.graphqlSince} />). It is a different protocol, so code written for the REST API moves call by call. That is the moment to decide which API your product should sit on.</p>
+
+  <h2 id="what-siar-adds">What Siar adds for a product that publishes for its customers</h2>
+  <ul>
+    <li><strong>Your customers connect their own accounts.</strong> A connect link with your name and logo, on every plan. Buffer: {r.cells.connect!.value.replace(/^No: /, '')} (<Cite f={r.cells.connect!} />).</li>
+    <li><strong>One price for the organization.</strong> {S.unitLine} {S.proUsd} a month covers {S.proBrands} ({S.proMyr} in Malaysia). Buffer bills each channel (<Cite f={r.cells.unit!} />).</li>
+    <li><strong>Webhooks.</strong> Siar signs each webhook and retries it for about 45 hours. Buffer documents none, so you poll (<Cite f={r.cells.webhooks!} />).</li>
+    <li><strong>Comments in the API.</strong> Read and answer comments from the same API. {x.community.value} (<Cite f={x.community} />).</li>
+    <li><strong>REST and a public OpenAPI file.</strong> {OPENAPI_LINE()}</li>
+    <li><strong>Media uploads.</strong> Upload files to Siar and reference them in the post. Buffer has {x.noUpload.value.replace(/^No/, 'no')} (<Cite f={x.noUpload} />).</li>
+  </ul>
+  <p>{S.priceLock}</p>
+
+  <MoveCode>
+    <p>A Buffer integration maps onto Siar like this:</p>
+    <ul>
+      <li><strong>Channels become social accounts under a brand.</strong> Create one brand per customer, then send that customer a connect link. Access tokens never move from one vendor to another, so each customer connects again.</li>
+      <li><strong>One request per channel becomes one request per post.</strong> A Siar post carries a payload per network and goes to every connected account you list.</li>
+      <li><strong>Hosted media URLs become uploads.</strong> Upload the file, then pass its upload ID.</li>
+      <li><strong>Polling becomes webhooks.</strong> Subscribe to post events and verify each signature.</li>
+    </ul>
+  </MoveCode>
+
+  <Related />
+  <Sources rivals={[r]} />
+</Article>

@@ -1,0 +1,66 @@
+---
+import Article from '../../layouts/Article.astro';
+import CompareTable from '../../components/compare/CompareTable.astro';
+import Cite from '../../components/compare/Cite.astro';
+import MoveCode from '../../components/compare/MoveCode.astro';
+import Related from '../../components/compare/Related.astro';
+import Sources from '../../components/compare/Sources.astro';
+import { S } from '../../components/compare/siar';
+import { RIVALS, CHECKED, citeHtml } from '../../data/rivals';
+
+const r = RIVALS.uploadPost;
+const x = r.facts;
+const c = r.cells;
+
+const faq = [
+  { q: 'Does Upload-Post retry webhooks?', a: 'No. Its webhook documentation says each event gets a single delivery attempt, with no redelivery.' + citeHtml(c.webhooks!) },
+  { q: 'Is Upload-Post cheaper than Siar?', a: `For 2 to 75 clients, yes. Above 75, Siar Business is ${S.businessUsd} a month for ${S.businessBrands}.${citeHtml(c.entry!)}` },
+];
+---
+<Article
+  metaTitle="Upload-Post alternative with retried webhooks | Siar"
+  h1="Upload-Post alternative: signed webhooks that are retried"
+  description={`Upload-Post sends each webhook once. Siar is a unified social media API whose signed webhooks retry for about 45 hours, at ${S.businessUsd} a month for ${S.businessBrands}.`}
+  kicker="Compare"
+  updated={CHECKED}
+  crumbs={[{ name: 'Compare', href: '/compare' }, { name: 'Upload-Post alternative', href: '/compare/upload-post' }]}
+  lead={`Upload-Post sends each webhook once, with no retry, so a missed delivery is gone. Siar, a unified social media API, signs every webhook and retries it for about 45 hours, and returns each network's own error when a post fails. Upload-Post is cheaper for 2 to 75 clients and covers more networks; above 75 brands, Siar costs less.`}
+  actions="quickstart"
+  faq={faq}
+>
+  <CompareTable rival={r} />
+
+  <h2 id="where-upload-post-wins">Where Upload-Post is the better choice</h2>
+  <ul>
+    <li><strong>You serve 2 to 75 clients.</strong> {c.entry!.value} (<Cite f={c.entry!} />). For 10: {c.scenario!.value.replace(/ a month:.*/, '')}. Siar: {S.starterBrands} on Starter, then {S.proUsd} for {S.proBrands}, then {S.businessUsd}.</li>
+    <li><strong>You need many networks now.</strong> {c.networks!.value} (<Cite f={c.networks!} />). On Siar: {S.tiktok} {S.pinterest} {S.linkedin}</li>
+    <li><strong>You process media.</strong> {x.media.value} (<Cite f={x.media} />). Siar checks media against each network's limits; it does not transcode.</li>
+    <li><strong>You want a free tier that refills.</strong> Upload-Post's free tier gives 10 uploads every month (<Cite f={c.entry!} />). Siar gives {S.freeStart}, once.</li>
+    <li><strong>You want a hosted MCP server.</strong> Upload-Post runs one (<Cite f={c.mcp!} />). Siar's is not hosted: {S.tooling}</li>
+  </ul>
+
+  <h2 id="webhooks">What happens when a delivery fails</h2>
+  <p>Upload-Post's webhooks are {c.webhooks!.value.charAt(0).toLowerCase() + c.webhooks!.value.slice(1)} (<Cite f={c.webhooks!} />). If your endpoint is down for a minute, you poll to find out what happened.</p>
+  <p>Siar signs each webhook and retries it for about 45 hours. When a network refuses a post, Siar returns that network's own error with a plain-English fix, so you can tell a bad token from a caption that is too long.</p>
+
+  <h2 id="pricing">Upload-Post pricing per profile, against one price</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th scope="col">Clients</th><th scope="col">Upload-Post, monthly</th><th scope="col">Siar, monthly</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">10</th><td>{c.scenario!.value.replace(/^\$39 a month: /, '$39: ')}</td><td>{S.proUsd} (Pro, {S.proPosts} posts)</td></tr>
+        <tr><th scope="row">75</th><td>{x.advanced.value}</td><td>{S.businessUsd} (Business, {S.businessPosts} posts)</td></tr>
+        <tr><th scope="row">100</th><td>{x.hundred.value.replace(/^100 profiles: /, '')}</td><td>{S.businessUsd} (Business, {S.businessPosts} posts)</td></tr>
+        <tr><th scope="row">225</th><td>{x.business.value}</td><td>{S.businessUsd} (Business, {S.businessPosts} posts)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted">Upload-Post prices from <Cite f={c.unit!} />, checked 12 November 2026. {x.unlimited.value}; Siar counts posts per month. Both allow one account per network per client.</p>
+
+  <MoveCode>
+    <p>Upload-Post profiles map to Siar brands. In the API a brand is a team. Replace each profile's connect page with a Siar connect link for that brand; each client connects again. An upload call becomes one Siar post with a payload per network. Treat Siar's webhook as the record of what happened, and check its signature first.</p>
+  </MoveCode>
+
+  <Related />
+  <Sources rivals={[r]} />
+</Article>

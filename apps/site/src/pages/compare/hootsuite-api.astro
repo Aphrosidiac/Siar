@@ -1,0 +1,62 @@
+---
+import Article from '../../layouts/Article.astro';
+import CompareTable from '../../components/compare/CompareTable.astro';
+import Cite from '../../components/compare/Cite.astro';
+import MoveCode from '../../components/compare/MoveCode.astro';
+import Related from '../../components/compare/Related.astro';
+import Sources from '../../components/compare/Sources.astro';
+import { S } from '../../components/compare/siar';
+import { RIVALS, CHECKED, citeHtml } from '../../data/rivals';
+import { OPENAPI_LINE } from '../../lib/status';
+
+const r = RIVALS.hootsuite;
+const x = r.facts;
+const c = r.cells;
+
+const faq = [
+  { q: 'Does Hootsuite have an API?', a: 'Yes. Hootsuite says access to its REST APIs is free once you are approved for developer access. The API acts for Hootsuite users on their own Hootsuite accounts, and those users pay for Hootsuite seats.' + citeHtml(x.apiFree) },
+  { q: 'Can I use Siar without seats?', a: `Yes. Siar is priced per organization, not per user. Pro is ${S.proUsd} a month for ${S.proBrands} (${S.proMyr} in Malaysia), with no seat fees.` },
+];
+---
+<Article
+  metaTitle="Hootsuite API alternative priced per organization | Siar"
+  h1="Hootsuite API alternative: an API priced per organization, not per seat"
+  description="Hootsuite sells seats from $99 a user, and its API acts on Hootsuite accounts. Siar is a unified social media API your customers connect to, per organization."
+  kicker="Compare"
+  updated={CHECKED}
+  crumbs={[{ name: 'Compare', href: '/compare' }, { name: 'Hootsuite API alternative', href: '/compare/hootsuite-api' }]}
+  lead={`Hootsuite's API works for Hootsuite users, and Hootsuite is sold per seat, from $99 a user a month billed annually. Siar, a unified social media API, is priced per organization from ${S.starterUsd} a month (${S.starterMyr} in Malaysia). Your own customers connect their accounts through your branded link, and Siar signs every webhook it sends.`}
+  actions="quickstart"
+  faq={faq}
+>
+  <CompareTable rival={r} />
+
+  <h2 id="where-hootsuite-wins">Where Hootsuite is the better choice</h2>
+  <ul>
+    <li><strong>Your team lives in a dashboard.</strong> Listening, approvals and enterprise governance are Hootsuite's ground. {x.enterprise.value} (<Cite f={x.enterprise} />). Siar has none of these.</li>
+    <li><strong>You want an MCP server that publishes today.</strong> {x.perch.value} (<Cite f={x.perch} />). Siar's is not hosted: {S.tooling}</li>
+    <li><strong>You need TikTok, YouTube or Pinterest in the app.</strong> Hootsuite lists them (<Cite f={c.networks!} />). On Siar: {S.tiktok} {S.pinterest} {S.youtube}</li>
+    <li><strong>You post a lot.</strong> Hootsuite plans list unlimited posts (<Cite f={c.unit!} />). Siar caps posts per month: {S.starterPosts}, {S.proPosts} and {S.businessPosts} by plan.</li>
+  </ul>
+
+  <h2 id="api-pricing">Hootsuite API pricing and access</h2>
+  <p>{x.apiFree.value} (<Cite f={x.apiFree} />). The cost sits in the seats: {c.entry!.value} (<Cite f={c.entry!} />), and Standard stops at 10 social accounts. For more than 10 accounts, {c.scenario!.value} (<Cite f={c.scenario!} />).</p>
+  <p>The publishing API also covers fewer networks than the app: {x.apiNetworks.value} (<Cite f={x.apiNetworks} />). Its published rate limit is {x.rate.value} (<Cite f={x.rate} />).</p>
+
+  <h2 id="what-siar-adds">What Siar adds for a product that publishes for its customers</h2>
+  <ul>
+    <li><strong>Your customers connect their own accounts</strong> through a link with your name and logo, on every plan. Hootsuite's API acts for Hootsuite users on accounts they connected inside Hootsuite (<Cite f={c.connect!} />).</li>
+    <li><strong>One price for the organization.</strong> {S.unitLine} Pro is {S.proUsd} a month for {S.proBrands}, or {S.proYearUsd} a year.</li>
+    <li><strong>Signed webhooks.</strong> Siar signs each webhook and retries it for about 45 hours. Hootsuite documents four webhook event types and no signing (<Cite f={c.webhooks!} />).</li>
+    <li><strong>Mastodon, Discord and Slack</strong> are open on Siar today. Hootsuite's network list does not include them (<Cite f={c.networks!} />).</li>
+    <li><strong>REST and a public OpenAPI file.</strong> {OPENAPI_LINE()}</li>
+  </ul>
+  <p>{S.priceLock}</p>
+
+  <MoveCode>
+    <p>Hootsuite's API acts on a Hootsuite member's own social profiles. On Siar, your product holds one organization, each customer is a brand, and each customer connects their accounts through your link. Scheduling a message becomes one post with a payload per network. Hootsuite's comment approvals become Siar's comments API, which reads and answers comments where the network allows.</p>
+  </MoveCode>
+
+  <Related />
+  <Sources rivals={[r]} />
+</Article>

@@ -1,0 +1,92 @@
+---
+import Article from '../../layouts/Article.astro';
+import Related from '../../components/compare/Related.astro';
+import Sources from '../../components/compare/Sources.astro';
+import { S, siarCells } from '../../components/compare/siar';
+import { RIVALS, CHECKED, humanDate, sourceLabel, type Rival, type CellKey } from '../../data/rivals';
+
+const all = Object.values(RIVALS) as Rival[];
+const byName = (a: Rival, b: Rival) => a.name.localeCompare(b.name);
+const groups: { title: string; id: string; intro: string; items: Rival[] }[] = [
+  { title: 'Developer APIs', id: 'developer-apis', intro: 'APIs you build a product on.', items: all.filter((r) => r.page && r.group === 'api').sort(byName) },
+  { title: 'Dashboard tools with an API', id: 'dashboard-apis', intro: 'Apps whose API acts on accounts inside the app.', items: all.filter((r) => r.page && r.group === 'dashboard').sort(byName) },
+  { title: 'Schedulers for Malaysia', id: 'malaysia', intro: 'Tools Malaysian businesses compare in ringgit.', items: all.filter((r) => r.page && r.group === 'malaysia').sort(byName) },
+];
+const cols: CellKey[] = ['unit', 'entry', 'networks', 'mcp', 'webhooks', 'connect'];
+const colLabel: Record<string, string> = { unit: 'Unit', entry: 'Entry price', networks: 'Networks', mcp: 'MCP', webhooks: 'Webhooks', connect: 'Customers connect' };
+const rows = [...all].sort(byName);
+const siar = siarCells('global');
+const pageName: Record<string, string> = {
+  buffer: 'Buffer API alternative', hootsuite: 'Hootsuite API alternative', sprout: 'Sprout Social API alternative',
+  publer: 'Publer API alternative', metricool: 'Metricool API alternative', ayrshare: 'Ayrshare alternative',
+  zernio: 'Zernio alternative', 'upload-post': 'Upload-Post alternative', outstand: 'Outstand alternative',
+  postiz: 'Postiz alternative', mixpost: 'Mixpost alternative', zoho: 'Zoho Social alternative', duta: 'Duta alternative',
+  'meta-business-suite': 'Meta Business Suite alternative',
+};
+---
+<Article
+  metaTitle="Social media API alternatives, compared and dated | Siar"
+  h1="Social media API alternatives, compared with sources"
+  description="Social media APIs and schedulers compared on billing unit, entry price, networks, MCP, webhooks and connect links, each cell linked to the vendor and dated."
+  kicker="Compare"
+  updated={CHECKED}
+  crumbs={[{ name: 'Compare', href: '/compare' }]}
+  lead={`These pages compare Siar, a unified social media API, with the APIs and schedulers people weigh it against. Each rival fact links the vendor's own page and carries the date we read it. Each page also says where the other tool is the better choice. Siar is priced per organization, from ${S.starterUsd} a month (${S.starterMyr} in Malaysia).`}
+  actions="quickstart"
+  wide
+>
+  {groups.map((g) => (
+    <>
+      <h2 id={g.id}>{g.title}</h2>
+      <p>{g.intro}</p>
+      <ul>
+        {g.items.map((r) => <li><a href={r.page}>{pageName[r.key]}: Siar compared with {r.name}</a>{r.win && <>. Where {r.name} wins: {r.win.value.charAt(0).toLowerCase() + r.win.value.slice(1)}</>}</li>)}
+      </ul>
+    </>
+  ))}
+
+  <h2 id="summary">Summary table</h2>
+  <p>Rival cells checked <time datetime={CHECKED}>{humanDate(CHECKED)}</time>. Each links the vendor's own page. "Not checked yet" means we have not read that vendor's pages for this cell, so we print nothing rather than guess. Siar is the last row.</p>
+  <div class="table-wrap">
+    <table class="sum">
+      <thead>
+        <tr><th scope="col">Vendor</th>{cols.map((k) => <th scope="col">{colLabel[k]}</th>)}<th scope="col">Where they win</th></tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr>
+            <th scope="row"><a href={r.home} rel="nofollow">{r.name}</a></th>
+            {cols.map((k) => {
+              const c = r.cells[k];
+              return <td>{c ? <>{c.value}<span class="src"><a href={c.url} rel="nofollow">{sourceLabel(c.url)}</a></span></> : <span class="muted">Not checked yet</span>}</td>;
+            })}
+            <td>{r.win ? <>{r.win.value}<span class="src"><a href={r.win.url} rel="nofollow">{sourceLabel(r.win.url)}</a></span></> : <span class="muted">Not checked yet</span>}</td>
+          </tr>
+        ))}
+        <tr>
+          <th scope="row">Siar</th>
+          {cols.map((k) => <td set:html={siar[k]} />)}
+          <td>Priced per organization, from {S.starterUsd} ({S.starterMyr} in Malaysia); {S.businessUsd} for {S.businessBrands}. Signed webhooks; a branded connect link on every plan.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small">PostWire, PostPeer, Publora, CrosspostAPI, Postproxy, Post for Me, SocialAPI.ai and WoopSocial appear as rows only. Siar posts are capped per month ({S.starterPosts}, {S.proPosts} and {S.businessPosts} by plan); several rivals sell unlimited posts.</p>
+
+  <h2 id="method">How these pages are checked</h2>
+  <ul>
+    <li>Every fact about another vendor comes from that vendor's own page: its pricing page, documentation, <code>llms.txt</code> or OpenAPI file. We do not quote reviews or other vendors' comparison pages.</li>
+    <li>Each fact carries the date we read it, and we read it again within 7 days of changing a page.</li>
+    <li>Siar's prices come from its plan table, and each network's status comes from Siar's approval records, checked {humanDate(S.statusChecked)}.</li>
+    <li>We compare API with API. Dashboards include listening, approvals and reporting that Siar does not have, and the pages say so.</li>
+  </ul>
+
+  <Related />
+  <Sources rivals={rows} />
+</Article>
+<style>
+  .sum { min-width: 1100px; }
+  .sum td, .sum th { min-width: 140px; }
+  .src { display: block; margin-top: 4px; font-size: var(--fs-12); line-height: 16px; overflow-wrap: anywhere; }
+  .src a { color: var(--text-subtle); }
+</style>
