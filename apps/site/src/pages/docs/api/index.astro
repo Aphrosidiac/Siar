@@ -5,7 +5,7 @@ import { API_BASE } from '../../../config';
 import CodeBlock from '../../../components/CodeBlock.astro';
 const total = operations().length;
 ---
-<Doc title="API reference" description={`Every operation of the Siar REST API (${total} in version ${SPEC.info.version}), generated from the OpenAPI document that the server itself runs on.`} nav="api" toc={false}>
+<Doc title="API reference" description={`Every operation of the Siar social media API (${total} in version ${SPEC.info.version}), generated from the OpenAPI document that the server itself runs on.`} nav="api" toc={false}>
   <p>Base URL: <code>{API_BASE}</code>. Authenticate every request with your organization API key in the <code>x-api-key</code> header. The machine-readable contract is at <a href="/openapi.json">/openapi.json</a>; the <a href="/docs/sdk-cli-mcp">SDK, CLI and MCP server</a> are generated from the same document.</p>
   <CodeBlock lang="bash" code={`curl "${API_BASE}/team" -H "x-api-key: $SIAR_API_KEY"`} />
   <p>Everything in this reference is read from the contract at build time, so it cannot drift from what the server accepts. Request bodies are validated against these schemas before any handler runs; a mismatch returns <code>400</code> with an <code>issues</code> array that points at the offending field.</p>

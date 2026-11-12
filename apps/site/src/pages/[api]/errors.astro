@@ -23,6 +23,7 @@ const { n } = Astro.props as { n: NetworkInfo };
 const t = n.type as NetworkType;
 const name = n.name;
 const page = PAGE[t];
+const leadText = page.subhead + ' Siar, a unified social media API, keeps ' + n.name + '\u2019s own code and message on the post and adds the fix below.';
 const st = NETWORK_STATUS[t];
 const hpw = (anchor: string) => (LIVE.howPublishing ? `/how-publishing-works#${anchor}` : '/docs/errors');
 
@@ -80,7 +81,7 @@ const hubAnchor = t === 'TIKTOK' ? 'TikTok Content Posting API guide' : ['REDDIT
   kicker={t === 'LINKEDIN' ? 'LinkedIn API' : name}
   updated={CHECKED}
   crumbs={[{ name: 'Platforms', href: '/platforms' }, { name: `${name} API`, href: `/${n.apiSlug}` }, { name: `${name} API error codes`, href: `/${n.apiSlug}/errors` }]}
-  lead={page.subhead}
+  lead={leadText}
   faq={faq}
   actions="none"
 >
