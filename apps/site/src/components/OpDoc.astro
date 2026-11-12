@@ -2,14 +2,19 @@
 import SchemaFields from './SchemaFields.astro';
 import CodeBlock from './CodeBlock.astro';
 import { toFields, typeLabel, curl, countFields, type Op } from '../lib/openapi';
-interface Props { op: Op }
-const { op } = Astro.props;
+/** `sameAs`: an earlier operation on this page returns the same shape; link to it instead of repeating it. */
+interface Props { op: Op; sameAs?: { anchor: string; summary: string } }
+const { op, sameAs } = Astro.props;
 const params = op.parameters;
-const bodyFields = op.body && !op.body.contentType.startsWith('multipart/') ? toFields(op.body.schema) : op.body ? toFields(op.body.schema) : [];
+const bodyFull = op.body ? toFields(op.body.schema) : [];
+/** Bodies with hundreds of nested fields are shown four levels deep; every field is in /openapi.json. */
+const bodyCut = countFields(bodyFull) > 300;
+const bodyFields = bodyCut ? toFields(op.body!.schema, 0, 4) : bodyFull;
 /** Very deep response schemas (automation) are cut at four levels so a reference page stays under 1 MB of HTML
  * (docs/seo/ACCEPTANCE.md); the full shape is always in /openapi.json. */
 const respFull = op.response?.schema ? toFields(op.response.schema) : [];
-const respFields = countFields(respFull) > 250 ? toFields(op.response!.schema, 0, 4) : respFull;
+const respCount = countFields(respFull);
+const respFields = respCount > 200 ? toFields(op.response!.schema, 0, 2) : respCount > 60 ? toFields(op.response!.schema, 0, 3) : respFull;
 const statusText: Record<string, string> = { '400': 'Validation failed', '401': 'Missing or invalid API key', '403': 'Plan limit or permission', '404': 'Not found', '409': 'Conflict', '429': 'Rate limited', '500': 'Server error', '502': 'Network error', '503': 'Unavailable' };
 const sample = curl(op);
 ---
@@ -42,6 +47,7 @@ const sample = curl(op);
     <>
       <h4>Request body <span class="xs muted"><code>{op.body.contentType}</code></span></h4>
       {bodyFields.length ? <SchemaFields fields={bodyFields} open={countFields(bodyFields) < 40} /> : <p class="small muted">See the example below.</p>}
+      {bodyCut && <p class="small muted">Fields nested more than four levels deep are in the <a href="/openapi.json">OpenAPI file</a>.</p>}
     </>
   )}
 
@@ -51,7 +57,9 @@ const sample = curl(op);
   {op.response && (
     <>
       <h4>Response <span class="xs muted"><code>{op.response.status}</code></span></h4>
-      {respFields.length ? (
+      {sameAs ? (
+        <p class="small">Same fields as the response of <a href={`#${sameAs.anchor}`}>{sameAs.summary}</a>.</p>
+      ) : respFields.length ? (
         <details class="resp"><summary>{respFields.length} top-level fields</summary><SchemaFields fields={respFields} /></details>
       ) : <p class="small muted">{op.response.schema ? `A ${typeLabel(op.response.schema)}.` : 'No body.'}</p>}
     </>

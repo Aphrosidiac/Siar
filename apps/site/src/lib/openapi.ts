@@ -86,9 +86,13 @@ export const tagsInOrder = () => {
 export const tagMeta = (tag: string) => TAG_META[tag] ?? { slug: tag.toLowerCase().replace(/[^a-z0-9]+/g, '-'), title: tag, text: '' };
 export const opsForTag = (tag: string) => operations().filter((o) => o.tag === tag);
 export const opById = (id: string) => operations().find((o) => o.operationId === id);
+/** Network-specific operations live on one reference page per network: /docs/api/misc/<network>. */
+export const miscGroup = (o: Op) => o.path.match(/^\/api\/v1\/misc\/([^/]+)/)?.[1] ?? 'other';
+export const miscGroups = () => [...new Set(opsForTag('misc').map(miscGroup))];
 export const opLink = (id: string) => {
   const o = opById(id);
-  return o ? `/docs/api/${tagMeta(o.tag).slug}#${o.anchor}` : '/docs/api';
+  if (!o) return '/docs/api';
+  return o.tag === 'misc' ? `/docs/api/misc/${miscGroup(o)}#${o.anchor}` : `/docs/api/${tagMeta(o.tag).slug}#${o.anchor}`;
 };
 
 export function postDataSchema(type: string): any {

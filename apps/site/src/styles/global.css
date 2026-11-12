@@ -212,7 +212,7 @@ details > summary { cursor: pointer; }
 * { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
 
 /* ── motion: first screen rises in once; nothing loops ── */
-@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes rise { from { transform: translateY(10px); } to { transform: none; } }   /* transform only: an opacity entrance delays LCP */
 main > :first-child:not(.m-hero) .container > *, main > .container > .art { animation: rise var(--t-reveal) var(--ease-out) backwards; }
 main > :first-child .container > *:nth-child(2) { animation-delay: 50ms; }
 main > :first-child .container > *:nth-child(3) { animation-delay: 100ms; }

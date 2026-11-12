@@ -1,0 +1,23 @@
+---
+/** A list of operations: summary table, then each operation; repeated response shapes link to the first. */
+import OpDoc from './OpDoc.astro';
+import type { Op } from '../lib/openapi';
+interface Props { ops: Op[] }
+const { ops } = Astro.props;
+const firstWith = new Map<string, { anchor: string; summary: string }>();
+const sameAs = ops.map((o) => {
+  if (!o.response?.schema) return undefined;
+  const key = JSON.stringify(o.response.schema);
+  const prev = firstWith.get(key);
+  if (!prev) firstWith.set(key, { anchor: o.anchor, summary: o.summary });
+  return prev;
+});
+---
+<h2 class="ops-h">Operations</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Operation</th><th>Method and path</th></tr></thead>
+  <tbody>{ops.map((o) => (
+    <tr><td><a href={`#${o.anchor}`}>{o.summary}</a></td><td><span class={`method ${o.method}`}>{o.method}</span> <code>{o.path.replace(/\/$/, '')}</code></td></tr>
+  ))}</tbody>
+</table></div>
+{ops.map((o, i) => <OpDoc op={o} sameAs={sameAs[i]} />)}

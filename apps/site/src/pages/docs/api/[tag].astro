@@ -1,13 +1,17 @@
 ---
 import Doc from '../../../layouts/Doc.astro';
-import OpDoc from '../../../components/OpDoc.astro';
-import { tagsInOrder, tagMeta, opsForTag } from '../../../lib/openapi';
+import OpList from '../../../components/OpList.astro';
+import { tagsInOrder, tagMeta, opsForTag, miscGroups, miscGroup } from '../../../lib/openapi';
+import { NETWORKS } from '../../../lib/networks';
 export function getStaticPaths() {
   return tagsInOrder().map((tag) => ({ params: { tag: tagMeta(tag).slug }, props: { tag } }));
 }
 const { tag } = Astro.props;
 const m = tagMeta(tag);
 const ops = opsForTag(tag);
+const isMisc = m.slug === 'misc';
+const netName = (seg: string) => NETWORKS.find((x) => x.misc === seg)?.name ?? seg;
+const groups = isMisc ? miscGroups().map((seg) => ({ slug: seg, name: netName(seg), count: ops.filter((o) => miscGroup(o) === seg).length })) : [];
 /** Titles 25–60 and descriptions 120–160 characters (docs/seo/ACCEPTANCE.md), built from the tag. */
 const metaTitle = `${m.title} API reference · Siar social media API`;
 const n = `${ops.length} ${ops.length === 1 ? 'operation' : 'operations'}`;
@@ -19,12 +23,13 @@ const description = fit([
 ]);
 ---
 <Doc title={`${m.title} API`} metaTitle={metaTitle} description={description} nav="api" toc={false}>
-  <h2 class="ops-h">Operations</h2>
-  <div class="table-wrap"><table>
-    <thead><tr><th>Operation</th><th>Method and path</th></tr></thead>
-    <tbody>{ops.map((o) => (
-      <tr><td><a href={`#${o.anchor}`}>{o.summary}</a></td><td><span class={`method ${o.method}`}>{o.method}</span> <code>{o.path.replace(/\/$/, '')}</code></td></tr>
-    ))}</tbody>
-  </table></div>
-  {ops.map((o) => <OpDoc op={o} />)}
+  {isMisc ? (
+    <>
+      <h2>Network-specific operations, by network</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Network</th><th>Operations</th></tr></thead>
+        <tbody>{groups.map((g) => <tr><td><a href={`/docs/api/misc/${g.slug}`}>{g.name} endpoints</a></td><td>{g.count}</td></tr>)}</tbody>
+      </table></div>
+    </>
+  ) : <OpList ops={ops} />}
 </Doc>

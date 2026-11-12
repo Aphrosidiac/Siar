@@ -1,0 +1,26 @@
+---
+/** One reference page per network for the network-specific operations (/docs/api/misc lists them). */
+import Doc from '../../../../layouts/Doc.astro';
+import OpList from '../../../../components/OpList.astro';
+import { opsForTag, miscGroups, miscGroup } from '../../../../lib/openapi';
+import { NETWORKS } from '../../../../lib/networks';
+export function getStaticPaths() {
+  return miscGroups().map((seg) => ({ params: { net: seg }, props: { seg } }));
+}
+const { seg } = Astro.props as { seg: string };
+const name = NETWORKS.find((x) => x.misc === seg)?.name ?? seg;
+const ops = opsForTag('misc').filter((o) => miscGroup(o) === seg);
+const n = `${ops.length} ${ops.length === 1 ? 'operation' : 'operations'}`;
+const fit = (xs: string[]) => xs.find((x) => x.length >= 120 && x.length <= 160) ?? xs[0];
+const description = fit([
+  `${name} endpoints in the Siar social media API: ${n} that exist on ${name} only, with parameters, body fields, responses and curl examples.`,
+  `${name} endpoints in the Siar social media API: ${n} that exist on ${name} only, with parameters, body fields and curl examples, from the OpenAPI file.`,
+  `${name} endpoints in the Siar social media API: ${n} for ${name} only, with parameters and curl examples.`,
+]);
+const title = `${name} endpoints`;
+const metaTitle = fit([`${name} endpoints · Siar social media API reference`]).length <= 60 ? `${name} endpoints · Siar social media API reference` : `${name} endpoints · Siar API reference`;
+---
+<Doc title={title} metaTitle={metaTitle} description={description} nav="api" toc={false}>
+  <p>These operations exist for {name} only. The shared operations (posts, comments, analytics) are in the <a href="/docs/api">API reference</a>; all network-specific areas are listed under <a href="/docs/api/misc">network-specific operations</a>.</p>
+  <OpList ops={ops} />
+</Doc>

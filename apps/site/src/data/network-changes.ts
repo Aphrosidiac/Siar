@@ -77,7 +77,7 @@ export const NETWORK_CHANGES: NetworkChange[] = [
     changed: 'Since 3 November 2026, <code>thumbnails.set</code> accepts a custom thumbnail for a YouTube Short once the video has finished processing. Google also added a <code>shortsAspectRatio</code> property to the <code>thumbnails</code> resource.',
     breaks: 'Nothing stops working. It matters to apps that set the thumbnail straight after upload: Google says a thumbnail set before processing completes may not be applied.',
     todo: 'Wait until <code>processingDetails.processingStatus</code> is <code>succeeded</code>, then call <code>thumbnails.set</code> with a JPEG or PNG of up to 50 MB. Each call costs about 50 quota units.',
-    siar: 'Not yet changed. Siar sets a thumbnail right after upload, which can be too early for a Short. For Shorts, send it with <a href="/docs/api/misc#misc-youtube-setThumbnail"><code>POST /api/v1/misc/youtube/thumbnail</code></a> after the <a href="/docs/webhooks"><code>post.published</code> webhook</a>.',
+    siar: 'Not yet changed. Siar sets a thumbnail right after upload, which can be too early for a Short. For Shorts, send it with <a href="/docs/api/misc/youtube#misc-youtube-setThumbnail"><code>POST /api/v1/misc/youtube/thumbnail</code></a> after the <a href="/docs/webhooks"><code>post.published</code> webhook</a>.',
     sources: [
       { label: 'Revision history, 3 November 2026', url: 'https://developers.google.com/youtube/v3/revision_history' },
       { label: 'thumbnails.set', url: 'https://developers.google.com/youtube/v3/docs/thumbnails/set' },
