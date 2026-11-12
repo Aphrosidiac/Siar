@@ -1,0 +1,248 @@
+---
+/**
+ * /how-publishing-works: "Every post accounted for" (strike plan N1). Copy: docs/seo/landing-copy/how-publishing-works.md.
+ * Every number is read from the code that enforces it (components/proof/facts.ts, lib/plans.ts, lib/events.ts,
+ * lib/networks.ts, lib/status.ts). Mechanisms re-checked against apps/api/src/engine/publisher.ts, engine/webhooks.ts
+ * and modules/posts.ts on 2026-11-12.
+ */
+import Article from '../layouts/Article.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import Closing from '../components/proof/Closing.astro';
+import { NETWORKS, NETWORK_COUNT } from '../lib/networks';
+import { NETWORK_STATUS, OPEN_LIST, BUILT_FOR } from '../lib/status';
+import { PLANS, RESOURCE_LIMITS, TRIAL_DAYS, PRICE_LOCK, money, paidFrom, fmtInt } from '../lib/plans';
+import { WEBHOOK_EVENTS } from '../lib/events';
+import { verifyNode } from '../lib/snippets';
+import { LEGAL_NAME, LEGAL_REG, SIGNUP_URL, API_BASE } from '../config';
+import { updatedAt } from '../lib/updated.mjs';
+import { ADAPTERS } from '../../../../packages/networks/src/index.ts';
+import { AUTO_ATTEMPTS, STALE_CLAIM_MIN, BACKOFF_MIN, WEBHOOK_TIMEOUT_S, WEBHOOK_RETRIES, WEBHOOK_HOURS, NO_LOOKUP_NAMES, CHECK_HOURS, GRACE_HOURS, duration, and, human, CHECKED } from '../components/proof/facts';
+
+const updated = updatedAt('/how-publishing-works') ?? CHECKED;
+const codes = NETWORKS.reduce((n, x) => n + x.errors.length, 0);
+const retries = RESOURCE_LIMITS.maxRetries;
+const endpoints = RESOURCE_LIMITS.webhooks;
+const events = WEBHOOK_EVENTS.length;
+const backoff = and(BACKOFF_MIN.map(duration));
+const metaDate = human(NETWORK_STATUS.FACEBOOK.since!);
+const launch = human(Object.values(NETWORK_STATUS).map((s) => s.since).filter(Boolean).sort()[0]!);
+const noLookup = and(NO_LOOKUP_NAMES);
+const free = PLANS.FREE.posts;
+const threadsMax = ADAPTERS.THREADS.limits.textMax!;
+const blueskyMax = ADAPTERS.BLUESKY.limits.textMax!;
+
+const metaTitle = 'What happens when a social media API post fails | Siar';
+const description = 'Siar checks each post before sending, sends it to each account once, keeps the network\'s own error and reports every result in a signed webhook.';
+const h1 = 'Every post accounted for: what happens when a post fails';
+const lead = `When a post fails on one network, Siar, a unified social media API, still publishes it everywhere else. The failed network keeps its own code, message and HTTP status. A signed <code>post.published</code> webhook tells your server each network's result. When you retry, only the failed networks are sent again, and the retry uses no extra post from your plan.`;
+
+const faq = [
+  { q: 'What happens if a post fails on one network?', a: `The other networks still publish. The failed network keeps its own error code, message and HTTP status, plus a verdict: retryable, non-retryable or unknown. The <code>post.published</code> webhook tells your server each network's result. Fix the cause and retry: only the failed networks are sent again, and the retry uses no extra post.` },
+  { q: 'How do I avoid double posting when I retry?', a: `Use Siar's retry call, not a second create. <code>POST /post/{id}/retry</code> re-sends only the networks that failed and leaves published ones alone. Each network target is claimed once, so a second call or a restart cannot start another send. If you must resend a create call, give it the same <code>referenceKey</code>: the copy is refused with a <code>409</code>.` },
+  { q: 'How do I know a post was published?', a: `Subscribe to the <code>post.published</code> webhook. It fires once when a post reaches its final state, published everywhere or failed somewhere, with each network's post id, link or error. Deliveries are HMAC-signed and retried ${WEBHOOK_RETRIES} times over about ${WEBHOOK_HOURS} hours. You can also read <code>GET /post/{id}</code>, or list failed posts by status.` },
+  { q: 'What happens when a token expires?', a: `Siar refreshes tokens before they expire on networks that allow it. If a grant is revoked or cannot be refreshed, the account is marked as needing a reconnect, and posts to it fail with "Reconnect this account, then retry the post." Siar's ${CHECK_HOURS}-hourly connection check sends a <code>social-account.updated</code> webhook. Your customer reconnects through your branded link.` },
+  { q: 'Which networks are open today?', a: `Publishing is open on ${OPEN_LIST}. YouTube uploads work; public uploads are not yet confirmed. TikTok, Pinterest publishing and LinkedIn company pages open after each network approves Siar. Reddit, Snapchat and Google Business Profile are built, not open yet. Each network's status, with dates, is on <a href="/platforms/approvals">the approval record</a>.` },
+  { q: 'What does "Publishing was interrupted and the result could not be confirmed" mean?', a: 'A send to that network stopped before Siar could record the answer, and Siar had no way to check the account for the post. Rather than risk a second copy, Siar stopped. Look at the account. If the post is not there, retry. If it is, leave it: the rest of the post is unaffected.' },
+  { q: 'Do failed posts and retries count against my plan?', a: `A request rejected at create, with a <code>400</code>, uses no post. A post counts once when it is scheduled, however many networks it goes to. Retrying a failed post re-sends only the failed networks and does not count again, up to ${retries} retries per post. Drafts do not count either.` },
+  { q: 'Does Siar support idempotency keys?', a: 'Not as a request header on post creation. Instead, each network target is claimed once, and an interrupted send is checked against the account before anything is re-sent. For create calls, set your own <code>referenceKey</code>. It is unique in your organization, so a repeated create gets a <code>409</code>, and you can fetch the original by that key.' },
+  { q: 'What happens if my webhook endpoint is down?', a: `Siar retries each delivery after ${backoff}: about ${WEBHOOK_HOURS} hours in all. After that the delivery is marked failed and stays in your delivery log. Owners and admins can resend it from the dashboard once your endpoint is back.` },
+  { q: 'How do I verify a Siar webhook signature?', a: 'Compute a hex HMAC-SHA256 over the <code>x-siar-timestamp</code> header, a dot, and the raw request body, using your endpoint\'s secret. Compare it with <code>x-siar-signature</code> in constant time. Reject timestamps more than five minutes old to stop replays. Parse the JSON only after the check passes. Node.js and Python code is in the <a href="/docs/webhooks">webhook docs</a>.' },
+];
+
+const createReq = `POST ${API_BASE}/post
+x-api-key: YOUR_API_KEY
+content-type: application/json
+
+{
+  "teamId": "TEAM_ID",
+  "title": "November menu",
+  "postDate": "2026-11-13T01:00:00.000Z",
+  "status": "SCHEDULED",
+  "socialAccountTypes": ["THREADS", "BLUESKY"],
+  "data": {
+    "THREADS": { "text": "(612 characters)" },
+    "BLUESKY": { "text": "(342 characters)" }
+  }
+}`;
+const createRes = JSON.stringify({
+  statusCode: 400,
+  message: `Validation failed: Text is 612 characters (emoji count as their byte length); the limit is ${threadsMax}.`,
+  issues: [
+    { code: 'too_long', message: `Text is 612 characters (emoji count as their byte length); the limit is ${threadsMax}.`, path: ['data', 'THREADS', 'text'] },
+    { code: 'too_long', message: `Text is 342 characters; the limit is ${blueskyMax}.`, path: ['data', 'BLUESKY', 'text'] },
+  ],
+}, null, 2);
+const interrupted = `"errorsVerbose": {
+  "SLACK": {
+    "code": "UNKNOWN",
+    "errorMessage": "Publishing was interrupted and the result could not be confirmed. Check the account before retrying.",
+    "isTransient": false,
+    "retryability": "unknown",
+    "httpStatus": null,
+    "meta": null,
+    "userFacingMessage": "Publishing was interrupted and the result could not be confirmed. Check the account before retrying."
+  }
+}`;
+const conflict = `{ "statusCode": 409, "message": "A post with referenceKey \\"order-8841-promo\\" already exists." }`;
+const dup = 'You are not allowed to create a Tweet with duplicate content.';
+const failedPost = JSON.stringify({
+  id: 'POST_ID', status: 'ERROR', error: `TWITTER: ${dup}`, errors: { TWITTER: dup },
+  errorsVerbose: { TWITTER: { code: 'DUPLICATE', errorMessage: dup, isTransient: false, retryability: 'non_retryable', httpStatus: 403, meta: { detail: dup, type: 'about:blank', title: 'Forbidden', status: 403 }, userFacingMessage: dup } },
+  externalData: {
+    THREADS: { id: 'THREADS_POST_ID', status: 'POSTED', publishedAt: '2026-11-13T01:00:06.000Z' },
+    BLUESKY: { id: 'at://BLUESKY_RECORD_URI', status: 'POSTED', publishedAt: '2026-11-13T01:00:05.000Z' },
+  },
+}, null, 2);
+const hookHead = `POST /webhooks/siar HTTP/1.1
+content-type: application/json
+user-agent: Siar-Webhooks/1.0
+x-siar-event: post.published
+x-siar-delivery: DELIVERY_ID
+x-siar-timestamp: 1794445204
+x-siar-signature: HEX_HMAC_SHA256`;
+const hookBody = JSON.stringify({
+  id: 'evt_EVENT_ID', type: 'post.published', createdAt: '2026-11-12T01:00:04.000Z', organizationId: 'ORG_ID',
+  data: { id: 'POST_ID', status: 'ERROR', errors: { TWITTER: dup }, errorsVerbose: { TWITTER: { code: 'DUPLICATE', retryability: 'non_retryable', httpStatus: 403 } }, externalData: { THREADS: { status: 'POSTED' }, BLUESKY: { status: 'POSTED' } } },
+}, null, 2);
+const accountHook = JSON.stringify({
+  id: 'evt_EVENT_ID', type: 'social-account.updated', organizationId: 'ORG_ID',
+  data: { id: 'SOCIAL_ACCOUNT_ID', type: 'FACEBOOK', teamId: 'TEAM_ID', connectionState: 'NEEDS_RECONNECT', connectionStateReason: 'Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons.', deleteOn: '2026-11-15T07:00:00.000Z' },
+}, null, 2);
+
+const hasPart = ['checked', 'sent-once', 'errors', 'webhooks', 'accounts', 'status'];
+const jsonLd = [{
+  '@context': 'https://schema.org', '@type': 'WebPage', '@id': 'https://siaran.my/how-publishing-works#page', name: h1, description, inLanguage: 'en', dateModified: updated,
+  hasPart: hasPart.map((a) => ({ '@type': 'WebPageElement', cssSelector: `#${a}` })),
+}];
+---
+<Article metaTitle={metaTitle} h1={h1} description={description} kicker="How it works" updated={updated} crumbs={[{ name: 'How publishing works', href: '/how-publishing-works' }]} lead={lead} faq={faq} jsonLd={jsonLd} cta={false}>
+  <p>"Accounted for" means you know, not that every post gets through. Each network a post goes to ends in a recorded state: posted, failed with the network's reason, or "could not be confirmed" when an interrupted send cannot be checked. Networks still reject posts. Siar tells you which ones, and why.</p>
+  <p class="small">Start the <a href={SIGNUP_URL}>{TRIAL_DAYS}-day {PLANS.PRO.name} trial</a>, or start with {free} free posts to try. No card.</p>
+  <p class="small jump"><a href="#checked">Checked before it's sent</a> · <a href="#sent-once">Sent to each account once</a> · <a href="#errors">The network's own error</a> · <a href="#webhooks">Signed webhooks</a> · <a href="#accounts">Broken connections</a> · <a href="#status">What's open today</a></p>
+
+  <h2>What your app sees at each step</h2>
+  <p>A post is one request. Siar splits it into one target per network and tracks each target on its own. The post's status comes from its targets, so you can read one field or all of them.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Post status</th><th>What it means</th><th>What you do</th></tr></thead>
+    <tbody>
+      <tr><td><code>SCHEDULED</code></td><td>Checked, stored and queued for <code>postDate</code>.</td><td>Nothing.</td></tr>
+      <tr><td><code>PROCESSING</code></td><td>At least one network is being sent to, or has the post and is still processing it (common for video).</td><td>Wait for the webhook.</td></tr>
+      <tr><td><code>POSTED</code></td><td>Each network it went to published it. <code>postedDate</code> is set.</td><td>Nothing.</td></tr>
+      <tr><td><code>ERROR</code></td><td>At least one network failed for good. The others stay published.</td><td>Read <code>errors</code>, fix the cause, retry.</td></tr>
+      <tr><td><code>RETRYING</code></td><td>You retried; the failed networks are queued again.</td><td>Wait for the webhook.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Each target inside the post has its own state, with the network's post id and link when it published, or the network's error when it did not.</p>
+
+  <h2 id="checked">Checked against each network's rules before it's sent</h2>
+  <p>Siar checks a post against each network's rules when you create it, not when it is due. A bad request fails at once with a <code>400</code> you can fix, instead of failing on schedule while nobody is watching.</p>
+  <p>What is checked, per network:</p>
+  <ul>
+    <li>that an account for that network is connected to the team, and a Page or channel is picked where the network needs one;</li>
+    <li>text length, counted the way that network counts it;</li>
+    <li>media type, file size, duration and aspect ratio, and the number of items;</li>
+    <li>every upload exists, and the first comment is allowed and short enough;</li>
+    <li>your plan's post quota and the account's daily cap for that day.</li>
+  </ul>
+  <p>Every problem comes back in one response, in an <code>issues</code> list. Each issue has a <code>path</code> that points at the field, so <code>["data", "THREADS", "text"]</code> means <code>data.THREADS.text</code>. A rejected request uses no post from your plan.</p>
+  <CodeBlock title="Example: request (ids and text are made up)" lang="http" code={createReq} />
+  <CodeBlock title="Example: response" lang="json" code={createRes} />
+  <p>A check at create time cannot see everything. A network can still refuse a post later, for its own reasons. When it does, you get its own error, as described under <a href="#errors">the network's own error</a>.</p>
+  <p class="small">Each network's limits are on its page, for example <a href="/threads-api">Threads API limits</a> and <a href="/bluesky-api">Bluesky API limits</a>, and side by side in <a href="/platforms/limits">social media API limits by network</a>.</p>
+
+  <h2 id="sent-once">Each account gets your post once</h2>
+  <p>Before Siar sends to a network, it claims that target with a conditional database update and a fresh attempt id. Only the worker holding the claim sends. A second job, a restart or a double click finds nothing to claim. The moment the network returns the new post's id, Siar saves it.</p>
+  <h3>If a send is interrupted</h3>
+  <p>If a worker dies between sending and saving, the claim is left open. After {STALE_CLAIM_MIN} minutes, Siar reads the account's recent posts and looks for yours before sending anything again:</p>
+  <ul>
+    <li><strong>Found:</strong> the target is marked posted, with the network's id and link.</li>
+    <li><strong>Not found:</strong> it is sent again, up to {AUTO_ATTEMPTS} attempts in all.</li>
+    <li><strong>No way to look:</strong> some networks give Siar no way to read recent posts. Today that is {noLookup}. There, Siar does not risk a second post. The target ends with this error, and you decide:</li>
+  </ul>
+  <CodeBlock title="Example" lang="json" code={interrupted} />
+  <h3>Retrying re-sends only what failed</h3>
+  <p><code>POST /post/&lbrace;id&rbrace;/retry</code> sends the failed networks again and leaves the published ones alone. A retry uses no post from your plan. Each post can be retried {retries} times; after that, create a new post. Once a retry is accepted the post is <code>RETRYING</code>, and another retry call is refused with a <code>400</code> ("Only posts in ERROR can be retried").</p>
+  <h3>Sending the same create call twice</h3>
+  <p>Siar has no idempotency-key header on post creation. If you send the same create call twice without a reference, you create two posts. Give each post your own <code>referenceKey</code>: it is unique in your organization, so a second create with the same key is refused with a <code>409</code>, and <code>GET /post/reference-key/&lbrace;referenceKey&rbrace;</code> finds the first one.</p>
+  <CodeBlock title="Example" lang="json" code={conflict} />
+
+  <h2 id="errors">If a network says no, you get its own words</h2>
+  <p>When a network refuses a post, Siar keeps what the network said: its HTTP status, its message word for word, and its raw error body. On top, Siar adds a category (such as <code>DUPLICATE</code> or <code>TOKEN_INVALID</code>) and a verdict on what to do next.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Verdict</th><th>What it means</th><th>What Siar does</th><th>What you do</th></tr></thead>
+    <tbody>
+      <tr><td><code>retryable</code></td><td>A rate limit, a network outage or a timeout.</td><td>Tries again on its own, up to {AUTO_ATTEMPTS} attempts in all, waiting for the network's rate-limit reset where it gives one. These attempts do not use your {retries} retries.</td><td>Usually nothing.</td></tr>
+      <tr><td><code>non_retryable</code></td><td>The post itself was refused: duplicate text, a policy block, missing permission, bad media.</td><td>Stops and marks that network failed.</td><td>Fix the cause, then retry or edit the post.</td></tr>
+      <tr><td><code>unknown</code></td><td>Siar cannot tell what happened.</td><td>Stops. Never re-sends on a guess.</td><td>Check the account, then decide.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Every known code has a page: what it means and how to fix it, by network. Siar's error reference covers <a href="/errors">{codes} error codes, by network</a> today, generated from the same code that relays them.</p>
+  <CodeBlock title="Example: one post to Threads, Bluesky and X; X refused it, the other two published" lang="json" code={failedPost} />
+  <p>The fix for this one, from the <a href="/x-api/errors">X API error reference</a>: change the text; X blocks identical consecutive posts. Then retry. Only X is sent again.</p>
+  <p class="small muted"><code>errors</code> is on every read. <code>errorsVerbose</code> comes with the <code>post.published</code> webhook, and on API reads when verbose errors are turned on in your organization settings.</p>
+  <p class="small"><a href="/errors">Social media API error codes, by network</a> · <a href="/docs/errors">Siar's own error format</a></p>
+
+  <h2 id="webhooks">A signed webhook tells your server how it went</h2>
+  <p>Subscribe to <code>post.published</code> and your server hears about every post without polling. It fires once when a post reaches its final state, published everywhere or failed on at least one network, with each network's result inside. If you retry and the post reaches a new final state, it fires again.</p>
+  <p>How a delivery works:</p>
+  <ul>
+    <li>Each request carries <code>x-siar-event</code>, <code>x-siar-delivery</code>, <code>x-siar-timestamp</code> and <code>x-siar-signature</code>.</li>
+    <li>The signature is a hex HMAC-SHA256 of <code>timestamp.rawBody</code> with your endpoint's secret. Check it on the raw bytes, and reject timestamps more than five minutes old.</li>
+    <li>A <code>2xx</code> answer within {WEBHOOK_TIMEOUT_S} seconds counts as delivered. Anything else is retried after {backoff}: {WEBHOOK_RETRIES} retries over about {WEBHOOK_HOURS} hours. Then the delivery is marked failed.</li>
+    <li>Automatic retries keep the same <code>x-siar-delivery</code> id, so your receiver can skip one it has already handled. A manual resend gets a new delivery id with the same event <code>id</code>; dedupe on the event <code>id</code> to skip those too.</li>
+  </ul>
+  <p>Every delivery is logged with its response code and timing. Organization owners and admins can resend any delivery, send a test event and rotate the secret from the dashboard. An organization can have {endpoints} endpoints, each with its own events and secret. There are {events} event types in all, including <code>social-account.updated</code> and <code>comment.received</code>.</p>
+  <CodeBlock title="Example: headers of one delivery" lang="http" code={hookHead} />
+  <CodeBlock title="Example: body (shortened; the full post is in data)" lang="json" code={hookBody} />
+  <CodeBlock title="Verify it (Node.js)" lang="js" code={verifyNode} />
+  <p class="small"><a href="/use-cases/social-media-webhooks">Social media webhooks API</a> · <a href="/docs/webhooks">Webhook docs, with Python</a></p>
+
+  <h2 id="accounts">When a connection breaks, you hear about it</h2>
+  <p>Tokens expire and people remove apps. Siar refreshes access tokens before they run out, on the networks that allow refresh: shortly before each call, and in a background job for tokens due within the hour. Refreshes for one account run one at a time, because some networks issue a new refresh token each time.</p>
+  <p>When a grant is revoked, or expires and cannot be refreshed, Siar marks the account as needing a reconnect and keeps the network's reason. Siar also asks each network every {CHECK_HOURS} hours whether its connections still work. When that check finds a broken one, it sends a <code>social-account.updated</code> webhook.</p>
+  <p>What happens next:</p>
+  <ul>
+    <li>Posts due on that account fail with "Reconnect this account, then retry the post." They are not sent.</li>
+    <li>Your customer reconnects through the same branded connect link. Then you retry the failed posts.</li>
+    <li>If nobody reconnects within your organization's grace period ({GRACE_HOURS} hours unless you change it), Siar removes the account and sends <code>social-account.deleted</code>.</li>
+  </ul>
+  <CodeBlock title="Example: social-account.updated, shortened" lang="json" code={accountHook} />
+  <p class="small"><a href="/docs/connecting-accounts">Connecting accounts</a> · <a href="/use-cases/hosted-connect-oauth">Hosted connect link</a></p>
+
+  <h2 id="status">Which networks are open today</h2>
+  <p>Siar is {BUILT_FOR(NETWORK_COUNT)}. Publishing is open today on {OPEN_LIST}. {NETWORK_STATUS.YOUTUBE.line} TikTok, Pinterest publishing and LinkedIn company pages open after each network approves Siar. Reddit, Snapchat and Google Business Profile are built, not open yet.</p>
+  <p>Siar's Meta app passed App Review on {metaDate}, so your customers connect Facebook, Instagram and Threads through it.</p>
+  <p class="small"><a href="/platforms">Each network's status</a> · <a href="/platforms/approvals">Approval record, with dates</a> · <a href="/network-changes">Dated network API changes</a></p>
+
+  <h2>What you would build for each network</h2>
+  <p>You can call each network yourself. These are the parts this page is about, and who builds them.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Part</th><th>Calling each network yourself</th><th>Through Siar</th></tr></thead>
+    <tbody>
+      <tr><td>Rules check before sending</td><td>You write one per network and keep it current</td><td>Checked at create; a <code>400</code> with <code>issues</code> per field</td></tr>
+      <tr><td>One send per account</td><td>You build the claim, the crash recovery and the lookup</td><td>Claimed once; interrupted sends checked against the account first</td></tr>
+      <tr><td>Error handling</td><td>One error format per network, mapped by you</td><td>The network's own error kept, plus a category and a retry verdict</td></tr>
+      <tr><td>Telling your app the result</td><td>You build the event, signing and retries</td><td><code>post.published</code>, HMAC-signed, retried {WEBHOOK_RETRIES} times over about {WEBHOOK_HOURS} hours</td></tr>
+      <tr><td>Broken connections</td><td>You refresh tokens and check connections</td><td>Refresh before expiry; a check every {CHECK_HOURS} hours with <code>social-account.updated</code></td></tr>
+      <tr><td>Network approvals</td><td>Your own app review on each network</td><td>Meta done ({metaDate}); others as listed on the <a href="/platforms/approvals">approval record</a></td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>What Siar does not do</h2>
+  <ul>
+    <li><strong>It does not make networks say yes.</strong> A post can pass every check and still be refused. You get the refusal in the network's words.</li>
+    <li><strong>No idempotency-key header on create.</strong> Send the same create call twice without a <code>referenceKey</code> and you get two posts.</li>
+    <li><strong>A timeout is treated as not sent.</strong> If a network times out or answers with a server error, Siar tries again, up to {AUTO_ATTEMPTS} attempts in all. If the network saved the post before it failed, a second copy is possible.</li>
+    <li><strong>No uptime figure and no success rate.</strong> Siar has been live since {launch} and publishes none.</li>
+    <li><strong>{endpoints} webhook endpoints per organization</strong>, {events} event types.</li>
+  </ul>
+</Article>
+<Closing
+  text={`Add publishing to your product and know what happened to every post. One price per organization, not per account: from ${paidFrom('usd')} a month (${paidFrom('myr')} in Malaysia), with unlimited brands and ${fmtInt(PLANS.BUSINESS.posts)} posts a month on ${PLANS.BUSINESS.name} for ${money('BUSINESS', 'MONTHLY', 'usd')} (${money('BUSINESS', 'MONTHLY', 'myr')}). ${PRICE_LOCK}`}
+  primary={{ label: `Start the ${TRIAL_DAYS}-day ${PLANS.PRO.name} trial` }}
+  secondary={{ label: `Start with ${free} free posts`, href: SIGNUP_URL }}
+  note={`${LEGAL_NAME} (SSM ${LEGAL_REG}), Malaysia. Meta App Review passed on ${metaDate}.`}
+/>
+<style>
+  .jump a { white-space: nowrap; }
+</style>

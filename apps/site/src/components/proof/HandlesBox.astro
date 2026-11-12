@@ -1,0 +1,18 @@
+---
+/** The "How Siar handles this" box: a plain bordered box of at most three lines (messaging §2, strike plan §6 rule 2). */
+interface Props { title?: string; lines: string[]; level?: 2 | 3; id?: string }
+const { title = 'How Siar handles this', lines, level = 3, id } = Astro.props;
+const H = level === 2 ? 'h2' : 'h3';
+---
+<aside class="hbox" aria-labelledby={id ? `${id}-h` : undefined} id={id}>
+  <H id={id ? `${id}-h` : undefined}>{title}</H>
+  <ul>{lines.map((l) => <li set:html={l} />)}</ul>
+  <slot />
+</aside>
+<style>
+  .hbox { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-elevated); padding: 20px 24px; margin: 40px 0 32px; }
+  .hbox :is(h2, h3) { font-size: var(--fs-18); line-height: 26px; margin: 0 0 10px; }
+  .hbox ul { margin: 0; padding-left: 20px; }
+  .hbox li { margin: 0 0 6px; }
+  .hbox li:last-child { margin-bottom: 0; }
+</style>

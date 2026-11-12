@@ -1,0 +1,235 @@
+---
+/**
+ * /errors: each network error code, by network (keyword map C114). Copy: docs/seo/landing-copy/errors-hub.md.
+ * Rows come from each adapter's errorReference (via lib/networks.ts); plain names and retry verdicts from
+ * components/proof/error-meta.ts. Every count is computed here. The filter is progressive: with JavaScript off,
+ * every row shows and the selects stay hidden.
+ */
+import Article from '../layouts/Article.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import HandlesBox from '../components/proof/HandlesBox.astro';
+import Closing from '../components/proof/Closing.astro';
+import { NETWORKS, type NetworkInfo } from '../lib/networks';
+import { OPEN_ORDER, NETWORK_STATUS } from '../lib/status';
+import { PLANS, RESOURCE_LIMITS, paidFrom } from '../lib/plans';
+import { SIGNUP_URL } from '../config';
+import { updatedAt } from '../lib/updated.mjs';
+import { LINKEDIN_VERSION } from '../../../../packages/networks/src/adapters/linkedin.ts';
+import { ERROR_META, type Retryability } from '../components/proof/error-meta';
+import { AUTO_ATTEMPTS, X_STANDARD_MAX, CHECK_HOURS, and, CHECKED } from '../components/proof/facts';
+
+const updated = updatedAt('/errors') ?? CHECKED;
+const LATER = ['YOUTUBE', 'TIKTOK', 'PINTEREST', 'REDDIT', 'SNAPCHAT', 'GOOGLE_BUSINESS'];
+const ORDER = [...OPEN_ORDER, ...LATER];
+const nets: NetworkInfo[] = ORDER.map((t) => NETWORKS.find((n) => n.type === t)!).filter(Boolean);
+for (const n of NETWORKS) if (!nets.includes(n)) nets.push(n);
+
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+/** The id [api]/errors.astro gives each code today. */
+const netAnchor = (code: string) => code.replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase();
+const VERDICT: Record<Retryability, string> = { retryable: 'Retryable', non_retryable: 'Not retryable', unknown: 'Unknown' };
+
+const rows = nets.flatMap((n) => n.errors.map((e) => {
+  const meta = ERROR_META[`${n.type}|${e.code}`];
+  if (!meta) console.warn(`[errors] no plain name or verdict for ${n.type} ${e.code}; add it to components/proof/error-meta.ts`);
+  return { n, e, name: meta?.[0] ?? '', verdict: (meta?.[1] ?? 'unset') as Retryability | 'unset', id: `${n.slug}-code-${slug(e.code)}`, href: `/${n.apiSlug}/errors#${netAnchor(e.code)}` };
+}));
+const total = rows.length;
+const withCodes = nets.filter((n) => n.errors.length);
+const count = (v: Retryability) => rows.filter((r) => r.verdict === v).length;
+const counts = { retryable: count('retryable'), non_retryable: count('non_retryable'), unknown: count('unknown') };
+const named = ['FACEBOOK', 'INSTAGRAM', 'TWITTER', 'LINKEDIN', 'TIKTOK'];
+const notOpen = nets.filter((n) => NETWORK_STATUS[n.type].status === 'waiting' || NETWORK_STATUS[n.type].status === 'not-open');
+const findRow = (type: string, code: string) => rows.find((r) => r.n.type === type && r.e.code === code)!;
+const mastodon = NETWORKS.find((n) => n.type === 'MASTODON')!;
+
+const metaTitle = 'Social media API error codes, by network | Siar';
+const description = `${total} error codes from Facebook, Instagram, X, LinkedIn, TikTok and ${withCodes.length - named.length} more networks: each network's own message, a plain name, and whether a retry can work.`;
+const h1 = 'Social media API error codes, by network';
+const lead = `Social media API error codes are what a network sends back when it refuses a request: Instagram's 2207042, X's 402 CreditsDepleted, LinkedIn's 426. This page lists ${total} of them from ${withCodes.length} networks, each with the network's own message, a plain name and a retry verdict. Filter by network, or by whether a retry can work.`;
+
+const quick = [
+  { type: 'LINKEDIN', code: '426 NONEXISTENT_VERSION', msg: 'Requested version … is not active', body: `LinkedIn returns HTTP 426 when the <code>Linkedin-Version</code> header names a retired version. Change it to a supported <code>YYYYMM</code> value and resend. LinkedIn supports each monthly version for at least a year, set 16 November 2026 as the retirement date for 202511, and lists 202610 as the latest (<a href="https://learn.microsoft.com/en-us/linkedin/marketing/versioning">LinkedIn versioning</a>, checked 12 November 2026).`, siar: `Siar sends <code>Linkedin-Version: ${LINKEDIN_VERSION}</code>, so posts through Siar are not affected by the 202511 retirement. If Siar's version is ever retired, the fix is a Siar update, not a change you make per post. See <a href="/network-changes#2026-11-16-linkedin-202511-sunset">the 202511 sunset entry</a>.` },
+  { type: 'TWITTER', code: '402 CreditsDepleted', body: 'X returns HTTP 402 <code>CreditsDepleted</code> when the pay-per-use credit behind the X app is empty. Top up the credit, then retry. Sending the same request before the top-up fails the same way, which is why the verdict is not retryable.', siar: 'Siar takes X\'s own price from your prepaid X credit before each call. When the balance is empty, the post stops in Siar with "Not enough X credit" before X is called, other networks keep publishing, and a <code>credit.exhausted</code> webhook tells your server.' },
+  { type: 'TWITTER', code: '403 duplicate', body: 'X refuses a post whose text matches one the same account posted recently. Change the text and send it again. Resending the same text gets the same 403, so automatic retries don\'t help here. If you post the same update on a schedule, change part of the wording each time.', siar: 'Siar keeps X\'s message on the post unchanged. When you retry after editing, only X is sent again; networks that already published are left alone.' },
+  { type: 'INSTAGRAM', code: '2207042', body: 'Meta returns code 9 with subcode 2207042 when an Instagram account has reached its 24-hour limit for posts published through the API. Meta\'s own fix: "try again the following day" (<a href="https://developers.facebook.com/docs/instagram-platform/instagram-graph-api/reference/error-codes">Instagram error codes</a>, checked 12 November 2026). The window rolls, so spacing posts out avoids it.', siar: `Siar treats it as a rate limit and tries again by itself, up to ${AUTO_ATTEMPTS} attempts in all. If the window is still full, the post fails with Meta's message and you retry it later.` },
+  { type: 'TIKTOK', code: 'spam_risk_too_many_posts', body: 'TikTok returns <code>spam_risk_too_many_posts</code> (HTTP 403) when "the daily post cap from the API is reached for the current user" (<a href="https://developers.tiktok.com/doc/content-posting-api-reference-direct-post">TikTok Direct Post reference</a>, checked 12 November 2026). TikTok\'s sharing guidelines put the cap at around 15 posts a day per creator. Wait for the next day, or post less often.', siar: `${NETWORK_STATUS.TIKTOK.line} The code is listed so you can read it from your own integration.` },
+  { type: 'BLUESKY', code: 'ExpiredToken', body: 'Bluesky returns <code>ExpiredToken</code> when a session token has expired. A client normally refreshes the session and carries on, so you see this error only when that refresh fails: the refresh token has expired too, or the app password was deleted. Then nothing but a new sign-in will work.', siar: `Siar refreshes sessions by itself. When a refresh fails, it marks the account as needing a reconnect, and its ${CHECK_HOURS}-hourly connection check sends a <code>social-account.updated</code> webhook. Reconnect with a new app password.` },
+  { type: 'LINKEDIN', code: '422 duplicate', body: 'LinkedIn returns 422 when the same author posted the same commentary recently. The message names the earlier post\'s URN, so check it first: that post already went out. Change the text and post again; a retry with the same text fails the same way.', siar: 'Siar keeps LinkedIn\'s message on the post. A retry after editing re-sends only LinkedIn, not the networks that already published.' },
+  { type: 'FACEBOOK', code: '190', body: 'Meta error 190 means the access token expired or was revoked: the user changed their password, removed the app, or Meta ended the session for security reasons. No retry will work. The person has to sign in again to grant a new token. Instagram and Threads return the same code.', siar: `Siar marks the account as needing a reconnect, and its connection check sends a <code>social-account.updated</code> webhook. Your customer reconnects through your branded connect link.` },
+].map((q) => ({ ...q, row: findRow(q.type, q.code) })).filter((q) => q.row);
+
+const faq = [
+  { q: 'Should I retry a social media API error automatically?', a: 'Only when the verdict is retryable: rate limits, server errors, and media the network is still processing. Wait for the reset time the network sends, and cap the attempts. Every other error fails the same way until something changes: the text, the media, a permission, a token or a credit balance.' },
+  { q: 'Why does a post fail on one network and publish on the others?', a: 'Each network checks a post against its own rules, limits and permissions, so one can refuse what the others accept: a duplicate on X, the 24-hour cap on Instagram, a missing scope on LinkedIn. In Siar the other networks still publish, and a retry re-sends only the network that failed.' },
+  { q: 'How do I avoid posting twice when I retry?', a: 'Retry only what failed, and check the account before re-sending anything whose result you don\'t know. Siar claims each network target once, so retries and restarts can\'t publish it again, and it looks for an interrupted post on the account first. Sending the create request a second time does make a second post.' },
+  { q: 'Why do Facebook, Instagram and Threads share error codes?', a: 'All three are Meta APIs and answer with Meta\'s error format, so the same numbers mean the same thing on each: 190 for an invalid token, 4 for the app\'s rate limit, 100 for a bad parameter. The table lists each code once per network, so the network filter shows the full set for each.' },
+  { q: 'Does Mastodon have API error codes?', a: 'No. Mastodon servers answer with an HTTP status and a short message, and the wording differs by server. Read the status: 401 means reconnect, 422 means the server refused the status, 429 means slow down, 5xx means try later. Siar relays the status and the message on the post.' },
+  { q: 'Are these the networks\' errors or Siar\'s?', a: 'The networks\'. They arrive on the post after Siar has sent it, not as an HTTP error on the create call. Siar\'s own errors, such as a 400 with an issues array or a 403 for a plan limit, are on the <a href="/docs/errors">Siar API error envelope page</a>, with the status codes Siar returns.' },
+  { q: 'How current is this list?', a: 'It is built from the error references in Siar\'s network adapters, the same code that maps these errors when a post is sent. The date at the top is the last change to that code. Messages are quoted as the networks send them, shortened where they run long.' },
+];
+
+const dup = 'You are not allowed to create a Tweet with duplicate content.';
+const example = JSON.stringify({ errors: { TWITTER: dup }, errorsVerbose: { TWITTER: { code: 'DUPLICATE', errorMessage: dup, isTransient: false, retryability: 'non_retryable', httpStatus: 403, meta: { '…': "X's response body, unchanged" }, userFacingMessage: dup } } }, null, 2);
+const xMax = X_STANDARD_MAX;
+const bsMax = NETWORKS.find((n) => n.type === 'BLUESKY')!.adapter.limits.textMax;
+---
+<Article metaTitle={metaTitle} h1={h1} description={description} kicker="Error codes" updated={updated} crumbs={[{ name: 'Error codes', href: '/errors' }]} lead={lead} faq={faq} actions="none" cta={false} wide>
+  <p>The list is generated from the error references in Siar, a unified social media API that relays these errors to its users, so it changes when the code does. These are the codes Siar has documented, not every code each network can return. Each row links to the full meaning and fix.</p>
+
+  <h2 id="codes">Every code, by network</h2>
+  <div class="filters" data-filters hidden>
+    <label>Network
+      <select data-f="net">
+        <option value="">Any network</option>
+        {nets.map((n) => <option value={n.slug}>{n.name} {n.errors.length ? `(${n.errors.length})` : '(no codes)'}</option>)}
+      </select>
+    </label>
+    <label>Retry verdict
+      <select data-f="verdict">
+        <option value="">Any verdict</option>
+        <option value="retryable">Retryable ({counts.retryable})</option>
+        <option value="non_retryable">Not retryable ({counts.non_retryable})</option>
+        <option value="unknown">Unknown ({counts.unknown})</option>
+      </select>
+    </label>
+  </div>
+  <p class="small muted count" aria-live="polite" data-count data-total={total}>{total} codes.</p>
+  <div class="table-wrap errs">
+    <table>
+      <thead><tr><th>Network</th><th>Code</th><th>Message from the network</th><th>Plain name</th><th>Retry verdict</th><th><span class="sr">Link</span></th></tr></thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr id={r.id} data-net={r.n.slug} data-verdict={r.verdict} data-netname={r.n.name}>
+            <td class="net">{r.n.name}</td>
+            <td class="code"><code>{r.e.code}</code></td>
+            <td class="msg">{r.e.message}</td>
+            <td class="nm">{r.name}</td>
+            <td class="vd">{r.verdict === 'unset' ? '—' : VERDICT[r.verdict]}</td>
+            <td class="lk"><a href={r.href} aria-label={`Meaning and fix for ${r.n.name} ${r.e.code}`}>Meaning and fix</a></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p class="empty small" data-empty="mastodon" hidden>Mastodon doesn't use stable error codes. Each server sends an HTTP status and a short message, and Siar relays both on the post. Read the status: 401 means reconnect, 422 means the server refused the status, 429 means slow down, 5xx means try again later. <a href={`/${mastodon.apiSlug}/errors`}>Mastodon API errors</a></p>
+  <p class="empty small" data-empty="unknown" hidden>No listed code has the verdict unknown. Siar uses it at run time, when a send was interrupted and it can't tell whether the network published the post. Check the account before you retry.</p>
+  <p class="empty small" data-empty="none" hidden>No codes match both filters. <a href="/errors" data-reset>Show every code</a></p>
+  <p class="small muted">Mastodon has no stable error codes: each server answers with an HTTP status and a short message, and Siar relays both. {and(notOpen.map((n) => n.type === 'PINTEREST' ? 'Pinterest publishing' : n.name))} are built in Siar and not open yet; their codes are here so you can read an error from your own integration.</p>
+
+  <h2 id="verdicts">What the retry verdicts mean</h2>
+  <p><strong>Retryable.</strong> The same request can work later. The network hit a rate limit, had a server error, or was still processing media. Siar waits and tries again by itself for rate limits and outages, up to {AUTO_ATTEMPTS} attempts in all, after the reset time when the network sends one.</p>
+  <p><strong>Not retryable.</strong> Sending the same request again fails the same way. Change something first: reconnect the account, edit the text or media, grant a permission, or top up a credit. Then retry the post.</p>
+  <p><strong>Unknown.</strong> Siar can't tell whether the network acted, usually because a send was interrupted. Check the account before you send again, so you don't post twice.</p>
+  <p>In Siar's API the verdict is the <code>retryability</code> field, with the values <code>retryable</code>, <code>non_retryable</code> and <code>unknown</code>.</p>
+
+  <h2 id="quick-answers">Quick answers for {quick.length === 8 ? 'eight' : quick.length} codes</h2>
+  {quick.map((q) => (
+    <section class="qa">
+      <h3 id={`${q.row.id}-answer`}>{q.row.n.type === 'TWITTER' ? 'X' : q.row.n.name} {q.code} · "{q.msg ?? q.row.e.message}" · {q.row.name}</h3>
+      <p set:html={q.body} />
+      <p><strong>What Siar does with it.</strong> <Fragment set:html={q.siar} /> <a href={q.row.href}>{q.row.n.type === 'TWITTER' ? 'X' : q.row.n.name} API error codes</a></p>
+    </section>
+  ))}
+
+  <HandlesBox level={2} id="how-siar-handles" title="How Siar handles a failed post" lines={[
+    'If a network says no, the post keeps its own code and message, plus a plain-English fix and a retry verdict.',
+    `Rate limits and outages are retried by Siar, up to ${AUTO_ATTEMPTS} attempts, after the network's reset time when it sends one.`,
+    'The other networks still publish. Retrying re-sends only the failed ones and doesn\'t use another post from your plan.',
+  ]}>
+    <p class="small hb-links"><a href="/how-publishing-works#errors">How Siar handles a failed post</a></p>
+    <p class="hb-cta"><a class="pill ink sm" href={SIGNUP_URL}>Start with {PLANS.FREE.posts} free posts</a> <span class="small muted">{PLANS.FREE.posts} free posts to try, once. No card.</span></p>
+  </HandlesBox>
+
+  <h2 id="in-the-api">Where the error shows up in Siar's API</h2>
+  <p>A network's refusal arrives on the post, not as an HTTP error on the create call. Siar accepts the post first, then sends it, so the network answers later.</p>
+  <ul>
+    <li><strong><code>GET /post/&lbrace;id&rbrace;</code>:</strong> <code>errors</code> holds one message per network: the network's own words, or Siar's plainer version where the code has one. <code>errorsVerbose</code> adds the detail: Siar's category, the network's message, the HTTP status, the network's raw response and <code>retryability</code>.</li>
+    <li><strong>Turn on the detail:</strong> <code>errorsVerbose</code> is off by default. Set <code>verboseErrors: true</code> with <code>PATCH /organization/settings</code>.</li>
+    <li><strong><code>post.published</code> webhook:</strong> fires when the post reaches a final state, published or failed, with each network's result.</li>
+    <li><strong><code>POST /post/&lbrace;id&rbrace;/retry</code>:</strong> re-sends only the networks that failed. A post can be retried up to {RESOURCE_LIMITS.maxRetries} times, and a retry doesn't count against your plan again.</li>
+  </ul>
+  <CodeBlock title="Example: a post refused by X for duplicate text, shortened" lang="json" code={example} />
+  <p class="small">Siar's own errors, such as a <code>400</code> with an <code>issues</code> array or a <code>403</code> for a plan limit, use a different envelope. <a href="/docs/errors">Siar API error envelope and status codes</a></p>
+
+  <h2 id="mastodon">Mastodon: HTTP status instead of codes</h2>
+  <p>Mastodon has no stable error codes. Each server answers with an HTTP status and a short message, and the wording can differ from server to server. Siar relays both on the post.</p>
+  <ul>
+    <li><strong>401:</strong> the token is no longer valid. Reconnect the account. Not retryable.</li>
+    <li><strong>422:</strong> the server refused the status, as a duplicate or for its content. Change it. Not retryable.</li>
+    <li><strong>429:</strong> too many requests. Mastodon's documented default is 300 requests per 5 minutes per account. Retryable.</li>
+    <li><strong>5xx:</strong> the server is having trouble. Retryable.</li>
+  </ul>
+  <p>Siar sends an <code>Idempotency-Key</code> with every status, so a retried send can't post twice. <a href={`/${mastodon.apiSlug}/errors`}>Mastodon API errors</a></p>
+</Article>
+<Closing
+  text={`Siar, a <a href="/">unified social media API</a>, checks text length, media type, size, duration and aspect ratio against each network's rules when you create a post. Errors like X's ${xMax} characters or Bluesky's ${bsMax} graphemes come back as a <code>400</code> you fix before anything is sent. When a network still says no, you get its own code and message, a fix and a verdict. One price per organization, not per account: ${PLANS.FREE.posts} free posts to try, then from ${paidFrom('usd')} a month (${paidFrom('myr')} in Malaysia).`}
+/>
+<script>
+  const box = document.querySelector<HTMLElement>('[data-filters]');
+  if (box) {
+    const net = box.querySelector<HTMLSelectElement>('[data-f="net"]')!;
+    const ver = box.querySelector<HTMLSelectElement>('[data-f="verdict"]')!;
+    const rows = [...document.querySelectorAll<HTMLTableRowElement>('.errs tbody tr')];
+    const countEl = document.querySelector<HTMLElement>('[data-count]')!;
+    const total = Number(countEl.dataset.total);
+    const table = document.querySelector<HTMLElement>('.errs')!;
+    const empties = [...document.querySelectorAll<HTMLElement>('[data-empty]')];
+    const params = new URLSearchParams(location.search);
+    if (params.get('network')) net.value = params.get('network')!;
+    if (params.get('verdict')) ver.value = params.get('verdict')!;
+    if (net.selectedIndex < 0) net.value = '';
+    if (ver.selectedIndex < 0) ver.value = '';
+    box.hidden = false;
+    const apply = () => {
+      let shown = 0;
+      for (const r of rows) {
+        const ok = (!net.value || r.dataset.net === net.value) && (!ver.value || r.dataset.verdict === ver.value);
+        r.hidden = !ok;
+        if (ok) shown++;
+      }
+      const parts: string[] = [];
+      if (net.value) parts.push(net.options[net.selectedIndex].text.replace(/\s*\(.*\)$/, ''));
+      if (ver.value) parts.push(ver.options[ver.selectedIndex].text.replace(/\s*\(.*\)$/, '').toLowerCase());
+      countEl.textContent = `Showing ${shown} of ${total} codes${parts.length ? `: ${parts.join(', ')}` : ''}.`;
+      table.hidden = shown === 0;
+      const which = shown ? '' : net.value === 'mastodon' ? 'mastodon' : ver.value === 'unknown' ? 'unknown' : 'none';
+      for (const e of empties) e.hidden = e.dataset.empty !== which;
+      const q = new URLSearchParams();
+      if (net.value) q.set('network', net.value);
+      if (ver.value) q.set('verdict', ver.value);
+      history.replaceState(null, '', `${location.pathname}${q.size ? `?${q}` : ''}${location.hash}`);
+    };
+    net.addEventListener('change', apply);
+    ver.addEventListener('change', apply);
+    document.querySelector('[data-reset]')?.addEventListener('click', (ev) => { ev.preventDefault(); net.value = ''; ver.value = ''; apply(); });
+    apply();
+  }
+</script>
+<style>
+  .filters { display: flex; gap: 16px; flex-wrap: wrap; margin: 0 0 12px; }
+  .filters[hidden] { display: none; }
+  .filters label { display: flex; flex-direction: column; gap: 6px; font-size: var(--fs-14); color: var(--text-subtle); }
+  .filters select { min-width: 220px; height: 40px; padding: 0 10px; font: inherit; font-size: var(--fs-15); color: var(--text); background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius); }
+  .count { margin: 0 0 12px; }
+  .errs td { vertical-align: top; }
+  .errs .code code { overflow-wrap: anywhere; }
+  .errs .msg { min-width: 220px; overflow-wrap: anywhere; }
+  .errs .net, .errs .vd, .errs .lk { white-space: nowrap; }
+  .errs tr:target { background: var(--bg-subtle); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .empty { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; }
+  .qa h3 { font-size: var(--fs-18); line-height: 26px; overflow-wrap: anywhere; margin-top: 32px; }
+  .hb-links { margin: 12px 0 0; }
+  .hb-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 16px 0 0; }
+  @media (max-width: 640px) {
+    .errs { overflow-x: visible; }
+    .errs table, .errs tbody, .errs tr, .errs td { display: block; min-width: 0 !important; }
+    .errs thead { display: none; }
+    .errs tr { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+    .errs tr[hidden] { display: none; }
+    .errs td { border: 0; padding: 2px 0; position: static !important; box-shadow: none !important; white-space: normal; }
+    .errs .net, .errs .code { display: inline; font-weight: 500; }
+    .errs .net::after { content: ' · '; }
+  }
+</style>

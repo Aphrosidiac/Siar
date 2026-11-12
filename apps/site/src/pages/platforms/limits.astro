@@ -1,0 +1,252 @@
+---
+/**
+ * /platforms/limits: each network's published limits next to Siar's caps (keyword map C05).
+ * Copy: docs/seo/landing-copy/platforms-limits.md. Network figures: components/proof/network-limits.ts (quoted, with
+ * the day checked). Every Siar number is rendered from code: daily caps (plans.ts via lib/networks.ts), text and media
+ * limits (each adapter's `limits`, COMMENT_LENGTH), API rate limits (apps/api/src/platform/ratelimit.ts WINDOWS).
+ */
+import Article from '../../layouts/Article.astro';
+import CodeBlock from '../../components/CodeBlock.astro';
+import HandlesBox from '../../components/proof/HandlesBox.astro';
+import Closing from '../../components/proof/Closing.astro';
+import { NETWORKS, mb, seconds, type NetworkInfo } from '../../lib/networks';
+import { NETWORK_STATUS, OPEN_LIST } from '../../lib/status';
+import { PLANS, CAP_COLUMNS, RESOURCE_LIMITS, PRICE_LOCK, paidFrom, fmtInt } from '../../lib/plans';
+import { API_BASE } from '../../config';
+import { NETWORK_LIMITS, PER_APP } from '../../components/proof/network-limits';
+import { RATE_WINDOWS, X_PREMIUM_MAX, BLUESKY_MAX_BYTES, window as win, fmt, human, and } from '../../components/proof/facts';
+
+const byType = (t: string) => NETWORKS.find((n) => n.type === t)!;
+const rows = NETWORK_LIMITS.map((l) => ({ l, n: byType(l.type) }));
+const checkedDates = NETWORK_LIMITS.map((l) => l.checked).filter(Boolean) as string[];
+const updated = checkedDates.sort().at(-1)!;
+const year = updated.slice(0, 4);
+const name = (n: NetworkInfo) => (n.type === 'TWITTER' ? 'X' : n.name);
+const labels = CAP_COLUMNS.map((c) => c.label);
+
+// ── text and media cells, from the adapters ──
+const MIME: Record<string, string> = { 'image/jpeg': 'JPEG', 'image/png': 'PNG', 'image/gif': 'GIF', 'image/webp': 'WebP', 'image/bmp': 'BMP', 'image/tiff': 'TIFF', 'image/avif': 'AVIF', 'image/heic': 'HEIC', 'video/mp4': 'MP4', 'video/quicktime': 'MOV', 'video/webm': 'WebM', 'video/x-msvideo': 'AVI', 'video/x-matroska': 'MKV', 'video/mpeg': 'MPEG', 'video/3gpp': '3GP', 'video/x-m4v': 'M4V' };
+const kinds = (m: string[]) => { const k = m.map((x) => MIME[x]).filter(Boolean); return k.length ? and(k).replace(/ and ([^ ]+)$/, k.length === 2 ? ' or $1' : ', $1').replace(/, ([^,]+)$/, ', $1') : ''; };
+/** The adapter marks Snapchat's image size as unconfirmed, so no size is shown for it. */
+const UNCONFIRMED_IMAGE_SIZE = new Set(['SNAPCHAT']);
+const imageCell = (n: NetworkInfo) => {
+  const i = n.adapter.limits.media.image;
+  if (!i) return '—';
+  const k = kinds(i.mimes);
+  const size = UNCONFIRMED_IMAGE_SIZE.has(n.type) ? '' : `up to ${mb(i.maxBytes)}${k ? '' : ' each'}`;
+  return [k, size, i.minWidth ? `at least ${i.minWidth} px wide` : ''].filter(Boolean).join(', ').replace(/^up/, 'Up');
+};
+const videoCell = (n: NetworkInfo) => {
+  const v = n.adapter.limits.media.video;
+  const d = n.adapter.limits.media.document;
+  const parts: string[] = [];
+  if (v) {
+    const k = kinds(v.mimes);
+    const dur = v.maxSeconds >= 86_400 ? '' : v.minSeconds ? `${seconds(v.minSeconds)} to ${seconds(v.maxSeconds)}` : `up to ${seconds(v.maxSeconds)}`;
+    parts.push([k, `up to ${mb(v.maxBytes)}${k ? '' : ' each'}`, dur].filter(Boolean).join(', ').replace(/^up/, 'Up'));
+  }
+  if (d && d.mimes.length) parts.push(`documents up to ${mb(d.maxBytes)}`);
+  return parts.length ? parts.join('; ') : '—';
+};
+const textCell = (n: NetworkInfo) => {
+  const l = n.adapter.limits;
+  if (n.type === 'TWITTER') return `${fmt(l.textMax!)}, or ${fmt(X_PREMIUM_MAX)} on X Premium accounts`;
+  if (n.type === 'BLUESKY') return `${fmt(l.textMax!)} (and ${fmt(BLUESKY_MAX_BYTES)} bytes)`;
+  if (n.type === 'MASTODON') return `${fmt(l.textMax!)} (the server default)`;
+  if (l.titleMax && l.textMax === l.titleMax) return `Title ${fmt(l.titleMax)}`;
+  if (l.titleMax) return `Title ${fmt(l.titleMax)}, ${n.type === 'REDDIT' ? 'body' : 'description'} ${fmt(l.textMax!)}`;
+  return l.textMax ? fmt(l.textMax) : '—';
+};
+const commentCell = (n: NetworkInfo) => (n.commentLength ? fmt(n.commentLength) : '—');
+const caps = (n: NetworkInfo, kind: 'posts' | 'comments') => (kind === 'posts' ? n.dailyPosts : n.dailyComments);
+const capCell = (n: NetworkInfo, i: number, kind: 'posts' | 'comments') => (kind === 'comments' && !n.commentLength ? '—' : fmt(caps(n, kind)[i]));
+/** "10 posts on Free, 50 on Starter and Pro, 100 on Business" */
+const capLine = (n: NetworkInfo, kind: 'posts' | 'comments', noun = 'posts') => {
+  const v = caps(n, kind);
+  if (v[1] === v[2]) return `${v[0]} ${noun} on ${labels[0]}, ${v[1]} on ${labels[1].replace(' and ', ', ')} and ${labels[2]}`;
+  return `${v[0]} ${noun} on ${labels[0]}, ${v[1]} on ${labels[1]}, ${v[2]} on ${labels[2]}`;
+};
+const checkLine = (n: NetworkInfo) => {
+  const l = n.adapter.limits;
+  const bits = [`text ${textCell(n).replace(/^Title/, 'title')}`];
+  if (n.commentLength) bits.push(`comments up to ${fmt(n.commentLength)}`);
+  bits.push(`up to ${l.media.maxItems} media ${l.media.maxItems === 1 ? 'item' : 'items'}`);
+  if (l.media.image) bits.push(`images: ${imageCell(n).replace(/^Up/, 'up')}`);
+  if (l.media.video) bits.push(`video: ${videoCell(n).replace(/^Up/, 'up')}`);
+  return `${bits.join('; ')}.`.replace(/^text/, 'Text');
+};
+
+// ── Siar API rate limits ──
+const rate = RATE_WINDOWS.map((w) => ({ label: win(w.ms), max: w.max }));
+const rateTitle = and(RATE_WINDOWS.map((w) => `${fmt(w.max)} ${w.ms === 1000 ? 'a second' : w.ms === 60_000 ? 'a minute' : `per ${w.ms / 1000} seconds`}`));
+
+// ── examples ──
+const ig = byType('INSTAGRAM');
+const capMsg = `${ig.adapter.displayName} post daily limit reached for this account on 2026-11-13 (UTC). Limit is ${ig.dailyPosts[1]} per day.`;
+const usageReq = `curl "${API_BASE}/organization/usage/daily-limits?socialAccountId=<id>&date=2026-11-13" \\
+  -H "x-api-key: $SIAR_API_KEY"`;
+const usageRes = JSON.stringify({ date: '2026-11-13', socialAccountId: '<id>', type: 'INSTAGRAM', posts: { used: ig.dailyPosts[1] - 2, limit: ig.dailyPosts[1], remaining: 2 }, comments: { used: 0, limit: ig.dailyComments[1], remaining: ig.dailyComments[1] } }, null, 2);
+
+const P = PLANS;
+const monthly = `${P.FREE.posts} free posts to try (once), then ${fmtInt(P.STARTER.posts)} a month on ${P.STARTER.name}, ${fmtInt(P.PRO.posts)} on ${P.PRO.name} and ${fmtInt(P.BUSINESS.posts)} on ${P.BUSINESS.name}`;
+
+const metaTitle = `Social media API rate limits by platform (${year}) | Siar`;
+const description = "Posting and rate limits for Instagram, Threads, LinkedIn, X, Bluesky, Mastodon and more, each from the network's own page, next to Siar's daily caps.";
+const h1 = 'Social media API rate limits and posting limits, by network';
+const lead = "Each network sets its own posting limits. Meta's page gives Instagram 100 API posts per account per 24 hours (and, in another section, 50); Threads 250 posts and 1,000 replies; LinkedIn 150 requests per member per day; Mastodon 300 requests per 5 minutes; Bluesky 11,666 records a day. Siar, a unified social media API, lists every one with its source.";
+
+const th = byType('THREADS'); const bs = byType('BLUESKY'); const ma = byType('MASTODON'); const li = byType('LINKEDIN'); const x = byType('TWITTER');
+const faq = [
+  { q: 'What is the Instagram API posting limit per day?', a: `Meta's content publishing page says Instagram accounts can publish 100 posts through the API in a 24-hour moving period. The same page, in its carousel section, says 50. A carousel counts as one post either way. Siar caps Instagram at ${ig.dailyPosts[1]} posts a day per account on ${labels[1]}, and ${ig.dailyPosts[2]} on ${labels[2]}.` },
+  { q: 'What are the Threads API limits?', a: `Meta allows each Threads profile 250 API-published posts, 1,000 replies, 100 deletions and 500 location searches in a 24-hour moving period. A carousel counts as one post. Through Siar, a Threads account can send ${th.dailyPosts[1]} posts and ${th.dailyComments[1]} replies a day on ${labels[1]}, and ${th.dailyPosts[2]} of each on ${labels[2]}.` },
+  { q: 'What is the Bluesky API rate limit?', a: `Bluesky gives each account 5,000 points an hour and 35,000 a day. Creating a post costs 3 points, so an account can create at most 1,666 records an hour and 11,666 a day. Logins are limited to 30 per 5 minutes. Siar caps Bluesky at ${bs.dailyPosts[1]} posts a day on ${labels[1]}.` },
+  { q: 'What is the Mastodon API rate limit?', a: `Mastodon's default is 300 requests per 5 minutes per account, and the same per IP address. Media uploads are limited to 30 per 30 minutes, and deleting statuses to 30 per 30 minutes. A server's admin can change these defaults. Siar caps Mastodon at ${ma.dailyPosts[1]} posts a day per account on ${labels[1]}.` },
+  { q: 'How many LinkedIn posts can an app publish per day?', a: `LinkedIn limits Share on LinkedIn to 150 requests per member and 100,000 per app each UTC day. Those are requests, not posts: an image or video post takes three steps, so it uses more than one. Siar caps LinkedIn profiles at ${li.dailyPosts[1]} posts a day on ${labels[1]}, and ${li.dailyPosts[2]} on ${labels[2]}.` },
+  { q: 'What is the X API rate limit for creating posts?', a: `X allows 100 new posts per user every 15 minutes and 10,000 per app every 24 hours, and bills each post on top. Through Siar, an X account can publish ${x.dailyPosts[1]} posts a day on ${labels[1]}${x.dailyPosts[1] === x.dailyPosts[2] ? ` and ${labels[2]}` : `, ${x.dailyPosts[2]} on ${labels[2]}`}, billed from a prepaid credit at X's own USD prices.` },
+  { q: "Why are Siar's daily caps lower than the networks' limits?", a: "Networks throttle or flag accounts that publish too often, and a network's published maximum is not a safe daily target. Siar's caps keep each connected account inside what its network tolerates. They apply per account and UTC day, Starter shares Pro's caps, and Enterprise organizations can have them raised." },
+  { q: 'Does reconnecting an account reset the daily cap?', a: "No. Siar counts daily caps by the network's own account id, not by the connection. Disconnecting and reconnecting an account, or adding it to another brand in the same organization, keeps the same count for that UTC day. A post counts against the day it is scheduled for." },
+  { q: 'What happens when I hit a limit?', a: "It depends on which one. A Siar daily cap refuses the post when you create it, with a 403 naming the network, day and cap. Siar's API rate limit returns 429 with retry-after. A network's own limit is reported on the post with the network's code and message, plus a fix." },
+  { q: "What are Siar's API rate limits?", a: `Every request must pass ${RATE_WINDOWS.length} windows: ${rateTitle}. Each API key gets its own bucket per endpoint. Responses carry x-ratelimit-limit and x-ratelimit-remaining, and a 429 includes retry-after, the number of seconds to wait. Enterprise organizations can have the limits multiplied.` },
+  { q: 'Does a post to five networks count as five posts?', a: `Against your monthly quota, no: a post sent to every connected network counts as one post. Against daily caps, each account it goes to counts one post for that day. Drafts count for neither, and retrying a failed post does not use another monthly post, up to ${RESOURCE_LIMITS.maxRetries} retries.` },
+];
+
+const jsonLd = [{
+  '@context': 'https://schema.org', '@type': 'Dataset', name: 'Social media API limits by network',
+  description: "Each network's published posting and rate limits, quoted from its own developer page with the day checked, next to Siar's daily posting caps per account and plan.",
+  dateModified: updated, creator: { '@id': 'https://siaran.my/#org' }, url: 'https://siaran.my/platforms/limits',
+  isBasedOn: [...new Set(NETWORK_LIMITS.flatMap((l) => l.sources.map((s) => s.url)))],
+  variableMeasured: ['posts per day', 'requests per window'], license: 'https://siaran.my/terms',
+}];
+const jump = rows.map(({ n }) => ({ href: `#${n.slug}`, label: name(n) }));
+---
+<Article metaTitle={metaTitle} h1={h1} description={description} kicker="Networks" updated={updated} crumbs={[{ name: 'Networks', href: '/platforms' }, { name: 'Limits', href: '/platforms/limits' }]} lead={lead} faq={faq} jsonLd={jsonLd} actions="quickstart" cta={false} wide>
+  <p>Below them sit Siar's own daily caps per account and plan, the text and media limits Siar checks before it sends anything, and the rate limits on Siar's API. Every Siar number is generated from the code that enforces it. Each network's figure links its own page and shows the day it was checked.</p>
+  <p class="small jump">{jump.map((j, i) => <>{i > 0 && ' · '}<a href={j.href}>{j.label}</a></>)} · <a href="#siar-api">Siar's API limits</a></p>
+
+  <h2 id="network-limits">Each network's published limits (checked {human(updated)})</h2>
+  <p>These are the networks' rules, not Siar's. Each figure is quoted from the network's own developer page, linked in the last column with the day it was read.</p>
+  <div class="table-wrap stack">
+    <table>
+      <thead><tr><th>Network</th><th>Status</th><th>What the network limits</th><th>Window</th><th>Source</th></tr></thead>
+      <tbody>
+        {rows.map(({ l, n }) => (
+          <tr>
+            <td class="nm"><a href={`#${n.slug}`}>{name(n)}</a></td>
+            <td data-l="Status">{NETWORK_STATUS[n.type].label}</td>
+            <td data-l="Limit">{l.limit ? <Fragment set:html={l.limit} /> : `Unverified${l.type === 'REDDIT' ? ": Reddit's pages could not be read on 12 November 2026" : ''}`}</td>
+            <td data-l="Window">{l.window}</td>
+            <td data-l="Source">{l.sources.length ? <>{l.sources.map((s, i) => <>{i > 0 && ', '}<a href={s.url} rel="noopener">{s.label}</a></>)}{l.checked && <span class="muted">, checked {human(l.checked)}</span>}</> : '—'}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted">Networks change these numbers without notice, and Pinterest and Discord say so on the pages above. When one changes, this row changes and the change is logged on <a href="/network-changes">network API changes</a>. Network names are trademarks of their owners. Siar is not affiliated with or endorsed by any of them.</p>
+
+  <h2 id="daily-caps">Siar's daily posting caps per account, by plan</h2>
+  <p>On top of each network's rules, Siar caps how many posts and comments one connected account can send in a UTC day. Networks throttle or flag accounts that publish too often, and the caps keep each account inside what its network tolerates. {PLANS.STARTER.name} shares {PLANS.PRO.name}'s caps.</p>
+  <div class="table-wrap">
+    <table>
+      <caption class="small muted">Posts and comments per connected account, per UTC day</caption>
+      <thead><tr><th>Network</th>{labels.map((c) => <th>Posts: {c}</th>)}{labels.map((c) => <th>Comments: {c}</th>)}</tr></thead>
+      <tbody>
+        {rows.map(({ n }) => (
+          <tr><td>{name(n)}</td>{[0, 1, 2].map((i) => <td>{capCell(n, i, 'posts')}</td>)}{[0, 1, 2].map((i) => <td>{capCell(n, i, 'comments')}</td>)}</tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted">"—": comments are not available through Siar on that network.</p>
+  <ul>
+    <li><strong>Per account, not per organization.</strong> Each connected account has its own count.</li>
+    <li><strong>Caps follow the network identity.</strong> Siar counts by the network's own account id. Disconnecting and reconnecting, or adding the account to another brand, does not reset its daily cap.</li>
+    <li><strong>Counted on the day the post is due.</strong> A post counts when it leaves draft, against the UTC day of its <code>postDate</code>. Move it to another day and the count moves with it. Drafts don't count.</li>
+    <li><strong>Refused at create time.</strong> The {fmt(ig.dailyPosts[1] + 1)}{['st', 'nd', 'rd'][((ig.dailyPosts[1] + 1) % 10) - 1] && ![11, 12, 13].includes((ig.dailyPosts[1] + 1) % 100) ? ['st', 'nd', 'rd'][((ig.dailyPosts[1] + 1) % 10) - 1] : 'th'} Instagram post you schedule for one day on {PLANS.PRO.name} is refused when you create it, with a <code>403</code> that names the network, the day and the cap, not at the time it was due to go out.</li>
+    <li><strong>{PLANS.ENTERPRISE.name}</strong> uses the {PLANS.BUSINESS.name} caps unless agreed otherwise, and can have them raised.</li>
+  </ul>
+  <CodeBlock title="Example: a post over the daily cap" lang="json" code={JSON.stringify({ statusCode: 403, message: capMsg }, null, 2)} />
+  <CodeBlock title="Check an account's count before you schedule" lang="bash" code={usageReq} />
+  <CodeBlock title="Example: response" lang="json" code={usageRes} />
+  <p>Daily caps are separate from your plan's monthly posts: {monthly}. A post sent to every connected network counts as one monthly post, and one daily post on each account it goes to. See <a href="/pricing">pricing</a> for the rest.</p>
+
+  <h2 id="checked-limits">Text and media limits per network, checked when you create the post</h2>
+  <p>Siar checks every post against these limits when you create it. A post that breaks one fails with a <code>400</code> and an <code>issues</code> array that points at the field, so you fix it before it is due, not after a network refuses it.</p>
+  <div class="table-wrap">
+    <table>
+      <caption class="small muted">Text and media limits per post</caption>
+      <thead><tr><th>Network</th><th>Text</th><th>Comment or first comment</th><th>Media per post</th><th>Images</th><th>Video</th></tr></thead>
+      <tbody>
+        {rows.map(({ n }) => (
+          <tr><td>{name(n)}</td><td>{textCell(n)}</td><td>{commentCell(n)}</td><td>{n.adapter.limits.media.maxItems}</td><td>{imageCell(n)}</td><td>{videoCell(n)}</td></tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted">Text limits are in characters. X counts weighted characters; Threads counts emoji by their UTF-8 length; Bluesky also caps the post at {fmt(BLUESKY_MAX_BYTES)} bytes. Mastodon servers can raise the {fmt(ma.adapter.limits.textMax!)}-character default, but Siar checks against the default. Discord's 10 MB is the floor for every server; boosted servers allow more.</p>
+
+  <h2 id="by-network">Limits by network, with the network's own words</h2>
+  <p>One block per network: the status, the network's published limit with its source, Siar's daily caps and what Siar checks before sending. Network pages link straight to their block.</p>
+  {rows.map(({ l, n }) => (
+    <section class="blk" id={n.slug}>
+      <h3>{name(n)}</h3>
+      <p><strong>{NETWORK_STATUS[n.type].line}</strong></p>
+      <p><strong>{name(n)}'s {l.limit && l.limit.includes(';') ? 'limits' : 'limit'}.</strong> <Fragment set:html={l.detail} />{l.sources.length > 0 && <> ({l.sources.map((s, i) => <>{i > 0 && ', '}<a href={s.url} rel="noopener">{s.label}</a></>)}, checked {human(l.checked!)})</>}</p>
+      <p><strong>Siar's daily caps{NETWORK_STATUS[n.type].status === 'open' || NETWORK_STATUS[n.type].status === 'partial' ? '' : `, for when ${n.type === 'PINTEREST' ? 'publishing' : name(n)} opens`}.</strong> {capLine(n, 'posts', n.type === 'YOUTUBE' ? 'uploads' : n.type === 'PINTEREST' ? 'Pins' : 'posts')}, per account per UTC day.{n.commentLength ? ` ${n.type === 'THREADS' || n.type === 'TWITTER' ? 'Replies' : 'Comments'}: ${capLine(n, 'comments', '').replace(/^(\d+)  on/, '$1 on')}.` : ''}</p>
+      <p><strong>{NETWORK_STATUS[n.type].status === 'open' || NETWORK_STATUS[n.type].status === 'partial' ? 'Checked before sending' : 'What Siar checks'}.</strong> {checkLine(n)}</p>
+      <p class="small"><a href={`/${n.apiSlug}`}>{name(n)} API reference</a>{n.errors.length > 0 && <> · <a href={`/${n.apiSlug}/errors`}>{name(n)} API error codes</a></>}</p>
+    </section>
+  ))}
+
+  <h2 id="per-app">Limits counted per app, not per account</h2>
+  <p>Your customers connect through Siar's own network apps, so Siar never asks you for your own. The flip side: where a network counts per app or per project, the count covers every Siar customer on that network.</p>
+  <ul>{PER_APP.map((p) => <li>{p.text}</li>)}</ul>
+  <p>Siar's daily caps per account keep any one customer from using a large share. If a network refuses a post because an app-wide limit is reached, the post keeps the network's own error and message, and you can retry it later without using another post from your plan.</p>
+
+  <h2 id="siar-api">Siar API rate limits: {rateTitle}</h2>
+  <p>Every request to Siar's API must pass {RATE_WINDOWS.length === 3 ? 'three' : RATE_WINDOWS.length} windows at once. A verified API key gets its own bucket for each endpoint, so a burst of list calls does not slow your post creation.</p>
+  <div class="table-wrap narrow">
+    <table>
+      <thead><tr><th>Window</th><th>Requests per API key, per endpoint</th></tr></thead>
+      <tbody>{rate.map((r) => <tr><td>1 {r.label}</td><td>{fmt(r.max)}</td></tr>)}</tbody>
+    </table>
+  </div>
+  <p>Responses carry <code>x-ratelimit-limit</code> and <code>x-ratelimit-remaining</code>. A request over a limit gets <code>429</code> with a <code>retry-after</code> header giving the seconds to wait, and the same number in the body. Dashboard sessions share one bucket for the whole app. {PLANS.ENTERPRISE.name} organizations can have these limits multiplied.</p>
+  <CodeBlock title="Example" lang="json" code={JSON.stringify({ statusCode: 429, message: 'Too many requests. Back off and retry.', retryAfter: 1 })} />
+  <p>These limits protect the API. For publishing, the limits that matter are the daily caps above and your plan's monthly posts. Backoff code and the SDK's retry rules are in the <a href="/docs/rate-limits">rate limits docs</a>.</p>
+
+  <HandlesBox lines={[
+    'Checked before it\'s sent: text, media and daily caps are checked when you create the post (<a href="/how-publishing-works#checked">how it\'s checked</a>).',
+    'If a network still says no, you get its own code and message, plus the fix (<a href="/how-publishing-works#errors">what happens on errors</a>).',
+    'A signed webhook tells you each network\'s result, retried for about 45 hours (<a href="/how-publishing-works#webhooks">webhooks</a>).',
+  ]} />
+
+  <h2 id="questions">Questions developers ask before they rely on these numbers</h2>
+  <p><strong>"Instagram allows 100 a day. Why does {PLANS.PRO.name} stop me at {ig.dailyPosts[1]}?"</strong> Meta's own page states both 100 and 50 for the same 24 hours. {PLANS.PRO.name} uses the lower number, so a schedule that fits on {PLANS.PRO.name} fits under either. {PLANS.BUSINESS.name} allows {ig.dailyPosts[2]}. If you need more on one account, {PLANS.ENTERPRISE.name} caps are set per organization.</p>
+  <p><strong>"X allows 100 posts every 15 minutes. {x.dailyPosts[1]} a day is low."</strong> It is, on purpose. X charges for every post. For more, {PLANS.ENTERPRISE.name} caps are set per organization; X's own per-app limit of 10,000 a day still applies.</p>
+  <p><strong>"Will another Siar customer use up my limits?"</strong> Not Siar's: API rate limits are per key and endpoint, and daily caps are per account. Some networks count per app (LinkedIn, X, YouTube), and that count covers all Siar customers. The per-account caps keep any one customer from taking a large share.</p>
+  <p><strong>"Can I reset a cap by reconnecting the account?"</strong> No. Caps follow the network's own account id, so reconnecting it, or adding it to another brand, keeps the same count for that day.</p>
+  <p><strong>"How current are these numbers?"</strong> Each network figure shows the day it was read from the network's page. Siar's own numbers are generated from the code on every release, so they can't drift from what the API enforces.</p>
+</Article>
+<Closing
+  text={`One request publishes to ${OPEN_LIST}, checked against every limit on this page before it goes. You pay one price for your organization, not for each account: ${PLANS.FREE.posts} free posts to try, then from ${paidFrom('usd')} a month (${paidFrom('myr')} in Malaysia). ${PRICE_LOCK}`}
+  primary={{ label: 'Get an API key' }}
+  secondary={{ label: 'See pricing', href: '/pricing' }}
+/>
+<style>
+  .jump a { white-space: nowrap; }
+  .stack td { vertical-align: top; }
+  .stack .nm { white-space: nowrap; font-weight: 500; }
+  .stack .nm a { color: inherit; }
+  caption { caption-side: top; text-align: left; padding: 10px 16px; }
+  .narrow { max-width: 480px; }
+  .blk { border-top: 1px solid var(--border); margin-top: 32px; padding-top: 4px; scroll-margin-top: 96px; }
+  .blk h3 { margin-top: 20px; }
+  @media (max-width: 640px) {
+    .stack { overflow-x: visible; }
+    .stack table, .stack tbody, .stack tr, .stack td { display: block; min-width: 0 !important; }
+    .stack thead { display: none; }
+    .stack tr { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    .stack td { border: 0; padding: 2px 0; position: static !important; box-shadow: none !important; white-space: normal; }
+    .stack td[data-l]::before { content: attr(data-l) ': '; color: var(--text-subtle); }
+  }
+</style>

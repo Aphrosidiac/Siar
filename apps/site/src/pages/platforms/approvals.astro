@@ -1,0 +1,292 @@
+---
+/**
+ * /platforms/approvals: Siar's dated approval record, refusals included (strike plan C04, strike 5).
+ * Copy: docs/seo/landing-copy/platforms-approvals.md. Rows: components/proof/approvals.ts (dates checked against
+ * docs/approvals/*.md at build). Every status line: lib/status.ts. Prices: lib/plans.ts.
+ */
+import Article from '../../layouts/Article.astro';
+import NetIcon from '../../components/NetIcon.astro';
+import HandlesBox from '../../components/proof/HandlesBox.astro';
+import Closing from '../../components/proof/Closing.astro';
+import { META } from '../../lib/networks';
+import { NETWORK_STATUS, STATUS_CHECKED, OPEN_LIST, DM_LINE, BUILT_FOR } from '../../lib/status';
+import { NETWORK_COUNT } from '../../lib/networks';
+import { PLANS, TRIAL_DAYS, PRICE_LOCK, money, fmtInt } from '../../lib/plans';
+import { X_PRICES } from '../../lib/plans';
+import { LEGAL_NAME, LEGAL_REG } from '../../config';
+import { APPROVAL_ROWS, META_PERMISSIONS, YT_AUDIT_ACK, type ApprovalRow } from '../../components/proof/approvals';
+import { human, and } from '../../components/proof/facts';
+
+const updated = STATUS_CHECKED;
+const perms = META_PERMISSIONS.length;
+const S = NETWORK_STATUS;
+const metaApproved = S.FACEBOOK.since!;
+const live = S.TWITTER.since!;
+const ack = YT_AUDIT_ACK.iso;
+const fill = (s: string, r: ApprovalRow) => s.replace('PERMS', String(perms)).replace('ACK', ack).replace('LIVE', `Live since ${S[r.types[0]].since ?? live}`);
+const dated = (v: ApprovalRow['applied']) => (typeof v === 'string' ? v : v.map((d) => `${d.prefix ? `${d.prefix} ` : ''}${d.iso}`).join(' · '));
+const todayOf = (r: ApprovalRow) => {
+  if (r.part === undefined) return r.types.map((t) => S[t].line).join(' ');
+  const parts = S[r.types[0]].line.split('; ');
+  const p = parts[r.part] ?? parts[0];
+  return r.part === 0 ? `${p.replace(/\.$/, '')}.` : `${p.charAt(0).toUpperCase()}${p.slice(1)}`;
+};
+const usd = (micro: number) => `$${+(micro / 1_000_000).toFixed(3)}`;
+const xCreate = usd(X_PRICES.TWITTER_CONTENT_CREATE);
+const xUrl = usd(X_PRICES.TWITTER_CONTENT_CREATE_WITH_URL);
+const metaDays = Math.round((Date.parse(`${metaApproved}T00:00:00Z`) - Date.parse('2026-10-14T00:00:00Z')) / 86_400_000);
+const prices = `${money('STARTER', 'MONTHLY', 'usd')} a month (${money('STARTER', 'MONTHLY', 'myr')} in Malaysia)`;
+const free = PLANS.FREE.posts;
+
+const metaTitle = 'Social media API approval by platform: a dated record | Siar';
+const description = "Which social media APIs need approval, and what each asked Siar for: Meta approved, TikTok's audit not passed, LinkedIn Pages denied, YouTube waiting.";
+const h1 = "Social media API approval by platform: Siar's own record";
+const lead = `Meta, TikTok, YouTube, Pinterest, LinkedIn company pages, Google Business Profile and Snapchat all vet an app before it can post for other people. X, Bluesky, Mastodon, Slack and small Discord bots don't. Siar, a unified social media API, records every gate here: Meta approved Siar on ${human(metaApproved)}, LinkedIn denied company-page access, and TikTok's audit hasn't passed yet.`;
+
+const faq = [
+  { q: 'Which social media APIs need approval?', a: 'Meta (Facebook, Instagram, Threads), TikTok, YouTube, Pinterest, LinkedIn company pages, Google Business Profile and Snapchat all vet an app before it can post for other people. X, Bluesky, Mastodon, Slack and LinkedIn personal profiles need no review. Discord asks for verification only once a bot is in 100 or more servers.' },
+  { q: 'How long does Meta App Review take?', a: `Meta publishes no fixed time. Siar's took ${metaDays} days: submitted on 14 October 2026, resubmitted and approved on ${human(metaApproved)}, with all ${perms} permissions. Most of the work came before submitting: a written use and a screen recording for each permission, business verification, and fixes to the product where Meta's guidance asked for them.` },
+  { q: 'Do I need my own Meta App Review if I use Siar?', a: `No, for Facebook, Instagram and Threads. Your customers connect through Siar's Meta app, which passed App Review on ${human(metaApproved)} with all ${perms} permissions it asked for. They sign in to Meta themselves through Siar's connect link, so you never handle a password or token, and you file nothing with Meta.` },
+  { q: "Why was Siar's LinkedIn Community Management API request denied?", a: 'LinkedIn gave no reason. Siar applied on 14 October 2026 from a new app, verified by its company page, as LinkedIn requires. The portal later showed "Access denied" and no email followed. LinkedIn\'s rule is that a refused app can\'t reapply: a new request needs a new app. Personal profiles work through Siar today.' },
+  { q: 'Can I post to TikTok through Siar?', a: "Not yet. Siar applied for TikTok's Content Posting API audit on 13 October 2026, and the audit hasn't passed yet. Until an app passes, TikTok keeps its posts private and lets at most five users post in 24 hours, so Siar runs TikTok on sandbox keys only and nobody can connect an account." },
+  { q: 'Are YouTube API uploads still locked private before the audit?', a: "Not since 2 November 2026. Google's revision history says uploads from unverified projects are no longer restricted to private, though a creator's own settings can still make an upload private. Through Siar you can connect and upload now; Siar lists public uploads as confirmed once one goes through on production." },
+  { q: 'What is the difference between Pinterest Trial and Standard access?', a: 'Trial access lets an app connect accounts and call the API, but Pins and boards it creates are visible only to their creator. Standard access lifts that. Pinterest grants it after you request it from the app card with a demo video of the sign-in flow and a live integration. Siar has Trial access since 21 October 2026.' },
+  { q: 'Does the X API need an app review?', a: `No. X does not review apps. You open a developer account, describe the app, buy credit and pay per call, for example ${xCreate} to create a post and ${xUrl} for a post with a URL. Through Siar, X is open today, billed from a prepaid credit at X's own USD prices, with no markup from Siar.` },
+  { q: 'When will TikTok, Pinterest publishing or LinkedIn company pages open?', a: "Siar can't give a date, because each network decides on its own schedule. The integrations are built. When a network approves Siar's app and a post goes through on production, this page, the network's status on Siar's networks page and the changelog change in the same release." },
+  { q: 'Is Siar partnered with Meta?', a: `No. Meta approved Siar's app in App Review on ${human(metaApproved)}. That is a decision about one app's permissions, not a partnership, a certification or a badge. Siar is not affiliated with or endorsed by Meta or any other network on this page.` },
+  { q: 'Why does Siar publish its refusals?', a: 'Because the first thing a developer needs to know is which networks actually work. A list that shows only approvals hides the answer. This page shows every gate Siar has met, with the date and the outcome, so you can plan around TikTok, LinkedIn company pages and the rest before you write any code.' },
+  { q: "What does it cost to use Siar's approved apps?", a: `There is no extra fee for the approvals. Siar charges per organization, not per account: ${free} free posts to try, then ${prices} for one brand, ${money('PRO', 'MONTHLY', 'usd')} (${money('PRO', 'MONTHLY', 'myr')}) for ${PLANS.PRO.teams} brands or ${money('BUSINESS', 'MONTHLY', 'usd')} (${money('BUSINESS', 'MONTHLY', 'myr')}) for unlimited brands. ${PRICE_LOCK}` },
+];
+
+const ld = [{
+  '@context': 'https://schema.org', '@type': 'ItemList', name: 'Social media API approval record',
+  itemListElement: APPROVAL_ROWS.map((r, i) => ({ '@type': 'ListItem', position: i + 1, name: r.label, url: `https://siaran.my/platforms/approvals#${r.id}`, description: todayOf(r) })),
+}];
+const metaUrl = 'https://developers.facebook.com/docs/resp-plat-initiatives/individual-processes/app-review';
+const net = (t: keyof typeof META) => `/${META[t].apiSlug}`;
+const SECTION: Record<string, string> = { meta: 'meta-review', youtube: 'youtube-review', pinterest: 'pinterest-access', linkedin: 'linkedin-review', 'linkedin-company-pages': 'linkedin-review', tiktok: 'tiktok-audit', reddit: 'not-open', snapchat: 'not-open', 'google-business-profile': 'not-open' };
+const sectionOf = (id: string) => SECTION[id] ?? 'no-review';
+---
+<Article metaTitle={metaTitle} h1={h1} description={description} kicker="Networks" updated={updated} crumbs={[{ name: 'Networks', href: '/platforms' }, { name: 'Approvals', href: '/platforms/approvals' }]} lead={lead} faq={faq} jsonLd={ld} cta={false} wide>
+  <p>What each network asked for, what Siar sent, what came back, and what it means for the accounts your customers connect. Refusals included. Every date comes from Siar's own application records.</p>
+
+  <h2 id="record">Which social media APIs need approval, and where Siar stands</h2>
+  <p>Siar is {BUILT_FOR(NETWORK_COUNT)}, and they use three kinds of gate: a review of your app, an allowlist you have to be invited onto, or nothing at all. Here is each network's gate, when Siar applied, what came back, and what you can do through Siar today.</p>
+  <div class="table-wrap rec">
+    <table>
+      <thead><tr><th>Network</th><th>The network's gate</th><th>Applied</th><th>Decided</th><th>Outcome</th><th>What you can do through Siar today</th></tr></thead>
+      <tbody>
+        {APPROVAL_ROWS.map((r) => (
+          <tr id={r.id}>
+            <td class="nw">{r.aliases?.map((a) => <span id={a} />)}<span class="ic">{r.types.map((t) => <NetIcon type={t} size={24} />)}</span><a href={`#${sectionOf(r.id)}`}>{r.label}</a></td>
+            <td data-l="Gate">{r.gate}</td>
+            <td data-l="Applied">{dated(r.applied)}</td>
+            <td data-l="Decided">{dated(r.decided)}</td>
+            <td data-l="Outcome" class="oc">{fill(r.outcome, r)}</td>
+            <td data-l="Today">{todayOf(r)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted">Network names are trademarks of their owners. Siar is not affiliated with or endorsed by any of them. An approval is a decision about Siar's app, not a partnership or a badge.</p>
+
+  <section id="meta-review" class="sec">
+    <h2>Meta App Review: submitted 14 October, approved {human(metaApproved).replace(/ \d{4}$/, '')} {metaApproved.slice(0, 4)}</h2>
+    <p>Meta approved Siar's app on {human(metaApproved)}, with all {perms} permissions it asked for. <a href={net('FACEBOOK')}>Facebook Pages</a>, <a href={net('INSTAGRAM')}>Instagram</a> professional accounts and <a href={net('THREADS')}>Threads</a> connect through that app. It is the one gate Siar has already cleared for you: your customers sign in to Meta through Siar's connect link, and you never file a Meta review of your own.</p>
+    <p><strong>What Meta asked for.</strong> Meta reviews any app used by people who have no role on it. Its own page puts it this way: review applies "if your app will be used by anyone without a Role on the app" (<a href={metaUrl} rel="noopener">Meta, App Review</a>, checked 12 November 2026). For Siar that meant:</p>
+    <ul>
+      <li><strong>Business verification</strong> of {LEGAL_NAME} against its company registration, and a verified siaran.my domain.</li>
+      <li><strong>A written use for each permission</strong>, saying what Siar does with it and why the product breaks without it.</li>
+      <li><strong>A screen recording of Siar's own product for each permission</strong>: starting signed out, showing the person grant the permission, then the feature that uses it.</li>
+      <li><strong>Proof of the edge cases.</strong> How an unsent Instagram message is handled. A real Facebook account with a tester role for the Messenger permission. A live comment rule that replies within 30 seconds for the Instagram comment permission.</li>
+      <li><strong>Data handling answers:</strong> who processes the data, in which countries, and how deletion works, plus a data deletion page and callbacks for when someone removes the app.</li>
+    </ul>
+    <p><strong>What Siar did.</strong> Siar asked for {perms} permissions in one submission, across four parts of the product: Facebook Pages, Instagram (through Facebook Login and through Instagram Login), Threads, and Messenger and Instagram messages. Each permission got its own description and its own film.</p>
+    <p>A check against the guidance in each permission dialog, before submitting, found six things Meta could reject. Siar changed the product for two of them and the privacy policy for a third. The inbox now shows a message as unsent when the sender unsends it. Connecting a Facebook Page now tells the admin they are granting access to business assets. The privacy policy now has a section on data from Facebook, Instagram and Threads. The submission went in on 14 October 2026.</p>
+    <p><strong>What came back.</strong> Siar resubmitted on {human(metaApproved)}, and Meta approved the app the same day, with all {perms} permissions. The Data Use Checkup was completed the same day, and the business is verified.</p>
+    <p><strong>What it means for you.</strong></p>
+    <ul>
+      <li>{S.FACEBOOK.line} {S.INSTAGRAM.line} {S.THREADS.line} On every plan, {PLANS.FREE.name} included.</li>
+      <li>Your customers connect through Siar's branded connect link with your name, logo and color. You never see their password or token.</li>
+      <li>Facebook's API posts to Pages only, not to personal profiles or groups. Instagram's posts to professional (business or creator) accounts only.</li>
+      <li>Meta approved the messaging permissions too. In Siar: {DM_LINE.charAt(0).toLowerCase()}{DM_LINE.slice(1)}</li>
+    </ul>
+    <details class="perms">
+      <summary>Show all {perms} permissions</summary>
+      <p class="small">{META_PERMISSIONS.map((p, i) => <>{i > 0 && ', '}<code>{p}</code></>)}</p>
+    </details>
+  </section>
+
+  <section id="youtube-review" class="sec">
+    <h2>YouTube: Google verified Siar's sign-in on 15 October 2026; the API audit has no decision yet</h2>
+    <p>Google verified Siar's <a href={net('YOUTUBE')}>YouTube</a> sign-in on 15 October 2026, so people connecting a channel see Siar's name with no unverified-app warning. The YouTube API compliance audit, which decides quota, was submitted the same day. Google acknowledged it on {human(ack)} and has not answered since.</p>
+    <p><strong>What Google asked for.</strong></p>
+    <ul>
+      <li><strong>OAuth verification</strong> for the two sensitive scopes Siar uses to upload and manage a channel's videos and comments: a verified domain, Siar's name and logo on the consent screen, a privacy policy and terms on siaran.my, and a demo film showing each scope in use.</li>
+      <li><strong>A compliance audit</strong> against YouTube's developer policies. Google's own page says every developer must pass it "to be granted more than the default quota allocation of 10,000 units" (<a href="https://developers.google.com/youtube/v3/revision_history" rel="noopener">YouTube Data API revision history</a>, entry of 1 July 2021, checked 12 November 2026).</li>
+    </ul>
+    <p><strong>What Siar did.</strong> Before filing the audit, Siar shipped the policy work on 15 October 2026. The privacy policy gained a "Data from YouTube" section. The connect screen now links YouTube's terms and Google's privacy policy. Siar deletes data read from a channel when the channel is removed, and refreshes or deletes stored YouTube data within 30 days. The audit form lists the 22 endpoints Siar calls, and search is not one of them.</p>
+    <p><strong>What changed on Google's side.</strong> Until 2 November 2026, uploads from an unaudited project were locked private. On that date Google changed it: uploads from unverified projects "are no longer restricted to private viewing mode" (<a href="https://developers.google.com/youtube/v3/revision_history" rel="noopener">revision history</a>, entry of 2 November 2026, checked 12 November 2026). Google adds that some uploads may still default to private because of the creator's own account settings. The change is logged in <a href="/network-changes#2026-11-02-youtube-unverified-uploads-not-private">network API changes</a>.</p>
+    <p><strong>What it means for you.</strong></p>
+    <ul>
+      <li>{S.YOUTUBE.line} Siar lists YouTube as open once a public upload is confirmed on production.</li>
+      <li>Comments and analytics work on connected channels.</li>
+      <li>Until Google grants the extra quota, every Siar customer's YouTube calls share the default daily quota of Siar's one Google project.</li>
+    </ul>
+  </section>
+
+  <section id="pinterest-access" class="sec">
+    <h2>Pinterest: Trial access approved 21 October 2026; Standard access is the next step</h2>
+    <p>Pinterest approved Siar's Trial access on 21 October 2026. Trial lets an app connect accounts and read them, but Pins it creates are visible only to whoever made them, so Siar keeps Pin publishing closed. Publishing needs Standard access, which Siar has not requested yet.</p>
+    <p><strong>What Pinterest asks for.</strong></p>
+    <ul>
+      <li><strong>Trial access:</strong> a business account and an app registration, reviewed when the app is created. Pinterest says "all Pins and Boards created with Trial access are only visible to their creator as Sandbox entities."</li>
+      <li><strong>Standard access:</strong> requested with the Upgrade button on the app card. It needs a demo video of the app using the Pinterest API, including the full sign-in flow, inside a live integration (<a href="https://developers.pinterest.com/docs/key-concepts/access-tiers/" rel="noopener">Pinterest, access tiers</a>, checked 12 November 2026).</li>
+    </ul>
+    <p><strong>What Siar did.</strong> Siar registered its app and received Trial access on 21 October 2026. Its Trial keys went live on production on 12 November 2026, so connecting and reading work. The Standard request needs a demo film recorded by hand on the live integration. That film is Siar's next step.</p>
+    <p><strong>What it means for you.</strong></p>
+    <ul>
+      <li>{S.PINTEREST.line}</li>
+      <li>If you try to create a Pin today, Siar's API refuses it with a plain reason instead of making a Pin only you can see.</li>
+    </ul>
+    <p class="small"><a href={net('PINTEREST')}>Pinterest API reference</a></p>
+  </section>
+
+  <section id="linkedin-review" class="sec">
+    <h2>LinkedIn: personal profiles live; company-page access denied, no reason given</h2>
+    <p>Posting to your own <a href={net('LINKEDIN')}>LinkedIn</a> profile works through Siar today, because LinkedIn's Share on LinkedIn product is self-serve. Company pages need LinkedIn's Community Management API, which LinkedIn vets by hand. Siar applied on 14 October 2026. When checked on 12 November 2026, the request showed "Access denied", with no reason given.</p>
+    <p><strong>What LinkedIn asks for.</strong></p>
+    <ul>
+      <li><strong>Personal profiles:</strong> nothing beyond creating an app and adding Share on LinkedIn and Sign In with LinkedIn.</li>
+      <li><strong>Company pages:</strong> the Community Management API, "Vetted Product with development and standard tiers" (<a href="https://learn.microsoft.com/en-us/linkedin/marketing/community-management/community-management-overview" rel="noopener">LinkedIn, Community Management overview</a>, checked 12 November 2026). LinkedIn's review page lists what it checks: an approved use case, a verified business email, a verified organization, its website and domain, and an app verified by the organization's LinkedIn Page. It is open "only to registered legal organizations for commercial use cases" (<a href="https://learn.microsoft.com/en-us/linkedin/marketing/community-management-app-review" rel="noopener">LinkedIn, Community Management App Review</a>, checked 12 November 2026).</li>
+      <li><strong>A separate app.</strong> The request can only be made on a new app with no other LinkedIn products.</li>
+      <li><strong>If refused:</strong> a rejected app can't apply again. LinkedIn's instruction is to create a new app and submit a new request.</li>
+    </ul>
+    <p><strong>What Siar did.</strong> Siar's main LinkedIn app went live on 12 October 2026, verified by the FF Dev Studio company page, with Share on LinkedIn and Sign In with LinkedIn. On 14 October 2026 Siar created a second app, "Siar Pages", with no other products, verified it the same day, and submitted the Development tier form. The form named {LEGAL_NAME}, its registered address in Malaysia, and three uses: page management, page analytics and profile management.</p>
+    <p><strong>What came back.</strong> The developer portal shows "Access denied" for that request. No email with a reason arrived.</p>
+    <p><strong>What it means for you.</strong></p>
+    <ul>
+      <li>{S.LINKEDIN.line}</li>
+      <li>Comments and analytics on LinkedIn profiles are not confirmed yet.</li>
+      <li>If company pages are the job, Siar is not the tool for it today.</li>
+    </ul>
+  </section>
+
+  <section id="tiktok-audit" class="sec">
+    <h2>TikTok: the Content Posting API audit hasn't passed yet</h2>
+    <p>Siar applied for TikTok's Content Posting API audit on 13 October 2026. The audit has not passed yet, so Siar runs TikTok on sandbox keys only, and no customer can connect a TikTok account.</p>
+    <p><strong>What TikTok asks for.</strong></p>
+    <ul>
+      <li><strong>An audit before public posting.</strong> TikTok's own page: "All content posted by unaudited clients will be restricted to private viewing mode" (<a href="https://developers.tiktok.com/doc/content-posting-api-get-started" rel="noopener">TikTok, Content Posting API get started</a>, checked 12 November 2026).</li>
+      <li><strong>Limits until then.</strong> "Unaudited API Clients can allow up to 5 users to post in a 24 hour window", and every posting account must be private (<a href="https://developers.tiktok.com/doc/content-sharing-guidelines" rel="noopener">TikTok, content sharing guidelines</a>, checked 12 November 2026).</li>
+      <li><strong>A composer that follows TikTok's rules line by line:</strong> the creator's own privacy options with no default, their interaction settings, the maximum video length, commercial content disclosure and the music usage confirmation.</li>
+    </ul>
+    <p><strong>What Siar did.</strong> Siar verified its domain, built the posting flow to TikTok's content-sharing guidelines, recorded demo films of that flow, and submitted the audit on 13 October 2026.</p>
+    <p><strong>What it means for you.</strong></p>
+    <ul>
+      <li>{S.TIKTOK.line}</li>
+      <li>There is nothing to connect yet. A private-only TikTok for at most five people is not something you could sell to your customers, so Siar keeps it closed rather than half open.</li>
+      <li>TikTok comments are not part of this application.</li>
+    </ul>
+    <p class="small"><a href={net('TIKTOK')}>TikTok API reference</a> · <a href={`${net('TIKTOK')}/errors`}>TikTok API error codes</a> (it explains <code>unaudited_client_can_only_post_to_private_accounts</code>)</p>
+  </section>
+
+  <section id="no-review" class="sec">
+    <h2>X, Bluesky, Mastodon, Discord and Slack: live since {human(live)}, without an app review</h2>
+    <p>Five networks ask for no review before an app posts for other people. Siar's apps for all five have been live since launch on {human(live)}. What each one asks for instead:</p>
+    <h3><a href={net('TWITTER')}>X</a></h3>
+    <ul>
+      <li><strong>What X asks for:</strong> a developer account, a description of the app's use, and credit. There is no review and no subscription. X charges per call: {xCreate} to create a post, {xUrl} for a post with a URL (<a href="https://docs.x.com/x-api/getting-started/pricing" rel="noopener">X API pricing</a>, checked 12 November 2026).</li>
+      <li><strong>What it means for you:</strong> {S.TWITTER.line} Posts, threads, polls, quotes and replies, within X's own reply rules.</li>
+    </ul>
+    <h3><a href={net('BLUESKY')}>Bluesky</a></h3>
+    <ul>
+      <li><strong>What Bluesky asks for:</strong> nothing to register. Siar publishes its OAuth client details at a public address, and that address is its identity.</li>
+      <li><strong>What it means for you:</strong> {S.BLUESKY.line}</li>
+    </ul>
+    <h3><a href={net('MASTODON')}>Mastodon</a></h3>
+    <ul>
+      <li><strong>What Mastodon asks for:</strong> nothing central. Siar registers itself as an app on each server the first time someone from that server connects.</li>
+      <li><strong>What it means for you:</strong> {S.MASTODON.line}</li>
+    </ul>
+    <h3><a href={net('DISCORD')}>Discord</a></h3>
+    <ul>
+      <li><strong>What Discord asks for:</strong> an application with a bot. Siar's setup notes record that Discord asks for verification only once a bot is in 100 or more servers.</li>
+      <li><strong>What it means for you:</strong> {S.DISCORD.line} The bot can post and delete replies; it does not import comments.</li>
+    </ul>
+    <h3><a href={net('SLACK')}>Slack</a></h3>
+    <ul>
+      <li><strong>What Slack asks for:</strong> an app with public distribution turned on. No review; a Slack Marketplace listing is optional. Apps outside the Marketplace installed since 29 May 2025 can read message history once a minute (<a href="https://docs.slack.dev/changelog/2025/05/29/rate-limit-changes-for-non-marketplace-apps" rel="noopener">Slack changelog</a>, checked 12 November 2026).</li>
+      <li><strong>What it means for you:</strong> {S.SLACK.line} Posting is not affected.</li>
+    </ul>
+  </section>
+
+  <section id="not-open" class="sec">
+    <h2>Reddit, Snapchat and Google Business Profile: built, not open yet</h2>
+    <p>Siar's integrations for these three are built. None is open, and Siar gives no date. In each case Siar has not filed the network's request, for the reason below.</p>
+    <p><strong><a href={net('SNAPCHAT')}>Snapchat</a>.</strong> The Public Profile API is invite-only: "The Public Profile API is currently allowlist only." You send your app's client ID to your Snap contact (<a href="https://developers.snap.com/api/marketing-api/Public-Profile-API/GetStarted" rel="noopener">Snap, Public Profile API</a>, checked 12 November 2026). Siar has no Snap contact, so there is no one to send it to. {S.SNAPCHAT.line}</p>
+    <p><strong><a href={net('GOOGLE_BUSINESS')}>Google Business Profile</a>.</strong> Google gives API access to an applicant that manages "a Google Business Profile that is verified and active for 60+ days" (<a href="https://developers.google.com/my-business/content/prereqs" rel="noopener">Google, Business Profile API prerequisites</a>, checked 12 November 2026). FF Dev Studio is an online-only studio, so it can't hold a Business Profile of its own. {S.GOOGLE_BUSINESS.line}</p>
+    <p><strong><a href={net('REDDIT')}>Reddit</a>.</strong> Siar has not applied for Reddit API access yet. {S.REDDIT.line}</p>
+  </section>
+
+  <h2 id="gates">What each network requires before an app can post for other people</h2>
+  <p>If you're deciding whether to build these integrations yourself, this is the list of gates you'd face. Each row quotes the network's own developer page, checked 12 November 2026.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Network</th><th>Gate</th><th>Before you pass it</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td>Facebook, Instagram, Threads</td><td>App Review per permission; business verification is a separate Meta process</td><td>Only people with a role on your app can grant the permissions</td><td><a href={metaUrl} rel="noopener">Meta, App Review</a></td></tr>
+        <tr><td>TikTok</td><td>Content Posting API audit</td><td>Posts are private only; at most 5 users can post in 24 hours; posting accounts must be private</td><td><a href="https://developers.tiktok.com/doc/content-posting-api-get-started" rel="noopener">Get started</a>, <a href="https://developers.tiktok.com/doc/content-sharing-guidelines" rel="noopener">guidelines</a></td></tr>
+        <tr><td>YouTube</td><td>OAuth verification for sensitive scopes; compliance audit for more than 10,000 quota units a day</td><td>Since 2 November 2026, uploads are no longer forced private</td><td><a href="https://developers.google.com/youtube/v3/revision_history" rel="noopener">Revision history</a></td></tr>
+        <tr><td>Pinterest</td><td>Trial access, then Standard access with a demo video of the sign-in flow and a live integration</td><td>Pins and boards are visible only to their creator</td><td><a href="https://developers.pinterest.com/docs/key-concepts/access-tiers/" rel="noopener">Access tiers</a></td></tr>
+        <tr><td>LinkedIn company pages</td><td>Community Management API: vetted Development tier, then Standard tier with a screen recording per use case; registered legal organizations only; a new app with no other products</td><td>Development tier carries limited call volume; a refused app can't reapply</td><td><a href="https://learn.microsoft.com/en-us/linkedin/marketing/community-management/community-management-overview" rel="noopener">Overview</a>, <a href="https://learn.microsoft.com/en-us/linkedin/marketing/community-management-app-review" rel="noopener">app review</a></td></tr>
+        <tr><td>LinkedIn profiles</td><td>None: Share on LinkedIn is self-serve</td><td>—</td><td><a href="https://learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/share-on-linkedin" rel="noopener">Share on LinkedIn</a></td></tr>
+        <tr><td>Google Business Profile</td><td>Access request from a profile verified and active for 60+ days, with a website</td><td>Quota is 0 until approved</td><td><a href="https://developers.google.com/my-business/content/prereqs" rel="noopener">Prerequisites</a></td></tr>
+        <tr><td>Snapchat</td><td>Allowlist through a Snap contact</td><td>Not usable</td><td><a href="https://developers.snap.com/api/marketing-api/Public-Profile-API/GetStarted" rel="noopener">Public Profile API</a></td></tr>
+        <tr><td>X</td><td>None; pay per use</td><td>—</td><td><a href="https://docs.x.com/x-api/getting-started/pricing" rel="noopener">X API pricing</a></td></tr>
+        <tr><td>Slack</td><td>None for public distribution</td><td>Message history once a minute outside the Marketplace</td><td><a href="https://docs.slack.dev/changelog/2025/05/29/rate-limit-changes-for-non-marketplace-apps" rel="noopener">Slack changelog</a></td></tr>
+        <tr><td>Bluesky, Mastodon, Discord</td><td>None (Discord: verification from 100 servers)</td><td>—</td><td>Siar's own setup notes</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="build-it-yourself">If you build these integrations yourself</h2>
+  <p>You can. Budget for the gates, not just the code. Siar's Meta review ran from 14 to {human(metaApproved).replace(/ \d{4}$/, '')} 2026, including a same-day resubmission. LinkedIn denied company-page access without a reason. TikTok's audit hasn't passed. YouTube's audit has had no answer since {human(ack).replace(/ \d{4}$/, '')}. Each network also changes its API on its own schedule; LinkedIn, for example, retires each monthly API version after about a year (see <a href="/network-changes">network API changes</a>).</p>
+  <p>With Siar, your customers connect {OPEN_LIST} through apps that are live today. You get the same gates on the rest, and this page tells you where each one stands.</p>
+  <HandlesBox lines={[
+    'Each network\'s status, with dates. <a href="/platforms">Network status</a>',
+    'Revoked or expiring connections are flagged, with a <code>social-account.updated</code> webhook. <a href="/how-publishing-works#accounts">How connections are checked</a>',
+    'If a network says no, you get its own code and message, plus the fix. <a href="/how-publishing-works#errors">The network\'s own error</a>',
+  ]} />
+
+  <h2 id="price">One price for your organization, not for each account</h2>
+  <p>No per-account fees. Each brand connects one account on every open network: {PLANS.STARTER.name} {PLANS.STARTER.teams} brand, {PLANS.PRO.name} {PLANS.PRO.teams}, {PLANS.BUSINESS.name} unlimited. A post sent to every connected network counts as one post.</p>
+  <p>Start with {free} free posts to try. Then {prices} for one brand and {fmtInt(PLANS.STARTER.posts)} posts a month, {money('PRO', 'MONTHLY', 'usd')} ({money('PRO', 'MONTHLY', 'myr')}) for {PLANS.PRO.teams} brands and {fmtInt(PLANS.PRO.posts)} posts with a {TRIAL_DAYS}-day trial, or {money('BUSINESS', 'MONTHLY', 'usd')} ({money('BUSINESS', 'MONTHLY', 'myr')}) for unlimited brands and {fmtInt(PLANS.BUSINESS.posts)} posts. {PRICE_LOCK} <a href="/pricing">See the pricing</a>.</p>
+  <p class="small muted">{LEGAL_NAME} (SSM {LEGAL_REG}), Malaysia. Meta App Review passed on {human(metaApproved)}.</p>
+
+  <h2 id="how-kept">How this page stays true</h2>
+  <p>Every row comes from Siar's own application records. When a network decides, this page, the <a href="/platforms">networks page</a> and the network's reference page read the same status, so they change in the same release, and the change goes in the <a href="/changelog">changelog</a>. A network moves to "open" only after it has approved Siar's app and a post has gone through on production.</p>
+  <p>Siar publishes the refusals too, because "which networks are actually open" is the first thing you need to know, and a list that only shows wins doesn't answer it.</p>
+</Article>
+<Closing dim="Everywhere that's open today." text={`${OPEN_LIST}, through apps that are already live. Start with ${free} free posts to try. No card.`} primary={{ label: `Start with ${free} free posts` }} />
+<style>
+  .rec td { vertical-align: top; }
+  .rec .nw { white-space: nowrap; }
+  .rec .nw a { color: inherit; font-weight: 500; }
+  .rec .ic { display: inline-flex; gap: 4px; margin-right: 10px; vertical-align: middle; }
+  .rec tr:target, .rec tr:has(:target) { background: var(--bg-subtle); }
+  .sec { scroll-margin-top: 96px; }
+  .sec > h2 { margin-top: 56px; }
+  .perms { margin: 8px 0 0; }
+  .perms summary { cursor: pointer; font-weight: 500; }
+  @media (max-width: 640px) {
+    .rec { overflow-x: visible; }
+    .rec table, .rec tbody, .rec tr, .rec td { display: block; min-width: 0 !important; }
+    .rec thead { display: none; }
+    .rec tr { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    .rec td { border: 0; padding: 2px 0; position: static !important; box-shadow: none !important; white-space: normal; }
+    .rec td[data-l]::before { content: attr(data-l) ': '; color: var(--text-subtle); }
+    .rec .oc { font-weight: 500; }
+  }
+</style>

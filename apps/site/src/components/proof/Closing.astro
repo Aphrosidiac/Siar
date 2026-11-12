@@ -1,0 +1,37 @@
+---
+/**
+ * Closing band for the proof pages. Same look as Cta.astro, without the arrow glyph in the button
+ * (BUILD_BRIEF rule 5) and with the text each page's copy asks for.
+ */
+import { SIGNUP_URL } from '../../config';
+interface Props {
+  title?: string;
+  dim?: string;
+  text: string;
+  primary?: { label: string; href?: string };
+  secondary?: { label: string; href: string };
+  note?: string;
+}
+const { title = 'Write it once. Siar it everywhere.', dim, text, primary = { label: 'Start with 20 free posts' }, secondary = { label: 'Read the quickstart', href: '/docs/quickstart' }, note } = Astro.props;
+---
+<section class="m-sec cta">
+  <div class="m-wide">
+    <div class="wrap">
+      <h2 class="m-h2" data-lines><span class="ln"><span>{title}</span></span>{dim && <> <span class="ln"><span class="m-dim" style="--d:1">{dim}</span></span></>}</h2>
+      <div class="side" data-reveal style="--d:2">
+        <p class="m-lead" set:html={text} />
+        <div class="m-actions"><a class="pill ink" href={primary.href ?? SIGNUP_URL}>{primary.label}</a><a class="pill" href={secondary.href}>{secondary.label}</a></div>
+        {note && <p class="small muted note" set:html={note} />}
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .cta { border-top: 1px solid var(--border); }
+  .wrap { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 32px 64px; align-items: end; }
+  .wrap .m-h2 { margin: 0; }
+  .side { display: flex; flex-direction: column; gap: 24px; }
+  .note { margin: 0; }
+  @media (max-width: 900px) { .wrap { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 520px) { .m-actions { flex-wrap: wrap; } }
+</style>

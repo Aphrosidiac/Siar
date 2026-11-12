@@ -1,0 +1,121 @@
+---
+/**
+ * /network-changes: dated log of network API changes that break posting apps (strike plan N2).
+ * Copy: docs/seo/landing-copy/network-changes.md. Entries: src/data/network-changes.ts (also feeds
+ * /network-changes.xml and /network-changes.json). Tense switches by build date, so rebuild after an effective date.
+ */
+import Article from '../layouts/Article.astro';
+import NetIcon from '../components/NetIcon.astro';
+import HandlesBox from '../components/proof/HandlesBox.astro';
+import Closing from '../components/proof/Closing.astro';
+import { META } from '../lib/networks';
+import { OPEN_LIST } from '../lib/status';
+import { PLANS } from '../lib/plans';
+import { CONTACT_EMAIL, SITE_URL } from '../config';
+import { LINKEDIN_VERSION } from '../../../../packages/networks/src/adapters/linkedin.ts';
+import { CHANGES, CHANGES_CHECKED, tensed, upcoming } from '../data/network-changes';
+import { human } from '../components/proof/facts';
+
+const now = new Date();
+const updated = CHANGES_CHECKED;
+const short = (t: keyof typeof META) => (t === 'TWITTER' ? 'X' : META[t].name);
+const next = CHANGES.filter((c) => upcoming(c, now)).sort((a, b) => a.effective.localeCompare(b.effective))[0];
+const latest = CHANGES.find((c) => !upcoming(c, now));
+const headline = next
+  ? `Next up: ${tensed(next, next.summary, now).split('. ')[0]}.`
+  : latest ? `Latest: ${latest.title} (${human(latest.effective)}).` : '';
+const sunset = CHANGES.find((c) => c.id === '2026-11-16-linkedin-202511-sunset');
+const lnFuture = sunset ? upcoming(sunset, now) : false;
+
+const metaTitle = 'Social media API changes, dated and sourced | Siar';
+const description = "Network API changes that break posting apps, newest first: LinkedIn's 202511 sunset, YouTube's private-upload reversal, Slack limits. Each one sourced.";
+const h1 = 'Social media API changes, newest first';
+const lead = `Siar, a <a href="/">unified social media API</a>, keeps a dated log of the network API changes that break posting apps. ${headline} Each entry says what changed, who it breaks, what to do and what Siar did, with a link to the network's own page.`;
+
+const faq = [
+  lnFuture
+    ? { q: 'When does LinkedIn API version 202511 stop working?', a: 'On 16 November 2026. From that day LinkedIn answers any request that sends <code>Linkedin-Version: 202511</code> with HTTP 426 <code>NONEXISTENT_VERSION</code>. Move to a supported version such as 202610, the latest, which LinkedIn supports until 15 October 2027. There is no 202512. The next sunset is 202601, on 15 January 2027.' }
+    : { q: 'When did LinkedIn API version 202511 stop working?', a: 'On 16 November 2026. Since then LinkedIn answers any request that sends <code>Linkedin-Version: 202511</code> with HTTP 426 <code>NONEXISTENT_VERSION</code>. Move to a supported version such as 202610, the latest, which LinkedIn supports until 15 October 2027. There is no 202512. The next sunset is 202601, on 15 January 2027.' },
+  { q: 'Are YouTube API uploads from unverified projects still forced private?', a: 'No. On 2 November 2026 Google wrote that <code>videos.insert</code> uploads from unverified API projects "are no longer restricted to private viewing" mode, reversing its July 2020 rule. If you leave <code>status.privacyStatus</code> unset, the video now defaults to public, although a creator\'s account settings can still make it private.' },
+  { q: 'Can I set a custom thumbnail on a YouTube Short through the API?', a: 'Yes, since 3 November 2026. Call <code>thumbnails.set</code> after the Short has finished processing, when <code>processingDetails.processingStatus</code> is <code>succeeded</code>. Google says a thumbnail set earlier may not be applied. The image can be a JPEG or PNG of up to 50 MB, and each call costs about 50 quota units.' },
+  { q: 'What is the Slack conversations.history rate limit for non-Marketplace apps?', a: 'One request a minute, with at most 15 messages per request, for commercially distributed apps outside the Slack Marketplace. It covers new apps and new installations since 29 May 2025, and <code>conversations.replies</code> too. Marketplace apps and internal customer-built apps are not affected; Slack lists custom apps at 50+ requests a minute.' },
+  { q: 'How many videos can I upload a day with the YouTube Data API?', a: "Google's <code>videos.insert</code> page lists 100 calls a day, at 1 unit each, in a separate Video Uploads quota bucket that started on 1 June 2026. Other methods share the main bucket, so uploads can run out first. You see the limits in the Google Cloud Console and ask for more through Google's Quota Extension Form." },
+  { q: 'How do I keep track of social media API changes?', a: "Watch each network's own changelog, and follow a log that collects the changes that break posting apps. Siar's log at siaran.my/network-changes lists them newest first, with an RSS and a JSON feed. Each entry says what changed, who it breaks and what to do, and links the network's own page with the date it was checked." },
+  { q: 'Does Siar handle network API changes for me?', a: 'For the networks open on Siar, a change lands in Siar\'s code for that network, not in yours: you keep calling the same endpoint. Siar does not promise to ship every change on day one. Each entry in this log says what Siar did, including "not yet" when that is the truth.' },
+  { q: 'Is Siar affected by the LinkedIn 202511 sunset?', a: `No. Siar sends <code>Linkedin-Version: ${LINKEDIN_VERSION}</code> on every LinkedIn call, and LinkedIn supports that version until 15 September 2027. Posts to LinkedIn personal profiles through Siar are not affected by the 202511 sunset. Company pages are not open on Siar today: they open after LinkedIn grants page access.` },
+  { q: 'Can Siar publish public YouTube videos now?', a: "Not confirmed yet. Siar connects YouTube channels and uploads videos and Shorts today, and it asks YouTube for public unless you choose unlisted or private. Since Google's 2 November 2026 change those uploads may stay public, but Siar has not yet confirmed a public upload on its own project." },
+];
+
+const API_NAME: Record<string, string> = { LINKEDIN: 'LinkedIn Marketing API', YOUTUBE: 'YouTube Data API', SLACK: 'Slack Web API' };
+const jsonLd = [{
+  '@context': 'https://schema.org', '@type': 'CollectionPage', '@id': `${SITE_URL}/network-changes#page`, name: h1, description, dateModified: updated, inLanguage: 'en',
+  isPartOf: { '@id': `${SITE_URL}/#website` }, publisher: { '@id': `${SITE_URL}/#org` },
+  mainEntity: {
+    '@type': 'ItemList', itemListOrder: 'https://schema.org/ItemListOrderDescending',
+    itemListElement: CHANGES.map((c, i) => ({
+      '@type': 'ListItem', position: i + 1,
+      item: { '@type': 'TechArticle', '@id': `${SITE_URL}/network-changes#${c.id}`, url: `${SITE_URL}/network-changes#${c.id}`, headline: c.title, datePublished: c.published, dateModified: c.checked, about: { '@type': 'SoftwareApplication', name: API_NAME[c.network] ?? `${META[c.network].name} API` }, citation: c.sources.map((s) => s.url), isPartOf: { '@id': `${SITE_URL}/network-changes#page` } },
+    })),
+  },
+}];
+---
+<Article metaTitle={metaTitle} h1={h1} description={description} kicker="Network changes" updated={updated} crumbs={[{ name: 'Network API changes', href: '/network-changes' }]} lead={lead} faq={faq} jsonLd={jsonLd} cta={false} wide>
+  <p class="small">Every entry is checked on the network's own page; the date is on each one. Follow the <a href="/network-changes.xml">RSS feed</a> or the <a href="/network-changes.json">JSON feed</a>.</p>
+
+  <h2 id="at-a-glance">Latest changes at a glance</h2>
+  <p>One line per change. Follow a row to the full entry and its source.</p>
+  <div class="table-wrap glance">
+    <table>
+      <thead><tr><th>Date</th><th>Network</th><th>What changed</th></tr></thead>
+      <tbody>
+        {CHANGES.map((c) => (
+          <tr>
+            <td class="d"><time datetime={c.effective}>{c.effective}</time>{upcoming(c, now) && ' (upcoming)'}</td>
+            <td class="n">{short(c.network)}</td>
+            <td><a href={`#${c.id}`}>{c.title}</a></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  {CHANGES.map((c) => {
+    const soon = upcoming(c, now);
+    return (
+      <article class="entry" id={c.id}>
+        <h2><NetIcon type={c.network} size={32} /><span>{c.title}</span></h2>
+        <p class="small muted dates">{soon ? 'Takes effect' : 'Took effect'} <time datetime={c.effective}>{human(c.effective)}</time> · Published <time datetime={c.published}>{human(c.published)}</time> · Checked <time datetime={c.checked}>{human(c.checked)}</time></p>
+        <p><strong>What changed.</strong> <Fragment set:html={tensed(c, c.changed, now)} /></p>
+        <p><strong>Who it breaks.</strong> <Fragment set:html={tensed(c, c.breaks, now)} /></p>
+        <p><strong>What to do.</strong> <Fragment set:html={tensed(c, c.todo, now)} /></p>
+        <p><strong>What Siar did.</strong> <Fragment set:html={tensed(c, c.siar, now)} /></p>
+        {c.corrections?.map((x) => <p class="small muted">Corrected {human(x.date)}: {x.note}</p>)}
+        <p class="small">Source: {short(c.network)}, {c.sources.map((s, i) => <>{i > 0 && (i === c.sources.length - 1 ? ' and ' : ', ')}<a href={s.url} rel="noopener">{s.label}</a></>)}, checked {human(c.checked)}.</p>
+        <p class="small">Affects: {c.affects.map((a, i) => <>{i > 0 && ' · '}<a href={a.href}>{a.label}</a></>)}</p>
+      </article>
+    );
+  })}
+
+  <HandlesBox level={2} id="how-siar-handles" title="How Siar handles a network change" lines={[
+    "Each network's rules live in one place in Siar's code, so a change there leaves your request the same.",
+    'If a network turns a post down, you get <a href="/how-publishing-works#errors">the network\'s own error</a>, plus a plain-English fix.',
+    '<a href="/platforms/approvals">Each network\'s status, with dates</a>, and what Siar did about each change, in the entry above.',
+  ]} />
+
+  <h2 id="feeds">Get changes as they land</h2>
+  <p>Follow the log in a feed reader or a script. The <a href="/network-changes.xml">RSS feed</a> and the <a href="/network-changes.json">JSON feed</a> carry every entry, newest first, with the same anchor link, dates and sources as this page.</p>
+  <p>Spotted a change we missed, or a date that moved? Email <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> and we'll check it on the network's own page.</p>
+
+  <h2 id="scope">What goes in this log</h2>
+  <p>An entry goes in when a network changes something that can break or change a posting app: API versions, auth and scopes, privacy defaults, media rules, rate limits and quotas. It covers the networks Siar is built for, whether or not each one is open on Siar today.</p>
+  <p>Every entry links the network's own page and says when we checked it. A third-party report alone is not enough. If a network moves a date, the entry is updated and its checked date changes.</p>
+  <p>This log covers the networks themselves. Changes to other social media tools' APIs are not logged here. Siar's own releases are in the <a href="/changelog">changelog</a>.</p>
+</Article>
+<Closing dim="Everywhere that's open today." text={`${OPEN_LIST}, from one request. Start with ${PLANS.FREE.posts} free posts to try. No card.`} primary={{ label: `Start with ${PLANS.FREE.posts} free posts` }} />
+<style>
+  .glance .d { white-space: nowrap; }
+  .glance .n { white-space: nowrap; }
+  .entry { border-top: 1px solid var(--border); margin-top: 48px; padding-top: 8px; scroll-margin-top: 96px; }
+  .entry h2 { display: flex; align-items: center; gap: 14px; margin-top: 24px; }
+  .entry .dates { margin-top: -4px; }
+</style>
