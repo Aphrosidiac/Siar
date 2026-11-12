@@ -58,6 +58,13 @@ const schema = z.object({
   GOOGLE_SIGNIN_CLIENT_SECRET: z.string().default(''),
   /** Emails that become Siar staff (User.role = ADMIN) on sign-up. */
   STAFF_EMAILS: z.string().default('hello@ffdev.studio'),
+  // Analytics (docs/ANALYTICS.md). The nginx JSON log the traffic collector reads; empty search keys = that source is off.
+  TRAFFIC_LOG_PATH: z.string().default('/var/log/siar/traffic.log'),
+  /** Google service account JSON (raw or base64) with read access to the Search Console property. */
+  GSC_SERVICE_ACCOUNT_JSON: z.string().default(''),
+  GSC_PROPERTY: z.string().default('sc-domain:siaran.my'),
+  BING_WEBMASTER_API_KEY: z.string().default(''),
+  BING_SITE_URL: z.string().default('https://siaran.my/'),
   TRIAL_DAYS: z.coerce.number().default(14),
 });
 

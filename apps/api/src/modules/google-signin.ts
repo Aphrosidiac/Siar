@@ -1,5 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { createHash, timingSafeEqual } from 'node:crypto';
+import { signupFields } from '../domain/traffic/channel.js';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { appUrl, config, googleSignInClient, isProd } from '../platform/config.js';
 import { decrypt, encrypt, randomToken, sha256 } from '../platform/crypto.js';
@@ -167,7 +168,7 @@ async function joinOrganization(tx: Db, inv: Invitation, userId: string) {
  * user is created and joined in one transaction (no half-made account if the invitation went away) and
  * gets no organization of their own, skipping the welcome like invited sign-ups with a password.
  */
-export async function resolveGoogleUser(id: GoogleIdentity, opts: { invite?: Invitation } = {}, attempt = 0): Promise<{ user: { id: string; email: string }; organizationId: string | null; created: boolean; joined: boolean }> {
+export async function resolveGoogleUser(id: GoogleIdentity, opts: { invite?: Invitation; acquisition?: ReturnType<typeof signupFields> } = {}, attempt = 0): Promise<{ user: { id: string; email: string }; organizationId: string | null; created: boolean; joined: boolean }> {
   try {
     const linked = await prisma.user.findUnique({ where: { googleSub: id.sub } });
     if (linked) {
@@ -202,6 +203,7 @@ export async function resolveGoogleUser(id: GoogleIdentity, opts: { invite?: Inv
           firstName: firstName ?? id.email.split('@')[0].slice(0, 100), lastName: id.givenName ? id.familyName : null, avatarUrl: id.picture,
           role: isStaffEmail(id.email) && googleAuthoritative(id) ? 'ADMIN' : 'CUSTOMER',
           ...(opts.invite ? { onboardedAt: now } : {}),
+          ...(opts.acquisition ?? {}),
         },
       });
       if (opts.invite) {
@@ -233,7 +235,7 @@ async function signInAs(req: FastifyRequest, reply: FastifyReply, userId: string
 }
 
 async function finishSignIn(req: FastifyRequest, reply: FastifyReply, flow: Flow, id: GoogleIdentity) {
-  const r = await resolveGoogleUser(id);
+  const r = await resolveGoogleUser(id, { acquisition: signupFields(req) });
   await signInAs(req, reply, r.user.id, r.organizationId ?? (await firstOrganization(r.user.id)));
   return appUrl(r.created ? '/welcome' : flow.next ?? '/posts');
 }
@@ -244,7 +246,7 @@ async function finishInvite(req: FastifyRequest, reply: FastifyReply, flow: Flow
   if (norm(inv.email) !== id.email) throw new FlowError('invite_email_mismatch');
   // an invitation can carry admin rights: Google must speak for the address, not just have verified it once
   if (!googleAuthoritative(id)) throw new FlowError('invite_use_password');
-  const r = await resolveGoogleUser(id, { invite: inv });
+  const r = await resolveGoogleUser(id, { invite: inv, acquisition: signupFields(req) });
   if (!r.joined) await prisma.$transaction(tx => joinOrganization(tx, inv, r.user.id));
   await signInAs(req, reply, r.user.id, inv.organizationId);
   return appUrl(flow.next ?? '/posts');

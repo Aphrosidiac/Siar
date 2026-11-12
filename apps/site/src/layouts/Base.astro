@@ -81,6 +81,33 @@ const ld = [orgLd(), ...(path === '/' ? [websiteLd()] : []), ...jsonLd];
     <script>
       import '../scripts/reveal';
     </script>
+    {!bare && (
+      <script is:inline>
+        // Analytics (docs/ANALYTICS.md). Remembers where this browser first came from (siar_ft, read once at signup)
+        // and tells /_e that a real browser ran this page: after the first interaction, or 3 s with the tab visible.
+        // nginx logs /_e and the API matches it to the page view; a view without it stays "unconfirmed".
+        (function () {
+          try {
+            var d = document, l = location, n = navigator, q = new URLSearchParams(l.search), ref = '';
+            try { if (d.referrer) { var u = new URL(d.referrer); if (u.hostname !== l.hostname) ref = u.hostname; } } catch (e) {}
+            var us = q.get('utm_source') || '', um = q.get('utm_medium') || '', uc = q.get('utm_campaign') || '';
+            if (!/(?:^|; )siar_ft=/.test(d.cookie)) {
+              var host = l.hostname.replace(/^www\./, '');
+              var ft = encodeURIComponent(JSON.stringify({ r: ref, s: us, m: um, c: uc, p: l.pathname, t: Date.now() }));
+              d.cookie = 'siar_ft=' + ft + '; path=/; max-age=15552000; samesite=lax' + (host.indexOf('.') > 0 ? '; domain=' + host + '; secure' : '');
+            }
+            var sent = false;
+            var send = function (e) {
+              if (sent) return; sent = true;
+              var p = '/_e?p=' + encodeURIComponent(l.pathname) + '&r=' + encodeURIComponent(ref) + '&us=' + encodeURIComponent(us) + '&um=' + encodeURIComponent(um) + '&uc=' + encodeURIComponent(uc) + '&w=' + (window.innerWidth || 0) + '&wd=' + (n.webdriver ? 1 : 0) + '&e=' + e;
+              if (n.sendBeacon) n.sendBeacon(p); else new Image().src = p;
+            };
+            ['pointerdown', 'keydown', 'scroll', 'touchstart', 'mousemove'].forEach(function (t) { addEventListener(t, function () { send('i'); }, { once: true, passive: true }); });
+            setTimeout(function () { if (d.visibilityState === 'visible') send('t'); }, 3000);
+          } catch (e) {}
+        })();
+      </script>
+    )}
     <script is:inline>
       (function () {
         var b = document.querySelector('[data-theme-toggle]');

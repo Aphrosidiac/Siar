@@ -9,7 +9,7 @@ import Modal from './ui/Modal.vue';
 import Input from './ui/Input.vue';
 import Logo from './Logo.vue';
 import { api } from '@/lib/api';
-import { NAV, NAV_FOOT, type NavItem } from '@/lib/nav';
+import { NAV, NAV_FOOT, NAV_STAFF, type NavItem } from '@/lib/nav';
 import { loadSession, logout, session, setTheme, switchOrganization, theme } from '@/lib/store';
 import { toast } from '@/lib/toast';
 import { fullName } from '@/lib/format';
@@ -54,7 +54,7 @@ void props;
 
     <nav ref="nav" class="nav" aria-label="Main">
       <span class="marker" :class="{ show: marker.show }" :style="{ transform: `translateY(${marker.y}px)`, height: `${marker.h}px` }" />
-      <template v-for="(g, gi) in NAV" :key="gi">
+      <template v-for="(g, gi) in (session.me?.user.isStaff ? [...NAV, NAV_STAFF] : NAV)" :key="gi">
         <div v-if="g.group" class="group">{{ g.group }}</div>
         <RouterLink v-for="(it, i) in g.items" :key="it.to" :to="it.to" :class="{ on: isActive(it) }" :style="{ '--i': gi * 3 + i }" @click="emit('navigate')">
           <component :is="it.icon" :size="18" :stroke-width="1.75" aria-hidden="true" /><span class="txt">{{ it.label }}</span>

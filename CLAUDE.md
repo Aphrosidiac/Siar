@@ -96,6 +96,12 @@ To run a private API instance (parallel work), give it its own database, Redis d
 `DATABASE_URL=postgresql://fakhrul@localhost:5432/siar_<name> REDIS_URL=redis://127.0.0.1:6379/<n> PORT=<port> MOCK_NETWORKS_URL=http://127.0.0.1:<mockport> pnpm --filter @siar/api exec tsx --env-file=.env src/index.ts`
 (env vars given on the command line win over .env) and mocks with `MOCK_PORT=<mockport> pnpm --filter @siar/mocks start`.
 
+## Analytics
+
+Siar's own traffic, crawler, signup, revenue and search numbers: `scripts/metrics.sh report 7` (or `json`, `sql "SELECT …"`).
+How every number is counted, and the classes a request can get: `docs/ANALYTICS.md`. The site beacon (`/_e`) and
+`siar_ft` cookie live in `apps/site/src/layouts/Base.astro`; never log query strings on app/api/media (tokens).
+
 ## Safety
 
 Mock networks for development and tests. A public post on a real account, real email to customers,

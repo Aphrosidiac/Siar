@@ -33,6 +33,7 @@ const app: RouteRecordRaw[] = [
   { path: '/organization', component: view('OrgSettings'), meta: { title: 'Organization settings' } },
   { path: '/notifications', redirect: { path: '/posts', query: { notifications: '1' } } },
   { path: '/settings', component: view('PersonalSettings'), meta: { title: 'Your account' } },
+  { path: '/metrics', component: view('Metrics'), meta: { title: 'Metrics' } },
 ];
 
 export const router = createRouter({

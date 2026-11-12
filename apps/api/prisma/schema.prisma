@@ -66,6 +66,15 @@ model User {
   onboardedAt   DateTime?
   /// ADMIN = Siar staff (FF). Customers are CUSTOMER.
   role          UserRole  @default(CUSTOMER)
+  /// Where the person first came from, read at signup from the site's first-visit cookie (siar_ft, docs/ANALYTICS.md).
+  /// Channel is derived from the referrer and UTM tags: Google, Bing, AI assistant, Social, Referral, Campaign, Direct.
+  signupChannel     String?
+  signupRefHost     String?
+  signupUtmSource   String?
+  signupUtmMedium   String?
+  signupUtmCampaign String?
+  signupLanding     String?
+  firstSeenAt       DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
@@ -1349,4 +1358,85 @@ model EmailOutbox {
   createdAt DateTime  @default(now())
 
   @@index([status, createdAt])
+}
+
+/// One request seen by nginx on a Siar host, classified (docs/ANALYTICS.md). Kept 120 days.
+/// Stored: every page, beacon and bot request on the site, and every non-human request on app/api/media.
+/// Human requests to app/api/media and all static assets are only counted (TrafficDaily).
+/// IPs are stored only for non-human classes, so a claim can be audited; humans get a daily-salted visitor hash.
+model TrafficHit {
+  id        String   @id @default(uuid(7))
+  at        DateTime
+  /// site | app | api | media | www | other
+  host      String
+  method    String
+  path      String
+  status    Int
+  bytes     Int      @default(0)
+  ms        Int      @default(0)
+  country   String?
+  refHost   String?
+  /// page | beacon | api | asset | other
+  kind      String
+  /// human | unconfirmed | staff | search-bot | ai-bot | other-bot | impostor | automation | tool | monitor | scanner | datacenter | internal
+  class     String
+  /// Named agent: "Googlebot", "GPTBot", "curl", "Chrome", …
+  agent     String?
+  /// verified (published IP list or forward-confirmed reverse DNS) | failed | unverifiable | n/a
+  verified  String   @default("n/a")
+  visitor   String
+  ip        String?
+  ua        String
+  /// Page views: the JS beacon for this page arrived from the same visitor (ran JavaScript, not a webdriver).
+  beacon    Boolean  @default(false)
+  /// Beacon rows: the beacon's own fields (page path, referrer host, UTM, screen width, webdriver, trigger).
+  data      Json?
+
+  @@index([at])
+  @@index([host, kind, at])
+  @@index([class, at])
+  @@index([visitor, at])
+}
+
+/// Requests that are counted but not stored one by one (static assets; human app/api/media traffic).
+model TrafficDaily {
+  date     DateTime @db.Date
+  host     String
+  kind     String
+  class    String
+  requests Int      @default(0)
+
+  @@id([date, host, kind, class])
+}
+
+/// Where the log reader stopped: the file's inode and byte offset.
+model TrafficCursor {
+  id        String   @id
+  inode     BigInt
+  offset    BigInt
+  updatedAt DateTime @updatedAt
+}
+
+/// Search performance per day from Google Search Console and Bing Webmaster Tools.
+model SearchDaily {
+  engine      String
+  date        DateTime @db.Date
+  query       String
+  page        String
+  clicks      Int
+  impressions Int
+  /// Average position (1 = top).
+  position    Float
+
+  @@id([engine, date, query, page])
+  @@index([engine, date])
+}
+
+/// Per-source status of the analytics collectors (last run, last error), read by the report.
+model CollectorRun {
+  id        String   @id
+  ok        Boolean
+  detail    String?
+  rows      Int      @default(0)
+  ranAt     DateTime @default(now())
 }

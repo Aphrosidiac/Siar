@@ -69,6 +69,24 @@ if [ ! -s $cf ] || [ -n "$(find $cf -mtime +7 2>/dev/null)" ]; then
   if [ "$(grep -c '^set_real_ip_from ' "$t")" -ge 10 ]; then sudo -n cp "$t" $cf && sudo -n chmod 644 $cf; else echo "Cloudflare IP list unavailable; keeping the current $cf" >&2; fi
   rm -f "$t"
 fi
+# Analytics log (docs/ANALYTICS.md): nginx (root) writes /var/log/siar/traffic.log, the API (siar) reads it.
+# Its own rotation, because nginx's rule recreates files as 0640 www-data:adm, which siar cannot read.
+sudo -n sh -c 'install -d -m 0755 -o root -g siar /var/log/siar
+[ -f /etc/logrotate.d/siar ] || cat > /etc/logrotate.d/siar <<EOF
+/var/log/siar/*.log {
+	daily
+	rotate 14
+	missingok
+	notifempty
+	compress
+	delaycompress
+	create 0644 root siar
+	sharedscripts
+	postrotate
+		[ -s /run/nginx.pid ] && kill -USR1 \$(cat /run/nginx.pid)
+	endscript
+}
+EOF'
 c=/etc/nginx/sites-available/siar.conf
 sudo -n sh -c "[ -f $c ] && cp $c $c.prev || true; cp $R/nginx.conf $c; ln -sf $c /etc/nginx/sites-enabled/siar.conf"
 if sudo -n nginx -t 2>/dev/null; then sudo -n systemctl reload nginx; else

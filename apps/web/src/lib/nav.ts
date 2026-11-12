@@ -1,6 +1,6 @@
 import type { Component } from 'vue';
 import {
-  BarChart3, Bot, Calendar, CreditCard, FileUp, Image, Inbox, KeyRound, Link2, MapPin, Send, Settings, Share2, UserCircle, Users, Webhook,
+  Activity, BarChart3, Bot, Calendar, CreditCard, FileUp, Image, Inbox, KeyRound, Link2, MapPin, Send, Settings, Share2, UserCircle, Users, Webhook,
 } from 'lucide-vue-next';
 
 export interface NavItem { to: string; label: string; icon: Component; badge?: 'unread' }
@@ -33,11 +33,14 @@ export const NAV: NavGroup[] = [
   ] },
 ];
 export const NAV_FOOT: NavItem[] = [{ to: '/settings', label: 'Your account', icon: UserCircle }];
+/** Siar staff only (User.role ADMIN): shown under the main nav. */
+export const NAV_STAFF: NavGroup = { group: 'Staff', items: [{ to: '/metrics', label: 'Metrics', icon: Activity }] };
 
 /** Eyebrow for a path: its sidebar group ("Publishing" for the ungrouped top block). */
 export function sectionOf(path: string) {
   if (path.startsWith('/compose')) return 'Publishing';
   if (path.startsWith('/notifications') || path.startsWith('/settings')) return 'You';
+  if (path.startsWith('/metrics')) return 'Staff';
   for (const g of NAV) if (g.items.some((i) => path === i.to || path.startsWith(`${i.to}/`))) return g.group ?? 'Publishing';
   return '';
 }

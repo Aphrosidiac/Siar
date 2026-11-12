@@ -302,3 +302,31 @@ export type AuditLog = Prisma.AuditLogModel
  * 
  */
 export type EmailOutbox = Prisma.EmailOutboxModel
+/**
+ * Model TrafficHit
+ * One request seen by nginx on a Siar host, classified (docs/ANALYTICS.md). Kept 120 days.
+ * Stored: every page, beacon and bot request on the site, and every non-human request on app/api/media.
+ * Human requests to app/api/media and all static assets are only counted (TrafficDaily).
+ * IPs are stored only for non-human classes, so a claim can be audited; humans get a daily-salted visitor hash.
+ */
+export type TrafficHit = Prisma.TrafficHitModel
+/**
+ * Model TrafficDaily
+ * Requests that are counted but not stored one by one (static assets; human app/api/media traffic).
+ */
+export type TrafficDaily = Prisma.TrafficDailyModel
+/**
+ * Model TrafficCursor
+ * Where the log reader stopped: the file's inode and byte offset.
+ */
+export type TrafficCursor = Prisma.TrafficCursorModel
+/**
+ * Model SearchDaily
+ * Search performance per day from Google Search Console and Bing Webmaster Tools.
+ */
+export type SearchDaily = Prisma.SearchDailyModel
+/**
+ * Model CollectorRun
+ * Per-source status of the analytics collectors (last run, last error), read by the report.
+ */
+export type CollectorRun = Prisma.CollectorRunModel

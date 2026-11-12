@@ -10,6 +10,7 @@ import './content.js';
 import './billing.js';
 import './bio.js';
 import './messaging.js';
+import './metrics.js';
 import { accountRawRoutes } from './accounts.js';
 import { uploadRawRoutes } from './uploads.js';
 import { contentRawRoutes } from './content.js';
@@ -18,11 +19,12 @@ import { bioRawRoutes } from './bio.js';
 import { messagingRawRoutes } from './messaging.js';
 import { blueskyRawRoutes } from './bluesky-oauth.js';
 import { googleSignInRawRoutes } from './google-signin.js';
+import { metricsRawRoutes } from './metrics.js';
 
 /** Imported for its side effects; kept as a function so app.ts reads as a sequence. */
 export function registerModules() {}
 
-/** Routes that are not part of the OpenAPI contract: OAuth callbacks, media, provider webhooks. */
+/** Routes that are not part of the OpenAPI contract: OAuth callbacks, media, provider webhooks, staff analytics. */
 export async function registerRawRoutes(app: FastifyInstance) {
   await accountRawRoutes(app);
   await uploadRawRoutes(app);
@@ -32,4 +34,5 @@ export async function registerRawRoutes(app: FastifyInstance) {
   await messagingRawRoutes(app);
   await blueskyRawRoutes(app);
   await googleSignInRawRoutes(app);
+  await metricsRawRoutes(app);
 }

@@ -1,5 +1,6 @@
 import { appUrl, config, googleSignInClient } from '../platform/config.js';
 import { randomToken, sha256 } from '../platform/crypto.js';
+import { signupFields } from '../domain/traffic/channel.js';
 import { prisma } from '../platform/db.js';
 import { audit } from '../platform/audit.js';
 import { badRequest, conflict, forbidden, notFound, unauthenticated } from '../platform/errors.js';
@@ -89,7 +90,7 @@ define({
     const email = norm(body.email);
     if (await prisma.user.findUnique({ where: { email } })) throw conflict('An account with this email already exists. Sign in instead.');
     const out = await prisma.$transaction(async tx => {
-      const user = await tx.user.create({ data: { email, passwordHash: await hashPassword(body.password), firstName: body.firstName, lastName: body.lastName ?? null, role: staff.has(email) ? 'ADMIN' : 'CUSTOMER' } });
+      const user = await tx.user.create({ data: { email, passwordHash: await hashPassword(body.password), firstName: body.firstName, lastName: body.lastName ?? null, role: staff.has(email) ? 'ADMIN' : 'CUSTOMER', ...signupFields(req) } });
       const orgName = body.organizationName?.trim();
       const org = await createOrganization(tx, user.id, orgName || `${body.firstName.trim().split(/\s+/)[0]}'s organization`, orgName || 'Main');
       await audit(tx, { kind: 'USER', organizationId: org.id, name: email, userId: user.id }, 'organization.create', 'Organization', org.id, `Created organization ${org.name}`);
@@ -152,7 +153,7 @@ define({
     let user = await prisma.user.findUnique({ where: { email: inv.email } });
     if (!user) {
       if (!body.password || String(body.password).length < 10) throw badRequest('Choose a password of at least 10 characters.', [{ code: 'too_short', message: 'At least 10 characters', path: ['password'] }]);
-      user = await prisma.user.create({ data: { email: inv.email, passwordHash: await hashPassword(body.password), firstName: body.firstName ?? null, emailVerified: new Date(), onboardedAt: new Date() } });
+      user = await prisma.user.create({ data: { email: inv.email, passwordHash: await hashPassword(body.password), firstName: body.firstName ?? null, emailVerified: new Date(), onboardedAt: new Date(), ...signupFields(req) } });
     }
     const uid = user.id;
     await prisma.$transaction(async tx => {

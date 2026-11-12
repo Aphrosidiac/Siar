@@ -32,6 +32,8 @@ export const JOBS = {
   webhookRetry: 'cron.webhook-retry',
   mailFlush: 'cron.mail-flush',
   billingRenewals: 'cron.billing-renewals',
+  trafficIngest: 'cron.traffic-ingest',
+  searchPull: 'cron.search-pull',
   staleClaims: 'cron.stale-claims',
 } as const;
 
@@ -46,6 +48,8 @@ export const SCHEDULES: Partial<Record<(typeof JOBS)[keyof typeof JOBS], string>
   [JOBS.mailFlush]: '* * * * *',
   [JOBS.billingRenewals]: '0 * * * *',
   [JOBS.staleClaims]: '*/5 * * * *',
+  [JOBS.trafficIngest]: '*/10 * * * *',
+  [JOBS.searchPull]: '20 2,14 * * *',
 };
 
 let boss: PgBoss | null = null;

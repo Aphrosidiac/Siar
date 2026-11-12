@@ -102,7 +102,12 @@ export const ModelName = {
   WebhookDelivery: 'WebhookDelivery',
   Notification: 'Notification',
   AuditLog: 'AuditLog',
-  EmailOutbox: 'EmailOutbox'
+  EmailOutbox: 'EmailOutbox',
+  TrafficHit: 'TrafficHit',
+  TrafficDaily: 'TrafficDaily',
+  TrafficCursor: 'TrafficCursor',
+  SearchDaily: 'SearchDaily',
+  CollectorRun: 'CollectorRun'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -136,6 +141,13 @@ export const UserScalarFieldEnum = {
   timezone: 'timezone',
   onboardedAt: 'onboardedAt',
   role: 'role',
+  signupChannel: 'signupChannel',
+  signupRefHost: 'signupRefHost',
+  signupUtmSource: 'signupUtmSource',
+  signupUtmMedium: 'signupUtmMedium',
+  signupUtmCampaign: 'signupUtmCampaign',
+  signupLanding: 'signupLanding',
+  firstSeenAt: 'firstSeenAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt'
@@ -1165,6 +1177,76 @@ export const EmailOutboxScalarFieldEnum = {
 } as const
 
 export type EmailOutboxScalarFieldEnum = (typeof EmailOutboxScalarFieldEnum)[keyof typeof EmailOutboxScalarFieldEnum]
+
+
+export const TrafficHitScalarFieldEnum = {
+  id: 'id',
+  at: 'at',
+  host: 'host',
+  method: 'method',
+  path: 'path',
+  status: 'status',
+  bytes: 'bytes',
+  ms: 'ms',
+  country: 'country',
+  refHost: 'refHost',
+  kind: 'kind',
+  class: 'class',
+  agent: 'agent',
+  verified: 'verified',
+  visitor: 'visitor',
+  ip: 'ip',
+  ua: 'ua',
+  beacon: 'beacon',
+  data: 'data'
+} as const
+
+export type TrafficHitScalarFieldEnum = (typeof TrafficHitScalarFieldEnum)[keyof typeof TrafficHitScalarFieldEnum]
+
+
+export const TrafficDailyScalarFieldEnum = {
+  date: 'date',
+  host: 'host',
+  kind: 'kind',
+  class: 'class',
+  requests: 'requests'
+} as const
+
+export type TrafficDailyScalarFieldEnum = (typeof TrafficDailyScalarFieldEnum)[keyof typeof TrafficDailyScalarFieldEnum]
+
+
+export const TrafficCursorScalarFieldEnum = {
+  id: 'id',
+  inode: 'inode',
+  offset: 'offset',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TrafficCursorScalarFieldEnum = (typeof TrafficCursorScalarFieldEnum)[keyof typeof TrafficCursorScalarFieldEnum]
+
+
+export const SearchDailyScalarFieldEnum = {
+  engine: 'engine',
+  date: 'date',
+  query: 'query',
+  page: 'page',
+  clicks: 'clicks',
+  impressions: 'impressions',
+  position: 'position'
+} as const
+
+export type SearchDailyScalarFieldEnum = (typeof SearchDailyScalarFieldEnum)[keyof typeof SearchDailyScalarFieldEnum]
+
+
+export const CollectorRunScalarFieldEnum = {
+  id: 'id',
+  ok: 'ok',
+  detail: 'detail',
+  rows: 'rows',
+  ranAt: 'ranAt'
+} as const
+
+export type CollectorRunScalarFieldEnum = (typeof CollectorRunScalarFieldEnum)[keyof typeof CollectorRunScalarFieldEnum]
 
 
 export const SortOrder = {

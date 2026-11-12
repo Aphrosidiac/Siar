@@ -306,6 +306,8 @@ Bluesky OAuth is a public client (2-week sessions); Snapchat image limits are un
 | [docs/brief.md](docs/brief.md) | Scope, identity, what is not being built |
 | [CLAUDE.md](CLAUDE.md) | Working rules: contract, tenancy, quotas, look, scripts |
 | [docs/approvals](docs/approvals/README.md) | Network developer-app approval guides |
+| [docs/ANALYTICS.md](docs/ANALYTICS.md) | Siar's own analytics: visitors vs crawlers, signups by channel, revenue, search; `scripts/metrics.sh` |
+| [docs/seo](docs/seo/ACCEPTANCE.md) | SEO research, the acceptance standard and the launch record |
 | [deploy/README.md](deploy/README.md) | Server setup and deploy |
 | [docs/reference](docs/reference/2026-10-11) | Reference evidence (bundle.social, 2026-10-11) |
 

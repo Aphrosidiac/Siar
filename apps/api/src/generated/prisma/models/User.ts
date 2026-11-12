@@ -39,6 +39,13 @@ export type UserMinAggregateOutputType = {
   timezone: string | null
   onboardedAt: Date | null
   role: $Enums.UserRole | null
+  signupChannel: string | null
+  signupRefHost: string | null
+  signupUtmSource: string | null
+  signupUtmMedium: string | null
+  signupUtmCampaign: string | null
+  signupLanding: string | null
+  firstSeenAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
@@ -59,6 +66,13 @@ export type UserMaxAggregateOutputType = {
   timezone: string | null
   onboardedAt: Date | null
   role: $Enums.UserRole | null
+  signupChannel: string | null
+  signupRefHost: string | null
+  signupUtmSource: string | null
+  signupUtmMedium: string | null
+  signupUtmCampaign: string | null
+  signupLanding: string | null
+  firstSeenAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
@@ -79,6 +93,13 @@ export type UserCountAggregateOutputType = {
   timezone: number
   onboardedAt: number
   role: number
+  signupChannel: number
+  signupRefHost: number
+  signupUtmSource: number
+  signupUtmMedium: number
+  signupUtmCampaign: number
+  signupLanding: number
+  firstSeenAt: number
   createdAt: number
   updatedAt: number
   deletedAt: number
@@ -101,6 +122,13 @@ export type UserMinAggregateInputType = {
   timezone?: true
   onboardedAt?: true
   role?: true
+  signupChannel?: true
+  signupRefHost?: true
+  signupUtmSource?: true
+  signupUtmMedium?: true
+  signupUtmCampaign?: true
+  signupLanding?: true
+  firstSeenAt?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -121,6 +149,13 @@ export type UserMaxAggregateInputType = {
   timezone?: true
   onboardedAt?: true
   role?: true
+  signupChannel?: true
+  signupRefHost?: true
+  signupUtmSource?: true
+  signupUtmMedium?: true
+  signupUtmCampaign?: true
+  signupLanding?: true
+  firstSeenAt?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -141,6 +176,13 @@ export type UserCountAggregateInputType = {
   timezone?: true
   onboardedAt?: true
   role?: true
+  signupChannel?: true
+  signupRefHost?: true
+  signupUtmSource?: true
+  signupUtmMedium?: true
+  signupUtmCampaign?: true
+  signupLanding?: true
+  firstSeenAt?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -234,6 +276,13 @@ export type UserGroupByOutputType = {
   timezone: string | null
   onboardedAt: Date | null
   role: $Enums.UserRole
+  signupChannel: string | null
+  signupRefHost: string | null
+  signupUtmSource: string | null
+  signupUtmMedium: string | null
+  signupUtmCampaign: string | null
+  signupLanding: string | null
+  firstSeenAt: Date | null
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null
@@ -275,6 +324,13 @@ export type UserWhereInput = {
   timezone?: Prisma.StringNullableFilter<"User"> | string | null
   onboardedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
+  signupChannel?: Prisma.StringNullableFilter<"User"> | string | null
+  signupRefHost?: Prisma.StringNullableFilter<"User"> | string | null
+  signupUtmSource?: Prisma.StringNullableFilter<"User"> | string | null
+  signupUtmMedium?: Prisma.StringNullableFilter<"User"> | string | null
+  signupUtmCampaign?: Prisma.StringNullableFilter<"User"> | string | null
+  signupLanding?: Prisma.StringNullableFilter<"User"> | string | null
+  firstSeenAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
@@ -301,6 +357,13 @@ export type UserOrderByWithRelationInput = {
   timezone?: Prisma.SortOrderInput | Prisma.SortOrder
   onboardedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
+  signupChannel?: Prisma.SortOrderInput | Prisma.SortOrder
+  signupRefHost?: Prisma.SortOrderInput | Prisma.SortOrder
+  signupUtmSource?: Prisma.SortOrderInput | Prisma.SortOrder
+  signupUtmMedium?: Prisma.SortOrderInput | Prisma.SortOrder
+  signupUtmCampaign?: Prisma.SortOrderInput | Prisma.SortOrder
+  signupLanding?: Prisma.SortOrderInput | Prisma.SortOrder
+  firstSeenAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -330,6 +393,13 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   timezone?: Prisma.StringNullableFilter<"User"> | string | null
   onboardedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
+  signupChannel?: Prisma.StringNullableFilter<"User"> | string | null
+  signupRefHost?: Prisma.StringNullableFilter<"User"> | string | null
+  signupUtmSource?: Prisma.StringNullableFilter<"User"> | string | null
+  signupUtmMedium?: Prisma.StringNullableFilter<"User"> | string | null
+  signupUtmCampaign?: Prisma.StringNullableFilter<"User"> | string | null
+  signupLanding?: Prisma.StringNullableFilter<"User"> | string | null
+  firstSeenAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
@@ -356,6 +426,13 @@ export type UserOrderByWithAggregationInput = {
   timezone?: Prisma.SortOrderInput | Prisma.SortOrder
   onboardedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
+  signupChannel?: Prisma.SortOrderInput | Prisma.SortOrder
+  signupRefHost?: Prisma.SortOrderInput | Prisma.SortOrder
+  signupUtmSource?: Prisma.SortOrderInput | Prisma.SortOrder
+  signupUtmMedium?: Prisma.SortOrderInput | Prisma.SortOrder
+  signupUtmCampaign?: Prisma.SortOrderInput | Prisma.SortOrder
+  signupLanding?: Prisma.SortOrderInput | Prisma.SortOrder
+  firstSeenAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -382,6 +459,13 @@ export type UserScalarWhereWithAggregatesInput = {
   timezone?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   onboardedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   role?: Prisma.EnumUserRoleWithAggregatesFilter<"User"> | $Enums.UserRole
+  signupChannel?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  signupRefHost?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  signupUtmSource?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  signupUtmMedium?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  signupUtmCampaign?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  signupLanding?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  firstSeenAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
@@ -402,6 +486,13 @@ export type UserCreateInput = {
   timezone?: string | null
   onboardedAt?: Date | string | null
   role?: $Enums.UserRole
+  signupChannel?: string | null
+  signupRefHost?: string | null
+  signupUtmSource?: string | null
+  signupUtmMedium?: string | null
+  signupUtmCampaign?: string | null
+  signupLanding?: string | null
+  firstSeenAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -428,6 +519,13 @@ export type UserUncheckedCreateInput = {
   timezone?: string | null
   onboardedAt?: Date | string | null
   role?: $Enums.UserRole
+  signupChannel?: string | null
+  signupRefHost?: string | null
+  signupUtmSource?: string | null
+  signupUtmMedium?: string | null
+  signupUtmCampaign?: string | null
+  signupLanding?: string | null
+  firstSeenAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -454,6 +552,13 @@ export type UserUpdateInput = {
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupChannel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupRefHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupLanding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -480,6 +585,13 @@ export type UserUncheckedUpdateInput = {
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupChannel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupRefHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupLanding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -506,6 +618,13 @@ export type UserCreateManyInput = {
   timezone?: string | null
   onboardedAt?: Date | string | null
   role?: $Enums.UserRole
+  signupChannel?: string | null
+  signupRefHost?: string | null
+  signupUtmSource?: string | null
+  signupUtmMedium?: string | null
+  signupUtmCampaign?: string | null
+  signupLanding?: string | null
+  firstSeenAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -526,6 +645,13 @@ export type UserUpdateManyMutationInput = {
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupChannel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupRefHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupLanding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -546,6 +672,13 @@ export type UserUncheckedUpdateManyInput = {
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupChannel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupRefHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupLanding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -566,6 +699,13 @@ export type UserCountOrderByAggregateInput = {
   timezone?: Prisma.SortOrder
   onboardedAt?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  signupChannel?: Prisma.SortOrder
+  signupRefHost?: Prisma.SortOrder
+  signupUtmSource?: Prisma.SortOrder
+  signupUtmMedium?: Prisma.SortOrder
+  signupUtmCampaign?: Prisma.SortOrder
+  signupLanding?: Prisma.SortOrder
+  firstSeenAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -586,6 +726,13 @@ export type UserMaxOrderByAggregateInput = {
   timezone?: Prisma.SortOrder
   onboardedAt?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  signupChannel?: Prisma.SortOrder
+  signupRefHost?: Prisma.SortOrder
+  signupUtmSource?: Prisma.SortOrder
+  signupUtmMedium?: Prisma.SortOrder
+  signupUtmCampaign?: Prisma.SortOrder
+  signupLanding?: Prisma.SortOrder
+  firstSeenAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -606,6 +753,13 @@ export type UserMinOrderByAggregateInput = {
   timezone?: Prisma.SortOrder
   onboardedAt?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  signupChannel?: Prisma.SortOrder
+  signupRefHost?: Prisma.SortOrder
+  signupUtmSource?: Prisma.SortOrder
+  signupUtmMedium?: Prisma.SortOrder
+  signupUtmCampaign?: Prisma.SortOrder
+  signupLanding?: Prisma.SortOrder
+  firstSeenAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -735,6 +889,13 @@ export type UserCreateWithoutSessionsInput = {
   timezone?: string | null
   onboardedAt?: Date | string | null
   role?: $Enums.UserRole
+  signupChannel?: string | null
+  signupRefHost?: string | null
+  signupUtmSource?: string | null
+  signupUtmMedium?: string | null
+  signupUtmCampaign?: string | null
+  signupLanding?: string | null
+  firstSeenAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -760,6 +921,13 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   timezone?: string | null
   onboardedAt?: Date | string | null
   role?: $Enums.UserRole
+  signupChannel?: string | null
+  signupRefHost?: string | null
+  signupUtmSource?: string | null
+  signupUtmMedium?: string | null
+  signupUtmCampaign?: string | null
+  signupLanding?: string | null
+  firstSeenAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -801,6 +969,13 @@ export type UserUpdateWithoutSessionsInput = {
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupChannel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupRefHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupLanding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -826,6 +1001,13 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupChannel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupRefHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupLanding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -851,6 +1033,13 @@ export type UserCreateWithoutAuthTokensInput = {
   timezone?: string | null
   onboardedAt?: Date | string | null
   role?: $Enums.UserRole
+  signupChannel?: string | null
+  signupRefHost?: string | null
+  signupUtmSource?: string | null
+  signupUtmMedium?: string | null
+  signupUtmCampaign?: string | null
+  signupLanding?: string | null
+  firstSeenAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -876,6 +1065,13 @@ export type UserUncheckedCreateWithoutAuthTokensInput = {
   timezone?: string | null
   onboardedAt?: Date | string | null
   role?: $Enums.UserRole
+  signupChannel?: string | null
+  signupRefHost?: string | null
+  signupUtmSource?: string | null
+  signupUtmMedium?: string | null
+  signupUtmCampaign?: string | null
+  signupLanding?: string | null
+  firstSeenAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -917,6 +1113,13 @@ export type UserUpdateWithoutAuthTokensInput = {
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupChannel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupRefHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupLanding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -942,6 +1145,13 @@ export type UserUncheckedUpdateWithoutAuthTokensInput = {
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupChannel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupRefHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupLanding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -967,6 +1177,13 @@ export type UserCreateWithoutCreatedOrgsInput = {
   timezone?: string | null
   onboardedAt?: Date | string | null
   role?: $Enums.UserRole
+  signupChannel?: string | null
+  signupRefHost?: string | null
+  signupUtmSource?: string | null
+  signupUtmMedium?: string | null
+  signupUtmCampaign?: string | null
+  signupLanding?: string | null
+  firstSeenAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -992,6 +1209,13 @@ export type UserUncheckedCreateWithoutCreatedOrgsInput = {
   timezone?: string | null
   onboardedAt?: Date | string | null
   role?: $Enums.UserRole
+  signupChannel?: string | null
+  signupRefHost?: string | null
+  signupUtmSource?: string | null
+  signupUtmMedium?: string | null
+  signupUtmCampaign?: string | null
+  signupLanding?: string | null
+  firstSeenAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1033,6 +1257,13 @@ export type UserUpdateWithoutCreatedOrgsInput = {
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupChannel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupRefHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupLanding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1058,6 +1289,13 @@ export type UserUncheckedUpdateWithoutCreatedOrgsInput = {
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupChannel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupRefHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupLanding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1083,6 +1321,13 @@ export type UserCreateWithoutMembershipsInput = {
   timezone?: string | null
   onboardedAt?: Date | string | null
   role?: $Enums.UserRole
+  signupChannel?: string | null
+  signupRefHost?: string | null
+  signupUtmSource?: string | null
+  signupUtmMedium?: string | null
+  signupUtmCampaign?: string | null
+  signupLanding?: string | null
+  firstSeenAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1108,6 +1353,13 @@ export type UserUncheckedCreateWithoutMembershipsInput = {
   timezone?: string | null
   onboardedAt?: Date | string | null
   role?: $Enums.UserRole
+  signupChannel?: string | null
+  signupRefHost?: string | null
+  signupUtmSource?: string | null
+  signupUtmMedium?: string | null
+  signupUtmCampaign?: string | null
+  signupLanding?: string | null
+  firstSeenAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1149,6 +1401,13 @@ export type UserUpdateWithoutMembershipsInput = {
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupChannel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupRefHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupLanding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1174,6 +1433,13 @@ export type UserUncheckedUpdateWithoutMembershipsInput = {
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupChannel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupRefHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupLanding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1199,6 +1465,13 @@ export type UserCreateWithoutCreatedTeamsInput = {
   timezone?: string | null
   onboardedAt?: Date | string | null
   role?: $Enums.UserRole
+  signupChannel?: string | null
+  signupRefHost?: string | null
+  signupUtmSource?: string | null
+  signupUtmMedium?: string | null
+  signupUtmCampaign?: string | null
+  signupLanding?: string | null
+  firstSeenAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1224,6 +1497,13 @@ export type UserUncheckedCreateWithoutCreatedTeamsInput = {
   timezone?: string | null
   onboardedAt?: Date | string | null
   role?: $Enums.UserRole
+  signupChannel?: string | null
+  signupRefHost?: string | null
+  signupUtmSource?: string | null
+  signupUtmMedium?: string | null
+  signupUtmCampaign?: string | null
+  signupLanding?: string | null
+  firstSeenAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1265,6 +1545,13 @@ export type UserUpdateWithoutCreatedTeamsInput = {
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupChannel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupRefHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupLanding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1290,6 +1577,13 @@ export type UserUncheckedUpdateWithoutCreatedTeamsInput = {
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupChannel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupRefHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupLanding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1315,6 +1609,13 @@ export type UserCreateWithoutNotificationsInput = {
   timezone?: string | null
   onboardedAt?: Date | string | null
   role?: $Enums.UserRole
+  signupChannel?: string | null
+  signupRefHost?: string | null
+  signupUtmSource?: string | null
+  signupUtmMedium?: string | null
+  signupUtmCampaign?: string | null
+  signupLanding?: string | null
+  firstSeenAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1340,6 +1641,13 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   timezone?: string | null
   onboardedAt?: Date | string | null
   role?: $Enums.UserRole
+  signupChannel?: string | null
+  signupRefHost?: string | null
+  signupUtmSource?: string | null
+  signupUtmMedium?: string | null
+  signupUtmCampaign?: string | null
+  signupLanding?: string | null
+  firstSeenAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -1381,6 +1689,13 @@ export type UserUpdateWithoutNotificationsInput = {
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupChannel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupRefHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupLanding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1406,6 +1721,13 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupChannel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupRefHost?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmMedium?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupUtmCampaign?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signupLanding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1507,6 +1829,13 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   timezone?: boolean
   onboardedAt?: boolean
   role?: boolean
+  signupChannel?: boolean
+  signupRefHost?: boolean
+  signupUtmSource?: boolean
+  signupUtmMedium?: boolean
+  signupUtmCampaign?: boolean
+  signupLanding?: boolean
+  firstSeenAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -1534,6 +1863,13 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   timezone?: boolean
   onboardedAt?: boolean
   role?: boolean
+  signupChannel?: boolean
+  signupRefHost?: boolean
+  signupUtmSource?: boolean
+  signupUtmMedium?: boolean
+  signupUtmCampaign?: boolean
+  signupLanding?: boolean
+  firstSeenAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -1554,6 +1890,13 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   timezone?: boolean
   onboardedAt?: boolean
   role?: boolean
+  signupChannel?: boolean
+  signupRefHost?: boolean
+  signupUtmSource?: boolean
+  signupUtmMedium?: boolean
+  signupUtmCampaign?: boolean
+  signupLanding?: boolean
+  firstSeenAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -1574,12 +1917,19 @@ export type UserSelectScalar = {
   timezone?: boolean
   onboardedAt?: boolean
   role?: boolean
+  signupChannel?: boolean
+  signupRefHost?: boolean
+  signupUtmSource?: boolean
+  signupUtmMedium?: boolean
+  signupUtmCampaign?: boolean
+  signupLanding?: boolean
+  firstSeenAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "externalId" | "email" | "emailVerified" | "passwordHash" | "googleSub" | "googleEmail" | "googleLinkedAt" | "firstName" | "lastName" | "avatarUrl" | "timezone" | "onboardedAt" | "role" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "externalId" | "email" | "emailVerified" | "passwordHash" | "googleSub" | "googleEmail" | "googleLinkedAt" | "firstName" | "lastName" | "avatarUrl" | "timezone" | "onboardedAt" | "role" | "signupChannel" | "signupRefHost" | "signupUtmSource" | "signupUtmMedium" | "signupUtmCampaign" | "signupLanding" | "firstSeenAt" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   memberships?: boolean | Prisma.User$membershipsArgs<ExtArgs>
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
@@ -1632,6 +1982,17 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
      * ADMIN = Siar staff (FF). Customers are CUSTOMER.
      */
     role: $Enums.UserRole
+    /**
+     * Where the person first came from, read at signup from the site's first-visit cookie (siar_ft, docs/ANALYTICS.md).
+     * Channel is derived from the referrer and UTM tags: Google, Bing, AI assistant, Social, Referral, Campaign, Direct.
+     */
+    signupChannel: string | null
+    signupRefHost: string | null
+    signupUtmSource: string | null
+    signupUtmMedium: string | null
+    signupUtmCampaign: string | null
+    signupLanding: string | null
+    firstSeenAt: Date | null
     createdAt: Date
     updatedAt: Date
     deletedAt: Date | null
@@ -2078,6 +2439,13 @@ export interface UserFieldRefs {
   readonly timezone: Prisma.FieldRef<"User", 'String'>
   readonly onboardedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly role: Prisma.FieldRef<"User", 'UserRole'>
+  readonly signupChannel: Prisma.FieldRef<"User", 'String'>
+  readonly signupRefHost: Prisma.FieldRef<"User", 'String'>
+  readonly signupUtmSource: Prisma.FieldRef<"User", 'String'>
+  readonly signupUtmMedium: Prisma.FieldRef<"User", 'String'>
+  readonly signupUtmCampaign: Prisma.FieldRef<"User", 'String'>
+  readonly signupLanding: Prisma.FieldRef<"User", 'String'>
+  readonly firstSeenAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly deletedAt: Prisma.FieldRef<"User", 'DateTime'>
