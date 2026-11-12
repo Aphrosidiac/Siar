@@ -1,0 +1,80 @@
+---
+/**
+ * LinkedIn 426 NONEXISTENT_VERSION: the fix, the sunset table, Siar's box and 400 VERSION_MISSING
+ * (docs/seo/landing-copy/linkedin-api-errors.md §2–5). LinkedIn facts checked on LinkedIn's pages 2026-11-12.
+ * Siar sends 202609 (packages/networks/src/adapters/linkedin.ts line 38). After 16 November 2026 the tense
+ * switch in §12 of that copy file applies.
+ */
+import CodeBlock from '../CodeBlock.astro';
+import SiarBox from './SiarBox.astro';
+import { LINKEDIN_VERSIONS } from './errorCopy';
+import { CHECKED_HUMAN, LIVE } from './data';
+const VERSIONING = 'https://learn.microsoft.com/en-us/linkedin/marketing/versioning';
+const MIGRATIONS = 'https://learn.microsoft.com/en-us/linkedin/marketing/integrations/migrations#api-migration-status';
+const ERRORS = 'https://learn.microsoft.com/en-us/linkedin/marketing/error-responses';
+const POSTS = 'https://learn.microsoft.com/en-us/linkedin/marketing/community-management/shares/posts-api';
+const failed = LIVE.howPublishing ? '/how-publishing-works#errors' : '/docs/errors';
+const header = `# Before: fails from 16 November 2026 with 426 NONEXISTENT_VERSION
+-H 'Linkedin-Version: 202511'
+
+# After: supported until 15 October 2027
+-H 'Linkedin-Version: 202610'`;
+const post = `curl -X POST 'https://api.linkedin.com/rest/posts' \\
+  -H 'Authorization: Bearer YOUR_MEMBER_TOKEN' \\
+  -H 'Linkedin-Version: 202610' \\
+  -H 'X-Restli-Protocol-Version: 2.0.0' \\
+  -H 'Content-Type: application/json' \\
+  --data '{
+    "author": "urn:li:person:YOUR_PERSON_ID",
+    "commentary": "Release notes for version 2.4 are out.",
+    "visibility": "PUBLIC",
+    "distribution": { "feedDistribution": "MAIN_FEED", "targetEntities": [], "thirdPartyDistributionChannels": [] },
+    "lifecycleState": "PUBLISHED",
+    "isReshareDisabledByAuthor": false
+  }'`;
+const r426 = `{
+  "status": 426,
+  "code": "NONEXISTENT_VERSION",
+  "message": "Requested version yyyymmdd is not active"
+}`;
+const r400 = `{
+  "status": 400,
+  "code": "VERSION_MISSING",
+  "message": "A version must be present. Please specify a version by adding the Linkedin-Version header."
+}`;
+---
+<h2 id="fix-426">Fix 426 NONEXISTENT_VERSION before 16 November 2026</h2>
+<p>Every call to <code>https://api.linkedin.com/rest/</code> must carry a <code>Linkedin-Version</code> header in YYYYMM form. LinkedIn does not fall back to the latest version when yours is missing or retired. It refuses the call. A post your scheduler sends on 16 November with <code>Linkedin-Version: 202511</code> fails with 426, and so does every retry with the same header.</p>
+<p>The fix takes four steps:</p>
+<ol>
+  <li><strong>Find every place the header is set.</strong> Search your code and your dependencies, not only your own files. SDKs and open-source integrations can hardcode it. Headers are case-insensitive, so search for <code>linkedin-version</code> in any case, and for constants such as <code>LINKEDIN_VERSION</code>.</li>
+  <li><strong>Set it to 202610.</strong> That is the latest version and LinkedIn supports it until 15 October 2027. Any version that has not been sunset works, but an older one brings the next deadline closer.</li>
+  <li><strong>Read LinkedIn's changelog between your version and 202610.</strong> LinkedIn says the paths may stay the same while "the behavior of the individual API methods can change". Run one test post per content type you use.</li>
+  <li><strong>Ship it before 16 November 2026</strong>, then check that a real post returns <code>201</code> with a post URN in the <code>x-restli-id</code> header.</li>
+</ol>
+<CodeBlock title="Example: the header change" code={header} lang="bash" />
+<CodeBlock title="Example: a text post to your own profile with the new header" code={post} lang="bash" />
+<CodeBlock title="LinkedIn's documented response for a retired version" code={r426} lang="json" />
+<p class="small">LinkedIn writes the version back with a day added. In one public report, a header of <code>202501</code> came back as "Requested version 20250101 is not active". So "20251101" in your logs means you sent 202511.</p>
+<p class="small muted">Sources: LinkedIn, <a href={VERSIONING} rel="noopener">versioning</a>, <a href={ERRORS} rel="noopener">error responses</a> and <a href={POSTS} rel="noopener">Posts API</a>, checked {CHECKED_HUMAN}.</p>
+
+<h2 id="sunset-dates">When each LinkedIn API version retires</h2>
+<p>LinkedIn ships a new Marketing API version most months and supports each one "for a minimum of one (1) year". These are the versions that still work on 12 November 2026, with LinkedIn's own sunset dates.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Version header</th><th>Sunset date</th><th>Note</th></tr></thead>
+  <tbody>{LINKEDIN_VERSIONS.map(([v, d, note]) => <tr><td><code>{v}</code></td><td>{d}</td><td>{note}</td></tr>)}</tbody>
+</table></div>
+<p class="small muted">Source: LinkedIn, <a href={MIGRATIONS} rel="noopener">API Migration Status</a>, checked {CHECKED_HUMAN}.</p>
+<p>There is no 202512. LinkedIn's table goes from 202511 straight to 202601, and it skipped December in 2024 too. If you bump to 202601, you will be back on this page on 15 January 2027. Bump to 202610 and you have until October 2027.</p>
+
+<SiarBox items={[
+  'Siar sends <code>Linkedin-Version: 202609</code> on every LinkedIn call, so the 16 November sunset does not touch Siar posts.',
+  'The version is one constant in Siar\'s code, and LinkedIn supports 202609 until 15 September 2027.',
+  `If LinkedIn ever refuses it, the post fails with LinkedIn's own 426, marked <a href="${failed}">don't retry</a>, and the message "Siar is using a LinkedIn API version that LinkedIn has retired. This needs a Siar update."`,
+]} />
+
+<h2 id="code-400-version-missing">400 VERSION_MISSING · A version must be present · no Linkedin-Version header</h2>
+<p><strong>What it means.</strong> The call reached a versioned LinkedIn endpoint with no <code>Linkedin-Version</code> header. This often shows up after moving from the old <code>ugcPosts</code> API to <code>/rest/posts</code>, which LinkedIn says replaces it.</p>
+<p><strong>How to fix it.</strong> Add <code>Linkedin-Version: 202610</code> and <code>X-Restli-Protocol-Version: 2.0.0</code> to every request to <code>https://api.linkedin.com/rest/</code>. LinkedIn's Posts API page says all of its APIs require both headers.</p>
+<p><strong>Through Siar.</strong> You will not see this code. Siar sets both headers on every call.</p>
+<CodeBlock title="LinkedIn's documented response for a missing header" code={r400} lang="json" />

@@ -1,0 +1,69 @@
+---
+/**
+ * /slack-api/rate-limits (keyword map C111, W1). Slack facts: docs.slack.dev changelog 2025-05-29 and
+ * chat.postMessage reference, checked 2026-11-12. Siar facts: slack.ts lines 288–290; approvals file.
+ */
+import Article from '../../layouts/Article.astro';
+import SiarBox from '../../components/network/SiarBox.astro';
+import StatusLine from '../../components/network/StatusLine.astro';
+import NetFacts from '../../components/network/NetFacts.astro';
+import PostExample from '../../components/network/PostExample.astro';
+import { CHECKED, LIVE } from '../../components/network/data';
+
+const CHANGE = 'https://docs.slack.dev/changelog/2025/05/29/rate-limit-changes-for-non-marketplace-apps';
+const POST = 'https://docs.slack.dev/reference/methods/chat.postMessage';
+const hpw = (a: string) => (LIVE.howPublishing ? `/how-publishing-works#${a}` : '/docs/errors');
+const faq = [
+  { q: 'What is the Slack API rate limit for non-Marketplace apps?', a: 'Since 29 May 2025, commercially distributed apps that are not approved for the Slack Marketplace get <code>conversations.history</code> and <code>conversations.replies</code> at 1 request a minute, and those methods return at most 15 objects per page. It applies to apps created after that date and to new installs of older apps.' },
+  { q: 'Does the change affect posting messages?', a: "No. The change covers <code>conversations.history</code> and <code>conversations.replies</code>. <code>chat.postMessage</code> keeps its own limit: Slack says it will generally allow an app to post 1 message per second to a channel, with workspace limits of several hundred messages a minute above that." },
+  { q: 'Which Slack apps are not affected?', a: 'Slack Marketplace apps, internal apps a customer builds for its own workspace, and existing installs of unlisted distributed apps made before 29 May 2025. Internal custom apps get 50 or more requests a minute and up to 1,000 objects per page.' },
+  { q: 'What does Slack return when an app hits a rate limit?', a: 'HTTP 429 with a <code>Retry-After</code> header giving the wait, and <code>ratelimited</code> as the error. Wait that long, then retry. The <a href="/slack-api/errors#code-ratelimited">Slack ratelimited error</a> entry has the fix.' },
+];
+---
+<Article
+  metaTitle="Slack API rate limits for non-Marketplace apps"
+  h1="Slack API rate limits for apps outside the Marketplace"
+  description="Since 29 May 2025, non-Marketplace Slack apps read history and replies at 1 request a minute. What changed, what chat.postMessage allows, and how Siar copes."
+  kicker="Slack API"
+  updated={CHECKED}
+  crumbs={[{ name: 'Platforms', href: '/platforms' }, { name: 'Slack API', href: '/slack-api' }, { name: 'Rate limits', href: '/slack-api/rate-limits' }]}
+  lead={'Since 29 May 2025, Slack apps distributed outside its Marketplace can call <code>conversations.history</code> and <code>conversations.replies</code> once a minute, 15 messages at a time. Posting is not affected. Siar, a <a href="/">unified social media API</a>, posts to Slack today; reading replies back is slow for this reason.'}
+  faq={faq}
+  actions="quickstart"
+>
+  <StatusLine type="SLACK" slug="slack" />
+
+  <h2 id="change">The 29 May 2025 change</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>App</th><th><code>conversations.history</code> and <code>.replies</code></th><th>Objects per page</th></tr></thead>
+    <tbody>
+      <tr><td>Distributed, not on the Marketplace (created after 29 May 2025, or a new install)</td><td>1 request a minute</td><td>15</td></tr>
+      <tr><td>Slack Marketplace app</td><td>Unchanged</td><td>Unchanged</td></tr>
+      <tr><td>Internal app built by the customer</td><td>50+ requests a minute</td><td>1,000</td></tr>
+    </tbody>
+  </table></div>
+  <NetFacts facts={[
+    { text: 'The methods "will be limited to 1 request per minute, unless they are approved for the Slack Marketplace", and "the maximum and default for the <code>limit</code> parameter has been reduced to 15 objects", for non-Marketplace apps created after 29 May 2025 and for new installations of existing apps. Existing installations and internal apps are not affected.', url: CHANGE, source: 'Slack changelog, 29 May 2025' },
+  ]} />
+
+  <h2 id="post-message">chat.postMessage limits</h2>
+  <p>Posting keeps its own special limit. Plan for one message a second in a channel, and spread larger batches across the minute.</p>
+  <NetFacts facts={[{ text: '<code>chat.postMessage</code> "will generally allow an app to post 1 message per second to a specific channel", with workspace limits of "several hundred messages per minute" above that and generous bursts.', url: POST, source: 'Slack, chat.postMessage' }]} />
+
+  <h2 id="what-it-means">What it means for a tool that posts to Slack</h2>
+  <ul>
+    <li><strong>Posting works as before.</strong> A scheduled message goes out with <code>chat.postMessage</code>.</li>
+    <li><strong>Reading replies is the slow part.</strong> Importing the thread replies under a post costs one <code>conversations.replies</code> call a minute and returns 15 replies at a time, so a busy thread takes several minutes to read.</li>
+    <li><strong>Listing on the Marketplace lifts it.</strong> Marketplace approval is the way out for a distributed app.</li>
+  </ul>
+
+  <h2 id="siar">Slack in Siar</h2>
+  <p>Siar's Slack app is distributed publicly and is not on the Slack Marketplace yet, so the 1-a-minute limit applies to its reply import. Posting is unaffected.</p>
+  <PostExample type="SLACK" data={{ channelId: 'CHANNEL_ID', text: 'Version 2.4 is out. Changelog: https://example.com/changelog', username: 'Release bot' }} title="Slack post" />
+  <SiarBox items={[
+    'Siar posts with <code>chat.postMessage</code> and imports replies at the pace Slack allows; a 429 is retried after <code>Retry-After</code>.',
+    `Each message is claimed once, so a retry after a rate limit does not post twice: <a href="${hpw('sent-once')}">sent once</a>.`,
+    `If Slack says no, you get its own error string, plus the fix: <a href="${hpw('errors')}">the network's own error</a>.`,
+  ]} />
+  <p class="small">Related: <a href="/slack-api">Slack API: post and schedule channel messages</a> · <a href="/slack-api/errors">Slack API error codes</a> · <a href="/platforms">Network status</a>{LIVE.approvals && <> · <a href="/platforms/approvals#slack">Slack approval record</a></>}</p>
+</Article>

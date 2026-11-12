@@ -1,0 +1,9 @@
+---
+/** The network's own facts, each with its source URL and the date it was checked (strike-plan.md §5.0 rule 4). */
+import { CHECKED_HUMAN } from './data';
+interface Props { facts?: { text: string; url: string; source: string }[] }
+const { facts = [] } = Astro.props;
+---
+{facts.map((f) => (
+  <p><span set:html={f.text} /> <span class="small muted">Source: <a href={f.url} rel="noopener">{f.source}</a>, checked {CHECKED_HUMAN}.</span></p>
+))}

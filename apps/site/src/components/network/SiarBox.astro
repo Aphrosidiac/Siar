@@ -1,0 +1,18 @@
+---
+/**
+ * The "How Siar handles this" box (strike-plan.md §6 rule 2): at most three lines, each linking one mechanism.
+ * Items are HTML.
+ */
+interface Props { items: string[]; title?: string }
+const { items, title = 'How Siar handles this' } = Astro.props;
+---
+<aside class="siarbox" aria-label={title}>
+  <p class="t"><strong>{title}</strong></p>
+  <ul>{items.slice(0, 3).map((i) => <li set:html={i} />)}</ul>
+</aside>
+<style>
+  .siarbox { border: 1px solid var(--border); background: var(--bg-elevated); border-radius: var(--radius-lg); padding: 16px 20px; margin: 32px 0; }
+  .siarbox .t { margin: 0 0 8px; }
+  .siarbox ul { margin: 0; padding-left: 20px; }
+  .siarbox li { margin: 4px 0; }
+</style>

@@ -1,0 +1,1206 @@
+{
+ "FACEBOOK": [
+  {
+   "code": "190",
+   "tail": "Error validating access token · the token is no longer valid",
+   "fix": null,
+   "cls": "R",
+   "prio": "6.1",
+   "related": "/facebook-api/page-access-token"
+  },
+  {
+   "code": "4",
+   "tail": "(#4) Application request limit reached · the app hit its rate limit",
+   "fix": "Wait for the window to reset, then retry, and lower your call volume.",
+   "cls": "W",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "17",
+   "tail": "(#17) User request limit reached · this user made too many calls",
+   "fix": null,
+   "cls": "W",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "32",
+   "tail": "(#32) Page request limit reached · the Page hit its rate limit",
+   "fix": null,
+   "cls": "W",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "613",
+   "tail": "(#613) Calls to this api have exceeded the rate limit · an endpoint rate limit was hit",
+   "fix": null,
+   "cls": "W",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "10",
+   "tail": "(#10) Application does not have permission for this action · a permission is missing",
+   "fix": "Ask the user to log in again and grant every requested permission; check the app has Advanced Access for it.",
+   "cls": "F",
+   "prio": null,
+   "related": "/facebook-api/meta-app-review"
+  },
+  {
+   "code": "200",
+   "tail": "(#200) Requires … publish_pages as an admin · the user can't post to this Page",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": "/facebook-api/meta-app-review"
+  },
+  {
+   "code": "100",
+   "tail": "(#100) Invalid parameter · a field is missing or wrong",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "368",
+   "tail": "The action attempted has been deemed abusive… · Meta has blocked this action for now",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "506",
+   "tail": "(#506) Duplicate status message · the same text was just posted to this Page",
+   "fix": null,
+   "cls": "F",
+   "prio": "6.12",
+   "related": null
+  },
+  {
+   "code": "2018278",
+   "tail": "(#10) This message is sent outside of allowed window · the 24-hour reply window has closed",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "551",
+   "tail": "This person isn't available right now · the person can't receive messages",
+   "fix": "Nothing to fix on your side: the person blocked the Page or turned off messages.",
+   "cls": "F",
+   "prio": null,
+   "related": null
+  }
+ ],
+ "INSTAGRAM": [
+  {
+   "code": "190",
+   "tail": "Error validating access token · the token is no longer valid",
+   "fix": null,
+   "cls": "R",
+   "prio": "6.1",
+   "related": null
+  },
+  {
+   "code": "4",
+   "tail": "(#4) Application request limit reached · the app hit its rate limit",
+   "fix": "Wait for the window to reset, then retry, and lower your call volume.",
+   "cls": "W",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "10",
+   "tail": "(#10) Application does not have permission for this action · a permission is missing",
+   "fix": "Ask the user to log in again and grant every requested permission; check the app has Advanced Access for it.",
+   "cls": "F",
+   "prio": null,
+   "related": "/facebook-api/meta-app-review"
+  },
+  {
+   "code": "100",
+   "tail": "(#100) Invalid parameter · a field is missing or wrong",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "9004",
+   "tail": "The media could not be fetched from this uri · Meta couldn't download the media",
+   "fix": "Make sure the media URL is public, returns the file directly (no redirect to a login page) and is a JPEG/PNG image or MP4/MOV video.",
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "36003",
+   "tail": "The submitted image with aspect ratio … cannot be published · the image shape isn't allowed",
+   "fix": "Crop the image to between 4:5 and 1.91:1.",
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "9007",
+   "tail": "The media is not ready for publishing, please wait for a moment · the container isn't finished",
+   "fix": "Poll the container's `status_code` and publish only when it is `FINISHED`.",
+   "cls": "A",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "2207042",
+   "tail": "You reached maximum number of posts… · the 24-hour publishing limit",
+   "fix": null,
+   "cls": "P",
+   "prio": "6.2",
+   "related": "/instagram-api/publishing-limit"
+  },
+  {
+   "code": "2018278",
+   "tail": "(#10) This message is sent outside of allowed window · the 24-hour reply window has closed",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "551",
+   "tail": "This person isn't available right now · the person can't receive messages",
+   "fix": "Nothing to fix on your side: the person blocked the Page or turned off messages.",
+   "cls": "F",
+   "prio": null,
+   "related": null
+  }
+ ],
+ "THREADS": [
+  {
+   "code": "190",
+   "tail": "Error validating access token · the token is no longer valid",
+   "fix": null,
+   "cls": "R",
+   "prio": "6.1",
+   "related": null
+  },
+  {
+   "code": "4",
+   "tail": "(#4) Application request limit reached · the app hit its rate limit",
+   "fix": "Wait for the window to reset, then retry, and lower your call volume.",
+   "cls": "W",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "10",
+   "tail": "(#10) Application does not have permission for this action · a permission is missing",
+   "fix": "Ask the user to log in again and grant every requested permission; check the app has Advanced Access for it.",
+   "cls": "F",
+   "prio": null,
+   "related": "/facebook-api/meta-app-review"
+  },
+  {
+   "code": "100",
+   "tail": "(#100) Invalid parameter · a field is missing or wrong",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "368",
+   "tail": "The action attempted has been deemed abusive… · Meta has blocked this action for now",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "9004",
+   "tail": "Only photo or video can be accepted as media type · Threads couldn't read the media",
+   "fix": "Make sure the media URL is public, returns the file directly (no redirect to a login page) and is a JPEG/PNG image or MP4/MOV video.",
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "9007",
+   "tail": "Media ID is not available · the container isn't finished",
+   "fix": "Poll the container's `status_code` and publish only when it is `FINISHED`.",
+   "cls": "A",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "THREADS_API__LINK_LIMIT_EXCEEDED",
+   "tail": "THREADS_API__LINK_LIMIT_EXCEEDED · more than five links in one post",
+   "fix": null,
+   "cls": "C",
+   "prio": null,
+   "related": "/threads-api/how-to-post"
+  }
+ ],
+ "TWITTER": [
+  {
+   "code": "401",
+   "tail": "Unauthorized · the token is invalid or revoked",
+   "fix": "Refresh the OAuth 2.0 token with the refresh token; if that fails, have the user authorize the app again.",
+   "cls": "R",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "402 CreditsDepleted",
+   "tail": "Your enrolled account does not have any credits… · the X credit balance is empty",
+   "fix": null,
+   "cls": "P",
+   "prio": "6.3",
+   "related": "/x-api"
+  },
+  {
+   "code": "403 duplicate",
+   "tail": "You are not allowed to create a Tweet with duplicate content · the same text was just posted",
+   "fix": null,
+   "cls": "F",
+   "prio": "6.4",
+   "related": "/how-publishing-works#sent-once"
+  },
+  {
+   "code": "403 reply",
+   "tail": "Reply to this Tweet is not allowed… · replies are limited to conversations you're part of",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "403 video",
+   "tail": "This user is not allowed to post a video longer than 20 minutes · the video is too long for this account",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "403 too long",
+   "tail": "Your Tweet text is too long · the text is over 280 characters",
+   "fix": "Shorten it to 280 weighted characters (links count 23, emoji 2), or split it into a thread.",
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "403 client-not-enrolled",
+   "tail": "Client Forbidden · the app isn't attached to a project",
+   "fix": null,
+   "cls": "G",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "403 quote",
+   "tail": "Quoting is not available on this access tier · your access level can't quote",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "400 invalid-request",
+   "tail": "One or more parameters to your request was invalid · a field failed X's checks",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "400 media",
+   "tail": "Your media IDs are invalid · the media id expired or failed",
+   "fix": "Upload the media again and use the new id within 24 hours.",
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "404",
+   "tail": "Could not find tweet with id · the post doesn't exist or is protected",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "429",
+   "tail": "Too Many Requests · a rate-limit window is used up",
+   "fix": "Wait until the `x-rate-limit-reset` time (a Unix timestamp), then retry.",
+   "cls": "W",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "503",
+   "tail": "Service Unavailable · X is overloaded",
+   "fix": "Retry with backoff.",
+   "cls": "W",
+   "prio": null,
+   "related": null
+  }
+ ],
+ "LINKEDIN": [
+  {
+   "code": "401 65601",
+   "tail": "The token used in the request has been revoked by the user · the member's token is gone",
+   "fix": "Send the member through LinkedIn sign-in again. Access tokens last 60 days; refresh tokens only exist for apps LinkedIn has approved for them.",
+   "cls": "R",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "403 ACCESS_DENIED",
+   "tail": "Not enough permissions to access: partnerApiPostsExternal.CREATE · a scope or API product is missing",
+   "fix": "Ask the member to sign in again and accept every scope. Posting as a company page needs the Community Management API on your app.",
+   "cls": "F",
+   "prio": null,
+   "related": "/linkedin-api/community-management-api"
+  },
+  {
+   "code": "422 duplicate",
+   "tail": "Content is a duplicate of urn:li:share:… · the same post text was just used",
+   "fix": null,
+   "cls": "F",
+   "prio": "6.6",
+   "related": null
+  },
+  {
+   "code": "422 empty",
+   "tail": "Content cannot be empty · the post has no text",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "429",
+   "tail": "Resource level throttle APPLICATION DAY limit… · the app's daily quota is used up",
+   "fix": "Wait for the reset at midnight UTC, then retry.",
+   "cls": "W",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "426 NONEXISTENT_VERSION",
+   "tail": "Requested version … is not active · the API version you sent is retired",
+   "fix": null,
+   "cls": "P",
+   "prio": "6.5",
+   "related": "/network-changes"
+  },
+  {
+   "code": "400 media",
+   "tail": "Media asset urn:li:image:… is not available · the uploaded file isn't ready or is gone",
+   "fix": "Wait until the asset's status is `AVAILABLE`; if it never gets there, upload it again.",
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "400 commentary",
+   "tail": "Unpermitted fields present in REQUEST_BODY · a field combination isn't allowed",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "404",
+   "tail": "Not Found · the post doesn't exist or isn't yours",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "truncated text",
+   "tail": "(no error; the post is cut off at the first unescaped ( or [) · reserved characters weren't escaped",
+   "fix": "Escape LinkedIn's reserved characters in `commentary` (for example `(`, `)`, `[`, `]`) with a backslash.",
+   "cls": "A",
+   "prio": null,
+   "related": null
+  }
+ ],
+ "TIKTOK": [
+  {
+   "code": "unaudited_client_can_only_post_to_private_accounts",
+   "tail": "Unaudited clients can only post to a private account · the app hasn't passed TikTok's audit",
+   "fix": null,
+   "cls": "T",
+   "prio": "6.8",
+   "related": "/platforms"
+  },
+  {
+   "code": "privacy_level_option_mismatch",
+   "tail": "privacy_level is not one of the creator's privacy_level_options · that privacy level isn't allowed for this creator",
+   "fix": "Call `creator_info` first and use one of the `privacy_level_options` it returns.",
+   "cls": "T",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "spam_risk_too_many_posts",
+   "tail": "The daily post cap from the API is reached… · the creator hit the daily post cap",
+   "fix": null,
+   "cls": "T",
+   "prio": "6.7",
+   "related": null
+  },
+  {
+   "code": "spam_risk_too_many_pending_share",
+   "tail": "Too many pending shares in the inbox · too many drafts are waiting",
+   "fix": "Have the creator post or delete pending drafts in the TikTok app.",
+   "cls": "T",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "spam_risk_user_banned_from_posting",
+   "tail": "The user is banned from posting · TikTok has blocked this creator",
+   "fix": null,
+   "cls": "T",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "access_token_invalid",
+   "tail": "The access token is invalid or not found in the request · the token expired or was revoked",
+   "fix": "Refresh the token with the refresh token; if that fails, have the creator authorize the app again.",
+   "cls": "T",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "scope_not_authorized",
+   "tail": "The user did not authorize the scope required… · a permission wasn't granted",
+   "fix": "Have the creator authorize again and approve `video.publish` or `video.upload`.",
+   "cls": "T",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "url_ownership_unverified",
+   "tail": "The URL prefix is not verified for this app · the media domain isn't verified",
+   "fix": null,
+   "cls": "T",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "rate_limit_exceeded",
+   "tail": "API rate limit exceeded · too many requests for this token",
+   "fix": "Each user token allows 6 requests a minute on these endpoints; wait a minute, then retry.",
+   "cls": "T",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "duration_check_failed",
+   "tail": "Video duration exceeds the creator's max_video_post_duration_sec · the video is too long for this creator",
+   "fix": "Read `max_video_post_duration_sec` from `creator_info` and trim the video to fit.",
+   "cls": "T",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "file_format_check_failed",
+   "tail": "Unsupported media format · TikTok can't use this file",
+   "fix": null,
+   "cls": "T",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "picture_size_check_failed",
+   "tail": "Picture size check failed · the photo is too large",
+   "fix": null,
+   "cls": "T",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "reached_active_user_cap",
+   "tail": "The daily quota for active publishing users from your client is reached · the app hit its daily cap on posting users",
+   "fix": "Wait for the next day. The cap rises after the app passes TikTok's audit.",
+   "cls": "T",
+   "prio": null,
+   "related": "/platforms"
+  },
+  {
+   "code": "40001",
+   "tail": "No permission to operate this business account · the Business API token lacks access",
+   "fix": "Authorize again with the business scopes, on a TikTok business account.",
+   "cls": "T",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "40105",
+   "tail": "Access token is invalid or expired · the Business API token expired",
+   "fix": "Refresh the token; if that fails, authorize again.",
+   "cls": "T",
+   "prio": null,
+   "related": null
+  }
+ ],
+ "YOUTUBE": [
+  {
+   "code": "401 authError",
+   "tail": "Invalid Credentials · the token expired or access was revoked",
+   "fix": "Refresh the token with the refresh token; if that fails, have the user sign in with Google again.",
+   "cls": "R",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "403 quotaExceeded",
+   "tail": "…you have exceeded your quota · the project's daily quota is spent",
+   "fix": null,
+   "cls": "P",
+   "prio": "6.11",
+   "related": "/youtube-api/quota"
+  },
+  {
+   "code": "400 uploadLimitExceeded",
+   "tail": "The user has exceeded the number of videos they may upload · the channel hit its daily upload limit",
+   "fix": null,
+   "cls": "W",
+   "prio": null,
+   "related": "/youtube-api/quota"
+  },
+  {
+   "code": "403 forbidden (thumbnails)",
+   "tail": "…doesn't have permissions to upload and set custom video thumbnails · custom thumbnails need a verified channel",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "401 youtubeSignupRequired",
+   "tail": "Unauthorized · the Google account has no YouTube channel",
+   "fix": "Create a channel at youtube.com, then sign in again.",
+   "cls": "R",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "400 invalidTitle",
+   "tail": "…invalid or empty video title · the title is empty, too long or has < >",
+   "fix": null,
+   "cls": "C",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "400 invalidDescription",
+   "tail": "…invalid video description · the description is too long or has < >",
+   "fix": null,
+   "cls": "C",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "409 videoAlreadyInPlaylist",
+   "tail": "Video already in playlist · it's already there",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "403 commentsDisabled",
+   "tail": "…has disabled comments · comments are off on this video",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "uploadStatus rejected",
+   "tail": "rejectionReason: duplicate | copyright | claim | length | termsOfUse … · YouTube refused the video after processing",
+   "fix": "Read `status.rejectionReason`; fix the content and upload again.",
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "privacyStatus private",
+   "tail": "privacyStatus came back private although public was requested · the video was set to private",
+   "fix": null,
+   "cls": "P",
+   "prio": "6.10",
+   "related": "/youtube-api/audit"
+  }
+ ],
+ "PINTEREST": [
+  {
+   "code": "401",
+   "tail": "Authentication failed · the token expired or the app was removed",
+   "fix": "Refresh the token; if that fails, have the user authorize the app again.",
+   "cls": "R",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "403 trial",
+   "tail": "Your application consumer type is not supported / Trial access · the app only has Trial access",
+   "fix": null,
+   "cls": "G",
+   "prio": null,
+   "related": "/pinterest-api/access"
+  },
+  {
+   "code": "403 scope",
+   "tail": "Not authorized to access this resource · a scope is missing",
+   "fix": "Have the user authorize again and accept every scope (for example `boards:write` and `user_accounts:read`).",
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "404 board",
+   "tail": "Board not found · no board with that name",
+   "fix": "Use an existing board's id or exact name, or create the board first.",
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "404 pin",
+   "tail": "Pin not found · the Pin was deleted or isn't yours",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "400 image",
+   "tail": "Invalid image URL / the image could not be fetched · Pinterest couldn't download the image",
+   "fix": "Use a public JPEG or PNG URL under 20 MB.",
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "400 params",
+   "tail": "Invalid parameters · a field failed Pinterest's checks",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "400 video",
+   "tail": "The media is not ready / cover image is required · the video isn't processed or has no cover",
+   "fix": "Wait until the media status is `succeeded` before creating the Pin, and send a cover image.",
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "429",
+   "tail": "You have exceeded your rate limit · the rate limit is used up",
+   "fix": "Wait for the reset, then retry; spread Pin creation out.",
+   "cls": "W",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "5xx",
+   "tail": "Internal Server Error · Pinterest is having trouble",
+   "fix": "Retry with backoff.",
+   "cls": "W",
+   "prio": null,
+   "related": null
+  }
+ ],
+ "REDDIT": [
+  {
+   "code": "401",
+   "tail": "Unauthorized · the token expired or was revoked",
+   "fix": "Refresh the token; if that fails, have the user authorize the app again.",
+   "cls": "R",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "403 private",
+   "tail": "Forbidden · the subreddit is private, quarantined or banned for this account",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "429 / RATELIMIT",
+   "tail": "you are doing that too much. try again in 9 minutes. · the account is posting too often",
+   "fix": "Wait the time named in the message. New and low-karma accounts get longer waits.",
+   "cls": "W",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "SUBREDDIT_NOEXIST",
+   "tail": "that subreddit doesn't exist · there's no subreddit by that name",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "SUBREDDIT_NOTALLOWED",
+   "tail": "you aren't allowed to post there. · the subreddit doesn't accept posts from this account",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "SUBMIT_VALIDATION_FLAIR_REQUIRED",
+   "tail": "Your post must contain post flair. · the subreddit requires a flair",
+   "fix": "Get the subreddit's flair templates and send a `flair_id`.",
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "BAD_FLAIR_TEMPLATE_ID",
+   "tail": "invalid flair template id · that flair doesn't belong to this subreddit",
+   "fix": "Use a flair template id from this subreddit that isn't mod-only.",
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "NO_LINKS / NO_SELFS",
+   "tail": "this subreddit only allows text posts · the subreddit doesn't allow this post type",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "TOO_LONG",
+   "tail": "this is too long (max: 300) · the title or text is too long",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "invalid_grant",
+   "tail": "invalid_grant · the refresh token is no longer valid",
+   "fix": "Have the user authorize the app again.",
+   "cls": "R",
+   "prio": null,
+   "related": null
+  }
+ ],
+ "DISCORD": [
+  {
+   "code": "50013",
+   "tail": "Missing Permissions · the bot lacks a permission in that channel",
+   "fix": "Give the bot's role View Channel, Send Messages and Attach Files in the channel (and Manage Webhooks if it posts through webhooks).",
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "50001",
+   "tail": "Missing Access · the bot can't see the channel or server",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "10003",
+   "tail": "Unknown Channel · the channel was deleted",
+   "fix": "Choose another channel.",
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "10015",
+   "tail": "Unknown Webhook · the webhook was deleted",
+   "fix": "Create a new webhook for the channel and retry.",
+   "cls": "A",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "10008",
+   "tail": "Unknown Message · the message is already deleted",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "50035",
+   "tail": "Invalid Form Body · a field was rejected",
+   "fix": null,
+   "cls": "C",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "40005",
+   "tail": "Request entity too large · the file is over the upload limit",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "429",
+   "tail": "You are being rate limited. · the rate limit is used up",
+   "fix": "Wait `retry_after` seconds, then retry.",
+   "cls": "W",
+   "prio": null,
+   "related": "/discord-api/schedule-messages"
+  },
+  {
+   "code": "401",
+   "tail": "401: Unauthorized · the bot token is wrong or was reset",
+   "fix": "Check the bot token in the Discord developer portal and update it where your app stores it.",
+   "cls": "G",
+   "prio": null,
+   "related": null
+  }
+ ],
+ "SLACK": [
+  {
+   "code": "not_in_channel",
+   "tail": "not_in_channel · the app isn't in the channel",
+   "fix": "Invite the app to the channel (`/invite @YourApp`), or add `chat:write.public` for public channels.",
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "channel_not_found",
+   "tail": "channel_not_found · the channel doesn't exist or the app can't see it",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "is_archived",
+   "tail": "is_archived · the channel is archived",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "invalid_auth",
+   "tail": "invalid_auth · the token is invalid",
+   "fix": "Reinstall the app to the workspace for a new token.",
+   "cls": "R",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "token_revoked",
+   "tail": "token_revoked · an admin removed the app",
+   "fix": "Reinstall the app to the workspace.",
+   "cls": "R",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "missing_scope",
+   "tail": "missing_scope (needs chat:write.customize) · the install lacks a scope",
+   "fix": "Reinstall the app with the scope the error names.",
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "msg_too_long",
+   "tail": "msg_too_long · the text is over 40,000 characters",
+   "fix": null,
+   "cls": "C",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "cant_delete_message",
+   "tail": "cant_delete_message · the app can't delete this message",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "edit_window_closed",
+   "tail": "edit_window_closed · the edit window has passed",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "ratelimited",
+   "tail": "ratelimited · too many messages too fast",
+   "fix": "Wait for the `Retry-After` seconds, then retry. `chat.postMessage` allows about one message per second per channel.",
+   "cls": "W",
+   "prio": null,
+   "related": "/slack-api/rate-limits"
+  }
+ ],
+ "BLUESKY": [
+  {
+   "code": "AuthenticationRequired",
+   "tail": "Invalid identifier or password · the handle or app password is wrong",
+   "fix": "Create a new app password in Bluesky (Settings, Privacy and security, App passwords) and sign in again.",
+   "cls": "R",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "ExpiredToken",
+   "tail": "Token has expired · the session token expired",
+   "fix": null,
+   "cls": "R",
+   "prio": "6.9",
+   "related": "/bluesky-api/how-to-post"
+  },
+  {
+   "code": "AccountTakedown",
+   "tail": "Account has been taken down · moderation took the account down",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "InvalidRequest",
+   "tail": "Record/text must not be longer than 300 graphemes · the text is too long",
+   "fix": null,
+   "cls": "C",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "BlobTooLarge",
+   "tail": "This file is too large · the image or video is over the limit",
+   "fix": "Keep images under 1,000,000 bytes; compress or resize.",
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "InvalidMimeType",
+   "tail": "Unsupported or mismatched media type · the file type is wrong",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "RateLimitExceeded",
+   "tail": "Rate Limit Exceeded · a PDS limit was hit",
+   "fix": "Wait until the reset time in the response headers, then retry.",
+   "cls": "W",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "use_dpop_nonce",
+   "tail": "Authorization server requires nonce in DPoP proof · send the server's new nonce",
+   "fix": "Repeat the request once with the nonce from the `DPoP-Nonce` header.",
+   "cls": "A",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "invalid_grant",
+   "tail": "refresh token is invalid, expired or revoked · the OAuth grant is gone",
+   "fix": "Run the OAuth flow again.",
+   "cls": "R",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "InvalidSwap",
+   "tail": "Record already exists · the record was already written",
+   "fix": "Nothing to fix: the record exists.",
+   "cls": "A",
+   "prio": null,
+   "related": null
+  }
+ ],
+ "GOOGLE_BUSINESS": [
+  {
+   "code": "401 UNAUTHENTICATED",
+   "tail": "Request had invalid authentication credentials · the token expired or was revoked",
+   "fix": "Refresh the token; if that fails, have the user sign in with Google again.",
+   "cls": "R",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "403 SERVICE_DISABLED",
+   "tail": "…has not been used in project … before or it is disabled · the API isn't enabled for your project",
+   "fix": null,
+   "cls": "G",
+   "prio": null,
+   "related": "/google-business-profile-api/access"
+  },
+  {
+   "code": "403 ACCESS_TOKEN_SCOPE_INSUFFICIENT",
+   "tail": "Request had insufficient authentication scopes · `business.manage` wasn't granted",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "429 RATE_LIMIT_EXCEEDED",
+   "tail": "Quota exceeded for quota metric 'Requests'… · a per-minute quota is used up",
+   "fix": "Wait a minute and retry; cache account and location lists instead of fetching them again.",
+   "cls": "W",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "400 FAILED_PRECONDITION",
+   "tail": "Location is not verified · the location needs verifying",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "400 INVALID_ARGUMENT (summary)",
+   "tail": "Request contains an invalid argument · a post field failed Google's checks",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "400 INVALID_ARGUMENT (media)",
+   "tail": "The photo could not be fetched or is too small · Google couldn't use the photo",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "404 NOT_FOUND",
+   "tail": "Requested entity was not found · the location or post is gone",
+   "fix": "Check the location still exists and the user still manages it.",
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "state REJECTED",
+   "tail": "LocalPost.state = REJECTED · Google removed the post for policy",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "invalid_grant",
+   "tail": "Token has been expired or revoked · the refresh token is no longer valid",
+   "fix": "Have the user sign in with Google again.",
+   "cls": "R",
+   "prio": null,
+   "related": null
+  }
+ ],
+ "SNAPCHAT": [
+  {
+   "code": "401",
+   "tail": "Unauthorized / invalid_token · the token expired and couldn't be refreshed",
+   "fix": "Refresh the 60-minute token; if that fails, have the user authorize again.",
+   "cls": "R",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "AUTHORIZATION_PERMISSION_DENIED",
+   "tail": "The caller does not have access to this public profile · the app isn't allowlisted, or the user can't post to this profile",
+   "fix": null,
+   "cls": "G",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "429",
+   "tail": "Rate limit exceeded · too many calls",
+   "fix": null,
+   "cls": "W",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "media_invalid",
+   "tail": "Media does not meet requirements · the video is outside Snap's limits",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "MEDIA_EXPIRED",
+   "tail": "The media is more than 24 hours old · the uploaded media expired",
+   "fix": "Upload the media again and post within 24 hours.",
+   "cls": "A",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "MEDIA_POSTING_ALREADY_IN_PROGRESS",
+   "tail": "This media is already being posted · an earlier request is still running",
+   "fix": "Don't retry; the first request finishes on its own.",
+   "cls": "A",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "spotlight_rejected",
+   "tail": "Spotlight status REJECTED · moderation refused the Spotlight",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "invalid_grant",
+   "tail": "invalid_grant · the authorization code or redirect URI is wrong",
+   "fix": null,
+   "cls": "R",
+   "prio": null,
+   "related": null
+  },
+  {
+   "code": "spotlight_requires_one_video",
+   "tail": "Spotlight needs exactly one video · Spotlight takes a single video",
+   "fix": null,
+   "cls": "F",
+   "prio": null,
+   "related": null
+  }
+ ]
+}

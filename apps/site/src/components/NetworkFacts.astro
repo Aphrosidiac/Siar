@@ -1,8 +1,9 @@
 ---
 import { CONNECT_LABEL, mb, seconds, type NetworkInfo } from '../lib/networks';
 import { fmtInt } from '../lib/plans';
-interface Props { n: NetworkInfo }
-const { n } = Astro.props;
+/** comments=false drops the comment-length row where comments are not claimable (TikTok, LinkedIn, networks not open). */
+interface Props { n: NetworkInfo; comments?: boolean }
+const { n, comments = true } = Astro.props;
 const l = n.adapter.limits;
 const mimes = (m: string[]) => (m.length ? m.map((x) => x.split('/')[1].replace('x-', '').replace('quicktime', 'mov').replace('svg+xml', 'svg')).join(', ') : 'any type');
 const channels = { none: 'Not needed', optional: 'Optional: pick a channel after connecting', required: 'Required: pick a channel after connecting' }[n.adapter.capabilities.channels];
@@ -12,7 +13,7 @@ const rows: [string, string][] = [
   ['Post types', n.postTypes.map((t) => t.toLowerCase().replace(/_/g, ' ')).join(', ')],
   ['Text length', l.textMax ? `${fmtInt(l.textMax)} characters` : 'No limit set'],
   ...(l.titleMax ? ([['Title length', `${fmtInt(l.titleMax)} characters`]] as [string, string][]) : []),
-  ['Comment length', l.commentMax ? `${fmtInt(l.commentMax)} characters` : 'Comments not supported'],
+  ...(comments ? ([['Comment length', l.commentMax ? `${fmtInt(l.commentMax)} characters` : 'Comments not supported']] as [string, string][]) : []),
   ['Media per post', `Up to ${l.media.maxItems}`],
 ];
 const m = l.media;

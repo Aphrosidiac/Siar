@@ -1,0 +1,79 @@
+---
+/**
+ * /threads-api/how-to-post (keyword map C83, W1). Meta facts: developers.facebook.com/docs/threads/posts and
+ * /overview, checked 2026-11-12. Siar facts: threads.ts (two-step publish, 500 characters, link limit).
+ */
+import Article from '../../layouts/Article.astro';
+import CodeBlock from '../../components/CodeBlock.astro';
+import SiarBox from '../../components/network/SiarBox.astro';
+import StatusLine from '../../components/network/StatusLine.astro';
+import NetFacts from '../../components/network/NetFacts.astro';
+import PostExample from '../../components/network/PostExample.astro';
+import { CHECKED, LIVE } from '../../components/network/data';
+
+const POSTS = 'https://developers.facebook.com/docs/threads/posts';
+const OVERVIEW = 'https://developers.facebook.com/docs/threads/overview';
+const hpw = (a: string) => (LIVE.howPublishing ? `/how-publishing-works#${a}` : '/docs/errors');
+const native = `# Step 1: create a media container
+curl -X POST "https://graph.threads.com/v1.0/THREADS_USER_ID/threads" \\
+  -d "media_type=TEXT" \\
+  -d "text=What should we build next? Reply with one idea." \\
+  -d "access_token=THREADS_ACCESS_TOKEN"
+# => { "id": "CONTAINER_ID" }
+
+# Step 2: publish it (Meta recommends waiting about 30 seconds first)
+curl -X POST "https://graph.threads.com/v1.0/THREADS_USER_ID/threads_publish" \\
+  -d "creation_id=CONTAINER_ID" \\
+  -d "access_token=THREADS_ACCESS_TOKEN"
+# => { "id": "THREADS_MEDIA_ID" }`;
+const faq = [
+  { q: 'How do I publish to Threads with the API?', a: 'In two steps. Create a media container with <code>POST /{threads-user-id}/threads</code>, giving <code>media_type</code> and <code>text</code> (and <code>image_url</code> or <code>video_url</code> for media). Then publish it with <code>POST /{threads-user-id}/threads_publish</code> and the container id as <code>creation_id</code>. Meta recommends waiting about 30 seconds between the two.' },
+  { q: 'How many posts can the Threads API publish a day?', a: 'A Threads profile can publish 250 posts, 1,000 replies and 100 deletions through the API in a moving 24-hour period. Check the current usage with <code>GET /{threads-user-id}/threads_publishing_limit</code> before a large batch.' },
+  { q: 'How long can a Threads API post be?', a: 'Text posts are limited to 500 characters. A carousel holds 2 to 20 images or videos. Siar also checks that a post has no more than five links, because Threads refuses more with <code>THREADS_API__LINK_LIMIT_EXCEEDED</code>.' },
+  { q: 'Do I need Meta App Review to post to Threads for my users?', a: "For people without a role on your Meta app, yes: the <code>threads_basic</code> and <code>threads_content_publish</code> permissions need Advanced Access. Through Siar, your users connect through Siar's Meta app, which passed App Review on 27 October 2026." },
+];
+---
+<Article
+  metaTitle="How to post to Threads via API: a working guide"
+  h1="How to post to Threads via API"
+  description="Publish to Threads with the API: create a media container, publish it, respect the 250-post daily limit. The raw Meta calls, and the same post through Siar."
+  kicker="Threads API"
+  updated={CHECKED}
+  crumbs={[{ name: 'Platforms', href: '/platforms' }, { name: 'Threads API', href: '/threads-api' }, { name: 'How to post', href: '/threads-api/how-to-post' }]}
+  lead={'To post to Threads via API, create a media container with <code>POST /{threads-user-id}/threads</code>, then publish it with <code>threads_publish</code>. Each profile can publish 250 posts a day this way. Siar, a <a href="/">unified social media API</a>, does both steps for you from one request that can also post to other networks.'}
+  faq={faq}
+>
+  <StatusLine type="THREADS" slug="threads" />
+
+  <h2 id="native">Post with Meta's Threads API</h2>
+  <ol>
+    <li><strong>Get a token.</strong> The user signs in with Threads and grants <code>threads_basic</code> and <code>threads_content_publish</code>. Exchange the short-lived token for a long-lived one, which lasts about 60 days and can be refreshed.</li>
+    <li><strong>Create a container.</strong> <code>POST /{'{threads-user-id}'}/threads</code> with <code>media_type</code> (<code>TEXT</code>, <code>IMAGE</code>, <code>VIDEO</code> or <code>CAROUSEL</code>) and <code>text</code>, plus a public <code>image_url</code> or <code>video_url</code> for media.</li>
+    <li><strong>Wait for processing.</strong> Meta recommends about 30 seconds; for video, check the container's status until it is <code>FINISHED</code>.</li>
+    <li><strong>Publish.</strong> <code>POST /{'{threads-user-id}'}/threads_publish</code> with <code>creation_id</code> set to the container id.</li>
+  </ol>
+  <CodeBlock title="Example: a text post with Meta's API" code={native} lang="bash" />
+  <NetFacts facts={[
+    { text: 'Create the container with <code>POST /{threads-user-id}/threads</code>, then publish with <code>POST /{threads-user-id}/threads_publish</code> and <code>creation_id</code>. "It is recommended to wait on average 30 seconds before publishing a Threads media container." Carousels take 2 to 20 images or videos.', url: POSTS, source: 'Meta, Threads posts' },
+    { text: 'A profile can publish 250 posts, 1,000 replies and 100 deletions in a moving 24-hour period; text posts are limited to 500 characters. Check usage with <code>GET /{threads-user-id}/threads_publishing_limit</code>.', url: OVERVIEW, source: 'Meta, Threads API overview' },
+  ]} />
+
+  <h2 id="errors">Errors you will meet</h2>
+  <ul>
+    <li><strong>9007, the media is not ready:</strong> you published before the container finished. Wait, then publish again.</li>
+    <li><strong>9004, the media could not be fetched:</strong> the URL must be public and return the file itself.</li>
+    <li><strong>190, the token is no longer valid:</strong> refresh the long-lived token, or sign the user in again.</li>
+    <li><strong><code>THREADS_API__LINK_LIMIT_EXCEEDED</code>:</strong> more than five links in one post.</li>
+  </ul>
+  <p>Each one, with Meta's message and the fix: <a href="/threads-api/errors">Threads API error codes</a>.</p>
+
+  <h2 id="siar">The same post through Siar</h2>
+  <p>With Siar, one request creates the container, waits for it, publishes it and records the result. The same request can carry Bluesky, Mastodon, X or any other open network.</p>
+  <PostExample type="THREADS" data={{ text: 'What should we build next? Reply with one idea.', replyControl: 'everyone' }} title="Threads post" />
+  <SiarBox items={[
+    `Text over 500 characters or more than five links gets a <code>400</code> with an <code>issues</code> entry before Threads sees it: <a href="${hpw('checked')}">checked before it's sent</a>.`,
+    `Siar waits for the container to finish before publishing, so a slow video does not fail with 9007: <a href="${hpw('sent-once')}">sent once</a>.`,
+    `A signed <code>post.published</code> webhook reports the result, retried for about 45 hours: <a href="${hpw('webhooks')}">signed webhooks</a>.`,
+  ]} />
+  <p class="small">Related: <a href="/threads-api">Threads posting API</a> · <a href="/facebook-api/meta-app-review">Meta App Review for the Threads API</a> · <a href="/platforms">Network status</a>{LIVE.approvals && <> · <a href="/platforms/approvals#threads">Threads approval record</a></>}</p>
+</Article>

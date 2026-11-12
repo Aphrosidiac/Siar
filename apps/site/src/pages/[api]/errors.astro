@@ -1,50 +1,150 @@
 ---
-import Base from '../../layouts/Base.astro';
-import PageHero from '../../components/PageHero.astro';
-import Cta from '../../components/Cta.astro';
-import { NETWORKS, type NetworkInfo } from '../../lib/networks';
-import { breadcrumbLd } from '../../lib/seo';
+/**
+ * The 15 error pages (strike-plan.md §5.5, §3 strike 2). Codes and verbatim messages come from each adapter's
+ * errorReference; the page copy (H2 tails, developer fixes, "What Siar does with it") from
+ * components/network/errorCopy.ts (docs/seo/landing-copy/error-pages-template.md, linkedin-api-errors.md).
+ */
+import Article from '../../layouts/Article.astro';
+import SiarBox from '../../components/network/SiarBox.astro';
+import StatusLine from '../../components/network/StatusLine.astro';
+import LinkedInVersion from '../../components/network/LinkedInVersion.astro';
+import { NETWORKS, type NetworkInfo, type NetworkType } from '../../lib/networks';
+import { NETWORK_STATUS, OPEN_LIST } from '../../lib/status';
+import { CHECKED, LIVE } from '../../components/network/data';
+import {
+  CODE_COPY, CODE_ALIAS, PAGE, PRIORITY, CUSTOM, CLASS_LINE, REF_PREFIX, REFERENCE_NOTE, FIRST, SECOND, sharedFaq, NET_FAQ, MASTODON_ENTRIES,
+  anchorOf, oldIdOf,
+} from '../../components/network/errorCopy';
 
 export function getStaticPaths() {
   return NETWORKS.map((n) => ({ params: { api: n.apiSlug }, props: { n } }));
 }
 const { n } = Astro.props as { n: NetworkInfo };
-const errs = n.errors;
+const t = n.type as NetworkType;
+const name = n.name;
+const page = PAGE[t];
+const st = NETWORK_STATUS[t];
+const hpw = (anchor: string) => (LIVE.howPublishing ? `/how-publishing-works#${anchor}` : '/docs/errors');
+
+/** Related pages that exist; anything else renders nothing (template §3a rule 5). */
+const RELATED: Record<string, string> = {
+  '/facebook-api/meta-app-review': 'Meta App Review: our dates and lessons',
+  '/linkedin-api/community-management-api': 'LinkedIn Community Management API access',
+  '/pinterest-api/access': 'Pinterest API Trial and Standard access',
+  '/slack-api/rate-limits': 'Slack API rate limits for non-Marketplace apps',
+  '/youtube-api/quota': 'YouTube Data API quota, explained',
+  '/youtube-api/audit': 'YouTube API audit: what changed on 2 November 2026',
+  '/threads-api/how-to-post': 'How to post to Threads via API',
+  '/bluesky-api/how-to-post': 'Post to Bluesky via API',
+  '/platforms': "Each network's status, with dates",
+  '/x-api': 'X API pricing per post',
+  ...(LIVE.howPublishing ? { '/how-publishing-works#sent-once': 'How Siar avoids posting twice' } : {}),
+  ...(LIVE.networkChanges ? { '/network-changes': 'LinkedIn API changes, dated' } : {}),
+};
+
+/** Meta's numeric codes inside a message, e.g. (#10), are code: mark them up as code. */
+const esc = (x: string) => x.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const codeify = (x: string) => esc(x).replace(/\(#(\d+)\)/g, '<code>(#$1)</code>');
+const copyByCode = new Map((CODE_COPY[t] ?? []).map((c) => [c.code, c]));
+const order = (codes: string[]) => {
+  const lead = [FIRST[t], SECOND[t]].filter((c): c is string => !!c && codes.includes(c));
+  return [...lead, ...codes.filter((c) => !lead.includes(c))];
+};
+const byCode = new Map(n.errors.map((e) => [e.code, e]));
+const entries = order(n.errors.map((e) => e.code)).map((code) => {
+  const e = byCode.get(code)!;
+  const c = copyByCode.get(CODE_ALIAS[`${t}:${code}`] ?? code);
+  const prio = c?.prio ? PRIORITY[c.prio] : undefined;
+  const login = t === 'INSTAGRAM' ? 'Facebook Login or Instagram Login' : t === 'THREADS' ? 'Threads login' : 'Facebook Login';
+  const answer = prio ? prio.answer.replace('{login}', login) : `${e.meaning} ${c?.fix ?? e.fix}`;
+  const custom = prio?.siar ?? CUSTOM[`${t}:${code}`];
+  const cls = c?.cls && CLASS_LINE[c.cls] ? c.cls : 'F';
+  const classLine = CLASS_LINE[t === 'TIKTOK' ? 'T' : cls].replaceAll('{name}', name);
+  const siar = custom ?? (REF_PREFIX[t] ? `${REF_PREFIX[t]} ${classLine}` : classLine);
+  const shownCode = CODE_ALIAS[`${t}:${code}`] ?? code;
+  const rel = c?.related && RELATED[c.related] ? { href: c.related, text: RELATED[c.related] } : null;
+  return { code: shownCode, id: anchorOf(shownCode), oldId: oldIdOf(code), tail: c?.tail ?? e.message, answer, siar, message: prio?.message ?? e.message, rel };
+});
+const mastodon = t === 'MASTODON'
+  ? MASTODON_ENTRIES.map((m) => ({ ...m, id: anchorOf(m.code), siarText: CLASS_LINE[m.siar] ? CLASS_LINE[m.siar].replaceAll('{name}', name) : m.siar }))
+  : [];
+const jump = t === 'MASTODON' ? mastodon.map((m) => ({ code: m.code, id: m.id })) : entries.map((e) => ({ code: e.code, id: e.id }));
+const faq = [...(NET_FAQ[t] ?? []), ...(t === 'LINKEDIN' ? [] : sharedFaq(name))];
+const others = NETWORKS.filter((x) => x.type !== n.type);
+const hubAnchor = t === 'TIKTOK' ? 'TikTok Content Posting API guide' : ['REDDIT', 'SNAPCHAT', 'GOOGLE_BUSINESS'].includes(t) ? `${name} API in Siar` : `Post to ${name} via API`;
 ---
-<Base title={`${n.name} API errors and how to fix them`} description={`${errs.length ? `${errs.length} ${n.name} API errors` : `How ${n.name} errors are reported`}: what each rejection means and the fix, as relayed by Siar.`} jsonLd={[breadcrumbLd([{ name: `${n.name} API`, href: `/${n.apiSlug}` }, { name: 'Errors', href: `/${n.apiSlug}/errors` }])]}>
-  <PageHero kicker={`${n.name} API`} note="errors" title={`${n.name} API errors`} dim="and how to fix them." lead={`When ${n.name} rejects a request, Siar stores the network's own code and message on the post and returns it to you unchanged, so what you read here matches what you see in the API. <a href="/${n.apiSlug}">Back to the ${n.name} API</a>.`} />
-  <section class="section tight">
-    <div class="container body">
-      {errs.length === 0 ? (
+<Article
+  metaTitle={page.title}
+  h1={page.h1}
+  description={page.description}
+  kicker={t === 'LINKEDIN' ? 'LinkedIn API' : name}
+  updated={CHECKED}
+  crumbs={[{ name: 'Platforms', href: '/platforms' }, { name: `${name} API`, href: `/${n.apiSlug}` }, { name: `${name} API error codes`, href: `/${n.apiSlug}/errors` }]}
+  lead={page.subhead}
+  faq={faq}
+  actions="none"
+>
+  {st.status !== 'open' && <StatusLine type={t} slug={n.slug} />}
+  {REFERENCE_NOTE[t] && <p>{REFERENCE_NOTE[t]}</p>}
+  {t === 'LINKEDIN'
+    ? <p>Jump to <a href="#fix-426">the 426 fix</a>, <a href="#sunset-dates">the version sunset dates</a> or <a href="#all-errors">every LinkedIn error</a>.</p>
+    : <p class="jump">Jump to a {t === 'MASTODON' ? 'status' : 'code'}: {jump.map((j, i) => <>{i > 0 ? ', ' : ''}<a href={`#${j.id}`}>{j.code}</a></>)}.</p>}
+  <p class="small muted">Codes and messages are what {name} returns. Where {name} documents a code, this page follows its docs.</p>
+
+  {t === 'LINKEDIN' && <LinkedInVersion />}
+
+  {t === 'MASTODON' ? (
+    <div class="list">
+      {mastodon.map((m) => (
+        <section class="err" id={m.id}>
+          <h2><code>{m.code}</code> · <Fragment set:html={codeify(m.tail)} /></h2>
+          <p set:html={m.answer} />
+          <p><strong>What Siar does with it:</strong> <span set:html={m.siarText} /></p>
+        </section>
+      ))}
+      <p class="small muted">Source: Mastodon, <a href="https://docs.joinmastodon.org/entities/Error/" rel="noopener">Error entity</a> and <a href="https://docs.joinmastodon.org/api/rate-limits/" rel="noopener">rate limits</a>, checked 12 November 2026.</p>
+    </div>
+  ) : (
+    <>
+      {t === 'LINKEDIN' && (
         <>
-          <p>{n.name} reports failures as plain HTTP errors with a short message and no stable error codes, so there is no code table to show. Siar relays the HTTP status and the server's message on the post's <code>errors</code> field. See the <a href="/docs/errors">Siar error guide</a> for the envelope and the status codes Siar itself returns.</p>
-        </>
-      ) : (
-        <>
-          <p>Where a code is shown it is the network's own code or HTTP status. Messages are abridged where {n.name}'s text is long.</p>
-          <div class="list">
-            {errs.map((e) => (
-              <section class="err" id={e.code.replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase()}>
-                <h2><code>{e.code}</code></h2>
-                <p class="msg"><span class="xs muted">Message</span><br />{e.message}</p>
-                <p><strong>What it means.</strong> {e.meaning}</p>
-                <p><strong>How to fix it.</strong> {e.fix}</p>
-              </section>
-            ))}
-          </div>
+          <h2 id="all-errors">Every LinkedIn error Siar relays, and the fix</h2>
+          <p>When LinkedIn rejects a request, Siar keeps LinkedIn's own code and message on the post and returns them unchanged, with a plain-English fix and a verdict: retry, don't retry, or unknown. Messages are LinkedIn's wording, shortened where marked "…".</p>
         </>
       )}
-      <h2 class="more">Where to see an error</h2>
-      <p>Read a failed post with <code>GET /post/&lbrace;id&rbrace;</code>: the <code>error</code> field summarises it, <code>errors</code> lists it per network and <code>errorsVerbose</code> keeps the detail. A <code>post.published</code> webhook fires when the post reaches a final state. Retry with <code>POST /post/&lbrace;id&rbrace;/retry</code>. Limits that Siar enforces itself are on the <a href={`/${n.apiSlug}`}>{n.name} page</a>.</p>
-    </div>
-  </section>
-  <Cta />
-</Base>
+      <div class="list">
+        {entries.map((e) => (
+          <section class="err" id={e.id}>
+            <span id={e.oldId}></span>
+            {t === 'LINKEDIN' ? <h3><code>{e.code}</code> · <Fragment set:html={codeify(e.tail)} /></h3> : <h2><code>{e.code}</code> · <Fragment set:html={codeify(e.tail)} /></h2>}
+            <p set:html={e.answer} />
+            <p><strong>What Siar does with it:</strong> <span set:html={e.siar} /></p>
+            <p class="msg">{name}'s message: <Fragment set:html={codeify(e.message)} /></p>
+            {e.rel && <p class="small">Related: <a href={e.rel.href}>{e.rel.text}</a></p>}
+          </section>
+        ))}
+      </div>
+    </>
+  )}
+
+  <h2 id="where">Where to see {t === 'GOOGLE_BUSINESS' ? 'a' : /^[AEIOU]/.test(name) ? 'an' : 'a'} {name} error in Siar</h2>
+  <p>Read a failed post with <code>GET /post/&lbrace;id&rbrace;</code>. The <code>error</code> field sums it up, <code>errors</code> lists the result per network, and <code>errorsVerbose</code> keeps {name}'s own code, message and HTTP status, a plain-English message, and a retry verdict: <code>retryable</code>, <code>non_retryable</code> or <code>unknown</code>. A signed <code>post.published</code> webhook fires when the post has published or failed, with each network's result. Fix the cause and retry with <code>POST /post/&lbrace;id&rbrace;/retry</code>.</p>
+
+  <SiarBox title={`How Siar handles ${name} errors`} items={[
+    `<strong>Checked before sending.</strong> A post that breaks a ${name} rule Siar knows fails with a <code>400</code> and an <code>issues</code> entry, before ${name} sees it: <a href="${hpw('checked')}">checked before it's sent</a>.`,
+    `<strong>The network's own words.</strong> If ${name} says no, you get its code and message, the fix on this page, and a verdict: <a href="${hpw('errors')}">the network's own error</a>.`,
+    `<strong>Told, not guessed.</strong> A signed <code>post.published</code> webhook reports each network's result, retried for about 45 hours: <a href="${hpw('webhooks')}">signed webhooks</a>.`,
+  ]} />
+  <p>Siar, a unified social media API, publishes to {OPEN_LIST} today. <a href="/platforms">See each network's status</a>, or go back to <a href={`/${n.apiSlug}`}>{hubAnchor}</a>.</p>
+
+  <h2 id="other-networks">Error codes for other networks</h2>
+  <p>{LIVE.errorsHub && <>The same pattern, for each network Siar is built for: <a href="/errors">social media API error codes, by network</a>. </>}For errors from Siar's own API (a <code>401</code> for a missing key, a <code>429</code> rate limit), see <a href="/docs/errors">Siar API errors and status codes</a>.</p>
+  <p class="small">{others.map((x, i) => <>{i > 0 ? ' · ' : ''}<a href={`/${x.apiSlug}/errors`}>{x.name} API error codes</a></>)}</p>
+</Article>
 <style>
-  .body > :global(*) { max-width: 860px; }
-  .err { border-top: 1px solid var(--border); padding: 24px 0 8px; }
-  .err h2 { font-size: var(--fs-18); margin-bottom: 8px; }
-  .err h2 code { font-size: var(--fs-16); overflow-wrap: anywhere; }
+  .err { border-top: 1px solid var(--border); padding: 24px 0 8px; scroll-margin-top: 96px; }
+  .err h2, .err h3 { font-size: var(--fs-18); margin: 0 0 8px; overflow-wrap: anywhere; }
+  .err h2 code, .err h3 code { font-size: var(--fs-16); }
   .msg { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 10px 14px; font-size: var(--fs-14); overflow-wrap: anywhere; }
-  .more { margin-top: 40px; }
+  .jump { overflow-wrap: anywhere; }
 </style>

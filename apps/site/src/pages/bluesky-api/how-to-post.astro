@@ -1,0 +1,88 @@
+---
+/**
+ * /bluesky-api/how-to-post (keyword map C107, W1). Bluesky facts: bsky-docs (posts, rate limits) and the atproto
+ * XRPC spec, checked 2026-11-12. Siar facts: bluesky.ts header (createRecord, TID rkey, facets, 300 graphemes).
+ */
+import Article from '../../layouts/Article.astro';
+import CodeBlock from '../../components/CodeBlock.astro';
+import SiarBox from '../../components/network/SiarBox.astro';
+import StatusLine from '../../components/network/StatusLine.astro';
+import NetFacts from '../../components/network/NetFacts.astro';
+import PostExample from '../../components/network/PostExample.astro';
+import { CHECKED, LIVE, NET_LIMITS } from '../../components/network/data';
+
+const POSTS = 'https://github.com/bluesky-social/bsky-docs/blob/main/docs/advanced-guides/posts.md';
+const XRPC = 'https://atproto.com/specs/xrpc';
+const hpw = (a: string) => (LIVE.howPublishing ? `/how-publishing-works#${a}` : '/docs/errors');
+const native = `# Step 1: sign in with the handle and an app password
+curl -X POST "https://bsky.social/xrpc/com.atproto.server.createSession" \\
+  -H "content-type: application/json" \\
+  -d '{ "identifier": "yourname.bsky.social", "password": "APP_PASSWORD" }'
+# => { "did": "did:plc:...", "accessJwt": "ACCESS_JWT", "refreshJwt": "REFRESH_JWT", ... }
+
+# Step 2: write the post record
+curl -X POST "https://bsky.social/xrpc/com.atproto.repo.createRecord" \\
+  -H "authorization: Bearer ACCESS_JWT" \\
+  -H "content-type: application/json" \\
+  -d '{
+    "repo": "did:plc:YOUR_DID",
+    "collection": "app.bsky.feed.post",
+    "record": {
+      "$type": "app.bsky.feed.post",
+      "text": "Version 2.4 is out.",
+      "createdAt": "2026-11-20T09:00:00.000Z"
+    }
+  }'
+# => { "uri": "at://did:plc:.../app.bsky.feed.post/...", "cid": "..." }`;
+const faq = [
+  { q: 'How do I create a post with the Bluesky API?', a: 'Sign in with <code>com.atproto.server.createSession</code> (a handle and an app password) to get an access token, then call <code>com.atproto.repo.createRecord</code> with your DID as <code>repo</code>, <code>app.bsky.feed.post</code> as the collection, and a record holding <code>text</code> and <code>createdAt</code>. The response returns the post\'s <code>uri</code> and <code>cid</code>.' },
+  { q: 'Why is my Bluesky link not clickable?', a: 'Links, mentions and hashtags are not parsed from the text. Each needs a facet with <code>byteStart</code> and <code>byteEnd</code>, counted in UTF-8 bytes rather than characters, and a feature such as <code>app.bsky.richtext.facet#link</code>. An emoji before the link shifts the byte offsets.' },
+  { q: 'How many posts can I publish through the Bluesky API?', a: 'Each account gets 5,000 points an hour and 35,000 a day, and a new record costs 3 points: at most 1,666 records an hour and 11,666 a day. Posts, likes and reposts all count as records.' },
+  { q: 'What does Bluesky ExpiredToken mean?', a: 'The access token is short-lived and has expired. Call <code>com.atproto.server.refreshSession</code> with the refresh token, then repeat the request. If that fails too, sign in again. The <a href="/bluesky-api/errors#code-expiredtoken">Bluesky ExpiredToken fix</a> has the details.' },
+];
+---
+<Article
+  metaTitle="How to post to Bluesky via API: createRecord guide"
+  h1="How to post to Bluesky via API"
+  description="Post to Bluesky with the API: createSession, createRecord, link facets, image blobs and rate limits, as raw AT Protocol calls and as one Siar request."
+  kicker="Bluesky API"
+  updated={CHECKED}
+  crumbs={[{ name: 'Platforms', href: '/platforms' }, { name: 'Bluesky API', href: '/bluesky-api' }, { name: 'How to post', href: '/bluesky-api/how-to-post' }]}
+  lead={'To post to Bluesky via API, sign in with <code>com.atproto.server.createSession</code>, then write an <code>app.bsky.feed.post</code> record with <code>com.atproto.repo.createRecord</code>. Links and mentions need facets with byte offsets. Siar, a <a href="/">unified social media API</a>, builds the record, facets and image blobs from one request.'}
+  faq={faq}
+>
+  <StatusLine type="BLUESKY" slug="bluesky" />
+
+  <h2 id="native">Post with the AT Protocol directly</h2>
+  <ol>
+    <li><strong>Sign in.</strong> Create an app password in Bluesky's settings and call <code>createSession</code> with the handle and that password. Keep <code>accessJwt</code> for requests and <code>refreshJwt</code> for <code>refreshSession</code>.</li>
+    <li><strong>Upload images first.</strong> Each image goes through <code>com.atproto.repo.uploadBlob</code>, which returns a blob to embed in the post.</li>
+    <li><strong>Add facets.</strong> Mark each link, mention and hashtag with its UTF-8 byte range.</li>
+    <li><strong>Create the record.</strong> <code>createRecord</code> with <code>text</code>, <code>createdAt</code> and any <code>embed</code> and <code>facets</code>.</li>
+  </ol>
+  <CodeBlock title="Example: a text post with the AT Protocol" code={native} lang="bash" />
+  <NetFacts facts={[
+    { text: 'Posts are written with <code>com.atproto.repo.createRecord</code> to the <code>app.bsky.feed.post</code> collection; "each post requires these fields: <code>text</code> and <code>createdAt</code>". Facets use byte offsets, and images are uploaded with <code>uploadBlob</code>.', url: POSTS, source: 'Bluesky, creating a post' },
+    { text: 'The access token\'s "validity lifetime" is short; a new one is requested with <code>com.atproto.server.refreshSession</code> and the refresh token.', url: XRPC, source: 'AT Protocol, XRPC' },
+    ...(NET_LIMITS.BLUESKY ?? []),
+  ]} />
+
+  <h2 id="errors">Errors you will meet</h2>
+  <ul>
+    <li><strong><code>ExpiredToken</code>:</strong> refresh the session, then repeat the request.</li>
+    <li><strong><code>AuthenticationRequired</code>:</strong> the handle or app password is wrong; create a new app password.</li>
+    <li><strong><code>InvalidRequest</code>:</strong> usually text over 300 graphemes.</li>
+    <li><strong><code>BlobTooLarge</code>:</strong> an image over the size limit; compress it.</li>
+  </ul>
+  <p>Each one, with the message and the fix: <a href="/bluesky-api/errors">Bluesky API error codes</a>.</p>
+
+  <h2 id="siar">The same post through Siar</h2>
+  <p>With Siar, the user connects once with a handle and an app password (or Bluesky's OAuth). Siar stores the session encrypted, refreshes it, and turns one request into the record, its facets, the link card and the image blobs.</p>
+  <PostExample type="BLUESKY" data={{ text: 'Version 2.4 is out.', externalUrl: 'https://example.com/changelog', tags: ['release'] }} title="Bluesky post" />
+  <SiarBox items={[
+    `Text over 300 graphemes gets a <code>400</code> with an <code>issues</code> entry before Bluesky sees it: <a href="${hpw('checked')}">checked before it's sent</a>.`,
+    `The record key comes from the post and account, so a retried publish finds the record it already wrote instead of posting twice: <a href="${hpw('sent-once')}">sent once</a>.`,
+    `A signed <code>post.published</code> webhook reports the result, retried for about 45 hours: <a href="${hpw('webhooks')}">signed webhooks</a>.`,
+  ]} />
+  <p class="small">Related: <a href="/bluesky-api">Bluesky posting and scheduling API</a> · <a href="/bluesky-api/errors">Bluesky API error codes</a> · <a href="/platforms">Network status</a>{LIVE.approvals && <> · <a href="/platforms/approvals#bluesky">Bluesky approval record</a></>}</p>
+</Article>

@@ -1,0 +1,23 @@
+---
+/**
+ * "How to post to <Net> via API": a Siar request and its response, labelled Example, shaped by the
+ * OpenAPI contract (packages/contract/openapi.json, operation post.create, 200 response).
+ * Only for networks that are open (EXAMPLE_OK).
+ */
+import CodeBlock from '../CodeBlock.astro';
+import { API_BASE } from '../../config';
+import type { NetworkType } from '../../lib/networks';
+interface Props { type: NetworkType; data: Record<string, unknown>; title?: string }
+const { type, data, title = 'Example post' } = Astro.props;
+const postDate = '2026-11-20T09:00:00.000Z';
+const body = { teamId: 'TEAM_ID', title, postDate, status: 'SCHEDULED', socialAccountTypes: [type], data: { [type]: data } };
+const json = (o: unknown) => JSON.stringify(o, null, 2);
+const curl = `curl -X POST "${API_BASE}/post" \\\n  -H "x-api-key: $SIAR_API_KEY" \\\n  -H "content-type: application/json" \\\n  -d '${json(body).replace(/\n/g, '\n  ')}'`;
+const response = {
+  id: 'POST_ID', teamId: 'TEAM_ID', organizationId: 'ORGANIZATION_ID', title, referenceKey: null, postDate, postedDate: null,
+  status: 'SCHEDULED', data: body.data, error: null, errors: null, errorsVerbose: null, externalData: null, retryCount: 0,
+  createdAt: '2026-11-12T08:00:00.000Z', updatedAt: '2026-11-12T08:00:00.000Z', deletedAt: null, firstComment: null,
+};
+---
+<CodeBlock title="Example request" code={curl} lang="bash" />
+<CodeBlock title="Example response (200)" code={json(response)} lang="json" />

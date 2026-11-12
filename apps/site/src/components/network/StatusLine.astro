@@ -1,0 +1,13 @@
+---
+/** One network's status line, word for word from lib/status.ts, with where to read each network's status. */
+import { NETWORK_STATUS, STATUS_CHECKED } from '../../lib/status';
+import type { NetworkType } from '../../lib/networks';
+import { humanDate, LIVE } from './data';
+interface Props { type: NetworkType; slug: string }
+const { type, slug } = Astro.props;
+const s = NETWORK_STATUS[type];
+---
+<p class="nstatus"><strong>Status:</strong> {s.line} <span class="muted">Checked {humanDate(STATUS_CHECKED)}. {LIVE.approvals ? <a href={`/platforms/approvals#${slug}`}>Approval record</a> : <a href="/platforms">Each network's status</a>}.</span></p>
+<style>
+  .nstatus { border: 1px solid var(--border); background: var(--bg-elevated); border-radius: var(--radius-lg); padding: 12px 16px; font-size: var(--fs-15); }
+</style>

@@ -1,0 +1,231 @@
+---
+/**
+ * /facebook-api/meta-app-review (keyword map C76, W1). Copy: docs/seo/landing-copy/facebook-api-meta-app-review.md.
+ * Siar facts: docs/approvals/meta.md, meta-review-plan.md, meta-review-audit.md, meta-review-submission.md.
+ * Meta's rules: Meta's own developer pages, checked 2026-11-12.
+ */
+import Article from '../../layouts/Article.astro';
+import SiarBox from '../../components/network/SiarBox.astro';
+import { SIGNUP_URL } from '../../config';
+import { NETWORK_STATUS, DM_LINE } from '../../lib/status';
+import { CHECKED, LIVE } from '../../components/network/data';
+
+const M = {
+  review: 'https://developers.facebook.com/docs/resp-plat-initiatives/individual-processes/app-review',
+  rec: 'https://developers.facebook.com/docs/app-review/submission-guide/screen-recordings',
+  levels: 'https://developers.facebook.com/docs/graph-api/overview/access-levels/',
+  bv: 'https://developers.facebook.com/docs/development/release/business-verification',
+  ig: 'https://developers.facebook.com/docs/instagram-platform/app-review',
+  duc: 'https://developers.facebook.com/docs/development/maintaining-data-access/data-use-checkup',
+};
+const src = (url: string, label: string) => `(<a href="${url}" rel="noopener">Meta, ${label}</a>, checked 12 November 2026)`;
+const approvals = LIVE.approvals ? '/platforms/approvals' : '/platforms';
+const hpw = (a: string) => (LIVE.howPublishing ? `/how-publishing-works#${a}` : '/docs/errors');
+const S = NETWORK_STATUS;
+const faq = [
+  { q: 'How long does Meta App Review take?', a: "Meta's App Review page gives no review time. Siar's took 13 days: submitted on 14 October 2026, approved on 27 October 2026 with all 27 permissions, after one resubmission that same day. Most of the work came before submitting: business verification, a description and a film for each permission, and product fixes." },
+  { q: 'Why was my Meta App Review rejected?', a: "Meta rejects the whole submission when its reviewer can't get into your app, and refuses a single permission when it can't see that permission in use. Check your reviewer login first. Then check each film: signed out at the start, the consent screen shown, and the feature visibly using the data." },
+  { q: 'What are the Meta App Review video requirements?', a: "One screencast for each permission, at 1080p or better, with the app in English and no audio. Start logged out, show the full login and the person granting the permission, then show the feature using it. Add captions where the screen isn't self-explanatory, and record only your app with a bigger cursor." },
+  { q: 'Do I need Meta business verification for App Review?', a: "Yes, for Advanced Access. Meta's access-levels page says business verification is required to get it, and apps used only by people with a role on them don't need it. Verification needs a registered company. Siar's used the registration certificate, the exact legal name, address, phone and a verified domain." },
+  { q: 'Can I use the Instagram API without App Review?', a: "Yes, for accounts your own business owns or manages: Meta gives those apps Standard Access, without App Review, under Instagram Login or Facebook Login. Your customers' accounts need Advanced Access, so either pass App Review yourself or connect them through an app that has, such as Siar's." },
+  { q: 'Do I need my own Meta App Review if I use Siar?', a: "No, for Facebook, Instagram and Threads. Siar's Meta app passed App Review on 27 October 2026, so your customers connect through it. They sign in to Meta themselves through a connect link with your name and logo. Meta's own consent screen names Siar, because they are granting Siar's app." },
+  { q: "Which Meta permissions does Siar's app hold?", a: 'All 27 it asked for: Facebook Page posting, comments, insights and webhooks; Instagram publishing, comments, insights and DMs through both Facebook Login and Instagram Login; Threads publishing, replies, insights and delete; and Messenger. It holds no ads or WhatsApp permissions, so those still need your own app and review.' },
+  { q: "Does Siar's Meta approval cover TikTok, YouTube or LinkedIn?", a: `No. Each network runs its own gate. ${S.TIKTOK.line} ${S.YOUTUBE.line} ${S.LINKEDIN.line} Open today besides Meta: X, Bluesky, Mastodon, Discord and Slack.` },
+  { q: 'Does App Review make Siar a partner of Meta?', a: "No. Siar's Meta app passed App Review on 27 October 2026, with all 27 permissions it asked for. That approves how one app uses Meta's data. It is not a partnership, and Siar is not affiliated with or endorsed by Meta. Siar is made by FF DEV STUDIO, a company registered in Malaysia." },
+  { q: "What is Meta's Data Use Checkup?", a: "An annual check that an app's continued access to Meta data still follows Meta's Platform Terms and Developer Policies. Apps in Development mode don't need it; it must be done before an app goes Live. Siar completed its Data Use Checkup on 27 October 2026, the day its App Review passed." },
+];
+const perms: [string, string[]][] = [
+  ['Facebook Pages', ['pages_show_list', 'pages_read_engagement', 'pages_read_user_content', 'pages_manage_posts', 'pages_manage_engagement', 'pages_manage_metadata', 'read_insights', 'business_management', 'pages_messaging', 'public_profile', 'Business Asset User Profile Access']],
+  ['Instagram (Facebook Login)', ['instagram_basic', 'instagram_content_publish', 'instagram_manage_comments', 'instagram_manage_insights', 'instagram_manage_messages']],
+  ['Instagram (Instagram Login)', ['instagram_business_basic', 'instagram_business_content_publish', 'instagram_business_manage_comments', 'instagram_business_manage_insights', 'instagram_business_manage_messages']],
+  ['Threads', ['threads_basic', 'threads_content_publish', 'threads_manage_replies', 'threads_read_replies', 'threads_manage_insights', 'threads_delete']],
+];
+---
+<Article
+  metaTitle="Meta App Review: our 13-day timeline and lessons"
+  h1="Meta App Review, step by step: what we submitted and how long it took"
+  description="Submitted 14 Oct, approved 27 Oct 2026, all 27 permissions. What Meta asked for, the screencast rules, the 6 fixes before submitting, and how to skip it."
+  kicker="Facebook API"
+  updated={CHECKED}
+  crumbs={[{ name: 'Platforms', href: '/platforms' }, { name: 'Facebook API', href: '/facebook-api' }, { name: 'Meta App Review', href: '/facebook-api/meta-app-review' }]}
+  lead={'Meta App Review is Meta\'s check before an app can use a permission for people who have no role on it. Siar, a <a href="/">unified social media API</a>, submitted on 14 October 2026 and was approved on 27 October, with all 27 permissions. Below is everything we filed, filmed and fixed, so you can pass yours or skip it.'}
+  faq={faq}
+  wide
+>
+  <p>Siar's Meta app passed App Review on 27 October 2026, so your customers connect Facebook, Instagram and Threads through it. <a href="/use-cases/hosted-connect-oauth">See how your customers connect</a>.</p>
+  <p class="small muted">Meta's rules on this page were checked on Meta's own developer pages on 12 November 2026.</p>
+
+  <h2 id="time">How long Meta App Review takes: our dates</h2>
+  <p>Meta's App Review page gives no review time. Ours ran 13 days from submission to approval: submitted on 14 October 2026, approved on 27 October 2026. It took one resubmission, made on 27 October and approved the same day.</p>
+  <p>The 13 days are only the review. The work before it (business verification, a description and a film for each permission, fixes to the product) is what decides whether those days end in an approval.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Date</th><th>What happened</th></tr></thead>
+    <tbody>
+      <tr><td>2026-10-12</td><td>Siar went live. Business verification was already done. Every permission was used on production that day, and the four Facebook Login for Business configurations and the deauthorize and data-deletion callbacks were in place.</td></tr>
+      <tr><td>2026-10-13</td><td>Descriptions and films entered for 26 permissions (<code>public_profile</code> needs only the usage agreement). Data handling answered. A reviewer login created. Meta's Testing page still showed 0 API calls.</td></tr>
+      <tr><td>2026-10-14</td><td>The Testing page showed every permission complete. A pre-submit audit found six things Meta could reject; we fixed them, rebuilt the films and submitted.</td></tr>
+      <tr><td>2026-10-27</td><td>Resubmitted and approved the same day: all 27 permissions, Advanced Access. Data Use Checkup completed.</td></tr>
+      <tr><td>2026-11-12</td><td>Facebook Pages, Instagram professional accounts and Threads: open today in Siar.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small">These are one app's dates, not a promise for yours. Meta doesn't publish a review time, and we don't either.</p>
+
+  <h2 id="who">Who needs Meta App Review</h2>
+  <p>You need App Review when people without a role on your Meta app will use it: your customers, their clients, the public. Meta's own page puts it plainly: an app used only by people with a role on it does not need review <Fragment set:html={src(M.review, 'App Review')} />.</p>
+  <p>The permissions work the same way. With Standard Access, a permission "can only be requested from app users who have a role on the requesting app". Advanced Access, the level that works for anyone, is granted permission by permission through App Review <Fragment set:html={src(M.levels, 'access levels')} />.</p>
+  <h3>The error that tells you you've hit the gate</h3>
+  <p>A Graph API call that returns <code>(#10) Application does not have permission for this action</code> usually means a permission was not granted, or the app lacks Advanced Access for it. Inside your own team the call works; for a customer it fails. <a href="/facebook-api/errors#code-10">Facebook API error codes</a> lists the fix for each Meta error Siar relays.</p>
+
+  <h2 id="business-verification">Meta business verification: what we gave Meta</h2>
+  <p>Meta requires business verification before it grants Advanced Access <Fragment set:html={src(M.levels, 'access levels')} />. It is a separate process from App Review, done in Meta Business Suite, and it needs a registered company <Fragment set:html={src(M.bv, 'business verification')} />.</p>
+  <p>This is what Siar's verification used. FF DEV STUDIO is a company registered in Malaysia with SSM, the Companies Commission of Malaysia:</p>
+  <ul>
+    <li><strong>Legal name exactly as on the registration certificate.</strong> "FF DEV STUDIO", letter for letter.</li>
+    <li><strong>The registration number</strong>, the address and a phone number as they appear on the certificate. The phone has to receive a code.</li>
+    <li><strong>A website that shows the same company.</strong> siaran.my's footer carries the legal name and registration number.</li>
+    <li><strong>The certificate as a PDF</strong>, with a utility bill or bank statement in the business name ready in case Meta asks for one.</li>
+    <li><strong>A verified domain.</strong> We verified siaran.my with a DNS TXT record in Business settings. If you choose email verification instead, the address must be on the website's own domain.</li>
+  </ul>
+  <p>No registered company means no verification, and no Advanced Access on your own app. Connecting through an app that is already verified and reviewed is the other way through, and <a href="#own-app-or-siar">the comparison below</a> sets out what that trades away.</p>
+
+  <h2 id="before-submit">What your app needs before Meta will review it</h2>
+  <p>App Review is the last step. By the time we pressed Submit, all of this was already live:</p>
+  <ul>
+    <li><strong>App settings filled in:</strong> app type Business, app domains, a privacy policy, terms of service and a data deletion instructions URL.</li>
+    <li><strong>Login configurations.</strong> Business apps send a configuration ID instead of a list of scopes. Siar has four: Pages, Pages with Messenger, Instagram, and Instagram with DMs. Each new permission goes into its configuration too.</li>
+    <li><strong>Deauthorize and data-deletion callbacks</strong> for each login you use: Facebook Login for Business, Instagram Login and Threads. When someone removes the app, the callback disconnects their accounts; a deletion request gets a confirmation code and a status URL.</li>
+    <li><strong>Real API calls for every permission.</strong> Meta's Testing page wants calls for each permission before Submit unlocks. Our production use counted, but the page lagged: it showed 0 calls on 13 October and "complete" on 14 October.</li>
+    <li><strong>Data handling answers:</strong> who processes the data and in which countries, requests from public authorities, and your policies for them.</li>
+    <li><strong>Reviewer instructions</strong> with a login to your own app. If Meta can't get into the app, "your entire submission will be rejected" <Fragment set:html={src(M.review, 'App Review')} />. We gave a reviewer account on Siar's top plan with messaging switched on.</li>
+  </ul>
+  <p>One small trap: the reviewer-instructions step stayed marked "Needs your review" until we opened it and pressed Next, even though it was filled in.</p>
+
+  <h2 id="permissions">What Siar asked Meta for: four use cases, 27 permissions</h2>
+  <p>Siar sent every permission in one submission, grouped the way Meta's dashboard groups them:</p>
+  <ul>
+    <li><strong>Manage everything on your Page:</strong> publish, schedule, edit and delete Page posts; read and moderate comments; Page insights; real-time updates by webhook.</li>
+    <li><strong>Manage messaging and content on Instagram,</strong> through both of Meta's logins: Instagram API with Facebook Login (an Instagram professional account linked to a Page) and Instagram API with Instagram Login (no Page needed).</li>
+    <li><strong>Access the Threads API:</strong> publish, read and manage replies, insights, delete.</li>
+    <li><strong>Engage with customers on Messenger,</strong> plus Instagram DMs, in the same submission.</li>
+  </ul>
+  <p>Dependencies go in the same submission. <code>instagram_basic</code> needs <code>pages_show_list</code>, for example, and <code>pages_messaging</code> needs <code>pages_manage_metadata</code>.</p>
+  <details>
+    <summary>Show all 27 permissions</summary>
+    {perms.map(([g, ps]) => <p><strong>{g}:</strong> {ps.map((p, i) => <>{i > 0 ? ', ' : ''}{p.includes(' ') ? p : <code>{p}</code>}</>)}.</p>)}
+  </details>
+  <p>Meta approved all 27. In Siar, {DM_LINE.charAt(0).toLowerCase() + DM_LINE.slice(1)} Siar did not request Human Agent, so replies stay inside Meta's 24-hour messaging window.</p>
+
+  <h2 id="video">Meta App Review video requirements, and how we met them</h2>
+  <p>Meta wants a screen recording for each permission. "Upload a screencast showing the end-to-end user experience for that specific permission or feature" <Fragment set:html={src(M.ig, 'Instagram App Review')} />. A permission Meta can't see in use is not approved.</p>
+  <h3>Meta's rules</h3>
+  <p>From Meta's screen-recording guide <Fragment set:html={src(M.rec, 'screen recordings')} />:</p>
+  <ul>
+    <li>Start logged out, and capture the entire login flow to logged in.</li>
+    <li>Capture the complete authorization flow: the person granting the permission.</li>
+    <li>Then show the app using the data that permission gives.</li>
+    <li>Record at 1080p or better, with the app UI in English.</li>
+    <li>No audio; reviewers don't listen. Use captions and tooltips to explain what's on screen.</li>
+    <li>Record only the app, and make the mouse cursor bigger.</li>
+  </ul>
+  <h3>What we did, film by film</h3>
+  <ul>
+    <li><strong>One upload for each permission.</strong> We made 26 films, one for every permission except <code>public_profile</code>, which needs only the usage agreement. Some films share their middle when two permissions do the same job, but each opens on its own title card naming its permission.</li>
+    <li><strong>Every film starts signed out.</strong> We recorded our own sign-in once (signed out, the login form, the dashboard) and put it at the start of every film.</li>
+    <li><strong>Every film shows the consent.</strong> We recorded one full consent pass for each login (Facebook, Instagram through a Page, Instagram Login, Threads) and put the right one in front of each film that lacked it.</li>
+    <li><strong>Get a fresh consent screen.</strong> Meta skips the full permission list for someone who has already granted the app. Remove the app from the test account first (Facebook: Business integrations; Instagram: Apps and websites; Threads: Website permissions), then film the connect.</li>
+    <li><strong>End on Meta's side.</strong> Each film ends with the result on facebook.com, instagram.com or threads.com: the post, the reply, the hidden comment, the message.</li>
+    <li><strong>Captions in a band under the app</strong>, never over it, short enough to read. Waits for a person's comment are cut and captioned; slow network steps are sped up and labelled as sped up.</li>
+    <li><strong>Nothing staged.</strong> Every action ran on production against our own Page and accounts. Then we deleted the test posts everywhere.</li>
+  </ul>
+
+  <h2 id="audit">Six things that would have got us rejected</h2>
+  <p>Before pressing Submit, we read the guidance inside each of the 27 permission dialogs in Meta's dashboard and checked our submission against it. It found six problems, on 14 October 2026, the day we submitted:</p>
+  <ol>
+    <li><strong>No film showed signing in.</strong> Every film started already signed in. Fixed with the sign-in clip at the start of every film.</li>
+    <li><strong>Some films showed the feature but not the grant.</strong> Seven films lacked the login button and consent. Fixed with a consent pass in front of each.</li>
+    <li><strong>Unsent Instagram messages.</strong> The guidance for <code>instagram_manage_messages</code> asks how the inbox handles a message the sender unsends. Siar dropped those events, so an unsent DM stayed in the inbox. We changed the product to show "Message unsent", and filmed it.</li>
+    <li><strong>An auto-reply for Instagram comments.</strong> The guidance for <code>instagram_business_manage_comments</code> asks for a post link with an automation already set up, a keyword to comment, and a reply within 30 seconds. Our description said replies were manual. We set up a keyword reply on one of our posts and filmed a comment getting its reply.</li>
+    <li><strong>A real tester for Messenger.</strong> For <code>pages_messaging</code>, Meta asks for the login of a real Facebook account with the Tester role, not a test user created in App Roles. We gave a low-privilege account with that role, never an admin's.</li>
+    <li><strong><code>business_management</code> as a dependency.</strong> Its guidance asks you to state that it's needed for <code>pages_show_list</code> and the messaging permissions, and to tell the Page admin in your app that they are granting access to business assets. We added the sentence and a notice to Siar's Facebook connect step.</li>
+  </ol>
+  <p>We also added a section to the privacy policy on data from Facebook, Instagram and Threads: what Siar receives, what it's used for, how long it's kept and how to delete it.</p>
+  <p>Read each permission's dialog before you film. Its guidance differs from permission to permission and asks for more than the general docs.</p>
+
+  <h2 id="rejected">Meta App Review rejected: what to do next</h2>
+  <p>Meta's page names two outcomes. If the reviewer can't get into your app, the whole submission is rejected. If they can test the app but not one permission, that permission isn't approved <Fragment set:html={src(M.review, 'App Review')} />.</p>
+  <p>What we do when a review comes back: fix the exact point the reviewer raised, and resubmit the same day. Our Meta review needed one resubmission, on 27 October 2026, and it was approved that day.</p>
+  <h3>Causes developers report most often</h3>
+  <p>These come from community reports, not from Meta's policy pages. We checked our films against each one before submitting:</p>
+  <ul>
+    <li>The connected Page or username never appears on screen.</li>
+    <li>The data is used only in the back end, with nothing shown to the person.</li>
+    <li>One long video is uploaded for every permission.</li>
+    <li>The reviewer can't reproduce the flow from the instructions.</li>
+  </ul>
+
+  <h2 id="waiting">Meta App Review taking time? Leave the test setup alone</h2>
+  <p>While Meta reviewed Siar's app, we froze everything a reviewer might touch:</p>
+  <ul>
+    <li>the reviewer's login, its plan and its messaging switch;</li>
+    <li>the tester's role on the app;</li>
+    <li>the keyword auto-reply and the post it runs on;</li>
+    <li>the connected Page, Instagram account and Threads profile, on the same login method as in the films;</li>
+    <li>the final films, so a fix can be re-cut from them.</li>
+  </ul>
+  <p>A reviewer who opens your app on day 10 should find exactly what your films show. If Meta asks a question, answer in the App Review thread.</p>
+
+  <h2 id="instagram-without-review">Can you use the Instagram API without App Review?</h2>
+  <p>Yes, for your own accounts. Meta's Instagram docs say an app "only for a business I own or manage" uses Standard Access and does not need App Review, under Instagram Login or Facebook Login <Fragment set:html={src(M.ig, 'Instagram App Review')} />. Standard Access only works for people with a role on your app.</p>
+  <p>For your customers' accounts, there are two ways: pass App Review for Advanced Access yourself, or connect them through an app that already has. Siar's Meta app passed on 27 October 2026, under both Instagram logins, so your customers can connect a professional account with or without a Facebook Page.</p>
+
+  <h2 id="own-app-or-siar">Your own Meta app, or Siar's</h2>
+  <p>Every row about your own app comes from Meta's developer pages, checked 12 November 2026. The Siar column comes from Siar's approval record.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th></th><th>Your own app, Standard Access</th><th>Your own app, Advanced Access</th><th>Siar's Meta app</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Who can connect</th><td>Only people with a role on your app (<a href={M.levels} rel="noopener">access levels</a>)</td><td>Anyone</td><td>Anyone with a Facebook Page, an Instagram professional account or a Threads profile</td></tr>
+      <tr><th scope="row">App Review</th><td>Not needed (<a href={M.review} rel="noopener">App Review</a>)</td><td>Needed, permission by permission (<a href={M.levels} rel="noopener">access levels</a>)</td><td>Passed 2026-10-27, all 27 permissions</td></tr>
+      <tr><th scope="row">Business verification</th><td>Not needed for role-only apps (<a href={M.bv} rel="noopener">business verification</a>)</td><td>Required (<a href={M.levels} rel="noopener">access levels</a>)</td><td>FF DEV STUDIO verified</td></tr>
+      <tr><th scope="row">Data Use Checkup</th><td>Every year once the app is Live (<a href={M.duc} rel="noopener">Data Use Checkup</a>)</td><td>Every year</td><td>Siar's job; completed 2026-10-27</td></tr>
+      <tr><th scope="row">Permissions</th><td>Any you choose</td><td>Any Meta approves for you</td><td>The 27 Siar holds: Pages, Instagram, Threads, Messenger and Instagram DMs. No ads, no WhatsApp</td></tr>
+      <tr><th scope="row">Name on Meta's consent screen</th><td>Yours</td><td>Yours</td><td>Siar. Your name, logo and color are on the connect link before it</td></tr>
+      <tr><th scope="row">Callbacks, tokens, webhooks</th><td>You build and run them</td><td>You build and run them</td><td>Siar runs them</td></tr>
+      <tr><th scope="row">Cost</th><td>Your time</td><td>Your time, plus the review</td><td>20 free posts to try, then from $19 a month (RM39 in Malaysia), per organization. <a href="/pricing">See the pricing</a></td></tr>
+    </tbody>
+  </table></div>
+  <p>Build your own app if you need permissions Siar doesn't hold (ads, WhatsApp, anything beyond the 27), if your own name must appear on Meta's consent screen, or if you only ever post to accounts your team owns. In the last case Standard Access needs no review at all.</p>
+
+  <SiarBox items={[
+    `Each network's status, with dates: <a href="${LIVE.approvals ? '/platforms/approvals#meta' : '/platforms'}">network approvals</a>.`,
+    `Revoked or expiring connections are flagged, with a <code>social-account.updated</code> webhook: <a href="${hpw('accounts')}">how connections are checked</a>.`,
+    `If a network says no, you get its own code and message, plus the fix: <a href="${hpw('errors')}">the network's own error</a>.`,
+  ]} />
+
+  <h2 id="connect-today">Already through Meta's review: connect your customers today</h2>
+  <p>Siar's Meta app passed App Review on 27 October 2026, so your customers connect Facebook, Instagram and Threads through it.</p>
+  <p>Send a customer a connect link with your name, logo and color. They sign in to Facebook, Instagram or Threads in their own browser, choose the Page or account, grant the permissions and land back in your app. You never see their password or token, and you file nothing with Meta.</p>
+  <p>Then one REST request publishes to every account they connected. Write it once. Siar it everywhere.</p>
+  <div class="m-actions"><a class="pill ink" href={SIGNUP_URL}>Start with 20 free posts</a><a class="pill" href="/use-cases/hosted-connect-oauth">See how the connect link works</a></div>
+  <p class="small">{S.FACEBOOK.line} {S.INSTAGRAM.line} {S.THREADS.line}</p>
+
+  <h2 id="not-covered">What Siar's Meta approval doesn't cover</h2>
+  <ul>
+    <li><strong>Other networks have their own gates, and Siar is waiting at some of them.</strong> {S.TIKTOK.line} {S.YOUTUBE.line} {S.PINTEREST.line} {S.LINKEDIN.line}</li>
+    <li><strong>Facebook posts go to Pages only</strong>, not personal profiles or groups. Instagram posts go to professional (business or creator) accounts only.</li>
+    <li><strong>The connect page is Siar's.</strong> It shows your name, logo and color, but says "Powered by Siar", runs on app.siaran.my and is in English.</li>
+    <li><strong>One account per network per brand.</strong> A client with two Facebook Pages uses two brands.</li>
+    <li><strong>DMs are a beta.</strong> {DM_LINE}</li>
+  </ul>
+  <p><a href={approvals}>Each network's status, with dates</a>.</p>
+
+  <h2 id="price">One price for your organization, not for each account</h2>
+  <p>No per-account fees. A post sent to every connected network counts as one post. Start with 20 free posts to try, no card, then from $19 a month (RM39 in Malaysia). Your price never goes up while you stay subscribed. <a href="/pricing">See the pricing</a>.</p>
+  <p class="small muted">FF DEV STUDIO (SSM 202603234793), Malaysia. Meta App Review passed on 27 October 2026.</p>
+
+  <p class="small">Related: <a href="/facebook-api">Facebook Page posting API</a> · <a href="/instagram-api">Instagram posting API</a> · <a href="/threads-api">Threads posting API</a> · <a href="/instagram-api/errors">Instagram API error codes</a> · <a href="/platforms">Each network's status</a>{LIVE.approvals && <> · <a href="/platforms/approvals">Social media API approval by platform</a></>} · <a href="/docs/quickstart">Read the quickstart</a></p>
+</Article>
+<style>
+  details { margin: 16px 0; }
+  details summary { cursor: pointer; font-weight: 500; }
+  th[scope='row'] { background: var(--bg-subtle); }
+</style>

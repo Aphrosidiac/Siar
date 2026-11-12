@@ -1,0 +1,75 @@
+---
+/**
+ * /pinterest-api/access (keyword map C103, W1). Pinterest facts: developers.pinterest.com access tiers and
+ * connect-app pages, checked 2026-11-12. Siar facts: docs/approvals/pinterest.md; pinterest.ts line 42.
+ */
+import Article from '../../layouts/Article.astro';
+import SiarBox from '../../components/network/SiarBox.astro';
+import StatusLine from '../../components/network/StatusLine.astro';
+import NetFacts from '../../components/network/NetFacts.astro';
+import { CHECKED, LIVE } from '../../components/network/data';
+
+const TIERS = 'https://developers.pinterest.com/docs/key-concepts/access-tiers/';
+const CONNECT = 'https://developers.pinterest.com/docs/getting-started/connect-app/';
+const hpw = (a: string) => (LIVE.howPublishing ? `/how-publishing-works#${a}` : '/docs/errors');
+const faq = [
+  { q: 'What is the difference between Pinterest API Trial and Standard access?', a: 'Trial access is reviewed when you register the app and lets you build and test: Pins and boards it creates are sandbox entities that only their creator can see, and calls are rate-limited per app per day. Standard access is for a live integration: public Pins, with rate limits per minute, per user and per app.' },
+  { q: 'How do I get Pinterest API Standard access?', a: 'Get Trial access first, build the integration, then use "Upgrade" on the app card in the developer portal. Pinterest asks for a demo video of the OAuth flow and the live integration, even when a single person will use the app.' },
+  { q: 'Can Siar publish Pins today?', a: "Not yet. Pinterest: connect your account today; publishing Pins opens after Pinterest grants Standard access. Siar's Pinterest app has Trial access, approved on 21 October 2026, so connecting an account and reading boards work; creating public Pins waits for Standard access." },
+  { q: 'Why does the Pinterest API refuse to create my Pin with a 403?', a: 'Two common reasons: the app has Trial access, which cannot create public Pins, or the user did not grant a scope such as <code>boards:write</code>. The <a href="/pinterest-api/errors">Pinterest API error codes</a> page has both entries, with the fix.' },
+];
+---
+<Article
+  metaTitle="Pinterest API Trial vs Standard access: a guide"
+  h1="Pinterest API access: Trial, Standard, and what each allows"
+  description="Pinterest API Trial access makes sandbox Pins; public Pins need Standard access and a demo video. The tiers, limits, scopes, and where Siar's request stands."
+  kicker="Pinterest API"
+  updated={CHECKED}
+  crumbs={[{ name: 'Platforms', href: '/platforms' }, { name: 'Pinterest API', href: '/pinterest-api' }, { name: 'Access', href: '/pinterest-api/access' }]}
+  lead={'Pinterest\'s API has two access tiers. Trial access lets an app connect accounts and test, but its Pins are sandbox entities that only their creator sees. Public Pins need Standard access, which asks for a demo video of a live integration. Siar, a <a href="/">unified social media API</a>, has Trial access today.'}
+  faq={faq}
+  actions="quickstart"
+>
+  <StatusLine type="PINTEREST" slug="pinterest" />
+
+  <h2 id="tiers">Trial and Standard access</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th></th><th>Trial access</th><th>Standard access</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">How you get it</th><td>Reviewed when you register the app</td><td>After Trial, with "Upgrade" on the app card</td></tr>
+      <tr><th scope="row">What Pinterest asks for</th><td>An app description and redirect URL</td><td>A demo video of the OAuth flow and the live integration</td></tr>
+      <tr><th scope="row">Pins and boards</th><td>Sandbox entities, visible to their creator</td><td>Public</td></tr>
+      <tr><th scope="row">Rate limits</th><td>Per app, per day</td><td>Per minute, per user and per app</td></tr>
+    </tbody>
+  </table></div>
+  <NetFacts facts={[
+    { text: 'Trial access: "all Pins and Boards created with Trial access are only visible to their creator as Sandbox entities", rate-limited per app per day. Standard access needs Trial first, then a demo video of the OAuth flow and the live integration, required even for a sole user.', url: TIERS, source: 'Pinterest, access tiers' },
+    { text: 'Trial access is reviewed at registration and includes a sandbox for test calls; test tokens expire after 24 hours.', url: CONNECT, source: 'Pinterest, connect your app' },
+  ]} />
+
+  <h2 id="standard">How to apply for Standard access</h2>
+  <ol>
+    <li>Build the integration on Trial access: OAuth, board list, Pin creation in the sandbox.</li>
+    <li>Record the demo by hand: connect Pinterest, list the boards, create a Pin with an image, a title and a link, show it on the board, then show analytics if you use them.</li>
+    <li>Open the app in the developer portal and use "Upgrade access" on its card, with the video.</li>
+  </ol>
+  <p class="small">The demo steps are Siar's plan from its own records (<code>boards:read</code>, <code>boards:write</code>, <code>pins:read</code>, <code>pins:write</code>, <code>user_accounts:read</code>); Pinterest's requirement is the video of the OAuth flow and live integration.</p>
+
+  <h2 id="siar-record">Siar's Pinterest access, dated</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Date</th><th>What happened</th></tr></thead>
+    <tbody>
+      <tr><td>2026-10-21</td><td>Pinterest approved Siar's Trial access.</td></tr>
+      <tr><td>2026-11-12</td><td>Keys live on Siar's production servers: connecting an account and reading boards work. Standard access needs a demo film recorded by hand; it has not been filed yet.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Until then, a Pin request through Siar stops with "The Pinterest app only has Trial access, so it cannot create public pins yet."</p>
+
+  <SiarBox items={[
+    'Connect a Pinterest account and read its boards through Siar today.',
+    `If Pinterest says no, you get its own code and message, plus the fix: <a href="${hpw('errors')}">the network's own error</a>.`,
+    `Publishing Pins opens after Pinterest grants Standard access: <a href="${LIVE.approvals ? '/platforms/approvals#pinterest' : '/platforms'}">Pinterest approval record</a>.`,
+  ]} />
+  <p class="small">Related: <a href="/pinterest-api">Pinterest API for posting Pins</a> · <a href="/pinterest-api/errors#code-403-trial">Pinterest 403 Trial access error</a> · <a href="/platforms">Network status</a>{LIVE.approvals && <> · <a href="/platforms/approvals">Social media API approval by platform</a></>}</p>
+</Article>
+<style>th[scope='row'] { background: var(--bg-subtle); }</style>

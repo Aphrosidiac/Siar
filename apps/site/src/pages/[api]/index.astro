@@ -1,110 +1,209 @@
 ---
+/**
+ * The 15 network hubs (strike-plan.md §5.4). Status first, from lib/status.ts only. Open networks get a
+ * labelled Siar request and response; networks that are not open get guide framing with no posting claim.
+ */
 import Base from '../../layouts/Base.astro';
 import PageHero from '../../components/PageHero.astro';
 import NetIcon from '../../components/NetIcon.astro';
 import NetworkFacts from '../../components/NetworkFacts.astro';
 import SchemaFields from '../../components/SchemaFields.astro';
-import CodeBlock from '../../components/CodeBlock.astro';
 import Faq from '../../components/Faq.astro';
 import Cta from '../../components/Cta.astro';
-import { NETWORKS, type NetworkInfo } from '../../lib/networks';
-import { toFields, example, tagMeta, opLink } from '../../lib/openapi';
+import PostExample from '../../components/network/PostExample.astro';
+import NetFacts from '../../components/network/NetFacts.astro';
+import { NETWORKS, type NetworkInfo, type NetworkType } from '../../lib/networks';
+import { toFields, opLink } from '../../lib/openapi';
 import { CAP_COLUMNS, fmtInt, fmtMicro, X_PRICES, X_PRICE_LABELS, X_CREDIT_NOTE } from '../../lib/plans';
-import { API_BASE } from '../../config';
-import { faqLd, breadcrumbLd } from '../../lib/seo';
+import { NETWORK_STATUS, STATUS_CHECKED, TOOLING_LINE, OPEN_LIST, isOpen } from '../../lib/status';
+import { SIGNUP_URL } from '../../config';
+import { breadcrumbLd } from '../../lib/seo';
+import {
+  APPROVAL, EXAMPLE_OK, HIDE_CAPS, HUB_DESCRIPTION, HUB_TITLE, LIVE, NATIVE_HOWTO, NET_LIMITS, SCOPES_SHOWN, TOPICS, USE_CASE_LINKS, CHECKED_HUMAN, humanDate,
+} from '../../components/network/data';
 
 export function getStaticPaths() {
   return NETWORKS.map((n) => ({ params: { api: n.apiSlug }, props: { n } }));
 }
 const { n } = Astro.props as { n: NetworkInfo };
+const t = n.type as NetworkType;
+const st = NETWORK_STATUS[t];
 const caps = n.adapter.capabilities;
-const type0 = n.postTypes[0];
-const dataBody = n.fields ? example(n.fields) : { text: 'Hello from Siar' };
-const body = {
-  teamId: 'TEAM_ID',
-  title: `${n.name} post`,
-  postDate: '2026-11-02T09:00:00.000Z',
-  status: 'SCHEDULED',
-  socialAccountTypes: [n.type],
-  data: { [n.type]: n.fields?.properties?.type ? { type: type0, ...(dataBody as object) } : dataBody },
+const example = EXAMPLE_OK(t);
+const usable = isOpen(t);
+const meta = ['FACEBOOK', 'INSTAGRAM', 'THREADS'].includes(t);
+
+/** Example payloads, open networks only; field names from packages/contract/openapi.json. */
+const EXAMPLE: Partial<Record<NetworkType, Record<string, unknown>>> = {
+  INSTAGRAM: { type: 'REEL', text: 'Behind the scenes of the new collection.', uploadIds: ['UPLOAD_ID'], shareToFeed: true },
+  FACEBOOK: { type: 'POST', text: 'Our autumn opening hours start on Monday.', link: 'https://example.com/hours' },
+  THREADS: { text: 'What should we build next? Reply with one idea.', replyControl: 'everyone' },
+  TWITTER: { text: 'Version 2.4 is out: bulk exports and a new calendar view.' },
+  LINKEDIN: { text: 'We shipped version 2.4 today. Here is what changed and why.', uploadIds: ['UPLOAD_ID'], privacy: 'PUBLIC' },
+  BLUESKY: { text: 'Version 2.4 is out.', externalUrl: 'https://example.com/changelog', tags: ['release'] },
+  MASTODON: { text: 'Version 2.4 is out. Changelog in the thread.', privacy: 'PUBLIC' },
+  DISCORD: { channelId: 'CHANNEL_ID', text: 'Version 2.4 is out. Read the changelog: https://example.com/changelog', username: 'Release bot' },
+  SLACK: { channelId: 'CHANNEL_ID', text: 'Version 2.4 is out. Changelog: https://example.com/changelog', username: 'Release bot' },
 };
-const curlSample = `curl -X POST "${API_BASE}/post" \\\n  -H "x-api-key: $SIAR_API_KEY" \\\n  -H "content-type: application/json" \\\n  -d '${JSON.stringify(body, null, 2).replace(/\n/g, '\n  ')}'`;
+const EXAMPLE_NOTE: Partial<Record<NetworkType, string>> = {
+  INSTAGRAM: 'Set <code>type</code> to <code>POST</code>, <code>REEL</code> or <code>STORY</code>; a feed post with several <code>uploadIds</code> becomes a carousel.',
+  FACEBOOK: 'Set <code>type</code> to <code>POST</code>, <code>REEL</code> or <code>STORY</code>. A <code>link</code> makes a link post on the Page.',
+  THREADS: 'Text, images, video and carousels go through the same payload; Siar creates Threads\' media container and publishes it when it is ready.',
+  TWITTER: 'Add <code>thread</code> for a thread, <code>poll</code> for a poll, or <code>quoteTweetId</code> to quote. Each X call is paid from your prepaid X credit.',
+  LINKEDIN: 'The post goes to the connected member\'s own profile. <code>text</code> is required, even with media.',
+  BLUESKY: 'Siar builds the link card, facets for links and tags, and the image blobs for you.',
+  MASTODON: 'Use <code>privacy</code> for visibility and <code>spoiler</code> for a content warning. The account\'s server is the one it connected from.',
+  DISCORD: '<code>channelId</code> is required. <code>username</code> and <code>avatarUrl</code> set the bot\'s name and picture for this brand.',
+  SLACK: '<code>channelId</code> is required, and the Siar app must be in the channel. <code>username</code> sets the bot name.',
+};
+const verb: Partial<Record<NetworkType, string>> = {
+  INSTAGRAM: 'publishes feed posts, carousels, reels and stories to Instagram professional accounts',
+  FACEBOOK: 'publishes and schedules posts, reels and stories on Facebook Pages',
+  THREADS: 'publishes text, image, video and carousel posts to Threads',
+  TWITTER: 'publishes posts, threads, polls and replies to X',
+  LINKEDIN: 'publishes posts to LinkedIn member profiles',
+  BLUESKY: 'publishes and schedules Bluesky posts with images, video and link cards',
+  MASTODON: 'publishes statuses to Mastodon accounts on any server',
+  DISCORD: 'sends and schedules messages to Discord channels from a bot with a name and avatar per brand',
+  SLACK: 'sends and schedules messages to Slack channels with files and a custom bot name',
+};
+/** Answer-first leads for the networks that are not open (guide framing). */
+const GUIDE_LEAD: Partial<Record<NetworkType, string>> = {
+  YOUTUBE: "YouTube uploads go through the YouTube Data API's <code>videos.insert</code>, limited by a daily project quota. Since 2 November 2026, uploads from unaudited projects are no longer forced to private. Siar, a <a href=\"/\">unified social media API</a>, can connect a channel and upload today; a public upload through Siar is not yet confirmed.",
+  TIKTOK: "TikTok's Content Posting API posts videos and photos to a creator's account, but only after TikTok audits the app; until then, posts are private. Siar, a <a href=\"/\">unified social media API</a>, has built its TikTok integration and is waiting on that audit, so this page is a guide to TikTok's API.",
+  PINTEREST: "Pinterest's API creates Pins on a board, but public Pins need Standard access; Trial access only makes sandbox Pins. Siar, a <a href=\"/\">unified social media API</a>, has Trial access: you can connect an account and read boards today, and publishing opens after Pinterest grants Standard access.",
+  REDDIT: "Reddit's API submits text, link and media posts to a subreddit, subject to that subreddit's rules and flairs. Siar, a <a href=\"/\">unified social media API</a>, has built a Reddit integration that is not open yet. This page is a reference from that integration.",
+  SNAPCHAT: "Snap's Public Profile API is allowlist-only: an app reaches it through a Snap partner contact. Siar, a <a href=\"/\">unified social media API</a>, has built a Snapchat integration that is not open yet. This page is a reference to Snap's API and its error codes.",
+  GOOGLE_BUSINESS: "Google Business Profile's APIs post updates, offers and events to a location, after Google approves the project's API access. Siar, a <a href=\"/\">unified social media API</a>, has built an integration that is not open yet. This page is a reference to Google's API.",
+};
+
+const lead = example
+  ? `${st.line} Siar, a <a href="/">unified social media API</a>, ${verb[t]} with one REST request: list <code>${t}</code> in <code>socialAccountTypes</code> and put the ${n.name} payload under <code>data.${t}</code>. Add other networks to the same request to post to all of them at once.`
+  : `${st.line} ${GUIDE_LEAD[t] ?? ''}`;
+
 const fields = n.fields ? toFields(n.fields) : [];
 const connectNote = {
-  oauth2: 'Siar sends the user to the network\'s consent page and stores the tokens it gets back, refreshing them before they expire.',
+  oauth2: "Siar sends the user to the network's consent page and stores the tokens it gets back, refreshing them before they expire.",
   oauth1: 'Siar signs the OAuth 1.0a handshake and stores the token and secret.',
-  'app-password': 'The user enters their handle and an app password; Siar stores it encrypted. Nothing about their main password is ever requested.',
+  'app-password': 'The user enters their handle and an app password; Siar stores it encrypted. Their main password is never requested.',
   bot: 'The user installs the Siar bot into their server; no personal token is involved.',
 }[caps.connect];
-const comments = caps.comments ? `Siar can create comments and replies up to ${fmtInt(n.adapter.limits.commentMax ?? 0)} characters${caps.commentImport ? ', and import the comments people leave on your posts' : ''}.` : `${n.name} does not expose comments through its API, so comment features are not available for ${n.name} accounts.`;
-const faq = [
-  { q: `What can I post to ${n.name} through the API?`, a: `${n.postTypes.map((t) => t.toLowerCase().replace(/_/g, ' ')).join(', ')}. ${n.about}` },
-  { q: `How many ${n.name} posts can I publish per day?`, a: `Per connected account and UTC day: ${CAP_COLUMNS.map((c, i) => `${fmtInt(n.dailyPosts[i])} on ${c.label}`).join(', ')}. The caps keep the account within what ${n.name} tolerates.` },
-  { q: `Can I schedule ${n.name} posts?`, a: `Yes. Set <code>postDate</code> in the future and a status of <code>SCHEDULED</code>. Siar publishes at that time and sends a <code>post.published</code> webhook when the post reaches a final state.` },
-  { q: `How do I connect a ${n.name} account?`, a: `${n.account} ${connectNote}` },
-  { q: `What do I do when ${n.name} rejects a post?`, a: `The post carries ${n.name}'s own code and message. The <a href="/${n.apiSlug}/errors">${n.name} error reference</a> explains ${n.errors.length ? `${n.errors.length} common rejections` : 'how errors are reported'} and how to fix them.` },
-];
-const capRows: [string, boolean][] = n.capabilityList.map((c) => [c.label, c.value]);
+const hide = new Set(HIDE_CAPS[t] ?? []);
+const capRows: [string, boolean][] = n.capabilityList.filter((c) => !hide.has(c.label)).map((c) => [c.label, c.value]);
+const showComments = usable && !hide.has('Comments and replies');
+const comments = caps.comments
+  ? `Siar can create comments and replies up to ${fmtInt(n.adapter.limits.commentMax ?? 0)} characters${caps.commentImport ? ', and import the comments people leave on your posts' : ''}.`
+  : `${n.name} does not expose comments through its API, so comment features are not available for ${n.name} accounts.`;
+const scopeGroups = SCOPES_SHOWN[t] ?? (t === 'TIKTOK' ? n.adapter.scopeGroups?.slice(0, 1) : n.adapter.scopeGroups) ?? [];
+const native = NATIVE_HOWTO[t];
+const topics = TOPICS[t] ?? [];
+const errorsAnchor = `${n.name} API error codes and how to fix them`;
+const an = /^[AEIOU]/.test(n.name) ? 'an' : 'a';
+
+const faq = usable
+  ? [
+      { q: `What can I post to ${n.name} through the API?`, a: `${n.postTypes.map((p) => p.toLowerCase().replace(/_/g, ' ')).join(', ')}. ${t === 'YOUTUBE' ? st.today : n.about}` },
+      { q: `How many ${n.name} posts can I publish per day?`, a: `Siar caps posts per connected account and UTC day: ${CAP_COLUMNS.map((c, i) => `${fmtInt(n.dailyPosts[i])} on ${c.label}`).join(', ')}. ${NET_LIMITS[t] ? `${n.name}'s own limits also apply; they are on this page with their source.` : ''}` },
+      { q: `Can I schedule ${n.name} posts?`, a: `Yes. Set <code>postDate</code> in the future and a status of <code>SCHEDULED</code>. Siar publishes at that time and sends a signed <code>post.published</code> webhook when the post reaches a final state.` },
+      { q: `How do I connect ${an} ${n.name} account?`, a: `${n.account} ${connectNote}` },
+      { q: `What happens when ${n.name} rejects a post?`, a: `The post keeps ${n.name}'s own code and message, with a fix. The <a href="/${n.apiSlug}/errors">${errorsAnchor}</a> page explains ${n.errors.length ? `${n.errors.length} common rejections` : 'each HTTP status'} and what to do.` },
+      ...(t === 'LINKEDIN' ? [{ q: 'Can Siar post to LinkedIn company pages?', a: 'Not today. Siar posts to LinkedIn personal profiles: text, images, video, documents and links. Company pages need LinkedIn\'s Community Management API, and LinkedIn has not granted Siar page access. Company pages open after LinkedIn grants it.' }] : []),
+      ...(t === 'YOUTUBE' ? [{ q: 'Are YouTube API uploads still forced to private?', a: "No, not since 2 November 2026. Google's revision history says videos uploaded through <code>videos.insert</code> from unverified API projects are no longer restricted to private, and default to public when no privacy is set. Siar has not yet confirmed a public upload in production." }] : []),
+    ]
+  : [
+      { q: `Can I post to ${n.name} through Siar today?`, a: `No. ${st.line} ${st.why ?? ''}`.trim() },
+      { q: `What can I do with ${n.name} in Siar today?`, a: st.today },
+      { q: `What does ${n.name}'s API need before an app can post?`, a: native ? native.steps.join(' ') : `${n.account}` },
+      { q: `What happens when ${n.name} rejects a request?`, a: `Siar's integration keeps ${n.name}'s own code and message. The <a href="/${n.apiSlug}/errors">${errorsAnchor}</a> page explains ${n.errors.length} codes, each with its fix.` },
+    ];
+const crumbs = [{ name: 'Platforms', href: '/platforms' }, { name: `${n.name} API`, href: `/${n.apiSlug}` }];
 ---
-<Base title={`${n.name} API: post, schedule and analyze`} description={`Publish and schedule ${n.name} posts through one REST API. ${n.postTypes.length} post type${n.postTypes.length > 1 ? 's' : ''}, limits, scopes, daily caps and a full error reference.`} jsonLd={[faqLd(faq), breadcrumbLd([{ name: 'Platforms', href: '/platforms' }, { name: `${n.name} API`, href: `/${n.apiSlug}` }])]}>
-  <PageHero kicker="Networks" note={n.name} title={`${n.name} API`} dim="through Siar." lead={n.about}>
-    <div class="m-actions"><NetIcon type={n.type} size={48} /><a class="pill ink" href="/docs/quickstart">Quickstart <span class="arr" aria-hidden="true">→</span></a><a class="pill" href={`/${n.apiSlug}/errors`}>{n.name} errors</a></div>
+<Base title={HUB_TITLE[t]} description={HUB_DESCRIPTION[t]} jsonLd={[breadcrumbLd(crumbs)]}>
+  <PageHero kicker="Networks" title={HUB_TITLE[t]} lead={lead}>
+    <div class="m-actions">
+      <NetIcon type={n.type} size={48} />
+      {example
+        ? <><a class="pill ink" href={SIGNUP_URL}>Get an API key</a><a class="pill" href="/docs/quickstart">Read the quickstart</a></>
+        : <><a class="pill ink" href={LIVE.approvals ? `/platforms/approvals#${n.slug}` : '/platforms'}>See {n.name}'s approval status</a><a class="pill" href={`/${n.apiSlug}/errors`}>{n.name} API error codes</a></>}
+    </div>
   </PageHero>
   <section class="section tight">
     <div class="container body">
-      <h2>At a glance</h2>
-      <p><strong>Account needed:</strong> {n.account}</p>
-      <NetworkFacts n={n} />
+      <p class="small muted">Status checked {humanDate(STATUS_CHECKED)} against Siar's approval records. <a href="/platforms">Each network's status</a>{LIVE.approvals && <>, and <a href={`/platforms/approvals#${n.slug}`}>{n.name}'s approval record</a></>}.</p>
 
-      <h2 id="capabilities">What Siar can do on {n.name}</h2>
-      <div class="table-wrap"><table>
-        <tbody>{capRows.map(([k, v]) => <tr><th scope="row">{k}</th><td><span class={v ? 'yes' : 'no'}>{v ? 'Yes' : 'No'}</span></td></tr>)}</tbody>
-      </table></div>
-      <p>{comments}</p>
-
-      <h2 id="post">Publish a post</h2>
-      <p>Put {n.name}'s payload under <code>data.{n.type}</code> and list <code>{n.type}</code> in <code>socialAccountTypes</code>. Add other networks to the same request to post to all of them at once.</p>
-      <CodeBlock code={curlSample} lang="bash" />
-      {fields.length > 0 && (
+      <h2 id="post">How to post to {n.name} via API</h2>
+      {example ? (
         <>
-          <h3>{n.name} fields</h3>
-          <SchemaFields fields={fields} open />
+          <p>Send <code>POST /post</code> with your API key in <code>x-api-key</code>. <span set:html={EXAMPLE_NOTE[t] ?? ''} /> A request that breaks one of {n.name}'s rules gets a <code>400</code> with an <code>issues</code> entry before anything is sent.</p>
+          <PostExample type={t} data={EXAMPLE[t] ?? { text: 'Hello from Siar' }} title={`${n.name} post`} />
+          <p>The post is stored as <code>SCHEDULED</code>. At <code>postDate</code> Siar publishes it, and a signed <code>post.published</code> webhook reports the result when the post reaches a final state. Read it any time with <code>GET /post/&lbrace;id&rbrace;</code>.</p>
+          {fields.length > 0 && (<><h3>{n.name} fields</h3><SchemaFields fields={fields} open /></>)}
         </>
-      )}
-
-      <h2 id="limits">Daily caps</h2>
-      <div class="table-wrap"><table>
-        <thead><tr><th>Per connected account, per UTC day</th>{CAP_COLUMNS.map((c) => <th class="num">{c.label}</th>)}</tr></thead>
-        <tbody>
-          <tr><td>Posts</td>{n.dailyPosts.map((v) => <td class="num">{fmtInt(v)}</td>)}</tr>
-          <tr><td>Comments</td>{n.dailyComments.map((v) => <td class="num">{fmtInt(v)}</td>)}</tr>
-        </tbody>
-      </table></div>
-      <p class="small">See <a href="/pricing">pricing</a> for monthly quotas. Enterprise uses the Business caps unless agreed otherwise.</p>
-
-      <h2 id="connect">Connecting {/^[AEIOU]/.test(n.name) ? 'an' : 'a'} {n.name} account</h2>
-      <p>{connectNote} Use <code>POST /social-account/connect</code> from your own UI, or send your customer a hosted link from <code>POST /social-account/create-portal-link</code>; see <a href="/docs/connecting-accounts">connecting accounts</a>.</p>
-      {n.adapter.scopes.length > 0 && (
+      ) : (
         <>
-          <h3>Permissions requested</h3>
-          {n.adapter.scopeGroups?.length ? n.adapter.scopeGroups.map((g) => (
+          {native ? (
             <>
-              <p class="small">{g.label}: Siar requests only these scopes.</p>
-              <ul class="scopes">{g.scopes.map((s) => <li><code>{s}</code></li>)}</ul>
+              <p>With {n.name}'s own API, a post takes these steps:</p>
+              <ol>{native.steps.map((s) => <li set:html={s} />)}</ol>
+              <p class="small muted">Source: <a href={native.url} rel="noopener">{native.source}</a>, checked {CHECKED_HUMAN}.</p>
             </>
-          )) : (
-            <>
-              <p class="small">Siar requests only these scopes at connect time:</p>
-              <ul class="scopes">{n.adapter.scopes.map((s) => <li><code>{s}</code></li>)}</ul>
-            </>
+          ) : (
+            <p>Reddit's own API pages could not be read when this page was checked, so this page does not restate Reddit's rules. From Siar's built integration: {n.account} {n.about}</p>
           )}
+          <h3>Where Siar stands</h3>
+          <p>{APPROVAL[t] ? `${APPROVAL[t]} ` : ''}{st.line} {st.why ?? ''}</p>
+          <p><strong>What you can do in Siar today:</strong> {st.today}</p>
         </>
       )}
 
-      {n.type === 'TWITTER' && (
+      {usable && (
+        <>
+          <h2 id="capabilities">What Siar can do on {n.name}</h2>
+          <div class="table-wrap"><table>
+            <tbody>{capRows.map(([k, v]) => <tr><th scope="row">{k}</th><td><span class={v ? 'yes' : 'no'}>{v ? 'Yes' : 'No'}</span></td></tr>)}</tbody>
+          </table></div>
+          {showComments && <p>{comments}</p>}
+        </>
+      )}
+
+      <h2 id="limits">{n.name} API limits</h2>
+      {NET_LIMITS[t] ? <NetFacts facts={NET_LIMITS[t]} /> : <p>{n.name} does not publish one rate-limit figure for this kind of posting that could be checked for this page.</p>}
+      {usable && (
+        <>
+          <h3>Siar's daily caps</h3>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Per connected account, per UTC day</th>{CAP_COLUMNS.map((c) => <th class="num">{c.label}</th>)}</tr></thead>
+            <tbody>
+              <tr><td>Posts</td>{n.dailyPosts.map((v) => <td class="num">{fmtInt(v)}</td>)}</tr>
+              {showComments && <tr><td>Comments</td>{n.dailyComments.map((v) => <td class="num">{fmtInt(v)}</td>)}</tr>}
+            </tbody>
+          </table></div>
+          <p class="small">Monthly post quotas are on <a href="/pricing">pricing</a>. Enterprise uses the Business caps unless agreed otherwise.</p>
+        </>
+      )}
+      <h3>{usable ? 'Text and media rules Siar checks before sending' : `Text and media rules in Siar's ${n.name} integration`}</h3>
+      <NetworkFacts n={n} comments={showComments} />
+
+      <h2 id="scopes">{n.name} API scopes</h2>
+      <p>{connectNote} {usable ? <>Use <code>POST /social-account/connect</code> from your own UI, or send your customer a hosted link from <code>POST /social-account/create-portal-link</code>; see <a href="/docs/connecting-accounts">connecting accounts</a>.</> : `This is how Siar's ${n.name} integration connects; it is not open yet.`}</p>
+      {scopeGroups.length ? scopeGroups.map((g) => (
+        <>
+          <p class="small">{g.label}: {usable ? 'Siar requests only these scopes.' : 'the scopes the integration asks for.'}</p>
+          <ul class="scopes">{g.scopes.map((s) => <li><code>{s}</code></li>)}</ul>
+        </>
+      )) : n.adapter.scopes.length > 0 && (
+        <>
+          <p class="small">{usable ? 'Siar requests only these scopes at connect time:' : 'The scopes the integration asks for:'}</p>
+          <ul class="scopes">{n.adapter.scopes.map((s) => <li><code>{s}</code></li>)}</ul>
+        </>
+      )}
+      {usable && APPROVAL[t] && <p>{APPROVAL[t]}{meta && <> Your customers connect through Siar's app, so they file nothing with Meta: <a href="/facebook-api/meta-app-review">Meta App Review: our dates and lessons</a>.</>}</p>}
+      {t === 'LINKEDIN' && <p>Company pages need LinkedIn's Community Management API and the organization scopes that come with it. <a href="/linkedin-api/community-management-api">LinkedIn Community Management API access</a> explains the tiers and where Siar's request stands.</p>}
+
+      {t === 'TWITTER' && (
         <>
           <h2 id="x-credit">X pricing</h2>
-          <p>X bills each API call, so these actions are paid from a prepaid credit balance at X's price in USD with no markup. {X_CREDIT_NOTE} Everything not listed is free.</p>
+          <p>X bills each API call, so these actions are paid from a prepaid credit balance at X's own USD prices. {X_CREDIT_NOTE} Everything not listed is free.</p>
           <div class="table-wrap"><table>
             <thead><tr><th>Action</th><th>Billed</th><th class="num">USD</th></tr></thead>
             <tbody>{(Object.keys(X_PRICES) as (keyof typeof X_PRICES)[]).map((k) => <tr><td>{X_PRICE_LABELS[k].label}</td><td>{X_PRICE_LABELS[k].unit}</td><td class="num">{fmtMicro(X_PRICES[k])}</td></tr>)}</tbody>
@@ -112,7 +211,7 @@ const capRows: [string, boolean][] = n.capabilityList.map((c) => [c.label, c.val
         </>
       )}
 
-      {n.miscOps.length > 0 && (
+      {usable && n.miscOps.length > 0 && (
         <>
           <h2 id="operations">{n.name}-specific operations</h2>
           <p>These exist for {n.name} only and live under <code>/misc/{n.misc}</code>.</p>
@@ -123,23 +222,36 @@ const capRows: [string, boolean][] = n.capabilityList.map((c) => [c.label, c.val
         </>
       )}
 
-      <h2 id="errors">When {n.name} says no</h2>
-      <p>Siar relays {n.name}'s error code and message verbatim on the post, next to a status you can act on. {n.errors.length ? `The ${n.name} error reference covers ${n.errors.length} common cases with what each one means and the fix.` : ''} <a href={`/${n.apiSlug}/errors`}>Open the {n.name} error reference</a>.</p>
+      <h2 id="mcp">{n.name} MCP</h2>
+      <p>{TOOLING_LINE} The MCP server exposes the same operations as the REST API, so {usable ? `an agent can ${t === 'YOUTUBE' ? 'upload to' : 'post to'} ${n.name} through it with the same payload as above` : `its ${n.name} tools work only once ${n.name} opens in Siar`}. Because it is not on npm yet, there is no install command to copy; the <a href="/docs/sdk-cli-mcp">SDK, CLI and MCP page</a> says what exists today.</p>
+
+      <h2 id="errors">{n.name} API error codes</h2>
+      <p>{usable ? `When ${n.name} says no, Siar keeps ${n.name}'s own code and message on the post, word for word, with a plain-English fix and a retry verdict.` : `Siar's ${n.name} integration keeps ${n.name}'s own code and message, word for word.`} {n.errors.length ? `The reference covers ${n.errors.length} ${n.name} errors.` : `${n.name} reports errors by HTTP status, and the reference covers each one.`} <a href={`/${n.apiSlug}/errors`}>{errorsAnchor}</a>.</p>
+
+      {topics.length > 0 && (
+        <>
+          <h2 id="guides">{n.name} API guides</h2>
+          <ul>{topics.map((g) => <li><a href={g.href}>{g.anchor}</a>: {g.blurb}</li>)}</ul>
+        </>
+      )}
 
       <Faq items={faq} title={`${n.name} API questions`} />
     </div>
   </section>
   <section class="section tight alt">
     <div class="container">
-      <h3>Other platforms</h3>
-      <p class="small">{NETWORKS.filter((x) => x.type !== n.type).map((x, i, a) => <><a href={`/${x.apiSlug}`}>{x.name}</a>{i < a.length - 1 ? ' · ' : ''}</>)}</p>
+      {usable ? (
+        <p class="small">Building on more than {n.name}? Siar publishes to {OPEN_LIST} today. See the {USE_CASE_LINKS.map((u, i) => <>{i > 0 ? ' and the ' : ''}<a href={u.href}>{u.anchor}</a></>)}.</p>
+      ) : (
+        <p class="small">Siar publishes to {OPEN_LIST} today. <a href="/platforms">Each network's status</a>.</p>
+      )}
+      <h3>Other networks</h3>
+      <p class="small">{NETWORKS.filter((x) => x.type !== n.type).map((x, i, a) => <><a href={`/${x.apiSlug}`}>{x.name} API</a>{i < a.length - 1 ? ' · ' : ''}</>)}</p>
     </div>
   </section>
   <Cta />
 </Base>
 <style>
-  .hd { display: flex; align-items: center; gap: 16px; margin: 8px 0 12px; }
-  .hd h1 { margin: 0; }
   .body > :global(*) { max-width: 900px; }
   .body h2 { margin-top: 48px; }
   .scopes { columns: 2; column-gap: 24px; list-style: none; padding: 0; }

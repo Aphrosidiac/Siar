@@ -1,0 +1,85 @@
+---
+/**
+ * /linkedin-api/community-management-api (keyword map C91, W1). Guide, first-hand.
+ * LinkedIn facts: learn.microsoft.com pages, checked 2026-11-12 (docs/seo/research/keywords/per-network.md §1).
+ * Siar facts: docs/approvals/linkedin.md; linkedin.ts lines 38–53.
+ */
+import Article from '../../layouts/Article.astro';
+import SiarBox from '../../components/network/SiarBox.astro';
+import StatusLine from '../../components/network/StatusLine.astro';
+import NetFacts from '../../components/network/NetFacts.astro';
+import { CHECKED, LIVE } from '../../components/network/data';
+
+const CM = 'https://learn.microsoft.com/en-us/linkedin/marketing/community-management/community-management-overview';
+const SHARE = 'https://learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/share-on-linkedin';
+const hpw = (a: string) => (LIVE.howPublishing ? `/how-publishing-works#${a}` : '/docs/errors');
+const faq = [
+  { q: 'How do I post to a LinkedIn company page through the API?', a: "Your app needs LinkedIn's Community Management API, a vetted product with a Development tier and a Standard tier. With it, a page admin grants <code>w_organization_social</code>, and posts go to <code>/rest/posts</code> with the organization's URN as the author. Without it, LinkedIn answers 403 <code>ACCESS_DENIED</code>." },
+  { q: 'What is the difference between Share on LinkedIn and the Community Management API?', a: "Share on LinkedIn is self-serve and gives <code>w_member_social</code>: a member posts to their own profile. The Community Management API is vetted by LinkedIn and covers company pages: posting as the organization, its comments and its statistics. It has to be requested on a new app with no other products." },
+  { q: 'Why was my LinkedIn Community Management API access denied?', a: "LinkedIn does not always say. Siar's own Development tier request shows \"Access denied\" in the developer portal, and no email with a reason arrived. LinkedIn grants the product to registered legal entities and vets each request by hand, so check that the company, its page and the use case are consistent before you apply." },
+  { q: 'Can Siar post to LinkedIn company pages?', a: "Not today. Siar posts to LinkedIn personal profiles: text, images, video, documents and links. Company pages need LinkedIn's Community Management API, and LinkedIn has not granted Siar page access. Company pages open after LinkedIn grants it. Until then, post from a personal profile, or keep your own integration for pages." },
+];
+---
+<Article
+  metaTitle="LinkedIn Community Management API: access guide"
+  h1="LinkedIn Community Management API: how company page access works"
+  description="What posting to a LinkedIn company page through the API needs: the Community Management API, its two tiers, the access form, limits, and where Siar stands."
+  kicker="LinkedIn API"
+  updated={CHECKED}
+  crumbs={[{ name: 'Platforms', href: '/platforms' }, { name: 'LinkedIn API', href: '/linkedin-api' }, { name: 'Community Management API', href: '/linkedin-api/community-management-api' }]}
+  lead={'Posting to a LinkedIn company page through the API needs LinkedIn\'s Community Management API, which LinkedIn vets by hand in two tiers. Personal profiles need no review. Siar, a <a href="/">unified social media API</a>, posts to personal profiles today; its own request for company pages shows "Access denied", so this page is a guide from that experience.'}
+  faq={faq}
+  actions="quickstart"
+>
+  <StatusLine type="LINKEDIN" slug="linkedin" />
+
+  <h2 id="two-products">Two LinkedIn products: profiles and pages</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th></th><th>Share on LinkedIn</th><th>Community Management API</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Posts to</th><td>The member's own profile</td><td>Company pages the member administers</td></tr>
+      <tr><th scope="row">Access</th><td>Self-serve, added from the app's Products tab</td><td>Vetted by LinkedIn: a Development tier, then a Standard tier</td></tr>
+      <tr><th scope="row">Main scope</th><td><code>w_member_social</code></td><td><code>w_organization_social</code>, <code>r_organization_social</code>, <code>rw_organization_admin</code></td></tr>
+      <tr><th scope="row">Limits</th><td>150 requests per member per day, 100,000 per app per day</td><td>Development tier: 500 calls per app and 100 per member</td></tr>
+      <tr><th scope="row">Through Siar today</th><td>Open</td><td>Not open: LinkedIn has not granted Siar page access</td></tr>
+    </tbody>
+  </table></div>
+  <NetFacts facts={[
+    { text: 'Share on LinkedIn is self-serve and grants <code>w_member_social</code>, with 150 requests per member per day and 100,000 per app per day.', url: SHARE, source: 'LinkedIn, Share on LinkedIn' },
+    { text: 'The Community Management API is a vetted product with Development and Standard tiers. It must be requested on a new app with no other products, the Standard tier needs a screencast for each use case, and <code>r_member_social</code> is closed.', url: CM, source: 'LinkedIn, Community Management overview' },
+  ]} />
+
+  <h2 id="how-to-apply">How to request Community Management access</h2>
+  <ol>
+    <li><strong>Create a second app.</strong> LinkedIn takes the request on an app with no other products, so keep your sign-in and Share on LinkedIn app separate. Siar's is called "Siar Pages".</li>
+    <li><strong>Verify the company page on the app.</strong> A page admin approves the verification link from the app's Settings tab.</li>
+    <li><strong>Fill in the access form from the Products tab.</strong> It asks for the legal name, website, registered address, country, a primary use case and a description of how you use page data. Siar's form was one page, and its only button was labelled "Next" but submitted the form.</li>
+    <li><strong>Answer any vetting email</strong> about the business, which may ask for the registration certificate.</li>
+    <li><strong>After the Development tier</strong>, the Standard tier form appears under Products and needs a screencast: connect LinkedIn, pick an organization, publish a post with an image, reply to a comment on the organization's post, and show analytics.</li>
+  </ol>
+  <p class="small">Steps 1–5 are what Siar did and saw in LinkedIn's developer portal in October 2026, not a LinkedIn guarantee. LinkedIn's own rules are in the sources above.</p>
+
+  <h2 id="siar-record">Siar's request, dated</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Date</th><th>What happened</th></tr></thead>
+    <tbody>
+      <tr><td>2026-10-12</td><td>Siar's main LinkedIn app (Sign In with LinkedIn and Share on LinkedIn) goes live. Personal-profile posting works.</td></tr>
+      <tr><td>2026-10-14</td><td>"Siar Pages" created and verified by the FF DEV STUDIO page; the Development tier form submitted, with page management, page analytics and profile management as use cases.</td></tr>
+      <tr><td>By 2026-11-12</td><td>The developer portal shows "Access denied" for the Development tier. No email with a reason arrived.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2 id="errors">The errors that point here</h2>
+  <p>A call to post as an organization without this product fails with 403 <code>ACCESS_DENIED</code>, "Not enough permissions to access: partnerApiPostsExternal.CREATE". The <a href="/linkedin-api/errors#code-403-access-denied">LinkedIn API error codes</a> page has that entry and the 426 <code>NONEXISTENT_VERSION</code> fix for the <code>Linkedin-Version</code> header, which applies to profiles and pages alike.</p>
+
+  <SiarBox items={[
+    'Siar posts to LinkedIn personal profiles today and sends <code>Linkedin-Version: 202609</code> on each call.',
+    `If LinkedIn says no, you get its own code and message, plus the fix: <a href="${hpw('errors')}">the network's own error</a>.`,
+    `Company pages open after LinkedIn grants page access: <a href="${LIVE.approvals ? '/platforms/approvals#linkedin' : '/platforms'}">LinkedIn approval record</a>.`,
+  ]} />
+
+  <h2 id="choose">Keep your own LinkedIn integration, or post through Siar</h2>
+  <p>If you post to company pages and LinkedIn has granted you Community Management access, keep your own integration: Siar cannot post to pages today. If you post to member profiles alongside other networks, Siar's LinkedIn app is live, and one request also reaches Facebook, Instagram, Threads, X, Bluesky, Mastodon, Discord and Slack.</p>
+  <p class="small">Related: <a href="/linkedin-api">LinkedIn profile posting API</a> · <a href="/linkedin-api/errors">LinkedIn API error codes</a> · <a href="/platforms">Network status</a>{LIVE.approvals && <> · <a href="/platforms/approvals">Social media API approval by platform</a></>}</p>
+</Article>
+<style>th[scope='row'] { background: var(--bg-subtle); }</style>
