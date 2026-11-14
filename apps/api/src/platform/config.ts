@@ -66,6 +66,8 @@ const schema = z.object({
   BING_WEBMASTER_API_KEY: z.string().default(''),
   BING_SITE_URL: z.string().default('https://siaran.my/'),
   TRIAL_DAYS: z.coerce.number().default(14),
+  /** FF Ops pulls GET /api/internal/ff-analytics with this bearer token (docs/ANALYTICS.md §6). Empty = the endpoint is off. */
+  FF_ANALYTICS_TOKEN: z.string().default(''),
 });
 
 const env = Object.fromEntries(Object.entries(process.env).filter(([, v]) => v !== ''));

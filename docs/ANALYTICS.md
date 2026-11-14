@@ -146,3 +146,18 @@ SELECT agent, path, count(*) FROM "TrafficHit" WHERE agent LIKE '%GPT%' OR agent
 -- signups with their source
 SELECT email, "createdAt", "signupChannel", "signupLanding", "signupRefHost" FROM "User" ORDER BY "createdAt" DESC LIMIT 20;
 ```
+
+## 6. FF Analytics (FF Ops) reads Siar too
+
+FF Ops (ops.ffdev.studio → Analytics) shows every FF property side by side. For Siar it uses two things:
+
+- **Traffic:** the FF shipper on the box reads `/var/log/siar/traffic.log` with its own position (user `ff-ship`,
+  timer every 10 minutes, installed by FF Ops' `install.sh … siar <key> @/var/log/siar/traffic.log`). It changes
+  nothing here: Siar's own reader and this Metrics page keep working as before.
+- **Business numbers:** `GET https://api.siaran.my/api/internal/ff-analytics?days=30&exclude=ffdev.studio` with
+  `Authorization: Bearer <FF_ANALYTICS_TOKEN>` (`apps/api/src/domain/ff-analytics.ts`). It answers signups by
+  channel, landing page and referrer, the funnel (signed up → connected an account → published a post → trial →
+  paying), MRR and collected revenue per currency in cents, and the staff sign-in IPs. Same exclusions as §4 plus the
+  `exclude` domains. Days are Malaysia calendar days, today included. Read-only; off (404) while
+  `FF_ANALYTICS_TOKEN` is empty; a wrong token is 401. FF Ops pulls it hourly for 1, 7, 30 and 90 days.
+

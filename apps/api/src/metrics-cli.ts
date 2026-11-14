@@ -34,4 +34,6 @@ async function main() {
   process.stdout.write('\n');
 }
 
-main().then(() => prisma.$disconnect()).then(() => process.exit(0)).catch(async (err) => { console.error(String(err?.message ?? err)); await prisma.$disconnect(); process.exit(1); });
+// exit only after stdout drained: a large answer piped over SSH was cut at 64 KB when the process exited first
+const flushed = () => new Promise<void>((r) => process.stdout.write('', () => r()));
+main().then(() => prisma.$disconnect()).then(flushed).then(() => process.exit(0)).catch(async (err) => { console.error(String(err?.message ?? err)); await prisma.$disconnect(); process.exit(1); });
